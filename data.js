@@ -1068,8 +1068,48 @@ class DataLoader {
   }
 }
 
+// Theme management
+function initTheme() {
+  const themeToggle = document.getElementById("theme-toggle");
+  const htmlElement = document.documentElement;
+
+  // Check for saved theme preference or default to system preference
+  const savedTheme = localStorage.getItem("theme");
+
+  if (savedTheme) {
+    htmlElement.setAttribute("data-theme", savedTheme);
+  } else {
+    // Check system preference
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
+    if (prefersDark) {
+      htmlElement.setAttribute("data-theme", "dark");
+    }
+  }
+
+  // Toggle theme on button click
+  themeToggle.addEventListener("click", () => {
+    const currentTheme = htmlElement.getAttribute("data-theme");
+    const newTheme = currentTheme === "dark" ? "light" : "dark";
+
+    htmlElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("theme", newTheme);
+  });
+
+  // Listen for system theme changes (only if no manual override)
+  window
+    .matchMedia("(prefers-color-scheme: dark)")
+    .addEventListener("change", (e) => {
+      if (!localStorage.getItem("theme")) {
+        htmlElement.setAttribute("data-theme", e.matches ? "dark" : "light");
+      }
+    });
+}
+
 // Initialize when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
+  initTheme();
   const loader = new DataLoader();
   loader.loadAll();
 });
