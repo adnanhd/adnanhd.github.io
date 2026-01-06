@@ -1,0 +1,103 @@
+# Publications and Projects
+# Add 'selected: true' to show in About page's "Selected Works" (fancy display with images)
+# Add 'resume: true' to show in Resume page's "Papers" section (all papers not selected)
+# Add 'image' field for publication thumbnail/GIF (recommended: animated GIF for visual impact)
+# Add 'venue_short' for the colored tag (e.g., "NeurIPS", "CVPR")
+# Add 'venue_link' for the venue page (OpenReview, conference page, etc.) - makes venue_short clickable
+# Links will be displayed as rectangular boxes (PAPER for PDF/arxiv, CODE, DEMO, BLOG, etc.)
+
+papers:
+  # Conference Publications
+  - title: "Bucketed Ranking Loss for Efficient Ranking-based Training of Object Detectors"
+    authors: "Yavuz, F., Cam B.C., Adnan Harun Dogan, Oksuz, K., Kalkan, S., Akbas, E."
+    venue: "European Conference on Computer Vision (ECCV)"
+    venue_short: "ECCV 2024"
+    date: "2024"
+    selected: true
+    resume: true
+    timelined: true
+    image: "images/publications/eccv2024.gif"
+    venue_link: "https://eccv.ecva.net/"
+    links:
+      - name: "PAPER"
+        url: "https://arxiv.org/pdf/2407.14204"
+
+  - title: "Misuse Detection and Response for Orchestrated Microservices Based Software"
+    authors: "Amin M. A., Adnan Harun Dogan, Kuru E. S., Sever Y., Angin P."
+    venue: "International Conference on Advanced Information Networking and Applications (AINA 2024)"
+    venue_short: "AINA 2024"
+    date: "2024"
+    resume: true
+    links:
+      - name: "PAPER"
+        url: "https://link.springer.com/chapter/10.1007/978-3-031-57916-5_19"
+
+  - title: "Two Might Do: A Beat-by-Beat Classification of Cardiac Abnormalities using Deep Learning and Domain-Specific Features"
+    authors: "Demirel, B. U., Adnan Harun Dogan, Al-Faruque, M. A."
+    venue: "Computing in Cardiology (CinC)"
+    venue_short: "CinC 2021"
+    date: "2021"
+    resume: true
+    venue_link: "https://www.cinc.org/"
+    links:
+      - name: "PAPER"
+        url: "https://www.cinc.org/2021/Program/accepted/33_Preprint.pdf"
+
+  - title: "Explainability in Irony Detection"
+    authors: "Buyukbas, E. B., Adnan Harun Dogan, Ozturk, A. U., Karagoz, P."
+    venue: "Big Data Analytics and Knowledge Discovery (DaWaK 2021), Lecture Notes in Computer Science, vol 12925, pp. 61-92"
+    venue_short: "DaWaK 2021"
+    date: "2021"
+    resume: true
+    links:
+      - name: "PAPER"
+        url: "https://doi.org/10.1007/978-3-030-86534-4_14"
+
+  # Journal Publications
+  - title: "A Kubernetes dataset for misuse detection"
+    authors: "Sever Y., Adnan Harun Dogan"
+    venue: "ITU Journal of FET"
+    venue_short: "ITU Journal 2023"
+    date: "2023"
+    resume: true
+    links:
+      - name: "PAPER"
+        url: "https://yigitsever.com/locker/severKubernetes2023/sever_2023_a_kubernetes_dataset_for_misuse_detection.pdf"
+      - name: "DATASET"
+        url: "https://github.com/yigitsever/kubernetes-dataset"
+
+  # Workshop Publications
+  - title: "An Empirical Analysis of IDS Approaches in Container Security"
+    authors: "Sever, Y., Ekinci, G., Adnan Harun Dogan, Alparslan, B., Gurbuz, A. S., Jabrayilov, V., Angin, P."
+    venue: "IEEE/SRMC'22, September 2022. Best Paper Award"
+    venue_short: "IEEE/SRMC 2022"
+    date: "Sep 2022"
+    resume: true
+    links:
+      - name: "PAPER"
+        url: "https://yigitsever.com/locker/severEmpirical2022/sever_2022_an_empirical_analysis_of_ids_approaches_in_container_security.pdf"
+
+  # Books & Edited Volumes
+  - title: "Enhancing Underground Built Heritage Analysis with Text Mining: A Case Study on Cappadocia"
+    authors: "Karagoz, P., Cekinel, R. F., Adnan Harun Dogan, Oktay, B., Ozturk, A. U., Tonay, S. T., Tunel, B. M."
+    venue: "In Valorising Underground Built Heritage in Cappadocia, pp. 61-92"
+    venue_short: "Book Chapter 2024"
+    date: "2024"
+    resume: true
+    links:
+      - name: "PAPER"
+        url: "https://ebuah.uah.es/dspace/bitstream/handle/10017/59325/reintroducing_magaz_valorising_2023.pdf?sequence=4"
+
+  # Technical Reports
+  - title: "An Assembled Deep Learning Approach for Flow Field Prediction"
+    authors: "Adnan Harun Dogan, Dogan, A."
+    venue: "Technical Report"
+    venue_short: "Tech Report 2021"
+    date: "Jun 2021"
+    resume: true
+    links:
+      - name: "PAPER"
+        url: "https://user.ceng.metu.edu.tr/~e2309896/pub/paper.pdf"
+
+# Google Scholar ID (for fetch_publications.py)
+google_scholar_id: "QGaRpqYAAAAJ"

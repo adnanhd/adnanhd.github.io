@@ -1,0 +1,25 @@
+# Education
+# Add 'logo' field for institution logo (place images in images/logos/)
+
+education:
+  - degree: "Master of Science in Computer Engineering"
+    institution: "Middle East Technical University (METU)"
+    location: "Ankara, Turkey"
+    start_date: "2022"
+    end_date: "10 Jan 2025"
+    logo: "images/logos/metu.png"
+    logo_link: "https://ceng.metu.edu.tr"
+    advisor: "Prof. Dr. Sinan Kalkan, Assist. Prof. Dr. Emre Akbas"
+    timelined: true
+    description: "Thesis: Incorporating Piecewise Linear Functions with Constant Regions in Backpropagation. Developed novel differentiable frameworks integrating combinatorial optimization algorithms into deep neural networks. Research focus: optimal transport theory, ranking-based losses, and advanced object detection architectures. Funded by TUBITAK 2247-C STAR National Scholarship Program."
+
+  - degree: "Bachelor of Science in Computer Engineering"
+    institution: "Middle East Technical University (METU)"
+    location: "Ankara, Turkey"
+    start_date: "2018"
+    end_date: "17 Jul 2022"
+    logo: "images/logos/metu.png"
+    logo_link: "https://ceng.metu.edu.tr"
+    advisor: "Assist. Prof. Dr. Hande Alemdar"
+    timelined: true
+    description: "Capstone Project: Designed and implemented a Transformer-based question-answering system utilizing T5 pre-trained architecture for extractive and abstractive text comprehension. Comprehensive curriculum spanning algorithms, systems programming, machine learning, and software engineering fundamentals."

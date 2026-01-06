@@ -1,0 +1,98 @@
+# Research Internships & Projects
+# Add 'logo' field for institution logo
+# Add 'logo_link' field to make logos clickable
+# Add 'advisor' field for supervisor names
+# Add 'commitment' field for hours/week × weeks (e.g., "30 hours/week × 4 weeks")
+# Add 'links' array for papers, code, demos, etc.
+# Add 'bullets' array for bullet-point details
+
+research:
+  - position: "Winter Research Intern"
+    company: "Image Processing and Pattern Recognition Laboratory (ImageLab), METU"
+    location: "Ankara, Turkey"
+    start_date: "Jan 2024"
+    end_date: "Feb 2024"
+    logo: "images/logos/metu.png"
+    logo_link: "https://image.ceng.metu.edu.tr/"
+    advisor: "Assist. Prof. Dr. Hande Alemdar, Assist. Prof. Dr. Baran Ugras"
+    commitment: "Part-time during semester"
+    description: "Developed neural network approximation methods for HLLC Riemann solver applications in computational fluid dynamics. Designed and trained state-of-the-art deep learning models achieving 4.4% performance improvement in predicting critical flow field parameters around airfoil geometries, with applications in aerospace engineering and numerical simulation acceleration."
+
+  - position: "Undergraduate Research Project"
+    company: "Center for Artificial Intelligence and Robotics (ROMER), METU"
+    location: "Ankara, Turkey"
+    start_date: "Jun 2021"
+    end_date: "Jul 2022"
+    logo: "images/logos/romer.png"
+    logo_link: "http://romer.metu.edu.tr"
+    advisor: "Assist. Prof. Dr. Erol Sahin, Assoc. Prof. Dr. Bugra Koku"
+    commitment: "Term project course: ME460"
+    description: "Reinforcement learning for autonomous driving (CarRL). Integrated ROS2 pipelines with RL/DL models in Gym and PyTorch for autonomous navigation."
+    links:
+      - name: "CODE"
+        url: "https://github.com/METU-KALFA/car_rl/wiki"
+
+  - position: "Undergraduate Research Project"
+    company: "Cyber Security Research Group, METU"
+    location: "Ankara, Turkey"
+    start_date: "Sep 2021"
+    end_date: "Jun 2022"
+    logo: "images/logos/metu.png"
+    logo_link: "https://www.ceng.metu.edu.tr"
+    advisor: "Assoc. Prof. Dr. Pelin Angin"
+    commitment: "6 hours/week"
+    description: "Advanced research on container security with intrusion detection systems (CONTSEC) for cloud-native environments. Designed and implemented high-performance IDS pipeline optimized for containerized cloud infrastructures. Collaborated on Kubernetes misuse detection research, contributing to novel datasets and detection methodologies. Funded by TUBITAK 2247-C STAR National Scholarship Program."
+    bullets:
+      - "Published research at AINA 2024 advancing microservices security architectures"
+      - "Received Best Paper Award at IEEE/SRMC 2022 for comprehensive empirical analysis of IDS approaches"
+      - "Contributed to journal publication in ITU FET introducing novel Kubernetes misuse detection dataset"
+    links:
+      - name: "PAPER"
+        url: "https://doi.org/10.1007/978-3-030-99619-2_1"
+      - name: "PDF"
+        url: "https://yigitsever.com/locker/severEmpirical2022/sever_2022_an_empirical_analysis_of_ids_approaches_in_container_security.pdf"
+
+  - position: "Undergraduate Research Project"
+    company: "Textual Event Graph HUB (TEGHub), METU"
+    location: "Ankara, Turkey"
+    start_date: "Oct 2020"
+    end_date: "Oct 2021"
+    logo: "images/logos/teghub.png"
+    logo_link: "http://teghub.ceng.metu.edu.tr"
+    advisor: "Prof. Dr. Pinar Karagoz"
+    commitment: "6 hours/week"
+    description: "Textual analysis for irony detection and research impact prediction. Implemented end-to-end neural pipelines integrating GCN and LSTM networks for analyzing citation patterns and textual content on Twitter datasets."
+    bullets:
+      - "Published at DaWaK 2021 on explainability in irony detection"
+      - "Developed graph-based models for information retrieval"
+
+  - position: "Undergraduate Research Project"
+    company: "School of Medicine, Koç University"
+    location: "Istanbul, Turkey"
+    start_date: "Feb 2020"
+    end_date: "Jun 2021"
+    logo: "images/logos/koc.png"
+    logo_link: "https://medicine.ku.edu.tr/"
+    advisor: "Assoc. Prof. Dr. Ozge Karanfil"
+    commitment: "6 hours/week × 60 weeks"
+    description: "Healthcare policy simulation for evidence-based decision making. Funding: TUBITAK 2247 C STAR Scholarship. Utilized simulation models focusing on mechatronics applications in healthcare. Developed GCN-based citation graph embeddings for healthcare policy papers."
+
+  - position: "Summer Intern"
+    company: "TUBITAK BILGEM"
+    location: "Kocaeli, Turkey"
+    start_date: "Aug 2021"
+    end_date: "Oct 2021"
+    logo: "images/logos/tubitak.png"
+    logo_link: "https://bilgem.tubitak.gov.tr/en"
+    commitment: "40 hours/week × 8 weeks"
+    description: "Cloud infrastructure development at Cloud Computing and Big Data Research Lab. Contributed to Sapphire Cloud platform enhancements."
+
+  - position: "Summer Intern"
+    company: "Enocta Inc."
+    location: "Ankara, Turkey"
+    start_date: "Aug 2020"
+    end_date: "Oct 2020"
+    logo: "images/logos/enocta.png"
+    logo_link: "https://www.enocta.com/"
+    commitment: "40 hours/week × 8 weeks"
+    description: "NLP and transformer model optimization. Engineered GPT-2 and T5 models using HuggingFace for enterprise learning management systems."

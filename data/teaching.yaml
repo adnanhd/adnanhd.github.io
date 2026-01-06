@@ -1,0 +1,108 @@
+# Teaching Experience
+# Add 'logo' field for institution logo
+# Add 'logo_link' field
+# Add 'advisor' field
+# Add 'bullets' array for listing courses or responsibilities
+
+teaching:
+  - position: "Teaching Assistant"
+    company: "Computer Engineering Department, METU"
+    location: "Ankara, Turkey"
+    start_date: "Spring 2025"
+    end_date: "Spring 2025"
+    logo: "images/logos/metu.png"
+    logo_link: "https://ceng.metu.edu.tr"
+    commitment: "20 hours/week"
+    description: "Conducted recitations, graded assignments and exams, and provided office hours for computer science courses."
+    bullets:
+      - "CENG 424 - Logic for Computer Science"
+      - "CENG 223 - Discrete Computational Structures"
+
+  - position: "Teaching Assistant"
+    company: "Computer Engineering Department, METU"
+    location: "Ankara, Turkey"
+    start_date: "Fall 2024"
+    end_date: "Fall 2024"
+    logo: "images/logos/metu.png"
+    logo_link: "https://ceng.metu.edu.tr"
+    commitment: "20 hours/week"
+    description: "Conducted recitations, graded assignments and exams, and provided office hours for computer science courses."
+    bullets:
+      - "CENG 280 - Formal Languages and Abstract Machines"
+      - "CENG 242 - Programming Language Concepts"
+
+  - position: "Teaching Assistant"
+    company: "Computer Engineering Department, METU"
+    location: "Ankara, Turkey"
+    start_date: "Spring 2024"
+    end_date: "Spring 2024"
+    logo: "images/logos/metu.png"
+    logo_link: "https://ceng.metu.edu.tr"
+    commitment: "20 hours/week"
+    description: "Conducted recitations, graded assignments and exams, and provided office hours for computer science courses."
+    bullets:
+      - "CENG 460 - Introduction to Robotics for Computer Engineering"
+      - "CENG 223 - Discrete Computational Structures"
+
+  - position: "Teaching Assistant"
+    company: "Computer Engineering Department, METU"
+    location: "Ankara, Turkey"
+    start_date: "Fall 2023"
+    end_date: "Fall 2023"
+    logo: "images/logos/metu.png"
+    logo_link: "https://ceng.metu.edu.tr"
+    commitment: "20 hours/week"
+    description: "Conducted recitations, graded assignments and exams, and provided office hours for computer science courses."
+    bullets:
+      - "CENG 382 - Analysis of Dynamic Systems"
+      - "CENG 242 - Programming Language Concepts"
+
+  - position: "Teaching Assistant"
+    company: "Computer Engineering Department, METU"
+    location: "Ankara, Turkey"
+    start_date: "Spring 2023"
+    end_date: "Spring 2023"
+    logo: "images/logos/metu.png"
+    logo_link: "https://ceng.metu.edu.tr"
+    commitment: "20 hours/week"
+    description: "Conducted recitations, graded assignments and exams, and provided office hours for computer science courses."
+    bullets:
+      - "CENG 424 - Logic for Computer Science"
+      - "CENG 223 - Discrete Computational Structures"
+
+  - position: "Teaching Assistant"
+    company: "Computer Engineering Department, METU"
+    location: "Ankara, Turkey"
+    start_date: "Fall 2022"
+    end_date: "Fall 2022"
+    logo: "images/logos/metu.png"
+    logo_link: "https://ceng.metu.edu.tr"
+    commitment: "20 hours/week"
+    description: "Conducted recitations, graded assignments and exams, and provided office hours for computer science courses."
+    bullets:
+      - "CENG 242 - Programming Language Concepts"
+      - "CENG 334 - Introduction to Operating Systems"
+
+  - position: "Undergraduate Teaching Assistant"
+    company: "Computer Engineering Department, METU"
+    location: "Ankara, Turkey"
+    start_date: "Fall 2021"
+    end_date: "Fall 2021"
+    logo: "images/logos/metu.png"
+    logo_link: "https://ceng.metu.edu.tr"
+    commitment: "8 hours/week"
+    description: "Conducted recitations, graded assignments and exams, and provided office hours for computer science courses."
+    bullets:
+      - "CENG 240 - Programming with Python for Engineers"
+
+  - position: "Undergraduate Teaching Assistant"
+    company: "Computer Engineering Department, METU"
+    location: "Ankara, Turkey"
+    start_date: "Fall 2020"
+    end_date: "Fall 2020"
+    logo: "images/logos/metu.png"
+    logo_link: "https://ceng.metu.edu.tr"
+    commitment: "8 hours/week"
+    description: "Conducted recitations, graded assignments and exams, and provided office hours for computer science courses."
+    bullets:
+      - "CENG 111 - Introduction to Computer Engineering Concepts"

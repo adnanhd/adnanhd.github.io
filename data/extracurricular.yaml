@@ -1,0 +1,36 @@
+# Honors, Awards & Scholarships
+# Add 'logo' field for organization logo
+
+honors:
+  - title: "TUBITAK 2247 C STAR Scholarship"
+    organization: "The Scientific and Technological Research Institution of Turkey (TÜBİTAK)"
+    date: "2022-Present"
+    logo: "images/logos/tubitak.png"
+    description: "Graduate research scholarship for thesis work on differentiable combinatorial optimization"
+
+  - title: "Best Paper Award"
+    organization: "IEEE/SRMC'22"
+    date: "September 2022"
+    logo: "images/logos/ieee.png"
+    description: "For 'An Empirical Analysis of IDS Approaches in Container Security'"
+
+  - title: "TUBITAK 2247 C STAR Scholarship"
+    organization: "The Scientific and Technological Research Institution of Turkey (TÜBİTAK)"
+    date: "2021-2022"
+    logo: "images/logos/tubitak.png"
+    description: "Undergraduate research scholarship for CONTSEC project on container security"
+
+  - title: "TUBITAK 2247 C STAR Scholarship"
+    organization: "The Scientific and Technological Research Institution of Turkey (TÜBİTAK)"
+    date: "2020-2021"
+    logo: "images/logos/tubitak.png"
+    description: "Undergraduate research scholarship for healthcare policy simulation models"
+
+# Technical Skills
+skills:
+  - "Python/PyTorch"
+  - "Variational and Generative Modeling"
+  - "Computer Vision"
+  - "Statistical Machine Learning"
+  - "Combinatorial Optimization"
+  - "Reinforcement Learning"

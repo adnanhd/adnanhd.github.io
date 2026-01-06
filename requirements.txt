@@ -1,0 +1,3 @@
+# Python dependencies for fetching Google Scholar publications
+scholarly>=1.7.0
+PyYAML>=6.0

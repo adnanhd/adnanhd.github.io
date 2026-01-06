@@ -1,0 +1,37 @@
+name: "Adnan Harun Dogan"
+title: "Graduate Research & Teaching Assistant"
+affiliation: "Middle East Technical University"
+profile_image: "profile.jpeg"
+
+# Short bio for left sidebar (1-2 sentences)
+short_bio: "Graduate researcher at METU specializing in differentiable optimization and deep learning for computer vision. Bridging combinatorial algorithms with end-to-end neural network training."
+
+# Full bio for main content
+bio: |
+  I am a Master's student in Computer Engineering at <a href="https://ceng.metu.edu.tr" target="_blank">Middle East Technical University (METU)</a>,
+  working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/" target="_blank">Prof. Dr. Sinan Kalkan</a> and <a href="http://user.ceng.metu.edu.tr/~emre/" target="_blank">Assist. Prof. Dr. Emre Akbas</a> at the
+  <a href="https://image.ceng.metu.edu.tr/" target="_blank">Image Processing and Pattern Recognition Laboratory (ImageLab)</a>.
+
+  My research advances the integration of combinatorial optimization algorithms into deep neural networks through novel differentiable frameworks. I specialize in ranking-based losses, optimal transport theory, and their applications to object detection systems. My master's thesis develops innovative methods for incorporating piecewise linear functions with constant regions in backpropagation, enabling sophisticated end-to-end training of complex neural architectures with improved performance and interpretability.
+
+  I have contributed to cutting-edge research through collaborations with leading institutions: at <a href="https://siplab.org/" target="_blank">ETH Zürich's Sensing, Interaction & Perception Lab</a>, I developed deep learning architectures for real-time cybersickness detection in virtual reality environments using EEG signals; at <a href="https://www.ics.uci.edu/" target="_blank">UC Irvine's Cyber-Physical Systems Laboratory</a>, I designed multi-modal deep learning systems for cardiac abnormality detection from physiological signals, achieving state-of-the-art performance in beat-by-beat classification.
+
+# Social links - just provide the IDs/usernames
+social:
+  email: "adnanharundogan@gmail.com"
+  github: "adnanhd"
+  linkedin: "adnanharundogan"
+  google_scholar: "QGaRpqYAAAAJ"
+  acm: "99661581198"
+  ieee: "37089236778"
+  dblp: "301/3453"
+  semantic_scholar: "39520066"
+  twitter: "adnanharundogan" # Optional: leave empty if you don't have one
+  orcid: "0000-0002-6802-6405" # Optional: your ORCID ID
+
+# If you want to add custom links not in the standard list above
+custom_links:
+  - name: "CV"
+    url: "cv.pdf"
+  # - name: "Blog"
+  #   url: "https://yourblog.com"

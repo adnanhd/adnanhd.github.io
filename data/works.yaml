@@ -1,0 +1,10 @@
+# Selected Works (Repositories, Projects, etc.)
+# These will be shown on the About page
+
+works:
+  # Example:
+  # - title: "Project Name"
+  #   description: "Brief description of the project"
+  #   url: "https://github.com/adnanhd/project"
+  #   image: "images/works/project.png"  # Optional
+  #   tags: ["Python", "PyTorch", "Deep Learning"]

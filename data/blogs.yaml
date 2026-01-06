@@ -1,0 +1,13 @@
+# Blog Posts
+# Add blog entries with path to HTML files
+# Add 'selected: true' to show on About page
+
+blogs:
+  # Example blog post
+  # - title: "My First Blog Post"
+  #   date: "Jan 2026"
+  #   description: "A brief description of the blog post"
+  #   path: "blogs/first-post/index.html"
+  #   image: "images/blogs/first-post.png"  # Optional thumbnail
+
+  # Add your blog posts here

@@ -1,0 +1,52 @@
+# Research & Work Experience
+# Add 'logo' field for company/institution logo
+# Add 'logo_link' field to make logos clickable
+# Add 'advisor' field for supervisor/advisor names (will be hidden if empty)
+# Add 'commitment' field for hours/week × weeks
+# Add 'links' array for papers, code, demos, etc.
+# Add 'bullets' array for bullet-point lists (e.g., course names)
+
+experience:
+  - position: "Graduate Research Assistant"
+    company: "Image Processing and Pattern Recognition Laboratory (ImageLab), METU"
+    location: "Ankara, Turkey"
+    start_date: "Feb 2022"
+    end_date: "Present"
+    logo: "images/logos/metu.png"
+    logo_link: "https://image.ceng.metu.edu.tr/"
+    advisor: "Prof. Dr. Sinan Kalkan, Assist. Prof. Dr. Emre Akbas"
+    commitment: "Full-time"
+    timelined: true
+    description: "Pioneering research on differentiable optimization frameworks for deep learning in computer vision. Developed novel methods for incorporating combinatorial optimization algorithms into neural network training pipelines, achieving state-of-the-art performance in object detection. Funded by TUBITAK 2247-C STAR National Scholarship Program."
+    bullets:
+      - "Designed and implemented bucketed ranking loss with Sinkhorn-Knopp algorithm integration for DETR (Detection Transformer) architecture"
+      - "Achieved significant performance improvements in end-to-end object detection training through optimal transport-based loss formulations"
+      - "Published first-author paper at ECCV 2024, a premier computer vision conference (Acceptance Rate: ~27%)"
+
+  - position: "Research Intern"
+    company: "Sensing, Interaction, & Perception Laboratory (SIPLab), ETH Zürich"
+    location: "Zürich, Switzerland"
+    start_date: "Dec 2023"
+    end_date: "Mar 2024"
+    logo: "images/logos/eth.png"
+    logo_link: "https://siplab.org/"
+    advisor: "Prof. Dr. Christian Holz"
+    commitment: "Full-time, 4 months"
+    timelined: true
+    description: "Advanced research on continuous cybersickness detection in virtual reality environments using EEG-based multitaper spectrum estimation. Pioneered novel deep learning architectures achieving 30% performance improvement over baseline methods in real-time cybersickness prediction from brain signals, with potential applications in adaptive VR systems and user experience optimization."
+
+  - position: "Undergraduate Research Intern"
+    company: "Cyber-Physical Systems Laboratory, University of California, Irvine"
+    location: "Irvine, California, USA"
+    start_date: "Feb 2021"
+    end_date: "Jun 2022"
+    logo: "images/logos/uci.png"
+    logo_link: "https://www.ics.uci.edu/"
+    advisor: "Assist. Prof. Dr. Mohammad Abdullah Al-Faruque"
+    commitment: "Remote collaboration, Full-time, 16 months"
+    description: "Developed sophisticated multi-modal deep learning systems for cardiac and sleep abnormality detection from physiological signals. Designed novel architectures integrating time-series analysis with spectral feature extraction for beat-by-beat cardiac arrhythmia classification, achieving competitive performance in international challenges. Published research findings at Computing in Cardiology (CinC) 2021."
+    links:
+      - name: "PAPER"
+        url: "https://www.cinc.org/2021/Program/accepted/33_Preprint.pdf"
+      - name: "CODE"
+        url: "https://github.com/muraitsari/covid19-plnn"

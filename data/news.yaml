@@ -1,0 +1,14 @@
+items:
+  - date: "Jan 2026"
+    content: "Started my personal website!"
+
+  - date: "Dec 2025"
+    content: "Pa23per accepted at Conference 2026"
+    link: "https://example.com/paper"
+
+  - date: "Nov 2025"
+    content: "Gave a talk at Workshop on Machine Learning"
+
+  - date: "Oct 2025"
+    content: "Released open-source project on GitHub"
+    link: "https://github.com/adnanhd/project"
