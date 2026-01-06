@@ -40,30 +40,40 @@
             <main class="main-content">
                 <!-- Navigation -->
                 <nav class="main-nav">
-                    <a
-                        href="#about"
-                        class="nav-link active"
-                        onclick="showPage('about')"
-                        >About</a
+                    <div class="nav-links">
+                        <a
+                            href="#about"
+                            class="nav-link active"
+                            onclick="showPage('about')"
+                            >About</a
+                        >
+                        <a
+                            href="#resume"
+                            class="nav-link"
+                            onclick="showPage('resume')"
+                            >Resume</a
+                        >
+                        <a
+                            href="#blogs"
+                            class="nav-link"
+                            onclick="showPage('blogs')"
+                            >Blogs</a
+                        >
+                        <a
+                            href="#contact"
+                            class="nav-link"
+                            onclick="showPage('contact')"
+                            >News</a
+                        >
+                    </div>
+                    <button
+                        id="theme-toggle"
+                        class="theme-toggle"
+                        aria-label="Toggle theme"
                     >
-                    <a
-                        href="#resume"
-                        class="nav-link"
-                        onclick="showPage('resume')"
-                        >Resume</a
-                    >
-                    <a
-                        href="#blogs"
-                        class="nav-link"
-                        onclick="showPage('blogs')"
-                        >Blogs</a
-                    >
-                    <a
-                        href="#contact"
-                        class="nav-link"
-                        onclick="showPage('contact')"
-                        >News</a
-                    >
+                        <i class="fas fa-sun"></i>
+                        <i class="fas fa-moon"></i>
+                    </button>
                 </nav>
 
                 <!-- About Page (like Berken's) -->
