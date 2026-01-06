@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="description"
+            content="Adnan Harun Dogan - Personal Website"
+        />
+        <title>Adnan Harun Dogan</title>
+        <link rel="stylesheet" href="style.css" />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css"
+        />
+        <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+        <script src="data.js"></script>
+    </head>
+    <body>
+        <div class="page-layout">
+            <!-- Left Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-content">
+                    <div class="bio-image">
+                        <img src="profile.jpeg" alt="Adnan Harun Dogan" />
+                    </div>
+                    <h1 class="sidebar-name">Adnan Harun Dogan</h1>
+                    <p class="sidebar-title">Your Title/Position Here</p>
+                    <p class="sidebar-affiliation">Your Institution/Company</p>
+                    <p class="bio-short">Short bio will appear here</p>
+                    <div class="links"></div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Navigation -->
+                <nav class="main-nav">
+                    <a
+                        href="#about"
+                        class="nav-link active"
+                        onclick="showPage('about')"
+                        >About</a
+                    >
+                    <a
+                        href="#resume"
+                        class="nav-link"
+                        onclick="showPage('resume')"
+                        >Resume</a
+                    >
+                    <a
+                        href="#blogs"
+                        class="nav-link"
+                        onclick="showPage('blogs')"
+                        >Blogs</a
+                    >
+                    <a
+                        href="#contact"
+                        class="nav-link"
+                        onclick="showPage('contact')"
+                        >News</a
+                    >
+                </nav>
+
+                <!-- About Page (like Berken's) -->
+                <div id="about" class="page-section active">
+                    <section class="content-section">
+                        <h2>About Me</h2>
+                        <div class="bio-description"></div>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>Publications</h2>
+                        <div
+                            id="selected-works"
+                            class="publications-grid"
+                        ></div>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>Blogs</h2>
+                        <div id="selected-blogs" class="blog-list"></div>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>Open Source</h2>
+                        <div id="selected-repos" class="repos-list"></div>
+                    </section>
+                </div>
+
+                <!-- Blogs Page -->
+                <div id="blogs" class="page-section">
+                    <section class="content-section">
+                        <h2>Blog Posts</h2>
+                        <div id="blog-posts" class="blog-list"></div>
+                    </section>
+                </div>
+
+                <!-- Resume Page (like Selim's) -->
+                <div id="resume" class="page-section">
+                    <section class="content-section">
+                        <h2>Education</h2>
+                        <div id="education-list"></div>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>Papers</h2>
+                        <div id="resume-papers" class="publications-grid"></div>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>Experience</h2>
+                        <div id="experience-list"></div>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>Research Internships</h2>
+                        <div id="research-list"></div>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>Teaching Experience</h2>
+                        <div id="teaching-list"></div>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>Honors, Awards, and Scores</h2>
+                        <div id="honors-list"></div>
+                    </section>
+                </div>
+
+                <!-- News Page -->
+                <div id="contact" class="page-section">
+                    <section class="content-section">
+                        <h2>News</h2>
+                        <ul class="news-list"></ul>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>Timeline</h2>
+                        <div id="timeline-container"></div>
+                    </section>
+                </div>
+
+                <footer>
+                    <p>&copy; 2026 Adnan Harun Dogan. All rights reserved.</p>
+                </footer>
+            </main>
+        </div>
+
+        <script>
+            function showPage(pageId) {
+                document.querySelectorAll(".page-section").forEach((page) => {
+                    page.classList.remove("active");
+                });
+                document.getElementById(pageId).classList.add("active");
+
+                document.querySelectorAll(".nav-link").forEach((link) => {
+                    link.classList.remove("active");
+                });
+                document
+                    .querySelector(`[onclick="showPage('${pageId}')"]`)
+                    .classList.add("active");
+            }
+        </script>
+    </body>
+</html>

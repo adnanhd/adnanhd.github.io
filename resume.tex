@@ -1,0 +1,538 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%% Simple LaTeX CV Template %%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% NOTE: If you find that it says                                     %%
+%%                                                                    %%
+%%                           1 of ??                                  %%
+%%                                                                    %%
+%% at the bottom of your first page, this means that the AUX file     %%
+%% was not available when you ran LaTeX on this source. Simply RERUN  %%
+%% LaTeX to get the ``??'' replaced with the number of the last page  %%
+%% of the document. The AUX file will be generated on the first run   %%
+%% of LaTeX and used on the second run to fill in all of the          %%
+%% references.                                                        %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% Document Setup %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Don't like 10pt? Try 11pt or 12pt
+\documentclass[10pt]{article}
+
+% This is a helpful package that puts math inside length specifications
+\usepackage{calc}
+
+\usepackage{csquotes}
+% Layout: Puts the section titles on left side of page
+\reversemarginpar
+
+%
+%         PAPER SIZE, PAGE NUMBER, AND DOCUMENT LAYOUT NOTES:
+%
+% The next \usepackage line changes the layout for CV style section
+% headings as marginal notes. It also sets up the paper size as either
+% letter or A4. By default, letter was used. If A4 paper is desired,
+% comment out the letterpaper lines and uncomment the a4paper lines.
+%
+% As you can see, the margin widths and section title widths can be
+% easily adjusted.
+%
+% ALSO: Notice that the includefoot option can be commented OUT in order
+% to put the PAGE NUMBER *IN* the bottom margin. This will make the
+% effective text area larger.
+%
+% IF YOU WISH TO REMOVE THE ``of LASTPAGE'' next to each page number,
+% see the note about the +LP and -LP lines below. Comment out the +LP
+% and uncomment the -LP.
+%
+% IF YOU WISH TO REMOVE PAGE NUMBERS, be sure that the includefoot line
+% is uncommented and ALSO uncomment the \pagestyle{empty} a few lines
+% below.
+%
+
+%% Use these lines for letter-sized paper
+% \usepackage[paper=letterpaper,
+%             %includefoot, % Uncomment to put page number above margin
+%             marginparwidth=1.2in,     % Length of section titles
+%             marginparsep=.05in,       % Space between titles and text
+%             margin=1in,               % 1 inch margins
+%             includemp]{geometry}
+
+%% Use these lines for A4-sized paper
+\usepackage[paper=a4paper,
+           %includefoot, % Uncomment to put page number above margin
+           marginparwidth=30.5mm,    % Length of section titles
+           marginparsep=1.5mm,       % Space between titles and text
+           margin=25mm,              % 25mm margins
+           includemp]{geometry}
+
+%% More layout: Get rid of indenting throughout entire document
+\setlength{\parindent}{0in}
+
+%% This gives us fun enumeration environments. compactenum will be nice.
+\usepackage{paralist}
+
+%% Reference the last page in the page number
+%
+% NOTE: comment the +LP line and uncomment the -LP line to have page
+%       numbers without the ``of ##'' last page reference)
+%
+% NOTE: uncomment the \pagestyle{empty} line to get rid of all page
+%       numbers (make sure includefoot is commented out above)
+%
+\usepackage{fancyhdr,lastpage}
+\pagestyle{fancy}
+%\pagestyle{empty}      % Uncomment this to get rid of page numbers
+\fancyhf{}\renewcommand{\headrulewidth}{0pt}
+\fancyfootoffset{\marginparsep+\marginparwidth}
+\newlength{\footpageshift}
+\setlength{\footpageshift}
+          {0.5\textwidth+0.5\marginparsep+0.5\marginparwidth-2in}
+\lfoot{\hspace{\footpageshift}%
+       \parbox{4in}{\, \hfill %
+                    \arabic{page} of \protect\pageref*{LastPage} % +LP
+%                    \arabic{page}                               % -LP
+                    \hfill \,}}
+
+% Finally, give us PDF bookmarks
+\usepackage{color,hyperref}
+\definecolor{darkblue}{rgb}{0.0,0.0,0.3}
+\hypersetup{colorlinks,breaklinks,
+            linkcolor=darkblue,urlcolor=darkblue,
+            anchorcolor=darkblue,citecolor=darkblue}
+
+%%%%%%%%%%%%%%%%%%%%%%%% End Document Setup %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%% Helper Commands %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% The title (name) with a horizontal rule under it
+%
+% Usage: \makeheading{name}
+%
+% Place at top of document. It should be the first thing.
+\newcommand{\makeheading}[1]%
+        {\hspace*{-\marginparsep minus \marginparwidth}%
+         \begin{minipage}[t]{\textwidth+\marginparwidth+\marginparsep}%
+                {\large \bfseries #1}\\[-0.15\baselineskip]%
+                 \rule{\columnwidth}{1pt}%
+         \end{minipage}}
+
+% The section headings
+%
+% Usage: \section{section name}
+%
+% Follow this section IMMEDIATELY with the first line of the section
+% text. Do not put whitespace in between. That is, do this:
+%
+%       \section{My Information}
+%       Here is my information.
+%
+% and NOT this:
+%
+%       \section{My Information}
+%
+%       Here is my information.
+%
+% Otherwise the top of the section header will not line up with the top
+% of the section. Of course, using a single comment character (%) on
+% empty lines allows for the function of the first example with the
+% readability of the second example.
+\renewcommand{\section}[2]%
+        {\pagebreak[2]\vspace{1.3\baselineskip}%
+         \phantomsection\addcontentsline{toc}{section}{#1}%
+         \hspace{0in}%
+         \marginpar{
+         \raggedright \scshape #1}#2}
+
+% An itemize-style list with lots of space between items
+\newenvironment{outerlist}[1][\enskip\textbullet]%
+        {\begin{enumerate}[#1]}{\end{enumerate}%
+         \vspace{-.6\baselineskip}}
+
+% An itemize-style list with little space between items
+\newenvironment{innerlist}[1][\enskip\textbullet]%
+        {\begin{compactenum}[#1]}{\end{compactenum}}
+
+% To add some paragraph space between lines.
+% This also tells LaTeX to preferably break a page on one of these gaps
+% if there is a needed pagebreak nearby.
+\newcommand{\blankline}{\quad\pagebreak[2]}
+\newcommand{\comment}[1]{{}}
+%%%%%%%%%%%%%%%%%%%%%%%% End Helper Commands %%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%% Begin CV Document %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\makeheading{Adnan Harun Dogan}
+
+\section{Contact Information}
+%
+% NOTE: Mind where the & separators and \\ breaks are in the following
+%       table.
+%
+% ALSO: \rcollength is the width of the right column of the table
+%       (adjust it to your liking; default is 1.85in).
+%
+\newlength{\rcollength}\setlength{\rcollength}{2.7in}%
+%
+\begin{tabular}[t]{@{}p{\textwidth-\rcollength}p{\rcollength}}
+ %& \\
+\href{http://image.ceng.metu.edu.tr/}{Image Proc. and Pattern Recog. Lab.} & \\
+\href{http://www.ceng.metu.edu.tr/}{Dept. of Computer Engineering,} & \\
+\href{http://www.metu.edu.tr}{Middle East Technical University} & \textit{Git:} \href{https://github.com/adnanhd}{@adnanhd} \\
+Inonu Bulvari, 06531       & \textit{E-mail:} \href{mailto:doganh@metu.edu.tr}{doganh@metu.edu.tr} \\
+Ankara, Turkey       %& \textit{WWW:} \href{http://www.kovan.ceng.metu.edu.tr/~sinan}{www.kovan.ceng.metu.edu.tr/$\sim$sinan} \\
+\end{tabular}
+
+
+%\begin{section}{Objective}
+%	Contribute to the development of new ideas
+%	and technologies for Computer Vision, Pattern Recognition and Cognitive Robotics.
+%\end{section}
+
+%\begin{section}{Personal Information}
+
+%	\vspace*{-0.3cm}
+%	\begin{tabular}{lcl}
+		%Place and date of birth & : & Ankara (Turkey), 15.09.1979 \\
+%		Nationality & : & Turkish
+%	\end{tabular}
+
+%\end{section}
+
+%\begin{section}{Brief Overview}
+%    Dr. Kalkan, with an h-index of 20+ and 100+ publications on the subject, is an expert on developing machine learning (mostly deep learning) solutions to real-world problems which require an automated system making decisions based on sensory data. Over the last 7 years, he has been working on several computer vision and robotics problems such as object detection, contextual modeling and lifelong learning. Dr. Kalkan's research has been supported by TUBITAK (Technological Research Council of Turkey) and EU Research Council. His work has been recognized by many awards, including Science Academy, Turkey Young Scientist Award (2020), Outstanding Paper Award at IEEE Transactions on Cognitive and Developmental Systems (2019) and METU Best Thesis Award (2018).
+%\end{section}
+
+%\begin{section}{Selected Papers}
+%    \begin{innerlist}
+%
+%        \item[-]  \textbf{Dogan A. H.}, Oksuz K., Yavuz F., Kalkan S. \& Akbas E. (CVPR 2024 Submission) \\%Universal Update: Learning Representations for Combinatorial Optimization Algorithms \\
+
+%        \item[-]  Yavuz F., Cam B.C., \textbf{Dogan A. H.}, Oksuz K., Kalkan S. \& Akbas E. (CVPR 2024 Submission) %Bucketed Ranking Loss for Efficient Ranking-based Training of Object Detectors \\
+
+%    \end{innerlist}
+%\end{section}
+
+\begin{section}{Education}
+	%Ph.D, \href{http://www.ifi.informatik.uni-goettingen.de/}{Institute for Computer Science, University of G\"ottingen}, 2008\\
+	%	\begin{innerlist}
+	%		\item[-] Thesis Topic: Analysis and rectification of ambiguity in visual information.
+	%		\item[-] Advisors:\\
+	%			\href{http://www.bccn-goettingen.de/People/person.2006-10-04.1932142124}{Prof. Florentin W\"org\"otter}, BCCN, G\"ottingen, Germany\\
+	%			\href{http://covil.sdu.dk}{Assoc. Prof. Norbert Kr\"uger}, Cognitive Vision Lab, Odense, Denmark
+	%		\item[-] Area of Study: Cognitive and Computer Vision.
+	%	\end{innerlist}
+    %
+	%\blankline
+    %
+    \textbf{Master of Science in Computer Engineering} \hfill {\bf 10 Jan 2025} \\
+    \href{http://www.ceng.metu.edu.tr/}{Middle East Technical University} (METU), Ankara, Turkey
+    \begin{innerlist}
+        \item[-] \textbf{Thesis}: \emph{Incorporating Piecewise Linear Functions with Constant Regions in Backpropagation}
+        \item[-] \textbf{Advisors}: \href{http://www.ceng.metu.edu.tr/~skalkan/}{Prof. Dr. Sinan Kalkan}, \href{http://www.ceng.metu.edu.tr/~emre/}{Assist. Prof. Dr. Emre Akbas}
+        \item[-] \textbf{Focus Areas}: Optimal transport, ranking-based losses, object detection
+			%\item[-] \textbf{Cumulative GPA}: 4.00/4.00.
+    \end{innerlist}
+
+	\blankline
+
+    \textbf{Bachelor of Science in Computer Engineering} \hfill {\bf 17 Jul 2022} \\
+    \href{http://www.ceng.metu.edu.tr/}{Middle East Technical University} (METU), Ankara, Turkey
+    \begin{innerlist}
+        \item[-] \textbf{Graduation Project}: Engineered a Transformer-based large language model (pre-trained in T5) to generate question answers from input text.
+        % \item[-] Cumulative GPA: 3.70/4.00.
+    \end{innerlist}
+
+\end{section}
+
+\begin{section}{Selected Research Projects}
+    \textbf{Continuous Cybersickness Detection Using EEG-based Multitaper Spectrum Estimation} \hfill {\bf Dec 2023 -- Mar 2024} \\
+    \href{https://siplab.org/}{Sensing, Interaction, \& Perception Lab. (SIPLab)}, \href{https://ethz.ch/en.html}{ETH Zürich}, Switzerland
+    \begin{innerlist}
+        \item[-] \textbf{Supervisor}: \href{https://scholar.google.com/citations?user=OfXP9jMAAAAJ}{ Prof. Dr. Christian Holz}
+        \item[-] Pioneered a deep learning architecture to detect cybersickness levels from EEG-based sensory data with 30\% improvement in real-time in VR environments.
+        \item[-] Implemented a novel preprocessing method for \textbf{ViT} and \textbf{Swin} to achieve input shift invariance.
+        %\item[-] \textbf{Publication}: Submitted to IEEE Transactions on Visualization and Computer Graphics (TVCG), 2024
+    \end{innerlist}
+
+    \blankline
+
+    \textbf{Differentiating Through Combinatorial Optimization Algorithms Incorporated into Deep Neural Networks} \hfill {\bf Feb 2022 -- Present} \\
+    \href{https://image.ceng.metu.edu.tr/}{Image Processing and Pattern Recognition Lab. (ImageLab)}, \href{http://www.ceng.metu.edu.tr}{METU}, Ankara, Turkey
+    \begin{innerlist}
+        \item[-] \textbf{Supervisors}: Prof. Dr. Sinan Kalkan, Assist. Prof. Dr. Emre Akbas
+        \item[-] \textbf{Funding}: TUBITAK C 2247 STAR Scholarship
+        \item[-] Architected and implemented a novel differentiable framework that seamlessly integrates complex combinatorial algorithms into deep neural networks, enhancing end-to-end training capabilities significantly.
+        \item[-] Integrated the Sinkhorn-Knopp algorithm into ranking-based losses within DETR\footnote{Detection Transformer}.
+        \item[-] Enhanced end-to-end training capabilities, facilitating the seamless incorporation of complex algorithmic decision-making within neural architectures.
+        % \item[-] \textbf{Publication}: European Conference on Computer Vision (ECCV), 2024
+    \end{innerlist}
+
+    \blankline
+
+    \textbf{CNNFOIL: \emph{Approximating HLLC Riemann Solver for Flow Prediction around Airfoils via Encoder-Decoder Neural Networks}} \hfill {\bf 2020 -- 2022} \\
+    \href{https://image.ceng.metu.edu.tr/}{Image Processing and Pattern Recognition Lab. (ImageLab)}, \href{http://www.ceng.metu.edu.tr}{METU}, Ankara, Turkey
+    \begin{innerlist}
+        %\item \textbf{Role}: Researcher
+        \item[-] \textbf{Supervisors}: Assist. Prof. Dr. Hande Alemdar, Assist. Prof. Dr. Baran Ugras
+        \item[-] Engineered state-of-the-art neural network models that approximate the HLLC Riemann solver, achieving a 4.4\% performance improvement in predicting critical flow field parameters around airfoils.
+    \end{innerlist}
+
+    \blankline
+
+    \textbf{CarRL: Reinforcement Autonomous Driving} \hfill {\bf Jun 2021 -- Jul 2022} \\
+    \href{http://romer.metu.edu.tr}{Center for Artificial Intelligence and Robotics (ROMER)}, \href{http://www.ceng.metu.edu.tr}{METU}, Ankara, Turkey
+    \begin{innerlist}
+        \item[-] \textbf{Supervisor(s)}: \href{http://kovan.ceng.metu.edu.tr/~erol//}{Assist. Prof. Dr. E. Sahin}, \href{https://me.metu.edu.tr/kisi/bugra-koku}{Assoc. Prof. Dr. B. Koku}.
+        \item[-] Integrated ROS2 pipelines with RL/DL models implemented in \textbf{Gym} and \textbf{PyTorch} for \emph{autonomous navigation}, enhancing real-time decision-making capabilities. \href{https://github.com/METU-KALFA/car_rl/wiki}{GitHub}
+    \end{innerlist}
+\end{section}
+
+\begin{section}{Publications}
+    \textbf{Conference Publications}
+    \begin{outerlist}
+        \item[-] Yavuz, F., Cam B.C., \textbf{Dogan, A. H.}, Oksuz, K., Kalkan, S., \& Akbas, E. (2024). \emph{Bucketed Ranking Loss for Efficient Ranking-based Training of Object Detectors}. In \textit{European Conference on Computer Vision (ECCV)}. \href{https://arxiv.org/pdf/2407.14204}{PDF}
+
+        Amin M. A., \textbf{Dogan A. H.}, Kuru E. S., Sever Y., Angin P. (2024). \emph{Misuse Detection and Response for Orchestrated Microservices Based Software}. In \textit{International Conference on Advanced Information Networking and Applications (AINA 2024)}. pp 217–226.
+
+        \item[-] Demirel, B. U., \textbf{Dogan, A. H.}, \& Al-Faruque, M. A. (2021). \emph{Two Might Do: A Beat-by-Beat Classification of Cardiac Abnormalities using Deep Learning and Domain-Specific Features}. \textit{Computing in Cardiology (CinC)}, 2021. \href{https://www.cinc.org/2021/Program/accepted/33_Preprint.pdf}{PDF}
+
+        \item[-] Buyukbas, E. B., \textbf{Dogan, A. H.}, Ozturk, A. U., \& Karagoz, P. (2021). \emph{Explainability in Irony Detection}. \textit{Big Data Analytics and Knowledge Discovery (DaWaK 2021)}, Lecture Notes in Computer Science, vol 12925, pp. 61-92. Springer, Cham. \href{https://doi.org/10.1007/978-3-030-86534-4_14}{DOI}
+    \end{outerlist}
+	\blankline
+
+    \textbf{Journal Publications}
+    \begin{outerlist}
+	    \item[-] Sever Y., and \textbf{Dogan A. H.} (2023). \emph{A Kubernetes dataset for misuse detection}. \textit{ITU Journal of FET}. \href{https://yigitsever.com/locker/severKubernetes2023/sever_2023_a_kubernetes_dataset_for_misuse_detection.pdf}{PDF}
+    \end{outerlist}
+	\blankline
+
+
+    \textbf{Workshop Publications}
+    \begin{outerlist}
+        \item[-] Sever, Y., Ekinci, G., \textbf{Dogan, A. H.}, Alparslan, B., Gurbuz, A. S., Jabrayilov, V., Angin, P. (2022). \emph{An Empirical Analysis of IDS Approaches in Container Security}. \textit{IEEE/SRMC'22}, September 2022. \textbf{Best Paper Award}. \href{https://yigitsever.com/locker/severEmpirical2022/sever_2022_an_empirical_analysis_of_ids_approaches_in_container_security.pdf}{PDF}
+    \end{outerlist}
+	\blankline
+
+    \textbf{Books \& Edited Volumes}
+    \begin{outerlist}
+        \item[-] Karagoz, P., Cekinel, R. F., \textbf{Dogan, A. H.}, Oktay, B., Ozturk, A. U., Tonay, S. T., Tunel, B. M. (2024). \emph{Enhancing Underground Built Heritage Analysis with Text Mining: A Case Study on Cappadocia}. In M. Golfarelli, R. Wrembel, G. Kotsis, A. M. Tjoa, \& I. Khalil (Eds.), \textit{Valorising Underground Built Heritage in Cappadocia}, pp. 61-92. \href{https://ebuah.uah.es/dspace/bitstream/handle/10017/59325/reintroducing_magaz_valorising_2023.pdf?sequence=4}{PDF}
+    \end{outerlist}
+	\blankline
+
+    \textbf{Technical Reports}
+    \begin{outerlist}
+        \item[-] \textbf{Dogan, A. H.}, \& Dogan, A. (2021, June). \emph{An Assembled Deep Learning Approach for Flow Field Prediction}. \href{https://user.ceng.metu.edu.tr/~e2309896/pub/paper.pdf}{PDF}.
+    \end{outerlist}
+\end{section}
+
+
+%\begin{section}{Related Course Work}
+%	Deep Learning
+%    -- Advanced Deep Learning
+%    -- Deep Generative Models
+%	-- Decision Theory and Bayesian Analysis
+%	-- Numerical Optimization
+%	-- Computer Aided Formal Verification
+%	-- Operating Systems
+%	-- Logic for Computer Science
+%	-- Formal Languages
+%\end{section}
+
+\begin{section}{Technical Experise}
+  Python/PyTorch -- Variational and Generative Modeling -- Computer Vision -- Statistical Machine Learning -- Combinatorial Optimization -- Reinforcement Learning %-- ROS2 -- Formal Verification
+\end{section}
+
+\begin{section}{Selected Courseworks}
+    \textbf{Machine Learning (CENG561)} \hfill \textit{Fall 2023}
+    \begin{innerlist}
+        \item[-] Spearheaded the development of a benchmark intrusion detection dataset for ML/DL models, subsequently conducting comprehensive ablation studies across diverse model architectures (Tree-based, Ensemble, SVM).
+        \item[-] Implemented \enquote{Decision Trees for Decision-Making under the Predict-then-Optimize Framework} (\emph{PMLR'20}) and \enquote{Efficient Optimization for Average Precision SVM} (\emph{NeurIPS'14}) to address \emph{dataset imbalance} issues.
+    \end{innerlist}
+
+    \blankline
+
+    \textbf{Optimization for Machine Learning (IAM771)} \hfill \textit{Spring 2023}
+    \begin{innerlist}
+        \item[-] Performed rigorous complexity and convergence analyses of production-grade optimizers such as Adam and SGD, synthesizing findings into a well-received technical seminar.
+        \item[-] Presented the convergence and complexity analyses based on \enquote{Adan: Adaptive Nesterov Momentum Algorithm for Faster Optimizing Deep Models} (\emph{ICLR'23}) in a 30-minute seminar.
+    \end{innerlist}
+\blankline
+
+\textbf{Deep Generative Models (CENG796)} \hfill \textit{Spring 2023}
+\begin{innerlist}
+    \item[-] Proposed an unofficial implementation of \enquote{Few-shot Cross-Domain Image Generation via Inference-Time Latent-Code Learning} (\emph{ICLR 2023}). \href{https://github.com/erceguder/inference-time-latent-code-learning}{GitHub}
+    \item[-] Led implementation of a cutting-edge few-shot cross-domain image generation technique, enhancing StyleGAN2's latent-code learning capabilities for resource-constrained settings.
+\end{innerlist}
+
+\blankline
+
+\textbf{Advanced Deep Learning (CENG502)} \hfill \textit{Spring 2023}
+\begin{innerlist}
+    \item[-] Re-implemented \enquote{Decoupled Adversarial Policy} (DAP) from \enquote{Attacking Deep Reinforcement Learning with Decoupled Adversarial Policy} (\emph{ICLR'20}).
+    \item[-] Demonstrated DAP's effectiveness in various \textbf{Deep Reinforcement Learning} (DRL) environments. \href{https://github.com/CENG502-Projects/CENG502-Spring2023/tree/main/DoganTapli}{GitHub}.
+\end{innerlist}
+
+\blankline
+
+\textbf{Deep Learning (CENG501)} \hfill \textit{Fall 2022}
+\begin{innerlist}
+    \item[-] Reproduced \href{https://ojs.aaai.org/index.php/AAAI/article/view/17147}{\emph{UM-GCN: Uncertainty-Matching Graph Neural Networks to Defend Against Poisoning Attacks}} (\emph{AAAI'20}).
+    \item[-] Enhanced model robustness by integrating GNN and FCN with an uncertainty-aware loss function to mitigate poisoning attacks. \href{https://github.com/adnanhd/CENG501-Spring2022/tree/patch-3/Project_Dogan_Firat}{GitHub}
+\end{innerlist}
+
+\end{section}
+
+
+
+\begin{section}{Research Internship Experience}
+    \textbf{Two Might Do} \hfill {\bf Feb 2021 -- Jun 2022} \\
+    \href{https://aicps.eng.uci.edu/}{Cyber-Physical Lab.}, \href{https://uci.edu}{University of California, Irvine} (UCI), USA
+    \begin{innerlist}
+        \item[-] \textbf{Supervisor}: \href{http://www.cecs.uci.edu/research/al-faruque/}{Assist. Prof. Dr. Mohammad Abdullah Al-Faruque}.
+        \item[-] Conceptualized and developed a sophisticated deep learning architecture for multi-modal detection of cardiac and sleep-related abnormalities from complex physiological data.
+        \item[-] \textbf{Publication}: Accepted at Computing in Cardiology (CinC) 2021
+    \end{innerlist}
+
+    \blankline
+
+    \textbf{CONTSEC: \emph{High-Performance Intrusion Detection for Software-Defined Container Networks}} \hfill {\bf 2021 -- 2022}
+    \begin{innerlist}
+        %\item[-] \textbf{Role}: Undergraduate Researcher
+        \item[-] \textbf{Funding}: TUBITAK 2247 C STAR Scholarship
+        \item[-] Designed and deployed a high-performance intrusion detection and prevention pipeline optimized for containerized cloud environments, contributing novel methods to the cybersecurity literature.
+        \item[-] Published findings in \href{https://link.springer.com/conference/aina}{AINA}, contributing to the state-of-the-art in the machine learning for cybersecurity.
+    \end{innerlist}
+
+    \blankline
+
+    \textbf{Textual Analysis for Irony Detection} \hfill {\bf Oct 2020 -- Oct 2021} \\
+    \href{http://teghub.ceng.metu.edu.tr}{Textual Event Graph HUB (TEGHub) Research Group}, METU, Ankara, Turkey
+    \begin{innerlist}
+        \item[-] \textbf{Supervisor}: \textbf{Supervisor(s)}: \href{https://user.ceng.metu.edu.tr/~karagoz/}{Prof. Dr. Pinar Karagoz}
+        \item[-] Conducted research on textual event graph analysis for enhanced information retrieval and knowledge discovery on Twitter dataset.
+        \item[-] Implemented an end-to-end neural pipeline integrating GCN\footnote{Graph Convolutional Network} and LSTM\footnote{Long Short Term Memory} networks to predict the impact of research papers based on citation patterns and textual content.
+    \end{innerlist}
+
+    \blankline
+
+    \textbf{Changing Trends in Healthcare Management: Simulation Models for Health Policy Decision Making} \hfill {\bf 2020 -- 2021}
+    \begin{innerlist}
+        %\item[-] \textbf{Role}: Undergraduate Researcher
+        \item[-] \textbf{Funding}: TUBITAK 2247 C STAR Scholarship
+        \item[-] Utilized simulation models to inform evidence-based health policy decisions, focusing on mechatronics applications in healthcare.
+        \item[-] Devised a GCN, mapping the healthcare policy papers' citation graph into feature embedding.
+    \end{innerlist}
+
+    \blankline
+
+    \textbf{Hector Quadrotor Swarm Localization} \hfill {\bf Jul 2020 -- Aug 2020} \\
+    \href{http://www.kovan.ceng.metu.edu.tr}{KOVAN Research Lab}, METU, Ankara, Turkey
+    \begin{innerlist}
+        \item[-] \textbf{Supervisor}: \href{http://kovan.ceng.metu.edu.tr/~erol//}{Assist. Prof. Dr. Erol Sahin}.
+        \item[-] Participated in a \href{https://github.com/adnanhd/hector_quadrotor_swarm}{multi-agent localization project}, approximating numerical solvers for optimal drone positioning in `\href{https://link.springer.com/article/10.1023/B:AURO.0000033973.24945.f3}{self organized swarm behavior}'.
+    \end{innerlist}
+\end{section}
+
+\begin{section}{Teaching Experience}
+    \textit{Teaching Assistant (20 hours $\times$ 16 weeks)} \hfill \textbf{February 2022 - Present}
+    \begin{innerlist}
+        \item[-] \href{https://catalog.metu.edu.tr/course.php?course_code=5710213}{CENG213 Data Structures} \hfill \textbf{Spring 2024}
+        \item[-] \href{https://catalog.metu.edu.tr/course.php?course_code=5710280}{CENG280 Automata Theory} \hfill \textbf{Spring 2024}
+        \item[-] \href{https://catalog.metu.edu.tr/course.php?course_code=5710460}{CENG460 Introduction to Robotics for Computer Science} \hfill \textbf{Fall 2024}
+        \item[-] \href{https://catalog.metu.edu.tr/course.php?course_code=5710223}{CENG223 Discrete Computational Structures} \hfill \textbf{Fall 2024}
+        \item[-] \href{https://catalog.metu.edu.tr/course.php?course_code=5710382}{CENG382 Analysis of Dynamical Systems} \hfill \textbf{Spring 2023}
+        \item[-] \href{https://catalog.metu.edu.tr/course.php?course_code=5710242}{CENG242 Programming Language Concepts} \hfill \textbf{Spring 2023}
+        \item[-] \href{https://catalog.metu.edu.tr/course.php?course_code=5710424}{CENG424 Logic for Computer Science} \hfill \textbf{Fall 2023}
+        %\begin{innerlist}
+            %\item[-] \textbf{Workload}: prepared and evaluated 5 homeworks for 40 students.
+            %\item[-] \textbf{HW Topics}: predicate, propositional, relational logic, answer set programming
+        %\end{innerlist}
+        \item[-] \href{https://catalog.metu.edu.tr/course.php?course_code=5710223}{CENG223 Discrete Computational Structures} \hfill \textbf{Fall 2023}
+        %\begin{innerlist}
+            %\item[-] \textbf{Workload}: prepared and evaluated a homework for 209 students.
+            %\item[-] \textbf{HW Topics}: countability, congruence, set theory, induction.
+        %\end{innerlist}
+        \item[-] \href{https://catalog.metu.edu.tr/course.php?course_code=5710334}{CENG334 Introduction to Operating Systems} \hfill \textbf{Spring 2022}
+        %\begin{innerlist}
+            %\item[-] Prepared \emph{ext2} disk/file-system homework in C/C++ (205 students).
+        %\end{innerlist}
+        \item[-] \href{https://catalog.metu.edu.tr/course.php?course_code=5710242}{CENG242 Programming Language Concepts} \hfill \textbf{Spring 2022}
+        %\begin{innerlist}
+            %\item[-] \textbf{Workload}: prepared and evaluated a homework for 200 students.
+            %\item[-] \textbf{HW Topics}: Encapsulation, Abstraction, Polymorphism, Inheritance in C++.
+        %\end{innerlist}
+    \end{innerlist}
+
+    \blankline
+
+    \textit{Undergraduate Teaching Assistant (8 hours $\times$ 6 weeks)}
+    \begin{innerlist}
+        \item[-] \href{https://catalog.metu.edu.tr/course.php?course_code=5710240}{CENG240 Programming with Python for Engineers} \hfill \textbf{Fall 2021}
+        %\begin{innerlist}
+            %\item[-] Guided non-departmental students to practice in Python during lab hours.
+        %\end{innerlist}
+        \item[-] \href{https://catalog.metu.edu.tr/course.php?course_code=5710111}{CENG111 Introduction to Computer Eng. Concepts} \hfill \textbf{Fall 2020}
+        %\begin{innerlist}
+              %\item[-] Supervised departmental students to practice in the Python at online labs.
+            %\item[-] Conducted recitations (social sessions) to solve all lab exam questions.
+        %\end{innerlist}
+        \item[-] \href{https://catalog.metu.edu.tr/course.php?course_code=5710230}{CENG230 Introduction to C Programming} \hfill \textbf{Spring 2019}
+        %\begin{innerlist}
+            %\item[-] Guided non-departmental students to practice in C at during lab hours.
+        %\end{innerlist}
+    \end{innerlist}
+\end{section}
+
+\begin{section}{Industry Experience}
+    \textit{Undergraduate Summer Intern} \\
+    % \href{https://bilgem.tubitak.gov.tr/en}{TUBITAK: Informatics and Information Security Research}, Kocaeli, Turkey \hfill {\bf Aug 2021 -- Oct 2021}
+    \href{https://bilgem.tubitak.gov.tr/en}{TUBITAK\footnote{The Scientific and Technological Research Institution of Turkey} BILGEM\footnote{Informatics and Information Security Research Center}}, Kocaeli, Turkey \hfill {\bf Aug 2021 -- Oct 2021}
+    \begin{itemize}
+        \item[-] Contributed to the enhancement of \href{https://en.bilgem.tubitak.gov.tr/en/sapphire-cloud/}{Sapphire Cloud infrastructure} by developing robust features at the \href{https://www.b3lab.org/en/}{Cloud Computing and Big Data Research Lab}.
+    \end{itemize}
+
+    \textit{Undergraduate Summer Intern} \\
+    \href{https://www.enocta.com/}{Enocta Inc.}, Ankara, Turkey \hfill {\bf Aug 2020 -- Oct 2020}
+    \begin{itemize}
+        \item[-] Engineered and optimized \href{https://openai.com/blog/gpt-2-1-5b-release/}{GPT-2} and T5 transformer models using \href{https://huggingface.co}{HuggingFace}, improving natural language understanding capabilities for enterprise applications.
+    \end{itemize}
+\end{section}
+
+
+\begin{section}{References}
+		\href{https://user.ceng.metu.edu.tr/~skalkan}{Prof. Dr. Sinan Kalkan}, \href{mailto:skalkan@ceng.metu.edu.tr}{skalkan@ceng.metu.edu.tr} %, +90 312 210 5547
+			\begin{innerlist}
+				\item[-] Assoc. Professor in Computer Engineering Dept., METU, Ankara.
+			\end{innerlist}
+
+   		\blankline
+
+		\href{https://user.ceng.metu.edu.tr/~emre}{Assist. Prof. Dr. Emre Akbas}, \href{mailto:emre@ceng.metu.edu.tr}{emre@ceng.metu.edu.tr} %, +90 312 210 5522
+			\begin{innerlist}
+				\item[-] Assist. Professor in Computer Engineering Dept., METU, Ankara.
+			\end{innerlist}
+
+		\blankline
+
+		\href{https://user.ceng.metu.edu.tr/~gcinbis/}{Assist. Prof. Dr. Gökberk Cinbiş}, \href{mailto:gcinbis@ceng.metu.edu.tr}{gcinbis@ceng.metu.edu.tr} %, +90 312 210 5535
+			\begin{innerlist}
+				\item[-] Assist. Professor in Computer Engineering Dept., METU, Ankara.
+			\end{innerlist}
+
+		%\blankline
+
+		%\href{https://user.ceng.metu.edu.tr/~alemdar}{Assist. Prof. Dr. Hande Alemdar}, \href{mailto:alemdar@metu.edu.tr}{alemdar@metu.edu.tr} %, +90 312 210 5591
+		%	\begin{innerlist}
+		%		\item[-] Assist. Professor in Computer Engineering Dept., METU, Ankara.
+		%	\end{innerlist}
+\end{section}
+
+\end{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% End CV Document %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+					\item[-] \href{https://catalog2.metu.edu.tr/course/ceng230/5710240}{CENG240 Programming with Python for Engineers (5710240)},
