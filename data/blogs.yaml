@@ -4,10 +4,11 @@
 
 blogs:
   # Example blog post
-  # - title: "My First Blog Post"
-  #   date: "Jan 2026"
-  #   description: "A brief description of the blog post"
-  #   path: "blogs/first-post/index.html"
-  #   image: "images/blogs/first-post.png"  # Optional thumbnail
+  - title: "My First Blog Post"
+    date: "Jan 2026"
+    description: "A brief description of the blog post"
+    path: "blogs/first-post/index.html"
+    image: "images/blogs/first-post.png" # Optional thumbnail
+
 
   # Add your blog posts here
