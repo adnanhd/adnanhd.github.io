@@ -28,9 +28,9 @@
     --text-tertiary: #999;
     --text-muted: #888;
     --border-color: #333;
-    --accent-color: #4a9eff;
+    --accent-color: #6db3ff;
     --hover-bg: #2a2a2a;
-    --link-color: #4a9eff;
+    --link-color: #6db3ff;
 }
 
 /* Dark theme via system preference (when no manual override) */
@@ -43,9 +43,9 @@
         --text-tertiary: #999;
         --text-muted: #888;
         --border-color: #333;
-        --accent-color: #4a9eff;
+        --accent-color: #6db3ff;
         --hover-bg: #2a2a2a;
-        --link-color: #4a9eff;
+        --link-color: #6db3ff;
     }
 }
 
@@ -57,6 +57,18 @@ body {
     color: var(--text-primary);
     background-color: var(--bg-secondary);
     font-size: 16px;
+}
+
+a {
+    color: var(--link-color);
+}
+
+a:visited:not(.nav-link):not(.social-link):not(.pub-link):not(.timeline-link) {
+    color: #8b5cf6;
+}
+
+a:hover {
+    color: var(--accent-color);
 }
 
 /* Ensure consistent font size across all pages */
