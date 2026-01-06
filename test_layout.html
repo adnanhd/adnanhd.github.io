@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Layout Test</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .demo { border: 2px solid #ccc; padding: 20px; max-width: 900px; margin: 20px auto; }
+        .bio-content { display: flex; gap: 40px; }
+        .bio-left { flex-shrink: 0; width: 220px; }
+        .bio-right { flex: 1; }
+        .links { display: flex; flex-direction: column; gap: 8px; }
+        .social-link { display: flex; align-items: center; gap: 12px; padding: 8px 12px; 
+                       text-decoration: none; color: #555; border-radius: 6px; }
+        .social-link:hover { background-color: #f0f0f0; color: #3498db; }
+        .social-link i { width: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>Bio Section Layout Preview</h1>
+    <div class="demo">
+        <div class="bio-content">
+            <div class="bio-left">
+                <div>🖼️ Profile Image</div>
+                <div class="links">
+                    <a href="#" class="social-link"><i>📧</i><span>Email</span></a>
+                    <a href="#" class="social-link"><i>🐙</i><span>GitHub</span></a>
+                    <a href="#" class="social-link"><i>💼</i><span>LinkedIn</span></a>
+                    <a href="#" class="social-link"><i>🎓</i><span>Google Scholar</span></a>
+                    <a href="#" class="social-link"><i>🐦</i><span>Twitter</span></a>
+                    <a href="#" class="social-link"><i>🔬</i><span>ORCID</span></a>
+                    <a href="#" class="social-link"><i>📚</i><span>ACM DL</span></a>
+                    <a href="#" class="social-link"><i>⚡</i><span>IEEE Xplore</span></a>
+                    <a href="#" class="social-link"><i>📊</i><span>DBLP</span></a>
+                    <a href="#" class="social-link"><i>🧠</i><span>Semantic Scholar</span></a>
+                    <a href="#" class="social-link" style="color: #3498db; font-weight: 500;"><span>CV</span></a>
+                </div>
+            </div>
+            <div class="bio-right">
+                <h1>Adnan Harun Dogan</h1>
+                <p><strong>Your Title/Position Here</strong></p>
+                <p>Your Institution/Company</p>
+                <p>Bio paragraph goes here. This is where you describe your research interests, background, and current work.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

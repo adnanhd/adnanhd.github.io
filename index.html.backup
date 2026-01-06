@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="description"
+            content="Adnan Harun Dogan - Personal Website"
+        />
+        <title>Adnan Harun Dogan</title>
+        <link rel="stylesheet" href="style.css" />
+        <!-- Font Awesome for icons -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        />
+        <!-- Academicons for academic icons -->
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css"
+        />
+        <!-- js-yaml library for parsing YAML -->
+        <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+        <!-- Data loading script -->
+        <script src="data.js"></script>
+        <!-- Twitter Widget Script -->
+        <script
+            async
+            src="https://platform.twitter.com/widgets.js"
+            charset="utf-8"
+        ></script>
+    </head>
+    <body>
+        <div class="page-layout">
+            <!-- Left Sidebar - Fixed -->
+            <aside class="sidebar">
+                <div class="sidebar-content">
+                    <div class="bio-image">
+                        <img src="profile.jpeg" alt="Adnan Harun Dogan" />
+                    </div>
+                    <p class="bio-short">Short bio will appear here</p>
+                    <div class="links">
+                        <a href="mailto:your.email@example.com">Email</a>
+                        <a href="https://github.com/adnanhd" target="_blank"
+                            >GitHub</a
+                        >
+                        <a
+                            href="https://linkedin.com/in/yourprofile"
+                            target="_blank"
+                            >LinkedIn</a
+                        >
+                        <a
+                            href="https://scholar.google.com/citations?user=YOURID"
+                            target="_blank"
+                            >Google Scholar</a
+                        >
+                        <a href="cv.pdf" target="_blank">CV</a>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="main-content">
+                <!-- About Me Section -->
+                <section id="about">
+                    <h1 class="main-name">Adnan Harun Dogan</h1>
+                    <p class="main-title">Your Title/Position Here</p>
+                    <p class="main-affiliation">Your Institution/Company</p>
+
+                    <h2>About Me</h2>
+                    <div class="bio-description">
+                        <p>
+                            Write a brief bio about yourself here. This should
+                            be a short paragraph describing your research
+                            interests, background, or current work.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- Resume Section -->
+                <section id="resume">
+                    <h2>Resume</h2>
+
+                    <div class="resume-section">
+                        <h3>Education</h3>
+                        <div class="resume-item">
+                            <div class="resume-header">
+                                <strong>Degree, Major</strong>
+                                <span class="date">Start Year - End Year</span>
+                            </div>
+                            <div class="resume-subheader">University Name</div>
+                            <p>
+                                Details about your degree, thesis, or notable
+                                achievements.
+                            </p>
+                        </div>
+                        <!-- Add more education items as needed -->
+                    </div>
+
+                    <div class="resume-section">
+                        <h3>Experience</h3>
+                        <div class="resume-item">
+                            <div class="resume-header">
+                                <strong>Position Title</strong>
+                                <span class="date">Start Date - End Date</span>
+                            </div>
+                            <div class="resume-subheader">
+                                Company/Organization Name
+                            </div>
+                            <p>
+                                Brief description of your role and
+                                responsibilities.
+                            </p>
+                        </div>
+                        <!-- Add more experience items as needed -->
+                    </div>
+                </section>
+
+                <!-- News Section -->
+                <section id="news">
+                    <h2>News</h2>
+                    <ul class="news-list">
+                        <li>
+                            <span class="news-date">[Jan 2026]</span>
+                            <span class="news-content"
+                                >Your news item here. E.g., "Paper accepted at
+                                Conference 2026"</span
+                            >
+                        </li>
+                        <li>
+                            <span class="news-date">[Dec 2025]</span>
+                            <span class="news-content">Another news item.</span>
+                        </li>
+                        <!-- Add more news items -->
+                    </ul>
+                </section>
+
+                <!-- Timeline Section -->
+                <section id="timeline">
+                    <h2>Timeline</h2>
+
+                    <div class="timeline-container">
+                        <div class="timeline-column">
+                            <h3>Education & Experience</h3>
+                            <div class="timeline">
+                                <div class="timeline-item">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <span class="timeline-date"
+                                            >2024 - Present</span
+                                        >
+                                        <h4>Current Position</h4>
+                                        <p class="timeline-org">
+                                            Organization Name
+                                        </p>
+                                        <p>
+                                            Brief description of role or
+                                            achievement.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="timeline-item">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <span class="timeline-date"
+                                            >2022 - 2024</span
+                                        >
+                                        <h4>Previous Position</h4>
+                                        <p class="timeline-org">
+                                            Organization Name
+                                        </p>
+                                        <p>
+                                            Brief description of role or
+                                            achievement.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Add more timeline items -->
+                            </div>
+                        </div>
+
+                        <div class="timeline-column">
+                            <h3>Publications & Projects</h3>
+                            <div class="timeline">
+                                <div class="timeline-item">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <span class="timeline-date">2025</span>
+                                        <h4>Paper Title</h4>
+                                        <p class="timeline-org">
+                                            Conference/Journal Name
+                                        </p>
+                                        <p>
+                                            Brief description or key
+                                            contribution.
+                                        </p>
+                                        <div class="paper-links">
+                                            <a href="#" target="_blank"
+                                                >Paper</a
+                                            >
+                                            <a href="#" target="_blank">Code</a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="timeline-item">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <span class="timeline-date">2024</span>
+                                        <h4>Another Paper Title</h4>
+                                        <p class="timeline-org">
+                                            Conference/Journal Name
+                                        </p>
+                                        <p>
+                                            Brief description or key
+                                            contribution.
+                                        </p>
+                                        <div class="paper-links">
+                                            <a href="#" target="_blank"
+                                                >Paper</a
+                                            >
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Add more publications -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Twitter/X Timeline Section -->
+                <section id="twitter">
+                    <h2>Recent Posts</h2>
+                    <div class="twitter-container">
+                        <a
+                            class="twitter-timeline"
+                            data-height="600"
+                            data-theme="light"
+                            href="https://twitter.com/adnanharundogan?ref_src=twsrc%5Etfw"
+                        >
+                            Tweets by adnanharundogan
+                        </a>
+                    </div>
+                </section>
+
+                <!-- Footer -->
+                <footer>
+                    <p>&copy; 2026 Adnan Harun Dogan. All rights reserved.</p>
+                </footer>
+            </main>
+        </div>
+    </body>
+</html>
