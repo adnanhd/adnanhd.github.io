@@ -17,6 +17,7 @@
     --accent-color: #0066cc;
     --hover-bg: #f0f0f0;
     --link-color: #0066cc;
+    --visited-color: #8b5cf6;
 }
 
 /* Dark theme via data-attribute (manual override) */
@@ -31,6 +32,7 @@
     --accent-color: #6db3ff;
     --hover-bg: #2a2a2a;
     --link-color: #6db3ff;
+    --visited-color: #a78bfa;
 }
 
 /* Dark theme via system preference (when no manual override) */
@@ -46,6 +48,7 @@
         --accent-color: #6db3ff;
         --hover-bg: #2a2a2a;
         --link-color: #6db3ff;
+        --visited-color: #a78bfa;
     }
 }
 
@@ -64,7 +67,7 @@ a {
 }
 
 a:visited:not(.nav-link):not(.social-link):not(.pub-link):not(.timeline-link) {
-    color: #8b5cf6;
+    color: var(--visited-color);
 }
 
 a:hover {
