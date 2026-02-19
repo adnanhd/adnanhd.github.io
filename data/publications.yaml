@@ -16,7 +16,7 @@ papers:
     selected: true
     resume: true
     timelined: true
-    image: "images/publications/eccv2024.gif"
+    image: "images/publications/eccv2024.png"
     venue_link: "https://eccv.ecva.net/"
     links:
       - name: "PAPER"
