@@ -7,16 +7,15 @@
 # Add 'bullets' array for bullet-point details
 
 research:
-  - position: "Winter Research Intern"
+  - position: "Undergraduate Research Project"
     company: "Image Processing and Pattern Recognition Laboratory (ImageLab), METU"
     location: "Ankara, Turkey"
-    start_date: "Jan 2024"
-    end_date: "Feb 2024"
+    start_date: "Jan 2020"
+    end_date: "Jun 2022"
     logo: "images/logos/metu.png"
     logo_link: "https://image.ceng.metu.edu.tr/"
     advisor: "Assist. Prof. Dr. Hande Alemdar, Assist. Prof. Dr. Baran Ugras"
-    commitment: "Part-time during semester"
-    description: "Developed neural network approximation methods for HLLC Riemann solver applications in computational fluid dynamics. Designed and trained state-of-the-art deep learning models achieving 4.4% performance improvement in predicting critical flow field parameters around airfoil geometries, with applications in aerospace engineering and numerical simulation acceleration."
+    description: "CNNFOIL: Approximating HLLC Riemann solver for flow prediction around airfoils via encoder-decoder neural networks. Engineered state-of-the-art neural network models achieving 4.4% performance improvement in predicting critical flow field parameters around airfoil geometries."
 
   - position: "Undergraduate Research Project"
     company: "Center for Artificial Intelligence and Robotics (ROMER), METU"
@@ -76,6 +75,19 @@ research:
     advisor: "Assoc. Prof. Dr. Ozge Karanfil"
     commitment: "6 hours/week × 60 weeks"
     description: "Healthcare policy simulation for evidence-based decision making. Funding: TUBITAK 2247 C STAR Scholarship. Utilized simulation models focusing on mechatronics applications in healthcare. Developed GCN-based citation graph embeddings for healthcare policy papers."
+
+  - position: "Undergraduate Research Project"
+    company: "KOVAN Research Lab, METU"
+    location: "Ankara, Turkey"
+    start_date: "Jul 2020"
+    end_date: "Aug 2020"
+    logo: "images/logos/kovan.png"
+    logo_link: "http://www.kovan.ceng.metu.edu.tr"
+    advisor: "Assist. Prof. Dr. Erol Sahin"
+    description: "Hector Quadrotor Swarm Localization. Participated in a multi-agent localization project, approximating numerical solvers for optimal drone positioning in self-organized swarm behavior."
+    links:
+      - name: "CODE"
+        url: "https://github.com/adnanhd/hector_quadrotor_swarm"
 
   - position: "Summer Intern"
     company: "TUBITAK BILGEM"
