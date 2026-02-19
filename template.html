@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="description"
+            content="{{META_DESCRIPTION}}"
+        />
+        <meta property="og:title" content="{{NAME}}" />
+        <meta
+            property="og:description"
+            content="{{META_DESCRIPTION}}"
+        />
+        <meta property="og:image" content="{{PROFILE_IMAGE}}" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="{{NAME}}" />
+        <meta
+            name="twitter:description"
+            content="{{META_DESCRIPTION}}"
+        />
+        <meta name="twitter:image" content="{{PROFILE_IMAGE}}" />
+        <link rel="icon" type="image/jpeg" href="{{PROFILE_IMAGE}}" />
+        <title>{{NAME}}</title>
+        <link rel="stylesheet" href="style.css" />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css"
+        />
+        <script src="data.js"></script>
+    </head>
+    <body>
+        <noscript>
+            <p style="padding: 40px; font-family: sans-serif;">
+                JavaScript is needed for theme switching and page navigation.
+                Content is still viewable below.
+            </p>
+        </noscript>
+        <div class="page-layout">
+            <!-- Left Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-content">
+                    {{SIDEBAR}}
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Navigation -->
+                <nav class="main-nav">
+                    <div class="nav-links">
+                        <a
+                            href="#about"
+                            class="nav-link active"
+                            onclick="showPage('about')"
+                            >About</a
+                        >
+                        <a
+                            href="#resume"
+                            class="nav-link"
+                            onclick="showPage('resume')"
+                            >Resume</a
+                        >
+                        <a
+                            href="#blogs"
+                            class="nav-link"
+                            onclick="showPage('blogs')"
+                            >Blogs</a
+                        >
+                        <a
+                            href="#news"
+                            class="nav-link"
+                            onclick="showPage('news')"
+                            >News</a
+                        >
+                    </div>
+                    <button
+                        id="theme-toggle"
+                        class="theme-toggle"
+                        aria-label="Toggle theme"
+                    >
+                        <i class="fas fa-sun"></i>
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </nav>
+
+                <!-- About Page -->
+                <div id="about" class="page-section active">
+                    <section class="content-section">
+                        <h2>About Me</h2>
+                        <div class="bio-description">{{BIO}}</div>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>Publications</h2>
+                        <div
+                            id="selected-works"
+                            class="publications-grid"
+                        >{{SELECTED_PUBLICATIONS}}</div>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>Blogs</h2>
+                        <div id="selected-blogs" class="blog-list">{{SELECTED_BLOGS}}</div>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>Open Source</h2>
+                        <div id="selected-repos" class="repos-list">{{WORKS}}</div>
+                    </section>
+                </div>
+
+                <!-- Blogs Page -->
+                <div id="blogs" class="page-section">
+                    <section class="content-section">
+                        <h2>Blog Posts</h2>
+                        <div id="blog-posts" class="blog-list">{{ALL_BLOGS}}</div>
+                    </section>
+                </div>
+
+                <!-- Resume Page -->
+                <div id="resume" class="page-section">
+                    <section class="content-section">
+                        <h2>Education</h2>
+                        <div id="education-list">{{EDUCATION}}</div>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>Papers</h2>
+                        <div id="resume-papers" class="publications-grid">{{RESUME_PAPERS}}</div>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>Experience</h2>
+                        <div id="experience-list">{{EXPERIENCE}}</div>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>Research Internships</h2>
+                        <div id="research-list">{{RESEARCH}}</div>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>Teaching Experience</h2>
+                        <div id="teaching-list">{{TEACHING}}</div>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>Honors, Awards, and Scores</h2>
+                        <div id="honors-list">{{HONORS}}</div>
+                    </section>
+                </div>
+
+                <!-- News Page -->
+                <div id="news" class="page-section">
+                    <section class="content-section">
+                        <h2>News</h2>
+                        <ul class="news-list">{{NEWS}}</ul>
+                    </section>
+
+                    <section class="content-section">
+                        <h2>Timeline</h2>
+                        <div id="timeline-container">{{TIMELINE}}</div>
+                    </section>
+                </div>
+
+                <footer>
+                    <p>&copy; 2026 {{NAME}}. All rights reserved.</p>
+                </footer>
+            </main>
+        </div>
+    </body>
+</html>
