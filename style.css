@@ -634,30 +634,6 @@ a:hover {
     background-color: var(--accent-color);
 }
 
-/* Responsive timeline */
-@media (max-width: 768px) {
-    .timeline-left {
-        width: 70px;
-        padding-right: 10px;
-    }
-
-    .timeline-center {
-        width: 30px;
-    }
-
-    .timeline-right {
-        padding-left: 10px;
-    }
-
-    .timeline-content-box {
-        padding: 12px 15px;
-    }
-
-    .timeline-date {
-        font-size: 0.75em;
-    }
-}
-
 .paper-links {
     margin-top: 8px;
 }
@@ -902,10 +878,12 @@ footer {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    /* Layout */
     .page-layout {
         flex-direction: column;
     }
 
+    /* Sidebar: compact layout */
     .sidebar {
         position: relative;
         width: 100%;
@@ -916,26 +894,184 @@ footer {
 
     .sidebar-content {
         padding: 20px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
     }
 
     .bio-image img {
-        width: 120px;
-        height: 120px;
+        width: 80px;
+        height: 80px;
     }
 
+    .sidebar-name {
+        font-size: 1em;
+        margin-bottom: 4px;
+    }
+
+    .sidebar-title {
+        font-size: 0.85em;
+        margin-bottom: 2px;
+    }
+
+    .sidebar-affiliation {
+        font-size: 0.8em;
+        margin-bottom: 5px;
+    }
+
+    .bio-short {
+        font-size: 12px;
+        margin-bottom: 5px;
+        padding: 0;
+    }
+
+    .links {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 4px;
+    }
+
+    .social-link .social-label {
+        display: none;
+    }
+
+    .social-link {
+        padding: 6px;
+    }
+
+    .social-link i {
+        font-size: 16px;
+    }
+
+    .links a:not(.social-link) {
+        font-size: 11px;
+    }
+
+    /* Navigation */
+    .main-nav {
+        padding: 15px 16px;
+    }
+
+    .nav-links {
+        gap: 16px;
+    }
+
+    .nav-link {
+        font-size: 14px;
+    }
+
+    .theme-toggle {
+        width: 56px;
+        height: 30px;
+    }
+
+    .theme-toggle i {
+        font-size: 12px;
+    }
+
+    /* Content */
     .main-content {
-        padding: 20px;
+        padding: 0;
+    }
+
+    .page-section {
+        padding: 20px 16px;
     }
 
     .main-name {
-        font-size: 1.8em;
+        font-size: 1.6em;
+    }
+
+    /* Publication cards: stack vertically */
+    .publication-item {
+        flex-direction: column;
+    }
+
+    .publication-left {
+        width: 100%;
+        flex-direction: row;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .publication-venue-tag {
+        width: auto;
+    }
+
+    .publication-image {
+        max-width: 160px;
+    }
+
+    .pub-link {
+        padding: 6px 12px;
+        font-size: 0.75em;
+    }
+
+    /* Compact publications: stack */
+    .publication-item-compact {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .pub-compact-reference {
+        padding-left: 0;
+        text-indent: 0;
+    }
+
+    /* Resume */
+    .resume-header {
+        flex-direction: column;
+    }
+
+    .resume-subheader {
+        flex-direction: column;
+    }
+
+    .resume-logo {
+        width: 32px;
+        height: 32px;
     }
 
     .timeline-container {
         grid-template-columns: 1fr;
     }
 
-    .resume-header {
-        flex-direction: column;
+    /* Timeline */
+    .timeline-left {
+        width: 70px;
+        padding-right: 10px;
+    }
+
+    .timeline-center {
+        width: 30px;
+    }
+
+    .timeline-right {
+        padding-left: 10px;
+    }
+
+    .timeline-content-box {
+        padding: 12px 15px;
+    }
+
+    .timeline-date {
+        font-size: 0.75em;
+    }
+
+    .timeline-content-box h4 {
+        font-size: 0.95em;
+    }
+
+    /* Blog/Work items */
+    .blog-item,
+    .work-item {
+        padding: 14px;
+    }
+
+    .blog-item h3,
+    .work-item h3 {
+        font-size: 1.05em;
     }
 }
