@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://adnanhd.github.io/sitemap.xml
