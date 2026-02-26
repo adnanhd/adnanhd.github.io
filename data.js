@@ -9,7 +9,8 @@ function showPage(pageId) {
   document.querySelectorAll(".page-section").forEach((page) => {
     page.classList.remove("active");
   });
-  document.getElementById(pageId).classList.add("active");
+  var section = document.getElementById(pageId);
+  section.classList.add("active");
 
   document.querySelectorAll(".nav-link").forEach((link) => {
     link.classList.remove("active");
@@ -20,6 +21,9 @@ function showPage(pageId) {
 
   // Update hash without triggering hashchange
   history.replaceState(null, "", `#${pageId}`);
+
+  // Move focus to the new section for accessibility
+  section.focus();
 }
 
 function handleHash() {

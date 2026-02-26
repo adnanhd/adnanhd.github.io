@@ -27,7 +27,7 @@
     --text-primary: #e0e0e0;
     --text-secondary: #b0b0b0;
     --text-tertiary: #999;
-    --text-muted: #888;
+    --text-muted: #999;
     --border-color: #333;
     --accent-color: #6db3ff;
     --hover-bg: #2a2a2a;
@@ -43,7 +43,7 @@
         --text-primary: #e0e0e0;
         --text-secondary: #b0b0b0;
         --text-tertiary: #999;
-        --text-muted: #888;
+        --text-muted: #999;
         --border-color: #333;
         --accent-color: #6db3ff;
         --hover-bg: #2a2a2a;
@@ -60,6 +60,23 @@ body {
     color: var(--text-primary);
     background-color: var(--bg-secondary);
     font-size: 16px;
+}
+
+/* Skip to content link */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--accent-color);
+    color: #fff;
+    padding: 8px 16px;
+    text-decoration: none;
+    z-index: 200;
+    font-size: 14px;
+}
+
+.skip-link:focus {
+    top: 0;
 }
 
 a {
@@ -258,6 +275,10 @@ a:hover {
 
 .page-section.active {
     display: block;
+}
+
+.page-section:focus {
+    outline: none;
 }
 
 .page-header {
@@ -1073,5 +1094,62 @@ footer {
     .blog-item h3,
     .work-item h3 {
         font-size: 1.05em;
+    }
+}
+
+/* Print Stylesheet */
+@media print {
+    .page-layout {
+        display: block;
+    }
+
+    .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid #000;
+    }
+
+    .sidebar-content {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .main-nav,
+    .theme-toggle,
+    .skip-link {
+        display: none !important;
+    }
+
+    .page-section {
+        display: block !important;
+        padding: 20px 0;
+        break-inside: avoid;
+    }
+
+    .main-content {
+        max-width: 100%;
+    }
+
+    a {
+        color: #000;
+        text-decoration: underline;
+    }
+
+    .pub-link,
+    .timeline-link {
+        border: 1px solid #999;
+    }
+
+    .timeline-content-box:hover {
+        box-shadow: none;
+        transform: none;
+    }
+
+    footer {
+        border-top: 1px solid #000;
+        margin-top: 20px;
     }
 }
