@@ -3,36 +3,26 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta
-            name="description"
-            content="{{META_DESCRIPTION}}"
-        />
+        <meta name="description" content="{{META_DESCRIPTION}}" />
+        <meta name="author" content="{{NAME}}" />
+        <meta name="theme-color" content="#0066cc" />
         <meta property="og:title" content="{{NAME}}" />
-        <meta
-            property="og:description"
-            content="{{META_DESCRIPTION}}"
-        />
-        <meta property="og:image" content="{{PROFILE_IMAGE}}" />
+        <meta property="og:description" content="{{META_DESCRIPTION}}" />
+        <meta property="og:image" content="{{SITE_URL}}/{{PROFILE_IMAGE}}" />
+        <meta property="og:url" content="{{SITE_URL}}/" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content="{{NAME}}" />
-        <meta
-            name="twitter:description"
-            content="{{META_DESCRIPTION}}"
-        />
-        <meta name="twitter:image" content="{{PROFILE_IMAGE}}" />
+        <meta name="twitter:description" content="{{META_DESCRIPTION}}" />
+        <meta name="twitter:image" content="{{SITE_URL}}/{{PROFILE_IMAGE}}" />
+        <meta name="twitter:creator" content="{{TWITTER_HANDLE}}" />
         <link rel="canonical" href="{{SITE_URL}}/" />
         <link rel="icon" type="image/jpeg" href="{{PROFILE_IMAGE}}" />
+        <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
         <title>{{NAME}}</title>
-        <link rel="stylesheet" href="style.css?v={{CSS_HASH}}" />
-        <link
-            rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-        />
-        <link
-            rel="stylesheet"
-            href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css"
-        />
+        <script type="application/ld+json">
+{{JSON_LD}}
+        </script>
         <script>
             // Apply theme immediately to prevent flash of wrong theme
             (function() {
@@ -44,15 +34,31 @@
                 }
             })();
         </script>
-        <script src="data.js?v={{JS_HASH}}"></script>
+        <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+        <link rel="stylesheet" href="style.css?v={{CSS_HASH}}" />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css"
+        />
+        <script defer src="data.js?v={{JS_HASH}}"></script>
     </head>
     <body>
         <noscript>
-            <p style="padding: 40px; font-family: sans-serif;">
-                JavaScript is needed for theme switching and page navigation.
-                Content is still viewable below.
-            </p>
+            <style>
+                .page-section { display: block !important; }
+                .main-nav { display: none; }
+                .theme-toggle { display: none; }
+            </style>
+            <div style="padding: 16px 20px; font-family: sans-serif; background: #fffacd; border-bottom: 1px solid #daa520;">
+                JavaScript is disabled. All content is shown below. Enable JavaScript for theme switching and page navigation.
+            </div>
         </noscript>
+        <a href="#main-content" class="skip-link">Skip to main content</a>
         <div class="page-layout">
             <!-- Left Sidebar -->
             <aside class="sidebar">
@@ -62,9 +68,9 @@
             </aside>
 
             <!-- Main Content -->
-            <main class="main-content">
+            <main class="main-content" id="main-content">
                 <!-- Navigation -->
-                <nav class="main-nav">
+                <nav class="main-nav" aria-label="Page navigation">
                     <div class="nav-links">
                         <a href="#about" class="nav-link active" data-page="about">About</a>
                         <a href="#resume" class="nav-link" data-page="resume">Resume</a>
@@ -74,7 +80,7 @@
                     <button
                         id="theme-toggle"
                         class="theme-toggle"
-                        aria-label="Toggle theme"
+                        aria-label="Toggle dark/light theme"
                     >
                         <i class="fas fa-sun"></i>
                         <i class="fas fa-moon"></i>
@@ -82,84 +88,84 @@
                 </nav>
 
                 <!-- About Page -->
-                <div id="about" class="page-section active">
-                    <section class="content-section">
+                <section id="about" class="page-section active" aria-label="About" tabindex="-1">
+                    <div class="content-section">
                         <h2>About Me</h2>
                         <div class="bio-description">{{BIO}}</div>
-                    </section>
+                    </div>
 
-                    <section class="content-section">
+                    <div class="content-section">
                         <h2>Publications</h2>
                         <div
                             id="selected-works"
                             class="publications-grid"
                         >{{SELECTED_PUBLICATIONS}}</div>
-                    </section>
+                    </div>
 
-                    <section class="content-section">
+                    <div class="content-section">
                         <h2>Blogs</h2>
                         <div id="selected-blogs" class="blog-list">{{SELECTED_BLOGS}}</div>
-                    </section>
+                    </div>
 
-                    <section class="content-section">
+                    <div class="content-section">
                         <h2>Open Source</h2>
                         <div id="selected-repos" class="repos-list">{{WORKS}}</div>
-                    </section>
-                </div>
+                    </div>
+                </section>
 
                 <!-- Blogs Page -->
-                <div id="blogs" class="page-section">
-                    <section class="content-section">
+                <section id="blogs" class="page-section" aria-label="Blog posts" tabindex="-1">
+                    <div class="content-section">
                         <h2>Blog Posts</h2>
                         <div id="blog-posts" class="blog-list">{{ALL_BLOGS}}</div>
-                    </section>
-                </div>
+                    </div>
+                </section>
 
                 <!-- Resume Page -->
-                <div id="resume" class="page-section">
-                    <section class="content-section">
+                <section id="resume" class="page-section" aria-label="Resume" tabindex="-1">
+                    <div class="content-section">
                         <h2>Education</h2>
                         <div id="education-list">{{EDUCATION}}</div>
-                    </section>
+                    </div>
 
-                    <section class="content-section">
+                    <div class="content-section">
                         <h2>Papers</h2>
                         <div id="resume-papers" class="publications-grid">{{RESUME_PAPERS}}</div>
-                    </section>
+                    </div>
 
-                    <section class="content-section">
+                    <div class="content-section">
                         <h2>Experience</h2>
                         <div id="experience-list">{{EXPERIENCE}}</div>
-                    </section>
+                    </div>
 
-                    <section class="content-section">
+                    <div class="content-section">
                         <h2>Research Internships</h2>
                         <div id="research-list">{{RESEARCH}}</div>
-                    </section>
+                    </div>
 
-                    <section class="content-section">
+                    <div class="content-section">
                         <h2>Teaching Experience</h2>
                         <div id="teaching-list">{{TEACHING}}</div>
-                    </section>
+                    </div>
 
-                    <section class="content-section">
+                    <div class="content-section">
                         <h2>Honors, Awards, and Scores</h2>
                         <div id="honors-list">{{HONORS}}</div>
-                    </section>
-                </div>
+                    </div>
+                </section>
 
                 <!-- News Page -->
-                <div id="news" class="page-section">
-                    <section class="content-section">
+                <section id="news" class="page-section" aria-label="News and timeline" tabindex="-1">
+                    <div class="content-section">
                         <h2>News</h2>
                         <ul class="news-list">{{NEWS}}</ul>
-                    </section>
+                    </div>
 
-                    <section class="content-section">
+                    <div class="content-section">
                         <h2>Timeline</h2>
                         <div id="timeline-container">{{TIMELINE}}</div>
-                    </section>
-                </div>
+                    </div>
+                </section>
 
                 <footer>
                     <p>&copy; 2026 {{NAME}}. All rights reserved.</p>
