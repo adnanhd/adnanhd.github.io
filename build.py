@@ -9,7 +9,9 @@ Usage:
 """
 
 import hashlib
+import json
 import re
+import sys
 from datetime import datetime
 from html import escape
 from pathlib import Path
@@ -147,8 +149,15 @@ def load_data():
         "blogs", "works",
     ]:
         path = DATA_DIR / f"{name}.yaml"
-        with open(path) as f:
-            data[name] = yaml.safe_load(f)
+        try:
+            with open(path) as f:
+                data[name] = yaml.safe_load(f) or {}
+        except FileNotFoundError:
+            print(f"Warning: {path} not found, using empty data", file=sys.stderr)
+            data[name] = {}
+        except yaml.YAMLError as e:
+            print(f"Error: {path} has invalid YAML: {e}", file=sys.stderr)
+            sys.exit(1)
     return data
 
 
@@ -160,9 +169,9 @@ def render_sidebar(bio):
     """Render the sidebar: profile image, name, title, affiliation, short bio, links."""
     parts = []
 
-    # Profile image
+    # Profile image (above fold — no lazy loading, but add dimensions to prevent CLS)
     parts.append(f'<div class="bio-image">')
-    parts.append(f'  <img src="{esc(bio["profile_image"])}" alt="{esc(bio["name"])}" />')
+    parts.append(f'  <img src="{esc(bio["profile_image"])}" alt="{esc(bio["name"])}" width="180" height="180" />')
     parts.append(f"</div>")
 
     # Name, title, affiliation
@@ -247,7 +256,7 @@ def render_publication_card(paper):
     if paper.get("image"):
         parts.append(
             f'<div class="publication-image">'
-            f'<img src="{esc(paper["image"])}" alt="{esc(paper["title"])}" /></div>'
+            f'<img src="{esc(paper["image"])}" alt="{esc(paper["title"])}" loading="lazy" /></div>'
         )
     parts.append("</div>")
 
@@ -315,10 +324,10 @@ def render_resume_item(title, subtitle, date, description, logo=None,
         parts.append('<div class="resume-logo">')
         if logo_link:
             parts.append(f'<a href="{esc(logo_link)}" target="_blank" rel="noopener noreferrer">')
-            parts.append(f'<img src="{esc(logo)}" alt="{esc(subtitle)}" />')
+            parts.append(f'<img src="{esc(logo)}" alt="{esc(subtitle)}" loading="lazy" width="40" height="40" />')
             parts.append("</a>")
         else:
-            parts.append(f'<img src="{esc(logo)}" alt="{esc(subtitle)}" />')
+            parts.append(f'<img src="{esc(logo)}" alt="{esc(subtitle)}" loading="lazy" width="40" height="40" />')
         parts.append("</div>")
 
     # Details
@@ -592,6 +601,62 @@ def render_works(works_data):
     return "\n".join(parts)
 
 
+def render_json_ld(bio):
+    """Render JSON-LD structured data for SEO."""
+    # Build sameAs list from social links
+    same_as = []
+    if bio.get("social"):
+        for platform, uid in bio["social"].items():
+            if uid and str(uid).strip() and platform in URL_TEMPLATES and platform != "email":
+                same_as.append(URL_TEMPLATES[platform].format(id=str(uid)))
+
+    person = {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": bio["name"],
+        "description": bio.get("meta_description", ""),
+        "url": bio.get("site_url", "") + "/",
+        "image": bio.get("site_url", "") + "/" + bio.get("profile_image", ""),
+        "jobTitle": bio.get("title", ""),
+        "worksFor": {
+            "@type": "Organization",
+            "name": bio.get("affiliation", ""),
+        },
+        "sameAs": same_as,
+    }
+    return json.dumps(person, indent=2, ensure_ascii=False)
+
+
+def generate_sitemap(bio, blogs_data):
+    """Generate sitemap.xml."""
+    site_url = bio.get("site_url", "https://adnanhd.github.io")
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    urls = [
+        (f"{site_url}/", today, "1.0"),
+        (f"{site_url}/#resume", today, "0.9"),
+        (f"{site_url}/#blogs", today, "0.8"),
+        (f"{site_url}/#news", today, "0.7"),
+    ]
+
+    # Add blog post URLs
+    blogs = (blogs_data or {}).get("blogs", [])
+    for blog in blogs:
+        if blog.get("path"):
+            urls.append((f"{site_url}/{blog['path']}", today, "0.6"))
+
+    parts = ['<?xml version="1.0" encoding="UTF-8"?>']
+    parts.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
+    for loc, lastmod, priority in urls:
+        parts.append("  <url>")
+        parts.append(f"    <loc>{esc(loc)}</loc>")
+        parts.append(f"    <lastmod>{lastmod}</lastmod>")
+        parts.append(f"    <priority>{priority}</priority>")
+        parts.append("  </url>")
+    parts.append("</urlset>")
+    return "\n".join(parts)
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -621,6 +686,16 @@ def main():
     css_hash = file_hash(BASE_DIR / "style.css")
     js_hash = file_hash(BASE_DIR / "data.js")
 
+    # Twitter handle
+    twitter_id = (bio.get("social") or {}).get("twitter", "")
+    twitter_handle = f"@{twitter_id}" if twitter_id else ""
+
+    # Generate sitemap.xml
+    sitemap_xml = generate_sitemap(bio, data["blogs"])
+    sitemap_path = BASE_DIR / "sitemap.xml"
+    sitemap_path.write_text(sitemap_xml)
+    print(f"Built {sitemap_path}")
+
     # Perform replacements
     replacements = {
         "{{CSS_HASH}}": css_hash,
@@ -629,6 +704,8 @@ def main():
         "{{NAME}}": esc(bio["name"]),
         "{{META_DESCRIPTION}}": esc(meta_desc),
         "{{PROFILE_IMAGE}}": esc(bio.get("profile_image", "profile.jpeg")),
+        "{{TWITTER_HANDLE}}": esc(twitter_handle),
+        "{{JSON_LD}}": render_json_ld(bio),
         "{{SIDEBAR}}": render_sidebar(bio),
         "{{BIO}}": render_bio(bio),
         "{{SELECTED_PUBLICATIONS}}": selected_pubs_html,
