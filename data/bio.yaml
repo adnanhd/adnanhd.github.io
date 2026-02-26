@@ -2,19 +2,21 @@ name: "Adnan Harun Dogan"
 title: "Graduate Research & Teaching Assistant"
 affiliation: "Middle East Technical University"
 profile_image: "profile-sm.jpeg"
+site_url: "https://adnanhd.github.io"
+meta_description: "Adnan Harun Dogan - Graduate Research & Teaching Assistant at Middle East Technical University. Research in differentiable optimization and deep learning for computer vision."
 
 # Short bio for left sidebar (1-2 sentences)
 short_bio: "Graduate researcher at METU specializing in differentiable optimization and deep learning for computer vision. Bridging combinatorial algorithms with end-to-end neural network training."
 
 # Full bio for main content
 bio: |
-  I am a Master's student in Computer Engineering at <a href="https://ceng.metu.edu.tr" target="_blank">Middle East Technical University (METU)</a>,
-  working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/" target="_blank">Prof. Dr. Sinan Kalkan</a> and <a href="http://user.ceng.metu.edu.tr/~emre/" target="_blank">Assist. Prof. Dr. Emre Akbas</a> at the
-  <a href="https://image.ceng.metu.edu.tr/" target="_blank">Image Processing and Pattern Recognition Laboratory (ImageLab)</a>.
+  I am a Master's student in Computer Engineering at <a href="https://ceng.metu.edu.tr" target="_blank" rel="noopener noreferrer">Middle East Technical University (METU)</a>,
+  working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/" target="_blank" rel="noopener noreferrer">Prof. Dr. Sinan Kalkan</a> and <a href="http://user.ceng.metu.edu.tr/~emre/" target="_blank" rel="noopener noreferrer">Assist. Prof. Dr. Emre Akbas</a> at the
+  <a href="https://image.ceng.metu.edu.tr/" target="_blank" rel="noopener noreferrer">Image Processing and Pattern Recognition Laboratory (ImageLab)</a>.
 
   My research advances the integration of combinatorial optimization algorithms into deep neural networks through novel differentiable frameworks. I specialize in ranking-based losses, optimal transport theory, and their applications to object detection systems. My master's thesis develops innovative methods for incorporating piecewise linear functions with constant regions in backpropagation, enabling sophisticated end-to-end training of complex neural architectures with improved performance and interpretability.
 
-  I have contributed to cutting-edge research through collaborations with leading institutions: at <a href="https://siplab.org/" target="_blank">ETH Zürich's Sensing, Interaction & Perception Lab</a>, I developed deep learning architectures for real-time cybersickness detection in virtual reality environments using EEG signals; at <a href="https://www.ics.uci.edu/" target="_blank">UC Irvine's Cyber-Physical Systems Laboratory</a>, I designed multi-modal deep learning systems for cardiac abnormality detection from physiological signals, achieving state-of-the-art performance in beat-by-beat classification.
+  I have contributed to cutting-edge research through collaborations with leading institutions: at <a href="https://siplab.org/" target="_blank" rel="noopener noreferrer">ETH Zürich's Sensing, Interaction & Perception Lab</a>, I developed deep learning architectures for real-time cybersickness detection in virtual reality environments using EEG signals; at <a href="https://www.ics.uci.edu/" target="_blank" rel="noopener noreferrer">UC Irvine's Cyber-Physical Systems Laboratory</a>, I designed multi-modal deep learning systems for cardiac abnormality detection from physiological signals, achieving state-of-the-art performance in beat-by-beat classification.
 
 # Social links - just provide the IDs/usernames
 social:

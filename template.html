@@ -21,9 +21,10 @@
             content="{{META_DESCRIPTION}}"
         />
         <meta name="twitter:image" content="{{PROFILE_IMAGE}}" />
+        <link rel="canonical" href="{{SITE_URL}}/" />
         <link rel="icon" type="image/jpeg" href="{{PROFILE_IMAGE}}" />
         <title>{{NAME}}</title>
-        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="style.css?v={{CSS_HASH}}" />
         <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
@@ -32,7 +33,18 @@
             rel="stylesheet"
             href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css"
         />
-        <script src="data.js"></script>
+        <script>
+            // Apply theme immediately to prevent flash of wrong theme
+            (function() {
+                var theme = localStorage.getItem("theme");
+                if (theme) {
+                    document.documentElement.setAttribute("data-theme", theme);
+                } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                    document.documentElement.setAttribute("data-theme", "dark");
+                }
+            })();
+        </script>
+        <script src="data.js?v={{JS_HASH}}"></script>
     </head>
     <body>
         <noscript>
@@ -54,30 +66,10 @@
                 <!-- Navigation -->
                 <nav class="main-nav">
                     <div class="nav-links">
-                        <a
-                            href="#about"
-                            class="nav-link active"
-                            onclick="showPage('about')"
-                            >About</a
-                        >
-                        <a
-                            href="#resume"
-                            class="nav-link"
-                            onclick="showPage('resume')"
-                            >Resume</a
-                        >
-                        <a
-                            href="#blogs"
-                            class="nav-link"
-                            onclick="showPage('blogs')"
-                            >Blogs</a
-                        >
-                        <a
-                            href="#news"
-                            class="nav-link"
-                            onclick="showPage('news')"
-                            >News</a
-                        >
+                        <a href="#about" class="nav-link active" data-page="about">About</a>
+                        <a href="#resume" class="nav-link" data-page="resume">Resume</a>
+                        <a href="#blogs" class="nav-link" data-page="blogs">Blogs</a>
+                        <a href="#news" class="nav-link" data-page="news">News</a>
                     </div>
                     <button
                         id="theme-toggle"

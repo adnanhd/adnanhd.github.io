@@ -2,13 +2,13 @@ items:
   - date: "Jan 2025"
     content: "Defended my M.Sc. thesis at METU"
 
+  - date: "Dec 2024"
+    content: "Started research internship at ETH Zürich SIPLab"
+    link: "https://siplab.org/"
+
   - date: "2024"
     content: "Paper accepted at ECCV 2024"
     link: "https://arxiv.org/pdf/2407.14204"
-
-  - date: "Dec 2023"
-    content: "Started research internship at ETH Zürich SIPLab"
-    link: "https://siplab.org/"
 
   - date: "Sep 2022"
     content: "Best Paper Award at IEEE/SRMC'22"

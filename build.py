@@ -8,6 +8,7 @@ Usage:
     python build.py
 """
 
+import hashlib
 import re
 from datetime import datetime
 from html import escape
@@ -61,6 +62,12 @@ LINK_ICONS = {
     "dblp": "ai ai-dblp",
     "semantic_scholar": "ai ai-semantic-scholar",
 }
+
+
+def file_hash(path, length=8):
+    """Return a short content hash for cache busting."""
+    content = Path(path).read_bytes()
+    return hashlib.sha256(content).hexdigest()[:length]
 
 
 def esc(s):
@@ -177,7 +184,7 @@ def render_sidebar(bio):
                 url = URL_TEMPLATES[platform].format(id=esc(uid))
                 icon_class = LINK_ICONS.get(platform, "")
                 label = LINK_NAMES.get(platform, platform)
-                target = "" if platform == "email" else ' target="_blank"'
+                target = "" if platform == "email" else ' target="_blank" rel="noopener noreferrer"'
                 parts.append(
                     f'<a href="{url}" class="social-link" title="{esc(label)}" '
                     f'aria-label="{esc(label)}"{target}>'
@@ -188,7 +195,7 @@ def render_sidebar(bio):
     # Custom links
     if bio.get("custom_links"):
         for link in bio["custom_links"]:
-            target = ' target="_blank"' if link["url"].startswith("http") else ""
+            target = ' target="_blank" rel="noopener noreferrer"' if link["url"].startswith("http") else ""
             parts.append(f'<a href="{esc(link["url"])}"{target}>{esc(link["name"])}</a>')
 
     parts.append("</div>")
@@ -214,7 +221,7 @@ def render_pub_links(links):
     parts = ['<div class="publication-links">']
     for link in links:
         parts.append(
-            f'<a href="{esc(link["url"])}" class="pub-link" target="_blank">'
+            f'<a href="{esc(link["url"])}" class="pub-link" target="_blank" rel="noopener noreferrer">'
             f'{esc(link["name"])}</a>'
         )
     parts.append("</div>")
@@ -231,7 +238,7 @@ def render_publication_card(paper):
     if paper.get("venue_link"):
         parts.append(
             f'<div class="publication-venue-tag">'
-            f'<a href="{esc(paper["venue_link"])}" target="_blank" '
+            f'<a href="{esc(paper["venue_link"])}" target="_blank" rel="noopener noreferrer" '
             f'style="color: inherit; text-decoration: none;">{esc(venue_text)}</a></div>'
         )
     else:
@@ -274,7 +281,7 @@ def render_compact_publication(paper):
     citation += f" {esc(paper['title'])}."
     if paper.get("venue_link") and paper.get("venue_short"):
         citation += (
-            f' <em><a href="{esc(paper["venue_link"])}" target="_blank" '
+            f' <em><a href="{esc(paper["venue_link"])}" target="_blank" rel="noopener noreferrer" '
             f'style="color: var(--accent-color); text-decoration: none;">'
             f'{esc(paper["venue_short"])}</a></em>.'
         )
@@ -288,7 +295,7 @@ def render_compact_publication(paper):
         parts.append('<div class="publication-links">')
         for link in paper["links"]:
             parts.append(
-                f'<a href="{esc(link["url"])}" class="pub-link" target="_blank">'
+                f'<a href="{esc(link["url"])}" class="pub-link" target="_blank" rel="noopener noreferrer">'
                 f'{esc(link["name"])}</a>'
             )
         parts.append("</div>")
@@ -307,7 +314,7 @@ def render_resume_item(title, subtitle, date, description, logo=None,
     if logo:
         parts.append('<div class="resume-logo">')
         if logo_link:
-            parts.append(f'<a href="{esc(logo_link)}" target="_blank">')
+            parts.append(f'<a href="{esc(logo_link)}" target="_blank" rel="noopener noreferrer">')
             parts.append(f'<img src="{esc(logo)}" alt="{esc(subtitle)}" />')
             parts.append("</a>")
         else:
@@ -351,7 +358,7 @@ def render_resume_item(title, subtitle, date, description, logo=None,
                 number = code.replace("CENG ", "")
                 url = f"https://catalog.metu.edu.tr/course.php?course_code=5710{number}"
                 parts.append(
-                    f'<li><a href="{url}" target="_blank" '
+                    f'<li><a href="{url}" target="_blank" rel="noopener noreferrer" '
                     f'style="color: var(--accent-color); text-decoration: none;">'
                     f"{esc(code)}</a> - {esc(name)}</li>"
                 )
@@ -435,7 +442,7 @@ def render_news(data):
         if item.get("link"):
             parts.append(
                 f'<span class="news-content">'
-                f'<a href="{esc(item["link"])}" target="_blank">{esc(item["content"])}</a>'
+                f'<a href="{esc(item["link"])}" target="_blank" rel="noopener noreferrer">{esc(item["content"])}</a>'
                 f"</span>"
             )
         else:
@@ -529,7 +536,7 @@ def render_timeline(data):
                 parts.append('<div class="timeline-links">')
                 for link in event["links"]:
                     parts.append(
-                        f'<a href="{esc(link["url"])}" target="_blank" '
+                        f'<a href="{esc(link["url"])}" target="_blank" rel="noopener noreferrer" '
                         f'class="timeline-link">{esc(link["name"])}</a>'
                     )
                 parts.append("</div>")
@@ -572,7 +579,7 @@ def render_works(works_data):
     parts = []
     for work in works:
         parts.append('<div class="work-item">')
-        parts.append(f'<a href="{esc(work["url"])}" target="_blank" class="work-link">')
+        parts.append(f'<a href="{esc(work["url"])}" target="_blank" rel="noopener noreferrer" class="work-link">')
         parts.append(f"<h3>{esc(work['title'])}</h3>")
         if work.get("description"):
             parts.append(f"<p>{esc(work['description'])}</p>")
@@ -605,14 +612,20 @@ def main():
     resume_pubs = [p for p in pubs if p.get("resume")]
     resume_pubs_html = "\n".join(render_compact_publication(p) for p in resume_pubs)
 
-    # Meta description
-    meta_desc = (
-        f'{bio["name"]} - {bio.get("title", "")} at {bio.get("affiliation", "")}. '
-        "Research in differentiable optimization and deep learning for computer vision."
+    # Meta description (from bio.yaml or fallback)
+    meta_desc = bio.get("meta_description") or (
+        f'{bio["name"]} - {bio.get("title", "")} at {bio.get("affiliation", "")}.'
     )
+
+    # Asset cache busting
+    css_hash = file_hash(BASE_DIR / "style.css")
+    js_hash = file_hash(BASE_DIR / "data.js")
 
     # Perform replacements
     replacements = {
+        "{{CSS_HASH}}": css_hash,
+        "{{JS_HASH}}": js_hash,
+        "{{SITE_URL}}": esc(bio.get("site_url", "")),
         "{{NAME}}": esc(bio["name"]),
         "{{META_DESCRIPTION}}": esc(meta_desc),
         "{{PROFILE_IMAGE}}": esc(bio.get("profile_image", "profile.jpeg")),

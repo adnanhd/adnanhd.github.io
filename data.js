@@ -1,7 +1,11 @@
 // Theme management and page navigation
 // Content is pre-rendered by build.py — this file only handles interactive behavior.
 
+const VALID_PAGES = ["about", "resume", "blogs", "news"];
+
 function showPage(pageId) {
+  if (!VALID_PAGES.includes(pageId)) return;
+
   document.querySelectorAll(".page-section").forEach((page) => {
     page.classList.remove("active");
   });
@@ -11,25 +15,23 @@ function showPage(pageId) {
     link.classList.remove("active");
   });
   document
-    .querySelector(`[onclick="showPage('${pageId}')"]`)
+    .querySelector(`[data-page="${pageId}"]`)
     .classList.add("active");
+
+  // Update hash without triggering hashchange
+  history.replaceState(null, "", `#${pageId}`);
+}
+
+function handleHash() {
+  const hash = window.location.hash.replace("#", "");
+  if (hash && VALID_PAGES.includes(hash)) {
+    showPage(hash);
+  }
 }
 
 function initTheme() {
   const themeToggle = document.getElementById("theme-toggle");
   const htmlElement = document.documentElement;
-
-  const savedTheme = localStorage.getItem("theme");
-  if (savedTheme) {
-    htmlElement.setAttribute("data-theme", savedTheme);
-  } else {
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)",
-    ).matches;
-    if (prefersDark) {
-      htmlElement.setAttribute("data-theme", "dark");
-    }
-  }
 
   themeToggle.addEventListener("click", () => {
     const currentTheme = htmlElement.getAttribute("data-theme");
@@ -47,4 +49,9 @@ function initTheme() {
     });
 }
 
-document.addEventListener("DOMContentLoaded", initTheme);
+document.addEventListener("DOMContentLoaded", () => {
+  initTheme();
+  handleHash();
+});
+
+window.addEventListener("hashchange", handleHash);
