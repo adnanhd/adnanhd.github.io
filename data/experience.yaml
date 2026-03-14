@@ -47,6 +47,6 @@ experience:
     description: "Developed sophisticated multi-modal deep learning systems for cardiac and sleep abnormality detection from physiological signals. Designed novel architectures integrating time-series analysis with spectral feature extraction for beat-by-beat cardiac arrhythmia classification, achieving competitive performance in international challenges. Published research findings at Computing in Cardiology (CinC) 2021."
     links:
       - name: "PAPER"
-        url: "https://www.cinc.org/2021/Program/accepted/33_Preprint.pdf"
+        url: "https://www.semanticscholar.org/paper/Two-Might-Do%3A-A-Beat-by-Beat-Classification-of-Deep-Demirel-Dogan/fd397c01696763ad7dbb199d71c04298a0c9f83e"
       - name: "CODE"
-        url: "https://github.com/muraitsari/covid19-plnn"
+        url: "https://github.com/Berken-demirel/Two_Might_Do"
