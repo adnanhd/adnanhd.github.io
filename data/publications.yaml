@@ -9,25 +9,27 @@
 papers:
   # Conference Publications
   - title: "Frequency-Weighted Neural Kalman Filters"
-    authors: "Dogan, A. H.., Demirel, B. U., Holz, C."
+    authors: "Dogan, A. H., Demirel, B. U., Holz, C."
     venue: "International Conference on Robotics and Automation (IEEE ICRA)"
     venue_short: "ICRA 2026"
     date: "2026"
     selected: true
     resume: true
     timelined: true
+    image: "images/publications/icra2026.png"
     links:
       - name: "GitHub"
         url: "https://github.com/eth-siplab/Frequency-weighted-neural-Kalman-filters/"
 
   - title: "Beyond subjectivity: Continuous cybersickness detection using eeg-based multitaper spectrum estimation"
-    authors: "Demirel, B. U, Dogan, A. H., Rossie, J., Möbus M., Holz, C."
+    authors: "Demirel, B. U., Dogan, A. H., Rossie, J., Möbus M., Holz, C."
     venue: "IEEE Transactions on Visualization and Computer Graphics"
     venue_short: "IEEE/TVCG 2025"
     date: "2025"
     selected: true
     resume: true
     timelined: true
+    image: "images/publications/tvcg2025.png"
     links:
       - name: "DOI"
         url: "https://doi.org/10.1109/TVCG.2025.3549132"
