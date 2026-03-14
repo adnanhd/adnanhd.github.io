@@ -365,6 +365,72 @@ a:hover {
     background-color: var(--hover-bg);
 }
 
+/* Sidebar link categories */
+.links-category {
+    width: 100%;
+    margin-top: 4px;
+}
+
+.links-category-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 4px 8px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.links-category-toggle:hover {
+    background-color: var(--hover-bg);
+    color: var(--text-secondary);
+}
+
+.category-chevron {
+    font-size: 9px;
+    transition: transform 0.2s ease;
+}
+
+.links-category-toggle[aria-expanded="true"] .category-chevron {
+    transform: rotate(180deg);
+}
+
+.links-category-items {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    padding-left: 4px;
+}
+
+.links-category-toggle[aria-expanded="true"] + .links-category-items {
+    display: flex;
+}
+
+/* "See all" inline link */
+.see-all-link {
+    margin-top: 16px;
+    text-align: right;
+}
+
+.nav-link-inline {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.nav-link-inline:hover {
+    text-decoration: underline;
+}
+
 /* Content Sections */
 .content-section {
     padding: 15px 0;
@@ -485,15 +551,16 @@ a:hover {
 }
 
 .news-list li {
-    margin-bottom: 15px;
-    padding-left: 15px;
-    border-left: 3px solid var(--accent-color);
+    margin-bottom: 6px;
+    line-height: 1.5;
+    font-size: 0.95em;
 }
 
 .news-date {
-    font-weight: bold;
+    font-weight: 600;
     color: var(--accent-color);
-    margin-right: 10px;
+    margin-right: 6px;
+    font-size: 0.9em;
 }
 
 .news-content {
@@ -685,14 +752,14 @@ a:hover {
 
 /* Compact Publication Cards - For Resume page (APA reference style) */
 .publication-item-compact {
-    margin-bottom: 10px;
+    margin-bottom: 4px;
     padding-bottom: 0px;
-    font-size: 0.9em;
-    line-height: 1.5;
+    font-size: 0.85em;
+    line-height: 1.4;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 15px;
+    gap: 10px;
 }
 
 .pub-compact-reference {
@@ -968,6 +1035,18 @@ footer {
 
     .links a:not(.social-link) {
         font-size: 11px;
+    }
+
+    .links-category-toggle {
+        font-size: 10px;
+        padding: 2px 4px;
+    }
+
+    .links-category-items {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding-left: 0;
     }
 
     /* Navigation */

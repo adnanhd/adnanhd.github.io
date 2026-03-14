@@ -1,7 +1,7 @@
 // Theme management and page navigation
 // Content is pre-rendered by build.py — this file only handles interactive behavior.
 
-const VALID_PAGES = ["about", "resume", "blogs", "news"];
+const VALID_PAGES = ["about", "cv", "blogs", "timeline"];
 
 function showPage(pageId) {
   if (!VALID_PAGES.includes(pageId)) return;
@@ -53,9 +53,19 @@ function initTheme() {
     });
 }
 
+function initCategoryToggles() {
+  document.querySelectorAll(".links-category-toggle").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const expanded = btn.getAttribute("aria-expanded") === "true";
+      btn.setAttribute("aria-expanded", !expanded);
+    });
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   handleHash();
+  initCategoryToggles();
 });
 
 window.addEventListener("hashchange", handleHash);
