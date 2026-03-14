@@ -1,4 +1,7 @@
 items:
+  - date: "2026"
+    content: "\"Frequency-Weighted Neural Kalman Filters\" accepted at IEEE ICRA 2026"
+
   - date: "Jan 2025"
     content: "Defended my M.Sc. thesis at METU"
 
@@ -7,7 +10,7 @@ items:
     link: "https://siplab.org/"
 
   - date: "2024"
-    content: "Paper accepted at ECCV 2024"
+    content: "\"Bucketed Ranking Loss for Efficient Ranking-based Training of Object Detectors\" accepted at ECCV 2024"
     link: "https://arxiv.org/pdf/2407.14204"
 
   - date: "Sep 2022"

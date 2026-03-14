@@ -7,6 +7,18 @@
 # Add 'bullets' array for bullet-point lists (e.g., course names)
 
 experience:
+  - position: "Research Intern"
+    company: "Sensing, Interaction, & Perception Laboratory (SIPLab), ETH Zürich"
+    location: "Zürich, Switzerland"
+    start_date: "Dec 2024"
+    end_date: "Mar 2025"
+    logo: "images/logos/eth.png"
+    logo_link: "https://siplab.org/"
+    advisor: "Prof. Dr. Christian Holz"
+    commitment: "Full-time, 4 months"
+    timelined: true
+    description: "Advanced research on continuous cybersickness detection in virtual reality environments using EEG-based multitaper spectrum estimation. Pioneered novel deep learning architectures achieving 30% performance improvement over baseline methods in real-time cybersickness prediction from brain signals, with potential applications in adaptive VR systems and user experience optimization."
+
   - position: "Graduate Research Assistant"
     company: "Image Processing and Pattern Recognition Laboratory (ImageLab), METU"
     location: "Ankara, Turkey"
@@ -22,18 +34,6 @@ experience:
       - "Designed and implemented bucketed ranking loss with Sinkhorn-Knopp algorithm integration for DETR (Detection Transformer) architecture"
       - "Achieved significant performance improvements in end-to-end object detection training through optimal transport-based loss formulations"
       - "Published first-author paper at ECCV 2024, a premier computer vision conference (Acceptance Rate: ~27%)"
-
-  - position: "Research Intern"
-    company: "Sensing, Interaction, & Perception Laboratory (SIPLab), ETH Zürich"
-    location: "Zürich, Switzerland"
-    start_date: "Dec 2024"
-    end_date: "Mar 2025"
-    logo: "images/logos/eth.png"
-    logo_link: "https://siplab.org/"
-    advisor: "Prof. Dr. Christian Holz"
-    commitment: "Full-time, 4 months"
-    timelined: true
-    description: "Advanced research on continuous cybersickness detection in virtual reality environments using EEG-based multitaper spectrum estimation. Pioneered novel deep learning architectures achieving 30% performance improvement over baseline methods in real-time cybersickness prediction from brain signals, with potential applications in adaptive VR systems and user experience optimization."
 
   - position: "Undergraduate Research Intern"
     company: "Cyber-Physical Systems Laboratory, University of California, Irvine"

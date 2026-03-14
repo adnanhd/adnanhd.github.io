@@ -2,9 +2,32 @@
 # These will be shown on the About page
 
 works:
-  # Example:
-  # - title: "Project Name"
-  #   description: "Brief description of the project"
-  #   url: "https://github.com/adnanhd/project"
-  #   image: "images/works/project.png"  # Optional
-  #   tags: ["Python", "PyTorch", "Deep Learning"]
+  - title: "torchastrator"
+    description: "A PyTorch orchestration framework for managing and coordinating deep learning training pipelines."
+    url: "https://github.com/adnanhd/torchastrator"
+    tags: ["Python", "PyTorch"]
+
+  - title: "ssl-reproduce"
+    description: "Reproduction of self-supervised learning methods for visual representation learning."
+    url: "https://github.com/adnanhd/ssl-reproduce"
+    tags: ["Python", "PyTorch", "Self-Supervised Learning"]
+
+  - title: "ot-reproduce"
+    description: "Reproduction of optimal transport algorithms and their applications in machine learning."
+    url: "https://github.com/adnanhd/ot-reproduce"
+    tags: ["Python", "Optimal Transport"]
+
+  - title: "registry-pattern"
+    description: "A generic implementation of the registry design pattern for Python."
+    url: "https://github.com/adnanhd/registry-pattern"
+    tags: ["Python", "Design Patterns"]
+
+  - title: "observer-pattern"
+    description: "A generic implementation of the observer design pattern for Python."
+    url: "https://github.com/adnanhd/observer-pattern"
+    tags: ["Python", "Design Patterns"]
+
+  - title: "torchdatasets"
+    description: "Custom PyTorch dataset utilities and data loading helpers."
+    url: "https://github.com/adnanhd/torchdatasets"
+    tags: ["Python", "PyTorch", "Data"]

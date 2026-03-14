@@ -33,7 +33,7 @@ social:
 
 # If you want to add custom links not in the standard list above
 custom_links:
-  - name: "CV"
-    url: "cv.pdf"
+  - name: "Resume"
+    url: "resume.pdf"
   # - name: "Blog"
   #   url: "https://yourblog.com"

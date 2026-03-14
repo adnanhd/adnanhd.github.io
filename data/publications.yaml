@@ -8,6 +8,15 @@
 
 papers:
   # Conference Publications
+  - title: "Frequency-Weighted Neural Kalman Filters"
+    authors: "Adnan Harun Dogan, Demirel, B. U., Holz, C."
+    venue: "International Conference on Robotics and Automation (IEEE ICRA)"
+    venue_short: "ICRA 2026"
+    date: "2026"
+    selected: true
+    resume: true
+    timelined: true
+
   - title: "Bucketed Ranking Loss for Efficient Ranking-based Training of Object Detectors"
     authors: "Yavuz, F., Cam B.C., Adnan Harun Dogan, Oksuz, K., Kalkan, S., Akbas, E."
     venue: "European Conference on Computer Vision (ECCV)"
@@ -19,8 +28,12 @@ papers:
     image: "images/publications/eccv2024.png"
     venue_link: "https://eccv.ecva.net/"
     links:
-      - name: "PAPER"
-        url: "https://arxiv.org/pdf/2407.14204"
+      - name: "ECVA"
+        url: https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/7634_ECCV_2024_paper.php
+      - name: "ArXiV"
+        url: https://arxiv.org/abs/2407.14204v1
+      - name: "CODE"
+        url: "https://github.com/blisgard/BucketedRankingBasedLosses"
 
   - title: "Misuse Detection and Response for Orchestrated Microservices Based Software"
     authors: "Amin M. A., Adnan Harun Dogan, Kuru E. S., Sever Y., Angin P."
@@ -88,11 +101,8 @@ papers:
       - name: "PAPER"
         url: "https://ebuah.uah.es/dspace/bitstream/handle/10017/59325/reintroducing_magaz_valorising_2023.pdf?sequence=4"
 
-  # Technical Reports
   - title: "An Assembled Deep Learning Approach for Flow Field Prediction"
     authors: "Adnan Harun Dogan, Dogan, A."
-    venue: "Technical Report"
-    venue_short: "Tech Report 2021"
     date: "Jun 2021"
     resume: true
     links:
