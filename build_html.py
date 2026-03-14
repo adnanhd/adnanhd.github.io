@@ -296,21 +296,64 @@ def render_honors(data):
 # News
 # ---------------------------------------------------------------------------
 
+_NEWS_TAG_COLORS = {
+    "publication": "#2563eb",
+    "degree": "#7c3aed",
+    "internship": "#0891b2",
+    "award": "#d97706",
+}
+
+
+def _year_from_date(date_str):
+    """Extract the 4-digit year from a date string."""
+    m = re.search(r"\d{4}", str(date_str))
+    return int(m.group()) if m else 0
+
+
+def _year_opacity(year, min_year, max_year):
+    """Map a year to an opacity value (newer = more opaque)."""
+    if max_year == min_year:
+        return 1.0
+    return 0.45 + 0.55 * (year - min_year) / (max_year - min_year)
+
+
 def render_news(data):
-    """Render news items as one-line list items."""
+    """Render news items as one-line list items with tags and year shading."""
     items = (data.get("news") or {}).get("items", [])
+    if not items:
+        return ""
+
+    years = [_year_from_date(item["date"]) for item in items]
+    min_year, max_year = min(years), max(years)
+
     parts = []
-    for item in items:
-        date = f'<span class="news-date">[{esc(item["date"])}]</span> '
+    for item, year in zip(items, years):
+        opacity = _year_opacity(year, min_year, max_year)
+        date = (
+            f'<span class="news-date" style="opacity: {opacity:.2f}">'
+            f'[{esc(item["date"])}]</span> '
+        )
+
+        content = f'<span class="news-content">{esc(item["content"])}</span>'
         if item.get("link"):
-            content = (
-                f'<span class="news-content">'
-                f'<a href="{esc(item["link"])}" target="_blank" rel="noopener noreferrer">'
-                f'{esc(item["content"])}</a></span>'
+            content += (
+                f' <a href="{esc(item["link"])}" class="news-link" '
+                f'target="_blank" rel="noopener noreferrer">[link]</a>'
             )
-        else:
-            content = f'<span class="news-content">{esc(item["content"])}</span>'
-        parts.append(f"<li>{date}{content}</li>")
+
+        tag_html = ""
+        tags = item.get("tags") or []
+        if isinstance(tags, str):
+            tags = [tags]
+        if tags:
+            tag_spans = "".join(
+                f'<span class="news-tag" style="background-color: '
+                f'{_NEWS_TAG_COLORS.get(tag, "var(--text-muted)")}">{esc(tag)}</span>'
+                for tag in tags
+            )
+            tag_html = f'<span class="news-tags">{tag_spans}</span>'
+
+        parts.append(f"<li>{date}{content}{tag_html}</li>")
     return "\n".join(parts)
 
 

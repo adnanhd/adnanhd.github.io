@@ -15,6 +15,7 @@ RESUME_OUTPUT_PATH = BASE_DIR / "resume.pdf"
 # Author identity (used for highlighting in publications)
 AUTHOR_NAME = "Dogan, A. H."
 AUTHOR_NAME_ALT = "Doğan, A. H."
+AUTHOR_DISPLAY_NAME = "Adnan Harun Dogan"
 
 # Social platform URL templates — {id} is replaced with the user's ID
 URL_TEMPLATES = {
