@@ -561,9 +561,14 @@ a:hover {
 
 .news-date {
     font-weight: 600;
-    color: var(--accent-color);
-    margin-right: 6px;
-    font-size: 0.9em;
+    color: #fff;
+    background-color: var(--accent-color);
+    margin-right: 8px;
+    font-size: 0.75em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .news-content {
@@ -575,6 +580,7 @@ a:hover {
     font-weight: 600;
     color: var(--accent-color);
     text-decoration: none;
+    margin-left: 5px;
 }
 
 .news-link:hover {
@@ -591,12 +597,13 @@ a:hover {
 .news-tag {
     display: inline-block;
     color: #fff;
-    font-size: 0.7em;
-    font-weight: 600;
-    padding: 1px 7px;
+    font-size: 0.65em;
+    font-weight: 500;
+    padding: 1px 6px;
     border-radius: 3px;
     text-transform: lowercase;
     letter-spacing: 0.3px;
+    opacity: 0.6;
 }
 
 /* Unified Timeline Section - Visual Timeline */
@@ -987,6 +994,41 @@ a:hover {
     border-radius: 4px;
     font-size: 0.85em;
     border: 1px solid var(--border-color);
+}
+
+/* Lightbox overlay for zoomable publication images */
+.lightbox-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.8);
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+}
+
+.lightbox-overlay.active {
+    display: flex;
+    animation: lightbox-fade-in 0.2s ease;
+}
+
+.lightbox-img {
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    animation: lightbox-zoom-in 0.25s ease;
+}
+
+@keyframes lightbox-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes lightbox-zoom-in {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
 
 /* Footer */
