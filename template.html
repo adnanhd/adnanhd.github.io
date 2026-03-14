@@ -73,9 +73,9 @@
                 <nav class="main-nav" aria-label="Page navigation">
                     <div class="nav-links">
                         <a href="#about" class="nav-link active" data-page="about">About</a>
-                        <a href="#resume" class="nav-link" data-page="resume">Resume</a>
+                        <a href="#cv" class="nav-link" data-page="cv">Curriculum Vitae</a>
                         <a href="#blogs" class="nav-link" data-page="blogs">Blogs</a>
-                        <a href="#news" class="nav-link" data-page="news">News</a>
+                        <a href="#timeline" class="nav-link" data-page="timeline">Timeline</a>
                     </div>
                     <button
                         id="theme-toggle"
@@ -95,16 +95,17 @@
                     </div>
 
                     <div class="content-section">
-                        <h2>Publications</h2>
+                        <h2>News</h2>
+                        <ul class="news-list">{{NEWS}}</ul>
+                    </div>
+
+                    <div class="content-section">
+                        <h2>Selected Publications</h2>
                         <div
                             id="selected-works"
                             class="publications-grid"
                         >{{SELECTED_PUBLICATIONS}}</div>
-                    </div>
-
-                    <div class="content-section">
-                        <h2>Blogs</h2>
-                        <div id="selected-blogs" class="blog-list">{{SELECTED_BLOGS}}</div>
+                        <p class="see-all-link"><a href="#cv" class="nav-link-inline" onclick="showPage('cv')">see all publications &rarr;</a></p>
                     </div>
 
                     <div class="content-section">
@@ -121,15 +122,15 @@
                     </div>
                 </section>
 
-                <!-- Resume Page -->
-                <section id="resume" class="page-section" aria-label="Resume" tabindex="-1">
+                <!-- Curriculum Vitae Page -->
+                <section id="cv" class="page-section" aria-label="Curriculum Vitae" tabindex="-1">
                     <div class="content-section">
                         <h2>Education</h2>
                         <div id="education-list">{{EDUCATION}}</div>
                     </div>
 
                     <div class="content-section">
-                        <h2>Papers</h2>
+                        <h2>Publications</h2>
                         <div id="resume-papers" class="publications-grid">{{RESUME_PAPERS}}</div>
                     </div>
 
@@ -154,13 +155,8 @@
                     </div>
                 </section>
 
-                <!-- News Page -->
-                <section id="news" class="page-section" aria-label="News and timeline" tabindex="-1">
-                    <div class="content-section">
-                        <h2>News</h2>
-                        <ul class="news-list">{{NEWS}}</ul>
-                    </div>
-
+                <!-- Timeline Page -->
+                <section id="timeline" class="page-section" aria-label="Timeline" tabindex="-1">
                     <div class="content-section">
                         <h2>Timeline</h2>
                         <div id="timeline-container">{{TIMELINE}}</div>
