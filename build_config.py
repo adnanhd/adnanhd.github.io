@@ -13,8 +13,8 @@ RESUME_TEMPLATE_PATH = BASE_DIR / "resume_template.tex"
 RESUME_OUTPUT_PATH = BASE_DIR / "resume.pdf"
 
 # Author identity (used for highlighting in publications)
-AUTHOR_NAME = "Adnan Harun Dogan"
-AUTHOR_NAME_ALT = "Adnan Harun Doğan"
+AUTHOR_NAME = "Dogan, A. H."
+AUTHOR_NAME_ALT = "Doğan, A. H."
 
 # Social platform URL templates — {id} is replaced with the user's ID
 URL_TEMPLATES = {
