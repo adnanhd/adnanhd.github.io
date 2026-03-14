@@ -6,3 +6,10 @@
 public/
 jsconfig.json
 node_modules/
+
+# Python
+__pycache__/
+*.pyc
+
+# Org-mode
+*.org

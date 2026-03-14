@@ -297,10 +297,10 @@ def render_honors(data):
 # ---------------------------------------------------------------------------
 
 _NEWS_TAG_COLORS = {
-    "publication": "#2563eb",
-    "degree": "#7c3aed",
-    "internship": "#0891b2",
-    "award": "#d97706",
+    "publication": "#839496",
+    "degree": "#6c71c4",
+    "internship": "#2aa198",
+    "award": "#b58900",
 }
 
 
@@ -331,7 +331,7 @@ def render_news(data):
         opacity = _year_opacity(year, min_year, max_year)
         date = (
             f'<span class="news-date" style="opacity: {opacity:.2f}">'
-            f'[{esc(item["date"])}]</span> '
+            f'{esc(item["date"])}</span> '
         )
 
         content = f'<span class="news-content">{esc(item["content"])}</span>'
@@ -347,8 +347,9 @@ def render_news(data):
             tags = [tags]
         if tags:
             tag_spans = "".join(
-                f'<span class="news-tag" style="background-color: '
-                f'{_NEWS_TAG_COLORS.get(tag, "var(--text-muted)")}">{esc(tag)}</span>'
+                '<span class="news-tag" style="background-color: '
+                f'{_NEWS_TAG_COLORS.get(tag, "var(--text-muted)")}">'
+                f'#{esc(tag)}</span>'
                 for tag in tags
             )
             tag_html = f'<span class="news-tags">{tag_spans}</span>'
@@ -424,7 +425,7 @@ def render_timeline(data):
         if event["type"] == "experience":
             parts.append(f'<div class="timeline-org">{esc(event.get("organization", ""))}</div>')
         else:
-            parts.append(f'<div class="timeline-authors">{esc(event.get("authors", ""))}</div>')
+            parts.append(f'<div class="timeline-authors">{highlight_author(esc(event.get("authors", "")))}</div>')
             parts.append(f'<div class="timeline-venue"><em>{esc(event.get("venue", ""))}</em></div>')
             if event.get("links"):
                 link_html = "\n".join(

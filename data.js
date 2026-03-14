@@ -62,10 +62,37 @@ function initCategoryToggles() {
   });
 }
 
+function initImageLightbox() {
+  var overlay = document.createElement("div");
+  overlay.className = "lightbox-overlay";
+  overlay.innerHTML = '<img class="lightbox-img" />';
+  document.body.appendChild(overlay);
+
+  var lbImg = overlay.querySelector(".lightbox-img");
+
+  document.querySelectorAll(".publication-image img").forEach(function (img) {
+    img.style.cursor = "zoom-in";
+    img.addEventListener("click", function () {
+      lbImg.src = img.src;
+      lbImg.alt = img.alt;
+      overlay.classList.add("active");
+    });
+  });
+
+  overlay.addEventListener("click", function () {
+    overlay.classList.remove("active");
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") overlay.classList.remove("active");
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   handleHash();
   initCategoryToggles();
+  initImageLightbox();
 });
 
 window.addEventListener("hashchange", handleHash);
