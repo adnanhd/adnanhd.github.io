@@ -1,6 +1,6 @@
 items:
   - date: "Jun 2026"
-    content: "\"Frequency-Weighted Neural Kalman Filters\" accepted at IEEE ICRA 2026"
+    content: "\"Frequency-Weighted Neural Kalman Filters\" accepted at IEEE/ICRA 2026"
     tags:
       - publication
 
@@ -12,17 +12,25 @@ items:
 
   - date: "Jan 2025"
     content: "Defended my M.Sc. thesis at METU"
+    link: "https://avesis.ncc.metu.edu.tr/yonetilen-tez/3bb95a8c-7b3c-4899-91ec-f78be5a6e17a/incorporating-piecewise-linear-functions-with-constant-regions-in-backpropagation"
     tags:
       - degree
 
+  - date: "Mar 2025"
+    content: "\"Beyond Subjectivity\" accepted at IEEE/TVCG"
+    link: "https://doi.org/10.1109/TVCG.2025.3549132"
+    tags:
+      - publication
+
   - date: "Aug 2024"
-    content: "\"Bucketed Ranking Loss for Efficient Ranking-based Training of Object Detectors\" accepted at ECCV 2024"
+    content: "\"Bucketed Ranking Losses\" accepted at ECCV 2024"
     link: "https://arxiv.org/pdf/2407.14204"
     tags:
       - publication
 
   - date: "Sep 2022"
     content: "Best Paper Award at IEEE/SRMC'22"
+    link: "https://doi.org/10.1109/SRMC57347.2022.00007"
     tags:
       - award
       - publication

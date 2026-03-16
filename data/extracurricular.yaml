@@ -4,27 +4,27 @@
 honors:
   - title: "TUBITAK 2247 C STAR Scholarship"
     organization: "The Scientific and Technological Research Institution of Turkey (TÜBİTAK)"
-    date: "2022-Present"
+    date: "2022-2023"
     logo: "images/logos/tubitak.png"
-    description: "Graduate research scholarship for thesis work on differentiable combinatorial optimization"
+    description: "Merit-based national scholarship awarded to students contributing to TUBITAK-funded research projects. Supported graduate thesis on differentiable combinatorial optimization at ImageLab, METU."
 
   - title: "Best Paper Award"
     organization: "IEEE/SRMC'22"
     date: "September 2022"
     logo: "images/logos/ieee.png"
-    description: "For 'An Empirical Analysis of IDS Approaches in Container Security'"
+    description: "Awarded for 'An Empirical Analysis of IDS Approaches in Container Security' at the IEEE International Workshop on Security, Resilience, and Management of Cloud Computing."
 
   - title: "TUBITAK 2247 C STAR Scholarship"
     organization: "The Scientific and Technological Research Institution of Turkey (TÜBİTAK)"
     date: "2021-2022"
     logo: "images/logos/tubitak.png"
-    description: "Undergraduate research scholarship for CONTSEC project on container security"
+    description: "Merit-based national scholarship awarded to students contributing to TUBITAK-funded research projects. Supported undergraduate research on container security and intrusion detection (CONTSEC) at METU."
 
   - title: "TUBITAK 2247 C STAR Scholarship"
     organization: "The Scientific and Technological Research Institution of Turkey (TÜBİTAK)"
     date: "2020-2021"
     logo: "images/logos/tubitak.png"
-    description: "Undergraduate research scholarship for healthcare policy simulation models"
+    description: "Merit-based national scholarship awarded to students contributing to TUBITAK-funded research projects. Supported undergraduate research on healthcare policy simulation at Koç University School of Medicine."
 
 # Technical Skills
 skills:

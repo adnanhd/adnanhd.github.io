@@ -16,6 +16,9 @@ research:
     logo_link: "https://image.ceng.metu.edu.tr/"
     advisor: "Assist. Prof. Dr. Hande Alemdar, Assist. Prof. Dr. Baran Ugras"
     description: "CNNFOIL: Approximating HLLC Riemann solver for flow prediction around airfoils via encoder-decoder neural networks. Engineered state-of-the-art neural network models achieving 4.4% performance improvement in predicting critical flow field parameters around airfoil geometries."
+    bullets:
+      - "Approximated HLLC Riemann solver for airfoil flow prediction via encoder-decoder networks"
+      - "Achieved 4.4% improvement in predicting flow field parameters around airfoil geometries"
 
   - position: "Undergraduate Research Project"
     company: "Center for Artificial Intelligence and Robotics (ROMER), METU"
@@ -27,6 +30,8 @@ research:
     advisor: "Assist. Prof. Dr. Erol Sahin, Assoc. Prof. Dr. Bugra Koku"
     commitment: "Term project course: ME460"
     description: "Reinforcement learning for autonomous driving (CarRL). Integrated ROS2 pipelines with RL/DL models in Gym and PyTorch for autonomous navigation."
+    bullets:
+      - "Integrated ROS2 pipelines with RL/DL models in Gym and PyTorch for autonomous navigation"
     links:
       - name: "CODE"
         url: "https://github.com/METU-KALFA/car_rl/wiki"
@@ -42,9 +47,9 @@ research:
     commitment: "6 hours/week"
     description: "Advanced research on container security with intrusion detection systems (CONTSEC) for cloud-native environments. Designed and implemented high-performance IDS pipeline optimized for containerized cloud infrastructures. Collaborated on Kubernetes misuse detection research, contributing to novel datasets and detection methodologies. Funded by TUBITAK 2247-C STAR National Scholarship Program."
     bullets:
-      - "Published research at AINA 2024 advancing microservices security architectures"
-      - "Received Best Paper Award at IEEE/SRMC 2022 for comprehensive empirical analysis of IDS approaches"
-      - "Contributed to journal publication in ITU FET introducing novel Kubernetes misuse detection dataset"
+      - "Published at AINA 2024 on microservices security architectures"
+      - "Received Best Paper Award at IEEE/SRMC 2022 for empirical analysis of IDS approaches"
+      - "Co-authored ITU FET journal paper introducing a Kubernetes misuse detection dataset"
     links:
       - name: "PAPER"
         url: "https://doi.org/10.1007/978-3-030-99619-2_1"
@@ -75,6 +80,9 @@ research:
     advisor: "Assoc. Prof. Dr. Ozge Karanfil"
     commitment: "6 hours/week × 60 weeks"
     description: "Healthcare policy simulation for evidence-based decision making. Funding: TUBITAK 2247 C STAR Scholarship. Utilized simulation models focusing on mechatronics applications in healthcare. Developed GCN-based citation graph embeddings for healthcare policy papers."
+    bullets:
+      - "Built simulation models for healthcare policy decision making"
+      - "Developed GCN-based citation graph embeddings for healthcare policy papers"
 
   - position: "Undergraduate Research Project"
     company: "KOVAN Research Lab, METU"
@@ -85,6 +93,8 @@ research:
     logo_link: "http://www.kovan.ceng.metu.edu.tr"
     advisor: "Assist. Prof. Dr. Erol Sahin"
     description: "Hector Quadrotor Swarm Localization. Participated in a multi-agent localization project, approximating numerical solvers for optimal drone positioning in self-organized swarm behavior."
+    bullets:
+      - "Approximated numerical solvers for optimal drone positioning in swarm localization"
     links:
       - name: "CODE"
         url: "https://github.com/adnanhd/hector_quadrotor_swarm"
@@ -98,6 +108,8 @@ research:
     logo_link: "https://bilgem.tubitak.gov.tr/en"
     commitment: "40 hours/week × 8 weeks"
     description: "Cloud infrastructure development at Cloud Computing and Big Data Research Lab. Contributed to Sapphire Cloud platform enhancements."
+    bullets:
+      - "Contributed to Sapphire Cloud platform at Cloud Computing and Big Data Research Lab"
 
   - position: "Summer Intern"
     company: "Enocta Inc."
@@ -108,3 +120,5 @@ research:
     logo_link: "https://www.enocta.com/"
     commitment: "40 hours/week × 8 weeks"
     description: "NLP and transformer model optimization. Engineered GPT-2 and T5 models using HuggingFace for enterprise learning management systems."
+    bullets:
+      - "Engineered GPT-2 and T5 models using HuggingFace for enterprise learning management systems"

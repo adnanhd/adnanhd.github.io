@@ -7,7 +7,7 @@
 # Links will be displayed as rectangular boxes (PAPER for PDF/arxiv, CODE, DEMO, BLOG, etc.)
 
 papers:
-  # Conference Publications
+  # 2026
   - title: "Frequency-Weighted Neural Kalman Filters"
     authors: "Dogan, A. H., Demirel, B. U., Holz, C."
     venue: "International Conference on Robotics and Automation (IEEE ICRA)"
@@ -21,6 +21,7 @@ papers:
       - name: "GitHub"
         url: "https://github.com/eth-siplab/Frequency-weighted-neural-Kalman-filters/"
 
+  # 2025
   - title: "Beyond subjectivity: Continuous cybersickness detection using eeg-based multitaper spectrum estimation"
     authors: "Demirel, B. U., Dogan, A. H., Rossie, J., Möbus M., Holz, C."
     venue: "IEEE Transactions on Visualization and Computer Graphics"
@@ -36,6 +37,7 @@ papers:
       - name: "GitHub"
         url: "https://github.com/eth-siplab/EEG_Cybersickness_Estimation_VR-Beyond_Subjectivity"
 
+  # 2024
   - title: "Bucketed Ranking Loss for Efficient Ranking-based Training of Object Detectors"
     authors: "Yavuz, F., Cam B.C., Dogan, A. H., Oksuz, K., Kalkan, S., Akbas, E."
     venue: "European Conference on Computer Vision (ECCV)"
@@ -61,9 +63,48 @@ papers:
     date: "2024"
     resume: true
     links:
+      - name: "KAGGLE"
+        url: "https://www.kaggle.com/datasets/yigitsever/misuse-detection-in-containers-dataset/"
       - name: "PAPER"
         url: "https://link.springer.com/chapter/10.1007/978-3-031-57916-5_19"
 
+  - title: "Enhancing Underground Built Heritage Analysis with Text Mining: A Case Study on Cappadocia"
+    authors: "Karagoz, P., Cekinel, R. F., Dogan, A. H., Oktay, B., Ozturk, A. U., Tonay, S. T., Tunel, B. M."
+    venue: "In Valorising Underground Built Heritage in Cappadocia, pp. 61-92"
+    venue_short: "Book Chapter 2024"
+    date: "2024"
+    resume: true
+    links:
+      - name: "PAPER"
+        url: "https://ebuah.uah.es/dspace/bitstream/handle/10017/59325/reintroducing_magaz_valorising_2023.pdf?sequence=4"
+
+  # 2023
+  - title: "A Kubernetes dataset for misuse detection"
+    authors: "Sever Y., Dogan, A. H."
+    venue: "ITU Journal of FET"
+    venue_short: "ITU Journal 2023"
+    date: "2023"
+    resume: true
+    links:
+      - name: "DOI"
+        url: "https://doi.org/10.52953/fplr8631"
+      - name: "Paper"
+        url: "https://www.itu.int/dms_pub/itu-s/opb/jnl/S-JNL-VOL4.ISSUE2-2023-A26-PDF-E.pdf"
+      - name: "GitHub"
+        url: "https://github.com/yigitsever/kubernetes-dataset"
+
+  # 2022
+  - title: "An Empirical Analysis of IDS Approaches in Container Security"
+    authors: "Sever, Y., Ekinci, G., Dogan, A. H., Alparslan, B., Gurbuz, A. S., Jabrayilov, V., Angin, P."
+    venue: "IEEE/SRMC'22, September 2022. Best Paper Award"
+    venue_short: "IEEE/SRMC 2022"
+    date: "Sep 2022"
+    resume: true
+    links:
+      - name: "DOI"
+        url: "https://doi.org/10.1109/SRMC57347.2022.00007"
+
+  # 2021
   - title: "Two Might Do: A Beat-by-Beat Classification of Cardiac Abnormalities using Deep Learning and Domain-Specific Features"
     authors: "Demirel, B. U., Dogan, A. H., Al-Faruque, M. A."
     venue: "Computing in Cardiology (CinC)"
@@ -72,8 +113,12 @@ papers:
     resume: true
     venue_link: "https://www.cinc.org/"
     links:
+      - name: "GitHub"
+        url: "https://github.com/Berken-demirel/Two_Might_Do"
       - name: "PAPER"
         url: "https://www.cinc.org/2021/Program/accepted/33_Preprint.pdf"
+      - name: "DOI"
+        url: "https://doi.org/10.23919/cinc53138.2021.9662935"
 
   - title: "Explainability in Irony Detection"
     authors: "Buyukbas, E. B., Dogan, A. H., Ozturk, A. U., Karagoz, P."
@@ -84,41 +129,6 @@ papers:
     links:
       - name: "PAPER"
         url: "https://doi.org/10.1007/978-3-030-86534-4_14"
-
-  # Journal Publications
-  - title: "A Kubernetes dataset for misuse detection"
-    authors: "Sever Y., Dogan, A. H."
-    venue: "ITU Journal of FET"
-    venue_short: "ITU Journal 2023"
-    date: "2023"
-    resume: true
-    links:
-      - name: "PAPER"
-        url: "https://yigitsever.com/locker/severKubernetes2023/sever_2023_a_kubernetes_dataset_for_misuse_detection.pdf"
-      - name: "DATASET"
-        url: "https://github.com/yigitsever/kubernetes-dataset"
-
-  # Workshop Publications
-  - title: "An Empirical Analysis of IDS Approaches in Container Security"
-    authors: "Sever, Y., Ekinci, G., Dogan, A. H., Alparslan, B., Gurbuz, A. S., Jabrayilov, V., Angin, P."
-    venue: "IEEE/SRMC'22, September 2022. Best Paper Award"
-    venue_short: "IEEE/SRMC 2022"
-    date: "Sep 2022"
-    resume: true
-    links:
-      - name: "PAPER"
-        url: "https://yigitsever.com/locker/severEmpirical2022/sever_2022_an_empirical_analysis_of_ids_approaches_in_container_security.pdf"
-
-  # Books & Edited Volumes
-  - title: "Enhancing Underground Built Heritage Analysis with Text Mining: A Case Study on Cappadocia"
-    authors: "Karagoz, P., Cekinel, R. F., Dogan, A. H., Oktay, B., Ozturk, A. U., Tonay, S. T., Tunel, B. M."
-    venue: "In Valorising Underground Built Heritage in Cappadocia, pp. 61-92"
-    venue_short: "Book Chapter 2024"
-    date: "2024"
-    resume: true
-    links:
-      - name: "PAPER"
-        url: "https://ebuah.uah.es/dspace/bitstream/handle/10017/59325/reintroducing_magaz_valorising_2023.pdf?sequence=4"
 
   - title: "An Assembled Deep Learning Approach for Flow Field Prediction"
     authors: "Dogan, A. H., Dogan, A."

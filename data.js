@@ -3,7 +3,7 @@
 
 const VALID_PAGES = ["about", "cv", "blogs", "timeline"];
 
-function showPage(pageId) {
+function showPage(pageId, scrollTo) {
   if (!VALID_PAGES.includes(pageId)) return;
 
   document.querySelectorAll(".page-section").forEach((page) => {
@@ -22,14 +22,27 @@ function showPage(pageId) {
   // Update hash without triggering hashchange
   history.replaceState(null, "", `#${pageId}`);
 
+  // Scroll to a specific element within the page if requested
+  if (scrollTo) {
+    var target = document.getElementById(scrollTo);
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+  }
+
   // Move focus to the new section for accessibility
   section.focus();
 }
 
 function handleHash() {
   const hash = window.location.hash.replace("#", "");
-  if (hash && VALID_PAGES.includes(hash)) {
-    showPage(hash);
+  // Support page:section format (e.g., #cv:resume-papers)
+  const parts = hash.split(":");
+  const pageId = parts[0];
+  const sectionId = parts[1] || null;
+  if (pageId && VALID_PAGES.includes(pageId)) {
+    showPage(pageId, sectionId);
   }
 }
 
@@ -88,11 +101,29 @@ function initImageLightbox() {
   });
 }
 
+function initLinkableHeaders() {
+  document.querySelectorAll(".content-section h2").forEach(function (h2) {
+    var section = h2.closest(".content-section");
+    var container = section.querySelector("[id]");
+    if (!container) return;
+    var page = h2.closest(".page-section");
+    if (!page) return;
+    var anchor = page.id + ":" + container.id;
+    h2.style.cursor = "pointer";
+    h2.title = "Copy link to section";
+    h2.addEventListener("click", function () {
+      history.replaceState(null, "", "#" + anchor);
+      container.scrollIntoView({ behavior: "smooth" });
+    });
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   handleHash();
   initCategoryToggles();
   initImageLightbox();
+  initLinkableHeaders();
 });
 
 window.addEventListener("hashchange", handleHash);

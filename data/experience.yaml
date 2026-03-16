@@ -18,6 +18,10 @@ experience:
     commitment: "Full-time, 4 months"
     timelined: true
     description: "Advanced research on continuous cybersickness detection in virtual reality environments using EEG-based multitaper spectrum estimation. Pioneered novel deep learning architectures achieving 30% performance improvement over baseline methods in real-time cybersickness prediction from brain signals, with potential applications in adaptive VR systems and user experience optimization."
+    bullets:
+      - "Developed EEG-based cybersickness detection using multitaper spectrum estimation in VR"
+      - "Achieved 30% improvement over baselines with novel deep learning architectures"
+      - "Published at IEEE/ICRA 2026"
 
   - position: "Graduate Research Assistant"
     company: "Image Processing and Pattern Recognition Laboratory (ImageLab), METU"
@@ -31,9 +35,8 @@ experience:
     timelined: true
     description: "Pioneering research on differentiable optimization frameworks for deep learning in computer vision. Developed novel methods for incorporating combinatorial optimization algorithms into neural network training pipelines, achieving state-of-the-art performance in object detection. Funded by TUBITAK 2247-C STAR National Scholarship Program."
     bullets:
-      - "Designed and implemented bucketed ranking loss with Sinkhorn-Knopp algorithm integration for DETR (Detection Transformer) architecture"
-      - "Achieved significant performance improvements in end-to-end object detection training through optimal transport-based loss formulations"
-      - "Published first-author paper at ECCV 2024, a premier computer vision conference (Acceptance Rate: ~27%)"
+      - "Designed bucketed ranking loss with Sinkhorn-Knopp algorithm for DETR object detection architecture"
+      - "Improved end-to-end object detection via optimal transport-based loss formulations"
 
   - position: "Undergraduate Research Intern"
     company: "Cyber-Physical Systems Laboratory, University of California, Irvine"
@@ -45,6 +48,10 @@ experience:
     advisor: "Assist. Prof. Dr. Mohammad Abdullah Al-Faruque"
     commitment: "Remote collaboration, Full-time, 3 months"
     description: "Developed sophisticated multi-modal deep learning systems for cardiac and sleep abnormality detection from physiological signals. Designed novel architectures integrating time-series analysis with spectral feature extraction for beat-by-beat cardiac arrhythmia classification, achieving competitive performance in international challenges. Published research findings at Computing in Cardiology (CinC) 2021."
+    bullets:
+      - "Built multi-modal deep learning system for cardiac and sleep abnormality detection"
+      - "Designed beat-by-beat arrhythmia classification integrating time-series and spectral features"
+      - "Published at Computing in Cardiology (CinC) 2021"
     links:
       - name: "PAPER"
         url: "https://www.semanticscholar.org/paper/Two-Might-Do%3A-A-Beat-by-Beat-Classification-of-Deep-Demirel-Dogan/fd397c01696763ad7dbb199d71c04298a0c9f83e"
