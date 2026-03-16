@@ -112,8 +112,15 @@ def render_publications(data):
         title = tex_escape(paper.get("title", ""))
         venue = tex_escape(paper.get("venue_short") or paper.get("venue", ""))
         year = tex_escape(str(paper.get("date", "")))
-        # APA format: Author, A. B. (Year). Title. *Venue*.
-        ref = f"{authors} ({year}). {title}. \\textbf{{\\emph{{{venue}}}}}."
+        # APA format: Author, A. B. (Year). Title. *Venue*. [links]
+        ref = f"{authors} ({year}). {title}."
+        if venue:
+            ref += f" \\textbf{{\\emph{{{venue}}}}}."
+        links = paper.get("links", [])
+        if links:
+            link_strs = [f"\\href{{{l['url']}}}{{{tex_escape(l['name'])}}}" for l in links if l.get("url")]
+            if link_strs:
+                ref += " [" + " | ".join(link_strs) + "]"
         parts.append(f"    \\resumeItem{{{ref}}}")
     return "\n".join(parts)
 

@@ -33,13 +33,13 @@ def esc(s):
 def highlight_author(text):
     """Bold the author's name in a text string. Input should already be escaped."""
     pattern = re.escape(esc(AUTHOR_NAME)) + "|" + re.escape(esc(AUTHOR_NAME_ALT))
-    return re.sub(pattern, f"<strong>{esc(AUTHOR_DISPLAY_NAME)}</strong>", text)
+    return re.sub(pattern, f"<strong>{esc(AUTHOR_NAME)}</strong>", text)
 
 
 def highlight_author_span(text):
     """Wrap author name in span.author-me. Input should already be escaped."""
     pattern = re.escape(esc(AUTHOR_NAME)) + "|" + re.escape(esc(AUTHOR_NAME_ALT))
-    return re.sub(pattern, f'<span class="author-me">{esc(AUTHOR_DISPLAY_NAME)}</span>', text)
+    return re.sub(pattern, f'<span class="author-me">{esc(AUTHOR_NAME)}</span>', text)
 
 
 # ---------------------------------------------------------------------------
