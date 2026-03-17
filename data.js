@@ -31,8 +31,9 @@ function showPage(pageId, scrollTo) {
     }
   }
 
-  // Move focus to the new section for accessibility
-  section.focus();
+  // Scroll to top and move focus for accessibility
+  window.scrollTo(0, 0);
+  section.focus({ preventScroll: true });
 }
 
 function handleHash() {
