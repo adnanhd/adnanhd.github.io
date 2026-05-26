@@ -536,11 +536,37 @@ def render_blogs(blogs_data, selected_only=False):
     return "\n".join(parts)
 
 
-_LANG_COLORS = {
-    "python": "#3572A5", "c++": "#f34b7d", "c": "#555555", "cuda": "#3a4e3a",
-    "javascript": "#f1e05a", "typescript": "#3178c6", "rust": "#dea584",
-    "go": "#00ADD8", "shell": "#89e051", "julia": "#a270ba",
+# tech tag -> (brand colour, Devicon class). Tags not listed render as plain chips.
+_TECH_BADGES = {
+    "python": ("#3776AB", "devicon-python-plain"),
+    "pytorch": ("#EE4C2C", "devicon-pytorch-original"),
+    "tensorflow": ("#FF6F00", "devicon-tensorflow-original"),
+    "jax": ("#5E97F6", "devicon-python-plain"),
+    "c++": ("#00599C", "devicon-cplusplus-plain"),
+    "cuda": ("#76B900", "devicon-nvidia-plain"),
+    "docker": ("#2496ED", "devicon-docker-plain"),
+    "apptainer": ("#0F4C81", "fas fa-cubes"),   # no Devicon glyph -> Font Awesome
+    "singularity": ("#0F4C81", "fas fa-cubes"),
+    "numpy": ("#013243", "devicon-numpy-original"),
 }
+
+
+def render_tags(tags):
+    """Render tags: brand-coloured Devicon badges for known tech, chips otherwise."""
+    if not tags:
+        return ""
+    out = []
+    for tag in tags:
+        badge = _TECH_BADGES.get(str(tag).lower())
+        if badge:
+            color, icon = badge
+            out.append(
+                f'<span class="tech-badge" style="background:{color}">'
+                f'<i class="{icon}" aria-hidden="true"></i>{esc(tag)}</span>'
+            )
+        else:
+            out.append(f'<span class="work-tag">{esc(tag)}</span>')
+    return f'<div class="work-tags">{"".join(out)}</div>'
 
 
 def _repo_path(url):
@@ -560,16 +586,7 @@ def render_works(works_data):
         repo = _repo_path(work.get("url", ""))
         repo_html = f'<span class="work-repo">{esc(repo)}</span>' if repo else ""
         desc = f"<p>{esc(work['description'])}</p>" if work.get("description") else ""
-
-        tags = ""
-        if work.get("tags"):
-            chips = []
-            for i, tag in enumerate(work["tags"]):
-                dot = ""
-                if i == 0 and tag.lower() in _LANG_COLORS:
-                    dot = f'<span class="lang-dot" style="background:{_LANG_COLORS[tag.lower()]}"></span>'
-                chips.append(f'<span class="work-tag">{dot}{esc(tag)}</span>')
-            tags = f'<div class="work-tags">{"".join(chips)}</div>'
+        tags = render_tags(work.get("tags"))
 
         slug = slugify(work["title"])
         links = _render_pub_links([{"name": "GitHub", "url": work["url"]}]) if work.get("url") else ""

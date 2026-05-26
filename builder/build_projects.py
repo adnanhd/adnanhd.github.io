@@ -7,6 +7,7 @@ to projects/<slug>/index.html; titles on the About page link here. Optional
 """
 
 from .build_config import BASE_DIR
+from .build_html import render_tags
 from .build_utils import esc, highlight_author, slugify
 
 PROJECT_SHELL = """<!doctype html>
@@ -20,6 +21,8 @@ PROJECT_SHELL = """<!doctype html>
         <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
         <link rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+        <link rel="stylesheet"
+            href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.16.0/devicon.min.css" />
     </head>
     <body>
         <div class="blog-page project-page">
@@ -83,8 +86,7 @@ def generate_project_pages(data):
         count += 1
 
     for w in (data.get("works") or {}).get("works", []):
-        tags = "".join(f'<span class="work-tag">{esc(t)}</span>' for t in w.get("tags", []))
-        meta = f'<div class="work-tags">{tags}</div>' if tags else ""
+        meta = render_tags(w.get("tags"))
         body = f'<p>{esc(w["description"])}</p>' if (w.get("body") is None and w.get("description")) else ""
         if w.get("body"):
             body = w["body"]

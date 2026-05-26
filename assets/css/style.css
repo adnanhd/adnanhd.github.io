@@ -1603,3 +1603,28 @@ footer {
 .project-page .publication-links {
     margin-top: 22px;
 }
+
+/* ---- Tech badges (Devicon / Font Awesome) ---- */
+.tech-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 0.75em;
+    font-weight: 600;
+    color: #fff;
+}
+
+.tech-badge i {
+    font-size: 1.05em;
+    line-height: 1;
+}
+
+/* constrain project page images (bound height; keep aspect ratio) */
+.project-image {
+    max-height: 360px;
+    width: auto;
+    margin-left: auto;
+    margin-right: auto;
+}
