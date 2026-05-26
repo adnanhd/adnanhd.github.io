@@ -1,0 +1,1538 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="A survey of self-supervised visual representation learning and knowledge distillation." />
+        <title>Self-Supervised Representation Learning - Adnan Harun Dogan</title>
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Self-Supervised Representation Learning</h1>
+            <div class="blog-meta">Self-supervised pretraining and knowledge distillation</div>
+            <article class="blog-body">
+<h2
+id="self-supervised-learning-for-visual-representations">Self-Supervised
+Learning for Visual Representations</h2>
+<p>Self-supervised learning emerged as a paradigm to bridge the gap
+between unsupervised feature learning and supervised representation
+learning. Early approaches focused on <strong>pretext</strong> tasks
+such as image rotation prediction, jigsaw puzzle solving, and
+colorization; the field then evolved toward contrastive learning,
+<strong>non-contrastive</strong> and <strong>clustering</strong> siamese
+variants, <strong>masked modeling</strong>,
+<strong>self-distillation</strong>, and <strong>language
+supervision</strong>. Each paradigm has characteristic strengths and
+well-known open problems, walked through paragraph-by-paragraph after
+the SoTA leaderboard below.</p>
+<p><u>The historical context is important for understanding the field's
+trajectory.</u> Early SSL methods (2014-2018) produced features useful
+for downstream tasks but fell substantially behind supervised
+pretraining; the bar to beat was set by DeCAF <span class="citation"
+data-cites="donahue_decaf_2014">(Donahue et al. 2014)</span>, which
+first demonstrated that mid-layer activations of a supervised ImageNet
+CNN transfer as off-the-shelf features to almost any downstream
+classification task, founding the pretrain-then-finetune paradigm that
+SSL would later challenge. <u>The 2019-2020 period saw SSL close the gap
+with supervised learning on ImageNet linear probing</u>; by 2021-2022,
+with DINO
+and MAE on Vision Transformers,
+<strong>SSL began to <em>exceed</em> supervised pretraining on transfer
+tasks like COCO detection and ADE20K segmentation</strong>. The
+2023-2024 era (DINOv2, CLIP v2, BLIP-2) has seen SSL become the default
+pretraining approach for foundation models across modalities.</p>
+<p>The specific pretext tasks explored in early SSL reveal the field's
+progression. Rotation prediction <span class="citation"
+data-cites="gidaris_unsupervised_2018">(Gidaris, Singh, and Komodakis
+2018)</span> trained the network to classify 4-way rotations (0, 90,
+180, 270 degrees) on AlexNet, with a training trick that included all
+four rotated copies of each image in the same minibatch to avoid
+BatchNorm drift from rotation-mean shifts; rotations were implemented
+via flip+transpose rather than interpolation to avoid aliasing artifacts
+that would otherwise let the network cheat on low-level cues. RotNet
+reached 54.0% ImageNet linear probing and 54.4% PASCAL VOC 2007
+detection (only 2.4 points below supervised ImageNet pretraining);
+<u>its failure mode is rotation-invariant classes like jellyfish or
+aerial views, for which the canonical-orientation prior provides no
+learning signal</u><a href="#fn1" class="footnote-ref" id="fnref1"
+role="doc-noteref"><sup>1</sup></a><a href="#fn2" class="footnote-ref"
+id="fnref2" role="doc-noteref"><sup>2</sup></a>. Jigsaw puzzle solving
+<span class="citation" data-cites="noroozi_unsupervised_2016">(Noroozi
+and Favaro 2016)</span> predicted which permutation of a 3x3 tile grid
+had been applied, reducing the intractable 9!=362,880 permutation space
+to 100 or 1000 Hamming-well-separated permutations. Noroozi and Favaro's
+Context-Free Network (CFN) used a Siamese-ennead architecture (9
+shared-weight CNN branches each seeing one tile, with cross-tile
+information only at the final FC fusion) and inserted gaps between tiles
+to block edge-alignment shortcuts. A further subtlety is the defense
+against chromatic aberration: natural lenses induce color fringing
+toward the image edges, which would trivially localize tiles; countered
+with per-tile channel-mean subtraction or grayscale training<a
+href="#fn3" class="footnote-ref" id="fnref3"
+role="doc-noteref"><sup>3</sup></a>. <u>Jigsaw reached 45.7% ImageNet
+linear probing and 51.8% VOC detection.</u> Colorization <span
+class="citation" data-cites="zhang_colorful_2016">(R. Zhang, Isola, and
+Efros 2016)</span> reached 39.6% via a 313-way classification
+formulation (predicting a discretized bin of the ab color space rather
+than regressing continuous color), with class rebalancing to compensate
+for the heavy-tail distribution of natural colors; the 39.6% figure is
+specifically the <em>cross-channel encoder</em> variant where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>→</mo><mi>a</mi><mi>b</mi></mrow><annotation encoding="application/x-tex">L \to ab</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mi>b</mi><mo>→</mo><mi>L</mi></mrow><annotation encoding="application/x-tex">ab \to L</annotation></semantics></math>
+are jointly trained<a href="#fn4" class="footnote-ref" id="fnref4"
+role="doc-noteref"><sup>4</sup></a>. <strong>These methods demonstrated
+that self-generated supervision could learn useful features, but their
+reliance on specific geometric or chromatic priors limited
+generalization</strong>; <u>modern methods (instance discrimination,
+masked modeling) avoid these priors with more generic learning
+objectives.</u></p>
+<div class="blog-table"><table id="tbl:ssl-sota">
+<caption>SSL SoTA leaderboard. Data = pretraining set + size. ImageNet1k
+LP / FT / kNN = linear-probe / fine-tune / nearest-neighbour top-1 (%).
+COCO box / mask = AP under Mask R-CNN-FPN. ADE = ADE20K mIoU (UperNet).
+VOC = VOC07 detection mAP. iNat = iNaturalist-2018 LP top-1. Loss cell
+uses (key=value) for headline hyperparameters; CE = cross-entropy. *
+marks zero-shot. Dashes mark unreported settings.</caption>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>ImageNet1k</td>
+<td></td>
+<td></td>
+<td>COCO</td>
+<td></td>
+<td>ADE</td>
+<td>VOC</td>
+<td>iNat</td>
+</tr>
+<tr>
+<td>Method</td>
+<td>Year</td>
+<td>Backbone</td>
+<td>Loss</td>
+<td>Data</td>
+<td>LP</td>
+<td>FT</td>
+<td>kNN</td>
+<td>box</td>
+<td>mask</td>
+<td>mIoU</td>
+<td>mAP</td>
+<td>LP</td>
+</tr>
+<tr>
+<td>RotNet</td>
+<td>2018</td>
+<td>AlexNet</td>
+<td>CE(4-way)</td>
+<td>IN1k 1.28M</td>
+<td>54.0</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>54.4</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Jigsaw</td>
+<td>2016</td>
+<td>AlexNet</td>
+<td>CE(K=100)</td>
+<td>IN1k 1.28M</td>
+<td>45.7</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>51.8</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Colorization</td>
+<td>2016</td>
+<td>VGG</td>
+<td>CE(313-bin)</td>
+<td>IN1k 1.28M</td>
+<td>39.6</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>46.9</td>
+<td>–</td>
+</tr>
+<tr>
+<td>MoCo v1</td>
+<td>2020</td>
+<td>ResNet-50</td>
+<td>InfoNCE(τ=0.07)</td>
+<td>IN1k 1.28M</td>
+<td>60.6</td>
+<td>–</td>
+<td>–</td>
+<td>40.7</td>
+<td>35.4</td>
+<td>–</td>
+<td>81.5</td>
+<td>–</td>
+</tr>
+<tr>
+<td>SimCLR</td>
+<td>2020</td>
+<td>ResNet-50</td>
+<td>NT-Xent(τ=0.5)</td>
+<td>IN1k 1.28M</td>
+<td>69.3</td>
+<td>–</td>
+<td>64.5</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>81.8</td>
+<td>–</td>
+</tr>
+<tr>
+<td>MoCo v2</td>
+<td>2020</td>
+<td>ResNet-50</td>
+<td>InfoNCE(τ=0.2)</td>
+<td>IN1k 1.28M</td>
+<td>71.1</td>
+<td>–</td>
+<td>–</td>
+<td>41.7</td>
+<td>36.3</td>
+<td>–</td>
+<td>82.5</td>
+<td>–</td>
+</tr>
+<tr>
+<td>BYOL</td>
+<td>2020</td>
+<td>ResNet-50</td>
+<td>MSE on predictor</td>
+<td>IN1k 1.28M</td>
+<td>74.3</td>
+<td>–</td>
+<td>64.8</td>
+<td>42.0</td>
+<td>37.8</td>
+<td>–</td>
+<td>81.4</td>
+<td>–</td>
+</tr>
+<tr>
+<td>SwAV</td>
+<td>2020</td>
+<td>ResNet-50</td>
+<td>swapped CE on Sinkhorn(K=3000)</td>
+<td>IN1k 1.28M</td>
+<td>75.3</td>
+<td>–</td>
+<td>65.7</td>
+<td>41.6</td>
+<td>37.8</td>
+<td>–</td>
+<td>82.6</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Barlow Twins</td>
+<td>2021</td>
+<td>ResNet-50</td>
+<td>cross-corr(λ=5e-3)</td>
+<td>IN1k 1.28M</td>
+<td>73.2</td>
+<td>–</td>
+<td>66.0</td>
+<td>39.2</td>
+<td>35.5</td>
+<td>–</td>
+<td>82.6</td>
+<td>–</td>
+</tr>
+<tr>
+<td>SimSiam</td>
+<td>2021</td>
+<td>ResNet-50</td>
+<td>neg-cos sim + stop-grad</td>
+<td>IN1k 1.28M</td>
+<td>71.3</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>VICReg</td>
+<td>2022</td>
+<td>ResNet-50</td>
+<td>var+inv+cov(25,25,1)</td>
+<td>IN1k 1.28M</td>
+<td>73.2</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>82.4</td>
+<td>–</td>
+</tr>
+<tr>
+<td>MoCo v3</td>
+<td>2021</td>
+<td>ViT-B/16</td>
+<td>InfoNCE(τ=0.2)</td>
+<td>IN1k 1.28M</td>
+<td>76.7</td>
+<td>83.2</td>
+<td>–</td>
+<td>47.9</td>
+<td>42.7</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>DINO</td>
+<td>2021</td>
+<td>ViT-B/16</td>
+<td>softmax CE + center+sharpen</td>
+<td>IN1k 1.28M</td>
+<td>78.2</td>
+<td>–</td>
+<td>76.1</td>
+<td>46.8</td>
+<td>41.4</td>
+<td>47.3</td>
+<td>–</td>
+<td>78.6</td>
+</tr>
+<tr>
+<td>MAE</td>
+<td>2022</td>
+<td>ViT-B/16</td>
+<td>MSE on masked patches (75%)</td>
+<td>IN1k 1.28M</td>
+<td>67.8</td>
+<td>83.6</td>
+<td>–</td>
+<td>50.3</td>
+<td>44.9</td>
+<td>48.1</td>
+<td>–</td>
+<td>66.1</td>
+</tr>
+<tr>
+<td>BEiT</td>
+<td>2022</td>
+<td>ViT-B/16</td>
+<td>CE on dVAE tokens</td>
+<td>IN1k 1.28M</td>
+<td>–</td>
+<td>83.2</td>
+<td>–</td>
+<td>49.8</td>
+<td>44.4</td>
+<td>47.1</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>SimMIM</td>
+<td>2022</td>
+<td>Swin-B</td>
+<td>L1 on masked pixels</td>
+<td>IN1k 1.28M</td>
+<td>–</td>
+<td>84.0</td>
+<td>–</td>
+<td>52.3</td>
+<td>46.0</td>
+<td>52.8</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>iBOT</td>
+<td>2022</td>
+<td>ViT-B/16</td>
+<td>DINO-CE + patch CE</td>
+<td>IN1k 1.28M</td>
+<td>79.5</td>
+<td>84.0</td>
+<td>77.1</td>
+<td>51.2</td>
+<td>44.2</td>
+<td>50.0</td>
+<td>–</td>
+<td>80.0</td>
+</tr>
+<tr>
+<td>MaskFeat</td>
+<td>2022</td>
+<td>MViT</td>
+<td>smooth-L1 on HOG</td>
+<td>IN1k 1.28M</td>
+<td>–</td>
+<td>84.0</td>
+<td>–</td>
+<td>52.4</td>
+<td>47.0</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>data2vec</td>
+<td>2022</td>
+<td>ViT-B/16</td>
+<td>smooth-L1 on EMA latent</td>
+<td>IN1k 1.28M</td>
+<td>–</td>
+<td>84.2</td>
+<td>–</td>
+<td>50.5</td>
+<td>44.4</td>
+<td>49.1</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>DINOv2</td>
+<td>2024</td>
+<td>ViT-g/14</td>
+<td>DINO+iBOT joint</td>
+<td>LVD 142M</td>
+<td>86.4</td>
+<td>–</td>
+<td>83.5</td>
+<td>56.5</td>
+<td>–</td>
+<td>53.4</td>
+<td>–</td>
+<td>89.0</td>
+</tr>
+<tr>
+<td>CLIP</td>
+<td>2021</td>
+<td>ViT-L/14</td>
+<td>InfoNCE(τ learned)</td>
+<td>WIT 400M</td>
+<td>76.2*</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>16.6*</td>
+</tr>
+<tr>
+<td>ALIGN</td>
+<td>2021</td>
+<td>EffNet-L2</td>
+<td>InfoNCE(τ learned)</td>
+<td>AltText 1.8B</td>
+<td>76.4*</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+</tbody>
+</table></div>
+<p><u>The table groups the literature into seven families, walked
+through in chronological order.</u> Early <strong>pretext</strong>
+methods (RotNet, Jigsaw, Colorization) reach modest LP via hand-crafted
+self-supervisory tasks but suffer the same structural limitations: a
+hand-crafted signal is too narrow for high-level features<a href="#fn5"
+class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> and
+is vulnerable to low-level shortcuts the network exploits in place of
+real understanding<a href="#fn6" class="footnote-ref" id="fnref6"
+role="doc-noteref"><sup>6</sup></a>.</p>
+<p><strong>Contrastive</strong> methods learn representations by
+<u>maximizing agreement between augmented views of the same image while
+pushing apart views of different images</u> <span class="citation"
+data-cites="chen_simple_2020">(Chen et al. 2020)</span>. Instance discrimination
+established the foundation by treating each image as its own class;
+<strong>queue</strong>-based memory banks and momentum encoders <span class="citation"
+data-cites="he_momentum_2020">(He et al. 2020)</span> enabled efficient
+<strong>contrastive</strong> learning at scale by sidestepping the
+large-batch dependence<a href="#fn7" class="footnote-ref" id="fnref7"
+role="doc-noteref"><sup>7</sup></a> that simple end-to-end variants like
+SimCLR require, at the cost of a queue whose features drift from the
+current encoder during training<a href="#fn8" class="footnote-ref"
+id="fnref8" role="doc-noteref"><sup>8</sup></a>. <u>A deeper limitation
+cuts across the entire contrastive family: the augmentation pipeline
+declares which transformations should be invariant rather than letting
+the network learn them</u><a href="#fn9" class="footnote-ref"
+id="fnref9" role="doc-noteref"><sup>9</sup></a>.</p>
+<p><strong>Non-contrastive</strong> methods including BYOL, SimSiam, and Barlow Twins <u>achieve competitive results
+without explicit negative pairs, challenging the assumption that
+negatives are necessary for avoiding collapse.</u> They rely on
+architectural asymmetries (a <strong>predictor</strong> head,
+<strong>stop-gradient</strong>, or a <strong>momentum encoder</strong>)
+or on <strong>redundancy reduction</strong> objectives to prevent degenerate
+solutions; why these recipes avoid the trivial constant solution
+remains contested<a href="#fn10" class="footnote-ref" id="fnref10"
+role="doc-noteref"><sup>10</sup></a> and the methods are notoriously
+hyperparameter-sensitive<a href="#fn11" class="footnote-ref"
+id="fnref11" role="doc-noteref"><sup>11</sup></a>.</p>
+<figure id="fig:ssl-family-timeline">
+<img src="figures/ssl-family-timeline.svg" />
+<figcaption>SSL family evolution from 2016 pretext methods to 2024
+production-grade <strong>self-distillation</strong> + <strong>masked
+modeling</strong>. Marker shape and colour encode family; the dotted
+line marks the supervised ResNet-50 fine-tune baseline (76.2%). Three
+observations match the table reading: (i) the <strong>pretext</strong>
+era (2016-18) plateaus near 50% LP, well below supervised; (ii) the
+<strong>contrastive</strong> and <strong>non-contrastive</strong>
+clusters converge around 70-78% LP with no clear winner; (iii) the
+modern distill-masked line, scaled in DINOv2 to 142M curated images,
+finally crosses the supervised line at LP 86.4% in 2024.</figcaption>
+</figure>
+<p><strong>Masked modeling</strong>, inspired by BERT in NLP <span
+class="citation" data-cites="bao_beit_2022">(Bao et al. 2022)</span>,
+trains models to reconstruct masked portions of images. MAE <span
+class="citation" data-cites="he_masked_2021">(He et al. 2022)</span>
+demonstrated that <u>simple pixel reconstruction with high masking
+ratios produces excellent representations</u>; BEiT <span
+class="citation" data-cites="bao_beit_2022">(Bao et al. 2022)</span>
+introduced a discrete <strong>tokenizer</strong> trained offline as a
+separate dVAE pre-stage, which adds compute and constrains downstream by
+fixing the visual vocabulary<a href="#fn12" class="footnote-ref"
+id="fnref12" role="doc-noteref"><sup>12</sup></a>. A persistent
+diagnostic for the <strong>masked modeling</strong> family is the
+linear-probe / fine-tune disagreement: MAE reports weak LP yet strong
+FT, while BEiT and its derivatives sit elsewhere on the same axis<a
+href="#fn13" class="footnote-ref" id="fnref13"
+role="doc-noteref"><sup>13</sup></a>. Most 2021+ recipes (MAE, BEiT,
+MoCo v3, DINO) are also <strong>ViT</strong>-only and have not
+transferred well to ResNets<a href="#fn14" class="footnote-ref"
+id="fnref14" role="doc-noteref"><sup>14</sup></a>.</p>
+<p><strong>Self-distillation</strong> methods (DINO, iBOT, DINOv2) and
+<strong>clustering</strong> methods (SwAV via <strong>Sinkhorn</strong>
+assignment + <strong>multi-crop</strong>) form a third strand: a
+teacher-student loop without negatives where the teacher is an EMA of
+the student. DINOv2 <span class="citation"
+data-cites="oquab_dinov2_2024">(Oquab et al. 2024)</span> <u>combined
+self-distillation with masked modeling and large-scale scaling
+(ViT-g/14, 142M curated images) to produce the first SSL backbone
+matching supervised on every transfer benchmark</u>; the price is
+production-scale compute beyond academic budgets and a closed-source
+data-curation pipeline<a href="#fn15" class="footnote-ref" id="fnref15"
+role="doc-noteref"><sup>15</sup></a>.</p>
+<p>Vision-language <strong>language supervision</strong> methods like CLIP <span class="citation"
+data-cites="radford_learning_2021">(Radford et al. 2021)</span> and
+ALIGN <span class="citation" data-cites="jia_scaling_2021">(Jia et al.
+2021)</span> leverage <u>natural language supervision to learn
+transferable visual representations, enabling zero-shot transfer</u> and
+catalyzing research in multimodal learning. They also inherit web-text
+bias<a href="#fn16" class="footnote-ref" id="fnref16"
+role="doc-noteref"><sup>16</sup></a> and the same compute scaling
+limits<a href="#fn17" class="footnote-ref" id="fnref17"
+role="doc-noteref"><sup>17</sup></a>.</p>
+<p>The table separates four eras: pretext-based (2016-2018), contrastive
+(2018-2021), non-contrastive + clustering + masked (2020-2022), and the
+modern "best of both" line (DINOv2, iBOT, MAE-derivatives). Three
+readings. <u>First, the contrastive-to-non-contrastive transition was
+empirical: BYOL and SimSiam dropped negatives entirely with no
+degradation, refuting the prior assumption that negatives are
+essential.</u> Second, masked image modeling is <em>not</em>
+Pareto-dominated by contrastive: MAE has lower linear-probe but higher
+fine-tuning and downstream segmentation, indicating its representations
+encode useful structure that is harder to read off linearly. <u>Third,
+the gap to supervised pretraining (ResNet-50: 76.2% IN1k FT) closed
+around BYOL/SwAV (2020) for ResNets and around DINO (2021) for ViTs; by
+2024 DINOv2 exceeds supervised on every transfer benchmark
+tested.</u></p>
+<h2 id="knowledge-distillation">Knowledge Distillation</h2>
+<p>Knowledge distillation sits within the broader model-compression
+taxonomy alongside pruning, low-rank factorization, and quantization-aware training.
+Pruning removes redundant parameters, quantization reduces numeric
+precision, and distillation replaces the teacher with a smaller student
+parameterization. <u>Unlike pruning and quantization, distillation
+changes the architecture of the deployed model</u>, which permits
+structural compression that cannot be expressed as a sparsity pattern or
+bit-width reduction.</p>
+<p>The intellectual precursor of KD is the work of <span
+class="citation" data-cites="bucilua_model_2006">(Buciluǎ, Caruana, and
+Niculescu-Mizil 2006)</span>, who showed that a small neural network; a
+1-hidden-layer "mimic model" with 128-256 units; can be trained to
+recover 91-98% of the AUC of a roughly 1000-model heterogeneous ensemble
+(SVMs, boosted trees, bagged trees, random forests, kNN) across eight
+benchmark datasets, producing a 1000x parameter reduction whose original
+motivation was strictly deploying ensembles onto 2006-era PDAs and
+embedded devices. Their loss was <em>mean-squared-error on the
+ensemble's predicted probability</em> (regression onto raw
+probabilities, not logits and not KL on softened distributions), which
+is structurally distinct from Hinton's recipe. Their compression
+pipeline used <em>MUNGE</em>, a synthetic-data generator that expands
+the training set by perturbing each feature of a real example;
+categorical features swap to another value with probability
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>0.5</mn></mrow><annotation encoding="application/x-tex">p = 0.5</annotation></semantics></math>,
+continuous features swap to a neighbor's value and add Gaussian noise;
+because in-distribution labelled data alone was insufficient to transfer
+the ensemble's decision boundary, and MUNGE is load-bearing: disabling
+it drops AUC recovery from 91-98% to 50-70% on some datasets. A notable
+empirical observation was that the mimic often beats individual ensemble
+members despite being trained against the mean, suggesting the
+compression captures ensemble behavior more regularly than any single
+component does. The failure mode Hinton later solved is saturation: when
+the ensemble's predicted probabilities are near 0 or 1, the MSE gradient
+nearly vanishes; this is precisely what motivates temperature scaling.
+<span class="citation" data-cites="ba_deep_2014">(Ba and Caruana
+2014)</span> extended the idea by matching the <em>logits</em>
+(pre-softmax activations) of a deep teacher rather than its
+probabilities; their key empirical finding on TIMIT phone recognition
+was that a shallow 1-hidden-layer MLP with 30,000 units trained on hard
+labels reaches 23.1% phone error rate, trained on teacher logits it
+reaches 20.9%, essentially closing the gap to the 20.7% deep 4-layer CNN
+teacher; but only when the regression target is logits, not softmax
+probabilities, since logit regression preserves gradient magnitude even
+when teacher probabilities saturate. They also introduced a
+<em>bottleneck linear-layer trick</em>: the 30K-unit shallow model has
+roughly 20M parameters and takes 6-12 GPU-days to train densely, so they
+factorize the 30K-unit hidden layer through a rank-400 bottleneck,
+reducing parameters to roughly 1M and training time to 1-2 days; a
+low-rank-factorization technique that predates modern LoRA by almost a
+decade. The claim in the paper's title ("Do Deep Nets Really Need to Be
+Deep?") is pointed but often misread: <u>the paper does not claim
+shallow nets are inherently sufficient, only that the optimization
+landscape of shallow nets can reach good solutions when guided by a deep
+teacher</u>; a distinction that bears on any contemporary "is
+distillation necessary?" argument. <span class="citation"
+data-cites="hinton_distilling_2015">(Hinton, Vinyals, and Dean
+2015)</span> unified and formalized these approaches, introducing the
+temperature-scaled softmax that makes logit-matching recoverable as a
+limit case of probability-matching, and popularized the term "dark
+knowledge" for the information contained in the teacher's off-target
+probabilities.</p>
+<p>Subsequent research diverged along two axes. The <em>representation
+axis</em> asks what to match: probabilities <span class="citation"
+data-cites="hinton_distilling_2015">(Hinton, Vinyals, and Dean
+2015)</span>, intermediate features <span class="citation"
+data-cites="romero_fitnets_2015">(Romero et al. 2015)</span>, attention
+maps <span class="citation"
+data-cites="zagoruyko_attention_2017">(Zagoruyko and Komodakis
+2017)</span>, pairwise relations <span class="citation"
+data-cites="park_relational_2019">(Park et al. 2019)</span>, or
+contrastive similarity <span class="citation"
+data-cites="tian_contrastive_2020">(Tian, Krishnan, and Isola
+2020)</span>. The <em>training-regime axis</em> asks how to organize the
+teacher-student loop: offline <span class="citation"
+data-cites="hinton_distilling_2015">(Hinton, Vinyals, and Dean
+2015)</span>, online <span class="citation"
+data-cites="zhang_deep_2018">(Y. Zhang et al. 2018)</span>,
+self-distillation <span class="citation"
+data-cites="furlanello_born-again_2018">(Furlanello et al. 2018)</span>,
+or iterative <span class="citation"
+data-cites="mirzadeh_improved_2020">(Mirzadeh et al. 2020)</span>. More
+recent theoretical work has examined why distillation helps
+generalization <span class="citation"
+data-cites="menon_statistical_2021">(Menon et al. 2021)</span>, when it
+fails silently <span class="citation"
+data-cites="stanton_does_2021">(Stanton et al. 2021)</span>, and how it
+relates to label smoothing <span class="citation"
+data-cites="muller_when_2019">(Müller, Kornblith, and Hinton
+2019)</span>.</p>
+<p>Related to but distinct from KD are self-supervised learning methods
+that use self-distillation as a pretext task rather than a compression
+mechanism. DINO <span class="citation"
+data-cites="caron_emerging_2021">(Caron et al. 2021)</span> and BYOL
+apply EMA-based teacher-student dynamics for representation learning,
+borrowing the optimization template of distillation but aiming for
+representation quality rather than compression. <span class="citation"
+data-cites="tian_contrastive_2020">(Tian, Krishnan, and Isola
+2020)</span> explicitly connects contrastive representation learning
+to distillation through the CRD framework.</p>
+<div class="blog-table"><table id="tbl:kd-sota">
+<caption>KD SoTA leaderboard. Backbone gives student architecture or
+task family. Loss cell uses (key=value) for headline hyperparameters; KL
+= temperature-softmax KL, CE = cross-entropy, MSE = squared error. Data
+is the training set. CIFAR-100 / ImageNet-1k columns report student
+top-1 accuracy (%); Δ is student-with-KD minus the same student trained
+with hard labels alone (a positive Δ is the actual KD gain). GLUE = GLUE
+Avg score (%); SQuAD = SQuAD-v1.1 F1. Dashes mark unreported settings
+(NLP rows for vision metrics and conversely; diffusion entries report
+FID rather than accuracy and are footnoted in the walk-through). Stanton
+et al. is a diagnostic audit and reports no headline accuracy gain by
+design.</caption>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>CIFAR-100</td>
+<td></td>
+<td></td>
+<td>NLP</td>
+<td></td>
+</tr>
+<tr>
+<td>Method</td>
+<td>Year</td>
+<td>Backbone</td>
+<td>Loss</td>
+<td>Data</td>
+<td>Student</td>
+<td>Tch</td>
+<td>Δ</td>
+<td>GLUE</td>
+<td>SQuAD</td>
+</tr>
+<tr>
+<td>Bucilua <span class="citation"
+data-cites="bucilua_model_2006">(Buciluǎ, Caruana, and Niculescu-Mizil
+2006)</span></td>
+<td>2006</td>
+<td>1-hidden MLP</td>
+<td>MSE on probs</td>
+<td>UCI 8 sets</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Ba &amp; Caruana <span class="citation"
+data-cites="ba_deep_2014">(Ba and Caruana 2014)</span></td>
+<td>2014</td>
+<td>shallow MLP</td>
+<td>MSE on logits</td>
+<td>TIMIT</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Hinton <span class="citation"
+data-cites="hinton_distilling_2015">(Hinton, Vinyals, and Dean
+2015)</span></td>
+<td>2015</td>
+<td>MLP/DNN</td>
+<td>KL(τ=20)+CE(α=0.9)</td>
+<td>MNIST/speech</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>FitNets <span class="citation"
+data-cites="romero_fitnets_2015">(Romero et al. 2015)</span></td>
+<td>2015</td>
+<td>17-layer thin</td>
+<td>KL+MSE(hint)</td>
+<td>CIFAR-10/100</td>
+<td>64.96</td>
+<td>64.4</td>
+<td>+1.5</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>AT <span class="citation"
+data-cites="zagoruyko_attention_2017">(Zagoruyko and Komodakis
+2017)</span></td>
+<td>2017</td>
+<td>WRN-16-2</td>
+<td>KL+MSE(attn maps,β=10<sup>3</sup>)</td>
+<td>CIFAR-100</td>
+<td>73.5</td>
+<td>75.6</td>
+<td>+1.7</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>RKD <span class="citation"
+data-cites="park_relational_2019">(Park et al. 2019)</span></td>
+<td>2019</td>
+<td>ResNet-20</td>
+<td>KL+Huber(dist)+Huber(angle)</td>
+<td>CIFAR-100</td>
+<td>70.4</td>
+<td>72.3</td>
+<td>+1.0</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>CRD <span class="citation"
+data-cites="tian_contrastive_2020">(Tian, Krishnan, and Isola
+2020)</span></td>
+<td>2020</td>
+<td>WRN-40-1</td>
+<td>KL+InfoNCE(τ=0.07,K=16384)</td>
+<td>CIFAR-100</td>
+<td>74.14</td>
+<td>75.6</td>
+<td>+2.2</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>DKD <span class="citation"
+data-cites="zhao_decoupled_2022">(Zhao et al. 2022)</span></td>
+<td>2022</td>
+<td>WRN-40-1</td>
+<td>TCKD(α=1)+NCKD(β=8)</td>
+<td>CIFAR-100</td>
+<td>74.81</td>
+<td>75.6</td>
+<td>+2.8</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>DML <span class="citation"
+data-cites="zhang_deep_2018">(Y. Zhang et al. 2018)</span></td>
+<td>2018</td>
+<td>ResNet-32×2</td>
+<td>CE+KL(peer,no-T)</td>
+<td>CIFAR-100</td>
+<td>70.3</td>
+<td>–</td>
+<td>+2.2</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>ONE <span class="citation"
+data-cites="lan_knowledge_2018">(Lan, Zhu, and Gong 2018)</span></td>
+<td>2018</td>
+<td>ResNet-32 K=3</td>
+<td>KL(τ=3)+gated ensemble</td>
+<td>CIFAR-100</td>
+<td>73.4</td>
+<td>–</td>
+<td>+3.7</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Born-Again <span class="citation"
+data-cites="furlanello_born-again_2018">(Furlanello et al.
+2018)</span></td>
+<td>2018</td>
+<td>DenseNet-BC</td>
+<td>KL(same arch, gen-3)</td>
+<td>CIFAR-100</td>
+<td>84.5</td>
+<td>82.3</td>
+<td>+2.2</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>PS-KD <span class="citation"
+data-cites="kim_self-knowledge_2021">(Kim et al. 2021)</span></td>
+<td>2021</td>
+<td>ResNet-18</td>
+<td>KL(past-self, α<sub>t</sub> lin 0..0.8)</td>
+<td>CIFAR-100</td>
+<td>78.4</td>
+<td>–</td>
+<td>+1.5</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>DistilBERT <span class="citation"
+data-cites="sanh_distilbert_2019">(Sanh et al. 2019)</span></td>
+<td>2019</td>
+<td>6L Transf.</td>
+<td>MLM+KL(τ=2)+cos</td>
+<td>BookCorp+W.</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>77.0</td>
+<td>86.9</td>
+</tr>
+<tr>
+<td>TinyBERT<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi></mi><mn>4</mn></msub><annotation encoding="application/x-tex">_4</annotation></semantics></math>
+<span class="citation" data-cites="jiao_tinybert_2020">(Jiao et al.
+2020)</span></td>
+<td>2020</td>
+<td>4L Transf.</td>
+<td>MSE(attn)+MSE(hidden)+KL(pred)</td>
+<td>BookCorp+W.</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>76.5</td>
+<td>82.1</td>
+</tr>
+<tr>
+<td>MobileBERT <span class="citation"
+data-cites="sun_mobilebert_2020">(Sun et al. 2020)</span></td>
+<td>2020</td>
+<td>IB-bottleneck</td>
+<td>KL(post-attn)+MSE+progr. freeze</td>
+<td>BookCorp+W.</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>78.5</td>
+<td>90.0</td>
+</tr>
+<tr>
+<td>MiniLM (6L) <span class="citation"
+data-cites="wang_minilm_2020">(W. Wang et al. 2020)</span></td>
+<td>2020</td>
+<td>6L Transf.</td>
+<td>KL(QK)+KL(VV) last-layer</td>
+<td>BookCorp+W.</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>78.9</td>
+<td>89.5</td>
+</tr>
+<tr>
+<td>FGFI <span class="citation"
+data-cites="wang_distilling_2019">(T. Wang et al. 2019)</span></td>
+<td>2019</td>
+<td>Faster R-CNN</td>
+<td>MSE(near-obj mask)</td>
+<td>VOC07+12</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Stanton <span class="citation"
+data-cites="stanton_does_2021">(Stanton et al. 2021)</span></td>
+<td>2021</td>
+<td>ResNet-50</td>
+<td>KL audit (self-distill)</td>
+<td>CIFAR/IN1k</td>
+<td>–</td>
+<td>–</td>
+<td>0.0</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Salimans diffusion <span class="citation"
+data-cites="salimans_progressive_2022">(Salimans and Ho
+2022)</span></td>
+<td>2022</td>
+<td>U-Net</td>
+<td>MSE(v-param, 2-step rollout)</td>
+<td>CIFAR-10</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+</tbody>
+</table></div>
+<p>The table groups the literature into seven families, walked through
+in chronological order. Early <strong>response distillation</strong>
+methods (Bucilua, Ba &amp; Caruana, Hinton) match either probabilities
+or logits between teacher and student; the recipe is simple and
+effective when the capacity gap is moderate, but it leaves no signal on
+intermediate representations and degrades under heavy compression<a
+href="#fn18" class="footnote-ref" id="fnref18"
+role="doc-noteref"><sup>18</sup></a>. The Hinton temperature-scaled KL
+emerged as the dominant logit-based recipe and is still the
+single-method baseline reproductions reach for, with DKD <span class="citation"
+data-cites="zhao_decoupled_2022">(Zhao et al. 2022)</span> later showing
+that the implicit
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><msubsup><mi>p</mi><mi>y</mi><mi>t</mi></msubsup><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(1 - p^t_y)</annotation></semantics></math>
+suppression of the non-target term silently kills the dark-knowledge
+signal precisely when the teacher is most confident; explicit
+reweighting (β=8 on CIFAR-100) recovers a 1.0-3.4% lift across
+teacher-student pairs.</p>
+<p><strong>Feature distillation</strong> (FitNets, AT, NST, FSP) and
+<strong>relational distillation</strong> (RKD, CRD) constitute the
+second strand. They supplement the output match with constraints on
+intermediate representations or pairwise structure, which adds learning
+signal when the gap is large but introduces a hint-layer choice that
+varies results by 1-2 points<a href="#fn19" class="footnote-ref"
+id="fnref19" role="doc-noteref"><sup>19</sup></a>. CRD imports the InfoNCE machinery from contrastive learning
+with K=16384 negatives in a memory bank and provides a 2.1-point lift on
+heterogeneous teacher-student pairs (VGG-13
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>
+MobileNet-V2) where point-wise feature matching stalls; the
+projection-head depth and memory-bank momentum each move the result by
+~0.5%, which is a reproducibility tax practitioners regularly
+underestimate.</p>
+<p><strong>Online and self-distillation</strong> (DML, ONE, Born-Again,
+PS-KD) abandon the offline pre-training requirement: peers train jointly
+(DML, ONE) or the teacher is the model's own past checkpoint
+(Born-Again, PS-KD). <u>DML's surprising finding is that small + large
+peers both improve over solo training, which fits the regularization
+channel</u><a href="#fn20" class="footnote-ref" id="fnref20"
+role="doc-noteref"><sup>20</sup></a> better than the "knowledge
+transfer" framing; identical initialization collapses the KL term, an
+instability that recurs across peer methods<a href="#fn21"
+class="footnote-ref" id="fnref21" role="doc-noteref"><sup>21</sup></a>.
+PS-KD operates at <em>epoch</em> scale with a linearly annealed
+α<sub>t</sub> from 0 to 0.8 over training, providing the smooth
+spectral-shrinkage curriculum <span class="citation"
+data-cites="mobahi_self_2020">(Mobahi, Farajtabar, and Bartlett
+2020)</span> formalizes for kernel regression, at the operational cost
+of caching one prediction-distribution snapshot per training sample
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>5
+GB FP32 on ImageNet).</p>
+<figure id="fig:kd-family-timeline">
+<img src="figures/kd-family-timeline.svg" />
+<figcaption>KD family evolution from 2015 response distillation to 2022
+logit-decoupled DKD and 2023 LLM-scale MiniLLM. Marker shape and colour
+encode family; the dotted line marks a representative WRN-40-2 teacher
+(75.6% CIFAR-100). Three observations match the table reading: (i) the
+<strong>response</strong> and <strong>feature</strong> lines plateau in
+the 70-75% range across 2015-2019; (ii) the <strong>relational</strong>
+and <strong>online/self</strong> clusters lift the same student backbone
+past the teacher in metric-learning settings (Born-Again's ResNet-110
+generations, RKD on CUB/Cars/SOP) but rarely on plain classification;
+(iii) the <strong>NLP</strong> family forms a distinct band: GLUE scores
+rather than image accuracy, with MobileBERT and MiniLM passing 78% at
+5-9x inference speedup over BERT-base. Mixing axes (CIFAR-100 vs GLUE)
+is unavoidable because KD has no single benchmark; the figure compares
+headline numbers within each family rather than across
+them.</figcaption>
+</figure>
+<p><u>NLP distillation (DistilBERT, TinyBERT, MobileBERT, MiniLM) is
+empirically the most consequential application: every entry retains
+96-99% of BERT-base's GLUE while shrinking the model 1.7-7.5x and
+accelerating inference 1.6-9.4x.</u> The four methods differ in
+<em>which</em> structural objects are matched: DistilBERT matches output
+KL plus hidden-state cosine; TinyBERT adds pre-softmax attention MSE
+plus a two-stage (general + task-specific) recipe with BERT-paraphrased
+data augmentation; MobileBERT redesigns each layer into an inverted
+bottleneck and trains an IB-BERT teacher-assistant before progressive
+layer-wise freeze-and-distill; MiniLM matches only QQ/KK and VV
+self-attention relations on the last layer (dimension-agnostic). All
+four depend critically on layer-copy initialization from the teacher<a
+href="#fn22" class="footnote-ref" id="fnref22"
+role="doc-noteref"><sup>22</sup></a>, and DistilBERT's drop-in
+compatibility (same tokenizer, same hidden size) is arguably more
+responsible for its adoption than its raw GLUE score. The LLM era pushes
+the recipe further: MiniLLM <span class="citation"
+data-cites="gu_knowledge_2023">(Gu et al. 2024)</span> swaps forward for
+reverse KL<a href="#fn23" class="footnote-ref" id="fnref23"
+role="doc-noteref"><sup>23</sup></a> and trains via policy gradient on
+student rollouts to suppress the long-tail mean-seeking behaviour that
+produces hedging outputs at 32K-128K vocabulary scale.</p>
+<p><strong>Task-specific distillation</strong> (FGFI for detection,
+Structured-KD for segmentation, Salimans progressive distillation for
+diffusion) tailors the matching to dense or generative outputs. FGFI
+restricts feature distillation to ~0.5% of the feature map (high-IoU
+anchor positions); enlarging the mask reverts to baseline performance
+because background features swamp object features<a href="#fn24"
+class="footnote-ref" id="fnref24" role="doc-noteref"><sup>24</sup></a>.
+Salimans progressive distillation halves the teacher's denoising steps
+recursively (8192
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>
+4096
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>
+…
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>
+4 over 11 rounds) while preserving FID at 2-step parity with the
+8192-step teacher; the recipe requires deterministic DDIM sampling,
+warm-start from teacher weights, and v-parameterization without which
+the loss explodes at noise extremes<a href="#fn25" class="footnote-ref"
+id="fnref25" role="doc-noteref"><sup>25</sup></a>.</p>
+<p><strong>Diagnostic and theoretical work</strong> (Stanton, Müller,
+Menon, Yuan, Busbridge) frames the field's open questions rather than
+providing new methods. Stanton's audit shows students disagree with
+teachers on 5-15% of training samples even with 4x training budget, and
+pushing fidelity below 5% degrades test accuracy: KD is partly
+implicit-regularization rather than faithful imitation<a href="#fn26"
+class="footnote-ref" id="fnref26" role="doc-noteref"><sup>26</sup></a>.
+Müller demonstrates that a label-smoothed teacher loses 0.6-1% in
+distillation despite higher accuracy, because the penultimate similarity
+structure collapses<a href="#fn27" class="footnote-ref" id="fnref27"
+role="doc-noteref"><sup>27</sup></a>. Yuan's teacher-free Tf-KD recovers
+up to 0.65% of the gain with no teacher at all, supporting a
+regularization-dominant view<a href="#fn28" class="footnote-ref"
+id="fnref28" role="doc-noteref"><sup>28</sup></a>. Busbridge's
+scaling-law analysis <span class="citation"
+data-cites="busbridge_distillation_2023">(Busbridge et al. 2023)</span>
+finds that for fixed student compute, teacher size has an optimum and
+over-large teachers <em>hurt</em><a href="#fn29" class="footnote-ref"
+id="fnref29" role="doc-noteref"><sup>29</sup></a>, retiring the folklore
+"teacher 4x student" prescription. These threads remain unreconciled:
+the dark-knowledge and regularization hypotheses are both supported by
+direct experiments, and the practical implication is that distillation
+strength depends on regime (capacity gap, teacher quality, dataset size)
+more than on objective design.</p>
+<p>The table separates four eras: response-only (2006-2015),
+feature/relational expansion (2015-2020), online/self-distillation and
+NLP scaling (2018-2021), and the modern logit-decoupled +
+LLM-distillation line (2022-2023). Three readings. First, gains from
+logit distillation alone plateau around the WRN-40-2
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>
+WRN-40-1 baseline of about 73.5%; DKD's logit-only recipe matches
+feature-based methods at 74.8% and is the current state of the art among
+single-objective methods. Second, NLP distillation is the empirically
+most successful application of KD: every method on the GLUE band retains
+97%+ of teacher accuracy at 1.6-9.4x speedup, far exceeding the
+proportional gains seen in vision distillation. Third, <u>recent
+diagnostic and scaling-law work has shifted the field's framing from
+"how do we transfer more knowledge" to "how do we balance fidelity,
+regularization, and optimization dynamics"</u>, which means newer
+methods (DKD, MiniLLM, Tf-KD) increasingly justify themselves through
+diagnostic ablations rather than benchmark-only comparisons.</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-ba_deep_2014" class="csl-entry" role="listitem">
+Ba, Jimmy, and Rich Caruana. 2014. <span>“Do Deep Nets Really Need to Be
+Deep?”</span> In <em>NeurIPS</em>. <a
+href="https://arxiv.org/abs/1312.6184">https://arxiv.org/abs/1312.6184</a>.
+</div>
+<div id="ref-bao_beit_2022" class="csl-entry" role="listitem">
+Bao, Hangbo, Li Dong, Songhao Piao, and Furu Wei. 2022.
+<span>“<span>BEiT</span>: <span>BERT</span>
+<span>Pre</span>-<span>Training</span> of <span>Image</span>
+<span>Transformers</span>.”</span> In <em>International Conference on
+Learning Representations (ICLR)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2106.08254">https://doi.org/10.48550/arXiv.2106.08254</a>.
+</div>
+<div id="ref-bucilua_model_2006" class="csl-entry" role="listitem">
+Buciluǎ, Cristian, Rich Caruana, and Alexandru Niculescu-Mizil. 2006.
+<span>“Model Compression.”</span> In <em>KDD</em>.
+</div>
+<div id="ref-busbridge_distillation_2023" class="csl-entry"
+role="listitem">
+Busbridge, Dan, Dimitris Anastasiou, Maria Lomeli, Rahul Shah, Aasam
+Piracha, Pablo Sprechmann, Scott Reed, Michael Kramer, and Geoffrey
+Hinton. 2023. <span>“Distillation Scaling Laws.”</span> In
+<em>arXiv</em>.
+</div>
+<div id="ref-caron_emerging_2021" class="csl-entry" role="listitem">
+Caron, Mathilde, Hugo Touvron, Ishan Misra, Hervé Jégou, Julien Mairal,
+Piotr Bojanowski, and Armand Joulin. 2021. <span>“Emerging Properties in
+Self-Supervised Vision Transformers.”</span> In <em>ICCV</em>. <a
+href="https://arxiv.org/abs/2104.14294">https://arxiv.org/abs/2104.14294</a>.
+</div>
+<div id="ref-chen_simple_2020" class="csl-entry" role="listitem">
+Chen, Ting, Simon Kornblith, Mohammad Norouzi, and Geoffrey Hinton.
+2020. <span>“A <span>Simple</span> <span>Framework</span> for
+<span>Contrastive</span> <span>Learning</span> of <span>Visual</span>
+<span>Representations</span>.”</span> In <em>International Conference on
+Machine Learning (ICML)</em>. <a
+href="https://doi.org/10.48550/arXiv.2002.05709">https://doi.org/10.48550/arXiv.2002.05709</a>.
+</div>
+<div id="ref-donahue_decaf_2014" class="csl-entry" role="listitem">
+Donahue, Jeff, Yangqing Jia, Oriol Vinyals, Judy Hoffman, Ning Zhang,
+Eric Tzeng, and Trevor Darrell. 2014. <span>“DeCAF: A Deep Convolutional
+Activation Feature for Generic Visual Recognition.”</span> In
+<em>International Conference on Machine Learning (ICML)</em>. <a
+href="https://arxiv.org/abs/1310.1531">https://arxiv.org/abs/1310.1531</a>.
+</div>
+<div id="ref-furlanello_born-again_2018" class="csl-entry"
+role="listitem">
+Furlanello, Tommaso, Zachary Lipton, Michael Tschannen, Laurent Itti,
+and Anima Anandkumar. 2018. <span>“Born-Again Neural Networks.”</span>
+In <em>ICML</em>. <a
+href="https://arxiv.org/abs/1805.04770">https://arxiv.org/abs/1805.04770</a>.
+</div>
+<div id="ref-gidaris_unsupervised_2018" class="csl-entry"
+role="listitem">
+Gidaris, Spyros, Praveer Singh, and Nikos Komodakis. 2018.
+<span>“Unsupervised Representation Learning by Predicting Image
+Rotations.”</span> In <em>ICLR</em>. <a
+href="https://arxiv.org/abs/1803.07728">https://arxiv.org/abs/1803.07728</a>.
+</div>
+<div id="ref-gu_knowledge_2023" class="csl-entry" role="listitem">
+Gu, Yuxian, Li Dong, Furu Wei, and Minlie Huang. 2024. <span>“MiniLLM:
+Knowledge Distillation of Large Language Models.”</span> In
+<em>ICLR</em>. <a
+href="https://arxiv.org/abs/2306.08543">https://arxiv.org/abs/2306.08543</a>.
+</div>
+<div id="ref-he_masked_2021" class="csl-entry" role="listitem">
+He, Kaiming, Xinlei Chen, Saining Xie, Yanghao Li, Piotr Dollár, and
+Ross Girshick. 2022. <span>“Masked <span>Autoencoders</span>
+<span>Are</span> <span>Scalable</span> <span>Vision</span>
+<span>Learners</span>.”</span> In <em>IEEE/CVF Conference on Computer
+Vision and Pattern Recognition (CVPR)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2111.06377">https://doi.org/10.48550/arXiv.2111.06377</a>.
+</div>
+<div id="ref-he_momentum_2020" class="csl-entry" role="listitem">
+He, Kaiming, Haoqi Fan, Yuxin Wu, Saining Xie, and Ross Girshick. 2020.
+<span>“Momentum <span>Contrast</span> for <span>Unsupervised</span>
+<span>Visual</span> <span>Representation</span>
+<span>Learning</span>.”</span> In <em>IEEE/CVF Conference on Computer
+Vision and Pattern Recognition (CVPR)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1911.05722">https://doi.org/10.48550/arXiv.1911.05722</a>.
+</div>
+<div id="ref-hinton_distilling_2015" class="csl-entry" role="listitem">
+Hinton, Geoffrey, Oriol Vinyals, and Jeff Dean. 2015. <span>“Distilling
+the Knowledge in a Neural Network.”</span> In <em>NeurIPS Deep Learning
+and Representation Learning Workshop</em>. <a
+href="https://arxiv.org/abs/1503.02531">https://arxiv.org/abs/1503.02531</a>.
+</div>
+<div id="ref-jia_scaling_2021" class="csl-entry" role="listitem">
+Jia, Chao, Yinfei Yang, Ye Xia, Yi-Ting Chen, Zarana Parekh, Hieu Pham,
+Quoc V. Le, Yunhsuan Sung, Zhen Li, and Tom Duerig. 2021. <span>“Scaling
+<span>Up</span> <span>Visual</span> and
+<span>Vision</span>-<span>Language</span> <span>Representation</span>
+<span>Learning</span> <span>With</span> <span>Noisy</span>
+<span>Text</span> <span>Supervision</span>.”</span> In <em>International
+Conference on Machine Learning (ICML)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2102.05918">https://doi.org/10.48550/arXiv.2102.05918</a>.
+</div>
+<div id="ref-jiao_tinybert_2020" class="csl-entry" role="listitem">
+Jiao, Xiaoqi, Yichun Yin, Lifeng Shang, Xin Jiang, Xiao Chen, Linlin Li,
+Fang Wang, and Qun Liu. 2020. <span>“TinyBERT: Distilling BERT for
+Natural Language Understanding.”</span> In <em>Findings of EMNLP</em>.
+<a
+href="https://arxiv.org/abs/1909.10351">https://arxiv.org/abs/1909.10351</a>.
+</div>
+<div id="ref-kim_self-knowledge_2021" class="csl-entry" role="listitem">
+Kim, Kyungyul, ByeongMoon Ji, Doyoung Yoon, and Sangheum Hwang. 2021.
+<span>“Self-Knowledge Distillation with Progressive Refinement of
+Targets.”</span> In <em>ICCV</em>. <a
+href="https://arxiv.org/abs/2006.12000">https://arxiv.org/abs/2006.12000</a>.
+</div>
+<div id="ref-lan_knowledge_2018" class="csl-entry" role="listitem">
+Lan, Xu, Xiatian Zhu, and Shaogang Gong. 2018. <span>“Knowledge
+Distillation by on-the-Fly Native Ensemble.”</span> In <em>NeurIPS</em>.
+<a
+href="https://arxiv.org/abs/1806.04606">https://arxiv.org/abs/1806.04606</a>.
+</div>
+<div id="ref-menon_statistical_2021" class="csl-entry" role="listitem">
+Menon, Aditya Krishna, Ankit Singh Rawat, Sashank Reddi, Seungyeon Kim,
+and Sanjiv Kumar. 2021. <span>“A Statistical Perspective on
+Distillation.”</span> In <em>ICML</em>. <a
+href="https://arxiv.org/abs/2009.10683">https://arxiv.org/abs/2009.10683</a>.
+</div>
+<div id="ref-mirzadeh_improved_2020" class="csl-entry" role="listitem">
+Mirzadeh, Seyed Iman, Mehrdad Farajtabar, Ang Li, Nir Levine, Akihiro
+Matsukawa, and Hassan Ghasemzadeh. 2020. <span>“Improved Knowledge
+Distillation via Teacher Assistant.”</span> In <em>AAAI</em>. <a
+href="https://arxiv.org/abs/1902.03393">https://arxiv.org/abs/1902.03393</a>.
+</div>
+<div id="ref-mobahi_self_2020" class="csl-entry" role="listitem">
+Mobahi, Hossein, Mehrdad Farajtabar, and Peter L. Bartlett. 2020.
+<span>“Self-Distillation Amplifies Regularization in Hilbert
+Space.”</span> In <em>NeurIPS</em>. <a
+href="https://arxiv.org/abs/2002.05715">https://arxiv.org/abs/2002.05715</a>.
+</div>
+<div id="ref-muller_when_2019" class="csl-entry" role="listitem">
+Müller, Rafael, Simon Kornblith, and Geoffrey Hinton. 2019. <span>“When
+Does Label Smoothing Help?”</span> In <em>NeurIPS</em>. <a
+href="https://arxiv.org/abs/1906.02629">https://arxiv.org/abs/1906.02629</a>.
+</div>
+<div id="ref-noroozi_unsupervised_2016" class="csl-entry"
+role="listitem">
+Noroozi, Mehdi, and Paolo Favaro. 2016. <span>“Unsupervised Learning of
+Visual Representations by Solving Jigsaw Puzzles.”</span> In
+<em>ECCV</em>. <a
+href="https://arxiv.org/abs/1603.09246">https://arxiv.org/abs/1603.09246</a>.
+</div>
+<div id="ref-oquab_dinov2_2024" class="csl-entry" role="listitem">
+Oquab, Maxime, Timothée Darcet, Théo Moutakanni, Huy Vo, Marc
+Szafraniec, Vasil Khalidov, Pierre Fernandez, et al. 2024.
+<span>“<span>DINOv2</span>: <span>Learning</span> <span>Robust</span>
+<span>Visual</span> <span>Features</span> Without
+<span>Supervision</span>.”</span> <em>Transactions on Machine Learning
+Research (TMLR)</em>, February. <a
+href="https://doi.org/10.48550/arXiv.2304.07193">https://doi.org/10.48550/arXiv.2304.07193</a>.
+</div>
+<div id="ref-park_relational_2019" class="csl-entry" role="listitem">
+Park, Wonpyo, Dongju Kim, Yan Lu, and Minsu Cho. 2019. <span>“Relational
+Knowledge Distillation.”</span> In <em>CVPR</em>. <a
+href="https://arxiv.org/abs/1904.05068">https://arxiv.org/abs/1904.05068</a>.
+</div>
+<div id="ref-radford_learning_2021" class="csl-entry" role="listitem">
+Radford, Alec, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh,
+Sandhini Agarwal, Girish Sastry, et al. 2021. <span>“Learning
+<span>Transferable</span> <span>Visual</span> <span>Models</span>
+<span>From</span> <span>Natural</span> <span>Language</span>
+<span>Supervision</span>.”</span> In <em>International Conference on
+Machine Learning (ICML)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2103.00020">https://doi.org/10.48550/arXiv.2103.00020</a>.
+</div>
+<div id="ref-romero_fitnets_2015" class="csl-entry" role="listitem">
+Romero, Adriana, Nicolas Ballas, Samira Ebrahimi Kahou, Antoine
+Chassang, Carlo Gatta, and Yoshua Bengio. 2015. <span>“FitNets: Hints
+for Thin Deep Nets.”</span> In <em>ICLR</em>. <a
+href="https://arxiv.org/abs/1412.6550">https://arxiv.org/abs/1412.6550</a>.
+</div>
+<div id="ref-salimans_progressive_2022" class="csl-entry"
+role="listitem">
+Salimans, Tim, and Jonathan Ho. 2022. <span>“Progressive Distillation
+for Fast Sampling of Diffusion Models.”</span> In <em>ICLR</em>. <a
+href="https://arxiv.org/abs/2202.00512">https://arxiv.org/abs/2202.00512</a>.
+</div>
+<div id="ref-sanh_distilbert_2019" class="csl-entry" role="listitem">
+Sanh, Victor, Lysandre Debut, Julien Chaumond, and Thomas Wolf. 2019.
+<span>“DistilBERT, a Distilled Version of BERT: Smaller, Faster, Cheaper
+and Lighter.”</span> In <em>NeurIPS Workshop on Energy Efficient ML and
+Cognitive Computing</em>. <a
+href="https://arxiv.org/abs/1910.01108">https://arxiv.org/abs/1910.01108</a>.
+</div>
+<div id="ref-stanton_does_2021" class="csl-entry" role="listitem">
+Stanton, Samuel, Pavel Izmailov, Polina Kirichenko, Alexander A. Alemi,
+and Andrew Gordon Wilson. 2021. <span>“Does Knowledge Distillation
+Really Work?”</span> In <em>NeurIPS</em>. <a
+href="https://arxiv.org/abs/2106.05945">https://arxiv.org/abs/2106.05945</a>.
+</div>
+<div id="ref-sun_mobilebert_2020" class="csl-entry" role="listitem">
+Sun, Zhiqing, Hongkun Yu, Xiaodan Song, Renjie Liu, Yiming Yang, and
+Denny Zhou. 2020. <span>“MobileBERT: A Compact Task-Agnostic BERT for
+Resource-Limited Devices.”</span> In <em>ACL</em>. <a
+href="https://arxiv.org/abs/2004.02984">https://arxiv.org/abs/2004.02984</a>.
+</div>
+<div id="ref-tian_contrastive_2020" class="csl-entry" role="listitem">
+Tian, Yonglong, Dilip Krishnan, and Phillip Isola. 2020.
+<span>“Contrastive <span>Multiview</span> <span>Coding</span>.”</span>
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.1906.05849">https://doi.org/10.48550/arXiv.1906.05849</a>.
+</div>
+<div id="ref-wang_distilling_2019" class="csl-entry" role="listitem">
+Wang, Tao, Li Yuan, Xiaopeng Zhang, and Jiashi Feng. 2019.
+<span>“Distilling Object Detectors with Fine-Grained Feature
+Imitation.”</span> In <em>CVPR</em>. <a
+href="https://arxiv.org/abs/1906.03609">https://arxiv.org/abs/1906.03609</a>.
+</div>
+<div id="ref-wang_minilm_2020" class="csl-entry" role="listitem">
+Wang, Wenhui, Furu Wei, Li Dong, Hangbo Bao, Nan Yang, and Ming Zhou.
+2020. <span>“MiniLM: Deep Self-Attention Distillation for Task-Agnostic
+Compression of Pre-Trained Transformers.”</span> In <em>NeurIPS</em>. <a
+href="https://arxiv.org/abs/2002.10957">https://arxiv.org/abs/2002.10957</a>.
+</div>
+<div id="ref-yuan_revisiting_2020" class="csl-entry" role="listitem">
+Yuan, Li, Francis E. H. Tay, Guilin Li, Tao Wang, and Jiashi Feng. 2020.
+<span>“Revisiting Knowledge Distillation via Label Smoothing
+Regularization.”</span> In <em>CVPR</em>. <a
+href="https://arxiv.org/abs/1909.11723">https://arxiv.org/abs/1909.11723</a>.
+</div>
+<div id="ref-zagoruyko_attention_2017" class="csl-entry"
+role="listitem">
+Zagoruyko, Sergey, and Nikos Komodakis. 2017. <span>“Paying More
+Attention to Attention: Improving the Performance of Convolutional
+Neural Networks via Attention Transfer.”</span> In <em>ICLR</em>. <a
+href="https://arxiv.org/abs/1612.03928">https://arxiv.org/abs/1612.03928</a>.
+</div>
+<div id="ref-zhang_colorful_2016" class="csl-entry" role="listitem">
+Zhang, Richard, Phillip Isola, and Alexei A. Efros. 2016.
+<span>“Colorful Image Colorization.”</span> In <em>ECCV</em>. <a
+href="https://arxiv.org/abs/1603.08511">https://arxiv.org/abs/1603.08511</a>.
+</div>
+<div id="ref-zhang_deep_2018" class="csl-entry" role="listitem">
+Zhang, Ying, Tao Xiang, Timothy M. Hospedales, and Huchuan Lu. 2018.
+<span>“Deep Mutual Learning.”</span> In <em>CVPR</em>. <a
+href="https://arxiv.org/abs/1706.00384">https://arxiv.org/abs/1706.00384</a>.
+</div>
+<div id="ref-zhao_decoupled_2022" class="csl-entry" role="listitem">
+Zhao, Borui, Quan Cui, Renjie Song, Yiyu Qiu, and Jiajun Liang. 2022.
+<span>“Decoupled Knowledge Distillation.”</span> In <em>CVPR</em>. <a
+href="https://arxiv.org/abs/2203.08679">https://arxiv.org/abs/2203.08679</a>.
+</div>
+</div>
+<section id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p><em>Semantic narrowness</em>: a hand-crafted pretext
+signal (rotation, color, puzzle) is too narrow for high-level features
+and breaks for any class whose canonical orientation or palette is
+undefined.<a href="#fnref1" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><em>Invariance hand-fixing</em>: the augmentation
+pipeline <em>declares</em> which transformations should be invariant
+rather than learning them; covariant features (orientation, depth) are
+sacrificed.<a href="#fnref2" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p><em>Shortcut vulnerability</em>: low-level cues
+(chromatic aberration, edge alignment) defeat the task without explicit
+defenses (gaps, channel-mean subtraction, grayscale training).<a
+href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p><em>Semantic narrowness</em>: a hand-crafted pretext
+signal (rotation, color, puzzle) is too narrow for high-level features
+and breaks for any class whose canonical orientation or palette is
+undefined.<a href="#fnref4" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p><em>Semantic narrowness</em>: a hand-crafted pretext
+signal (rotation, color, puzzle) is too narrow for high-level features
+and breaks for any class whose canonical orientation or palette is
+undefined.<a href="#fnref5" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p><em>Shortcut vulnerability</em>: low-level cues
+(chromatic aberration, edge alignment) defeat the task without explicit
+defenses (gaps, channel-mean subtraction, grayscale training).<a
+href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p><em>Large-batch dependence</em>: SimCLR-class methods
+need batch
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≥</mo><mn>4</mn><mo>,</mo><mn>096</mn></mrow><annotation encoding="application/x-tex">\ge 4{,}096</annotation></semantics></math>
+to populate informative negatives, requiring TPU-scale compute and
+LARS-style optimizers.<a href="#fnref7" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p><em>Queue staleness</em>: memory-bank features drift
+from the current encoder; the queue's effective freshness depends on the
+EMA momentum and feature dimension.<a href="#fnref8"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn9"><p><em>Invariance hand-fixing</em>: the augmentation
+pipeline <em>declares</em> which transformations should be invariant
+rather than learning them; covariant features (orientation, depth) are
+sacrificed.<a href="#fnref9" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn10"><p><em>Collapse mystery</em>: why no-negative methods
+avoid the trivial constant solution remains contested
+(BatchNorm-statistics theories disputed; stop-gradient role only
+partially understood).<a href="#fnref10" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn11"><p><em>Hyperparameter fragility</em>: temperature, EMA
+momentum, predictor depth, centering and sharpening must be hand-tuned
+per dataset; transfer of recipes across architectures is unreliable.<a
+href="#fnref11" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn12"><p><em>Offline tokenizer dependence</em>: a pretrained
+dVAE adds a separate compute stage and dramatically constrains
+downstream by fixing the discrete vocabulary.<a href="#fnref12"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn13"><p><em>LP-FT gap</em>: linear-probe and fine-tune metrics
+disagree by large margins (MAE has weak LP yet strong FT), making
+single-metric comparison misleading.<a href="#fnref13"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn14"><p><em>ViT-only recipes</em>: most 2021+ recipes (DINO,
+MoCo v3, MAE, BEiT) do not transfer to ResNets; the convolutional case
+has been comparatively under-served since 2021.<a href="#fnref14"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn15"><p><em>Production-scale compute</em>: pretraining on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≥</mo><msup><mn>10</mn><mn>8</mn></msup></mrow><annotation encoding="application/x-tex">\ge 10^8</annotation></semantics></math>
+images costs millions of GPU-hours, beyond academic budgets, and most
+data-curation pipelines are closed source.<a href="#fnref15"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn16"><p><em>Web-text bias</em>: alt-text supervision inherits
+stereotype, popularity-skew, and quality artifacts; produces biased
+zero-shot classifiers without an obvious mitigation.<a href="#fnref16"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn17"><p><em>Production-scale compute</em>: pretraining on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≥</mo><msup><mn>10</mn><mn>8</mn></msup></mrow><annotation encoding="application/x-tex">\ge 10^8</annotation></semantics></math>
+images costs millions of GPU-hours, beyond academic budgets, and most
+data-curation pipelines are closed source.<a href="#fnref17"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn18"><p><em>Extreme-compression breakdown</em>:
+very-low-capacity students (depth ratio below 1:5 to teacher) fail to
+absorb dark knowledge entirely; intermediate teacher-assistants are
+required to bridge the gap, at 3x compute cost <span class="citation"
+data-cites="mirzadeh_improved_2020">(Mirzadeh et al. 2020)</span>.<a
+href="#fnref18" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn19"><p><em>Hint-layer choice</em>: feature distillation
+requires picking which student layer is supervised by which teacher
+layer; results vary by 1-2 accuracy points depending on the choice, and
+a deeper learned regressor partly defeats the purpose by offloading
+representational work onto the regressor itself <span class="citation"
+data-cites="romero_fitnets_2015">(Romero et al. 2015)</span>.<a
+href="#fnref19" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn20"><p><em>Dark-knowledge vs. regularization</em>: even
+hand-crafted "teachers" (uniform-over-non-target, label-smoothed
+one-hot) recover much of the KD gain, and reverse-distillation (small
+teacher improving large student) demonstrates that classical "knowledge
+transfer" overstates the role of teacher content <span class="citation"
+data-cites="yuan_revisiting_2020">(Yuan et al. 2020)</span>.<a
+href="#fnref20" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn21"><p><em>Online co-training instability</em>: peer methods
+(DML, ONE) require independent random initialization and a capacity
+floor; identical inits collapse the KL term to zero, and
+very-low-capacity peers cannot generate informative soft targets for
+each other <span class="citation" data-cites="zhang_deep_2018">(Y. Zhang
+et al. 2018)</span>.<a href="#fnref21" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn22"><p><em>Layer-copy initialization fragility</em>: NLP
+distillation depends critically on copying alternate teacher layers as
+the student warm-start; random init roughly doubles compute and rarely
+closes to the same GLUE average; this constrains student architecture to
+share teacher hidden dimension <span class="citation"
+data-cites="sanh_distilbert_2019">(Sanh et al. 2019)</span>.<a
+href="#fnref22" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn23"><p><em>KL direction is empirical</em>: forward KL is
+mean-seeking and produces hedging students; reverse KL is mode-seeking
+but unstable without policy-gradient variance reduction; the choice has
+no clean theoretical winner and depends on whether the deployment task
+rewards coverage or concentration <span class="citation"
+data-cites="gu_knowledge_2023">(Gu et al. 2024)</span>.<a
+href="#fnref23" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn24"><p><em>Detection imitation-mask sensitivity</em>:
+object-detector distillation breaks under naive feature matching because
+&gt;99% of feature-map positions are background; the imitation mask must
+be roughly 0.5% positive, and enlarging it to "hard negatives" degrades
+back to baseline <span class="citation"
+data-cites="wang_distilling_2019">(T. Wang et al. 2019)</span>.<a
+href="#fnref24" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn25"><p><em>Diffusion-distillation prerequisites</em>:
+progressive distillation requires a deterministic teacher sampler (DDIM,
+not DDPM), warm-start from teacher weights, and v-parameterization; cold
+init or stochastic samplers fail outright <span class="citation"
+data-cites="salimans_progressive_2022">(Salimans and Ho 2022)</span>.<a
+href="#fnref25" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn26"><p><em>Silent fidelity failure</em>: students often
+disagree with the teacher on 5-15% of training samples even with 4x
+training budget, and reducing this fidelity gap can <em>degrade</em>
+test accuracy; KD's gain depends on a delicate fidelity-regularization
+trade-off rather than on faithful imitation <span class="citation"
+data-cites="stanton_does_2021">(Stanton et al. 2021)</span>.<a
+href="#fnref26" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn27"><p><em>Label-smoothing equivalence</em>: a teacher trained
+with label smoothing collapses its penultimate similarity structure, and
+distillation from such a teacher loses 0.6-1% on ImageNet despite the
+teacher's slightly higher accuracy; the soft-target signal is not just
+confidence reduction <span class="citation"
+data-cites="muller_when_2019">(Müller, Kornblith, and Hinton
+2019)</span>.<a href="#fnref27" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn28"><p><em>Dark-knowledge vs. regularization</em>: even
+hand-crafted "teachers" (uniform-over-non-target, label-smoothed
+one-hot) recover much of the KD gain, and reverse-distillation (small
+teacher improving large student) demonstrates that classical "knowledge
+transfer" overstates the role of teacher content <span class="citation"
+data-cites="yuan_revisiting_2020">(Yuan et al. 2020)</span>.<a
+href="#fnref28" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn29"><p><em>Teacher-size saturation</em>: for a fixed
+student-compute budget, larger teachers help only up to a threshold
+beyond which they <em>hurt</em>; the optimal teacher size shifts with
+student compute, so fixed-ratio prescriptions ("teacher 4x student")
+should be retired <span class="citation"
+data-cites="busbridge_distillation_2023">(Busbridge et al.
+2023)</span>.<a href="#fnref29" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

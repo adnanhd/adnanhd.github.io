@@ -1,0 +1,2976 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="A survey of statistical deep learning: PAC-Bayes generalization, the neural tangent kernel, benign overfitting / double descent, and scaling laws." />
+        <title>Statistical Deep Learning - Adnan Harun Dogan</title>
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Statistical Deep Learning</h1>
+            <div class="blog-meta">PAC-Bayes, NTK, benign overfitting / double descent, and scaling laws</div>
+            <article class="blog-body">
+<h2 id="classical-statistical-learning-foundations">Classical
+Statistical Learning Foundations</h2>
+<p>This chapter catalogs the references covered in Part I, grouping them
+by topic and cross-linking to the chapter where each is discussed in
+detail. The goal is to make the prerequisite structure explicit: a
+reader who has seen, for instance, the Hoeffding inequality in passing
+can skip the concentration chapter; a reader who has not should follow
+the link before tackling VC/Rademacher bounds.</p>
+<p>The unifying thread of Part I is the <strong>uniform-convergence
+paradigm</strong>: relate the population risk of the ERM hypothesis to
+its empirical risk via a capacity term that depends on the hypothesis
+class, then choose a class whose capacity is provably small. Every paper
+below contributes either a capacity measure (VC dimension, Rademacher
+complexity, fat-shattering dimension, margin), a tail inequality that
+turns expectations into high-probability statements (Hoeffding,
+Bernstein, McDiarmid), or a concrete algorithm whose generalization can
+be analyzed inside the framework (SVM, AdaBoost, kernel ridge
+regression). <u>The later Parts of the book will show how each of these
+components either breaks or bends when the hypothesis class becomes a
+deep neural network trained by SGD.</u></p>
+<h2 id="one-sentence-summaries">One-sentence summaries</h2>
+<ul>
+<li><span class="citation" data-cites="vapnik_nature_1995">(Vapnik
+1995)</span> states the Structural Risk Minimization programme and
+collects the Vapnik school's main bounds for classification and
+regression; covered in ERM and MLE and
+VC / Rademacher.</li>
+<li><span class="citation" data-cites="mohri_foundations_2018">(Mohri,
+Rostamizadeh, and Talwalkar 2018)</span> is the current standard
+textbook for the uniform-convergence view (Rademacher complexity, VC,
+margin bounds, kernels); used throughout ERM, VC, kernels, SVM,
+and boosting.</li>
+<li><span class="citation"
+data-cites="vandervaart_asymptotic_1998">(Vaart 1998)</span> develops
+the asymptotic theory of M-estimators and MLE (consistency,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mi>n</mi></msqrt><annotation encoding="application/x-tex">\sqrt{n}</annotation></semantics></math>-rate,
+limiting normal distribution); covered in ERM and MLE.</li>
+<li><span class="citation" data-cites="murphy_pml_intro_2022">(Murphy
+2022 Ch 5)</span> gives the modern Bayesian-probabilistic framing of
+ERM/MLE/MAP and their relation via regularizers; covered in ERM and MLE.</li>
+<li><span class="citation"
+data-cites="boucheron_concentration_2013">(Boucheron, Lugosi, and
+Massart 2013)</span> is the standard reference for tail inequalities
+used in learning theory: Hoeffding, Bernstein, bounded-differences,
+entropy method, log-Sobolev; covered in Concentration.</li>
+<li><span class="citation" data-cites="murphy_pml_advanced_2023">(Murphy
+2023)</span> provides an ML-practitioner-oriented summary of
+concentration tools that feed into PAC and PAC-Bayes analyses; covered
+in Concentration.</li>
+<li><span class="citation" data-cites="vapnik_chervonenkis_1971">(Vapnik
+and Chervonenkis 1971)</span> proves the foundational uniform
+convergence theorem; the growth function bound and VC dimension are
+introduced here; covered in VC /
+Rademacher.</li>
+<li><span class="citation"
+data-cites="bartlett_mendelson_2002">(Bartlett and Mendelson
+2002)</span> introduces data-dependent Rademacher and Gaussian
+complexities and proves the now-standard symmetrization bound; covered
+in VC / Rademacher.</li>
+<li><span class="citation" data-cites="baum_haussler_1989">(Baum and
+Haussler 1989)</span> gives the first VC-based sample-complexity
+estimate for feed-forward neural networks with threshold units; covered
+in VC / Rademacher.</li>
+<li><span class="citation" data-cites="anthony_bartlett_1999">(Anthony
+and Bartlett 1999)</span> is the canonical monograph on VC,
+pseudo-dimension, fat-shattering, and sample complexity of neural
+networks; covered in VC /
+Rademacher.</li>
+<li><span class="citation" data-cites="scholkopf_smola_2002">(Schölkopf
+and Smola 2002)</span> is the canonical kernel-methods textbook:
+positive-definite kernels, RKHS, representer theorem, SVM, kernel PCA;
+covered in Kernels and SVM.</li>
+<li><span class="citation"
+data-cites="rasmussen_williams_2006">(Rasmussen and Williams
+2006)</span> is the canonical GP textbook: covariance functions,
+posterior inference, marginal likelihood, connections to kernel ridge
+regression; covered in Kernels.</li>
+<li><span class="citation" data-cites="cortes_vapnik_1995">(Cortes and
+Vapnik 1995)</span> introduces the <em>soft-margin</em> SVM with slack
+variables and hinge loss, making SVMs applicable to non-separable data;
+covered in SVM.</li>
+<li><span class="citation" data-cites="boser_guyon_vapnik_1992">(Boser,
+Guyon, and Vapnik 1992)</span> introduces the <em>kernel trick</em> in
+the margin-classifier dual, enabling nonlinear decision boundaries
+without explicit feature maps; covered in SVM.</li>
+<li><span class="citation" data-cites="platt_smo_1999">(Platt
+1999)</span> proposes SMO, a pairwise coordinate-ascent algorithm that
+solves the SVM quadratic program without a general QP solver; covered in
+SVM.</li>
+<li><span class="citation" data-cites="freund_schapire_1997">(Freund and
+Schapire 1997)</span> introduces AdaBoost and proves its training-error
+bound via the product of normalization constants; covered in Boosting.</li>
+<li><span class="citation" data-cites="schapire_margin_1998">(Schapire
+et al. 1998)</span> proves a test-error bound in terms of the <em>margin
+distribution</em>, not the number of rounds, explaining why AdaBoost
+keeps generalizing after training error hits zero; covered in Boosting.</li>
+</ul>
+<h2 id="sota-table-classical-benchmarks">SoTA table: classical
+benchmarks</h2>
+<p><u>Classical learning theory crystallized around a handful of
+algorithm families on a stable benchmark suite (MNIST digits, USPS, UCI
+Letter, UCI Pima/Spambase).</u> Each family carries a <em>signature
+failure mode</em> that the uniform-convergence framework either explains
+or fails to explain, and these failures are exactly the entry points for
+the post-classical theory developed in Parts II-V. The leaderboard below
+catalogs the headline result for each family with hyperparameters in
+parentheses; the prose around it walks through the families
+chronologically and attaches footnote markers at the clause where each
+failure mode first becomes visible.</p>
+<p>The intro paragraph for Part I already framed <strong>uniform
+convergence</strong> as the central paradigm. Three structural problems
+sit immediately under that paradigm and recur across every algorithm in
+the leaderboard. <strong>VC</strong> and <strong>Rademacher</strong>
+capacity bounds, applied directly to over-parameterized networks,
+produce sample-complexity estimates that exceed the dataset size by many
+orders of magnitude<a href="#fn1" class="footnote-ref" id="fnref1"
+role="doc-noteref"><sup>1</sup></a>; the data-dependent
+<strong>Rademacher</strong> refinement <span class="citation"
+data-cites="bartlett_mendelson_2002">(Bartlett and Mendelson
+2002)</span> tightens this but still cannot certify the gap on modern
+nets<a href="#fn2" class="footnote-ref" id="fnref2"
+role="doc-noteref"><sup>2</sup></a>. AdaBoost's empirical resilience to
+overfitting after training error reaches zero forced a reformulation of
+the bound in terms of the <strong>margin</strong> distribution rather
+than the round count<a href="#fn3" class="footnote-ref" id="fnref3"
+role="doc-noteref"><sup>3</sup></a> <span class="citation"
+data-cites="schapire_margin_1998">(Schapire et al. 1998)</span>; the
+reformulation transferred to <strong>kernel</strong>-SVM analysis
+because both are large-margin classifiers in a (possibly
+infinite-dimensional) feature space <span class="citation"
+data-cites="cortes_vapnik_1995">(Cortes and Vapnik 1995)</span>. The
+choice of <strong>kernel</strong> itself is an <strong>inductive
+bias</strong> <span class="citation"
+data-cites="scholkopf_smola_2002">(Schölkopf and Smola 2002 Ch
+2)</span>: each kernel encodes a hypothesis class with a specific decay
+rate of Mercer eigenvalues, and there is no <em>principled</em>
+data-driven selection criterion<a href="#fn4" class="footnote-ref"
+id="fnref4" role="doc-noteref"><sup>4</sup></a>. <strong>ERM</strong>'s
+i.i.d. assumption <span class="citation"
+data-cites="vapnik_nature_1995">(Vapnik 1995)</span> also fails outside
+the benchmark suite (time-series, distribution shift, covariate-shift
+settings)<a href="#fn5" class="footnote-ref" id="fnref5"
+role="doc-noteref"><sup>5</sup></a>, and the
+<strong>concentration</strong> tools that turn expectations into
+high-probability statements (Hoeffding, Bernstein, McDiarmid) tighten
+only when variance is bounded; heavy-tailed loss surfaces break the
+standard guarantee<a href="#fn6" class="footnote-ref" id="fnref6"
+role="doc-noteref"><sup>6</sup></a>. Two further structural points:
+classical theory analyzes capacity in <em>isolation</em> from the
+training algorithm<a href="#fn7" class="footnote-ref" id="fnref7"
+role="doc-noteref"><sup>7</sup></a>, yet SGD's optimization geometry
+contributes its own implicit regularization (Part IV); and
+<strong>SMO</strong> <span class="citation"
+data-cites="platt_smo_1999">(Platt 1999)</span>, the workhorse SVM
+solver, scales as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math>
+in the Gram matrix and becomes impractical past
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>≈</mo><msup><mn>10</mn><mn>5</mn></msup></mrow><annotation encoding="application/x-tex">N \approx 10^5</annotation></semantics></math><a
+href="#fn8" class="footnote-ref" id="fnref8"
+role="doc-noteref"><sup>8</sup></a>, a dataset size that modern
+deep-learning pipelines exceed by 3-5 orders of magnitude.</p>
+<div class="blog-table"><table id="tbl:classical-sota">
+<caption>Classical SoTA leaderboard. Hypothesis class summarizes the
+algorithm's RKHS or model family. Loss / Algo cell uses (key=value) for
+headline hyperparameters. Data column lists the training set size where
+reported. MNIST / USPS / UCI Letter columns report test-error percent
+under the experimental protocol of the cited paper; protocols differ
+across papers, so cross-column differences within a couple of percent
+are not meaningful. Notes column flags scale or methodology caveats.
+Dashes mark unreported settings.</caption>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>MNIST</td>
+<td>USPS</td>
+<td>UCI Lett</td>
+<td></td>
+</tr>
+<tr>
+<td>Method</td>
+<td>Year</td>
+<td>Hypothesis class</td>
+<td>Loss / Algo</td>
+<td>Data</td>
+<td>err %</td>
+<td>err %</td>
+<td>err %</td>
+<td>Notes</td>
+</tr>
+<tr>
+<td>LeNet-1 <span
+class="citation" data-cites="cortes_vapnik_1995">(Cortes and Vapnik
+1995)</span></td>
+<td>1995</td>
+<td>CNN-feedforward</td>
+<td>SGD on softmax CE</td>
+<td>MNIST 60k</td>
+<td>1.70</td>
+<td>~5.0</td>
+<td>–</td>
+<td>baseline</td>
+</tr>
+<tr>
+<td>soft-margin SVM <span
+class="citation" data-cites="cortes_vapnik_1995">(Cortes and Vapnik
+1995)</span></td>
+<td>1995</td>
+<td>kernel-RKHS</td>
+<td>hinge SVM(C=10, poly d=4)</td>
+<td>MNIST 60k</td>
+<td>1.10</td>
+<td>4.00</td>
+<td>–</td>
+<td>dual QP</td>
+</tr>
+<tr>
+<td>hard-margin SVM <span
+class="citation" data-cites="boser_guyon_vapnik_1992">(Boser, Guyon, and
+Vapnik 1992)</span></td>
+<td>1992</td>
+<td>kernel-RKHS</td>
+<td>hinge
+SVM(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo>=</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">C{=}\infty</annotation></semantics></math>,
+poly d=2)</td>
+<td>OCR 7.3k</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>sep-only</td>
+</tr>
+<tr>
+<td>Gaussian SVM <span
+class="citation" data-cites="scholkopf_smola_2002">(Schölkopf and Smola
+2002)</span></td>
+<td>2002</td>
+<td>kernel-RKHS</td>
+<td>hinge SVM(RBF,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>=2,
+C=10)</td>
+<td>MNIST 60k</td>
+<td>1.40</td>
+<td>4.20</td>
+<td>–</td>
+<td>bw tuned</td>
+</tr>
+<tr>
+<td>polynomial SVM d=9 <span
+class="citation" data-cites="scholkopf_smola_2002">(Schölkopf and Smola
+2002)</span></td>
+<td>2002</td>
+<td>kernel-RKHS</td>
+<td>hinge SVM(poly d=9, C=10)</td>
+<td>MNIST 60k</td>
+<td>1.10</td>
+<td>–</td>
+<td>–</td>
+<td>best-of</td>
+</tr>
+<tr>
+<td>logistic regression <span
+class="citation" data-cites="hastie_elements_2009">(Hastie, Tibshirani,
+and Friedman 2009 Ch 4)</span></td>
+<td>2009</td>
+<td>linear-margin</td>
+<td>logit-CE(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mo>ℓ</mo><mn>2</mn></msub><annotation encoding="application/x-tex">\ell_2</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>=1e-3)</td>
+<td>MNIST 60k</td>
+<td>7.60</td>
+<td>9.50</td>
+<td>–</td>
+<td>linear</td>
+</tr>
+<tr>
+<td>AdaBoost stumps <span
+class="citation" data-cites="freund_schapire_1997">(Freund and Schapire
+1997)</span></td>
+<td>1997</td>
+<td>boosted-trees</td>
+<td>AdaBoost(T=100, depth-1)</td>
+<td>UCI Letter</td>
+<td>–</td>
+<td>–</td>
+<td>6.60</td>
+<td>weak</td>
+</tr>
+<tr>
+<td>AdaBoost C4.5 <span
+class="citation" data-cites="freund_schapire_1997">(Freund and Schapire
+1997)</span></td>
+<td>1997</td>
+<td>boosted-trees</td>
+<td>AdaBoost(T=100, C4.5 base)</td>
+<td>UCI Letter</td>
+<td>–</td>
+<td>–</td>
+<td>3.10</td>
+<td>strong</td>
+</tr>
+<tr>
+<td>AdaBoost trees T=1000 <span
+class="citation" data-cites="schapire_margin_1998">(Schapire et al.
+1998)</span></td>
+<td>1998</td>
+<td>boosted-trees</td>
+<td>AdaBoost(T=1000, depth-1)</td>
+<td>UCI Letter</td>
+<td>–</td>
+<td>–</td>
+<td>3.10</td>
+<td>margin</td>
+</tr>
+<tr>
+<td>1-NN baseline <span
+class="citation" data-cites="hastie_elements_2009">(Hastie, Tibshirani,
+and Friedman 2009 Ch 13)</span></td>
+<td>2009</td>
+<td>non-parametric</td>
+<td>1-NN Euclidean</td>
+<td>MNIST 60k</td>
+<td>3.09</td>
+<td>5.20</td>
+<td>–</td>
+<td>k=1</td>
+</tr>
+<tr>
+<td>k-NN k=3 <span
+class="citation" data-cites="hastie_elements_2009">(Hastie, Tibshirani,
+and Friedman 2009 Ch 13)</span></td>
+<td>2009</td>
+<td>non-parametric</td>
+<td>k-NN(k=3, Euclidean)</td>
+<td>MNIST 60k</td>
+<td>2.83</td>
+<td>4.95</td>
+<td>–</td>
+<td>k=3</td>
+</tr>
+<tr>
+<td>2-hidden-layer MLP <span
+class="citation" data-cites="cortes_vapnik_1995">(Cortes and Vapnik
+1995)</span></td>
+<td>1995</td>
+<td>MLP</td>
+<td>SGD on softmax CE</td>
+<td>MNIST 60k</td>
+<td>3.05</td>
+<td>–</td>
+<td>–</td>
+<td>300+100</td>
+</tr>
+</tbody>
+</table></div>
+<p>The table groups the classical literature into five families
+(linear-margin, kernel-RKHS, boosted-trees, CNN-feedforward,
+non-parametric), walked through in chronological order. The
+<em>margin</em> cluster begins with Boser-Guyon-Vapnik's hard-margin
+formulation <span class="citation"
+data-cites="boser_guyon_vapnik_1992">(Boser, Guyon, and Vapnik
+1992)</span> which only applies to linearly separable data;
+<strong>Cortes and Vapnik</strong> <span class="citation"
+data-cites="cortes_vapnik_1995">(Cortes and Vapnik 1995)</span>
+introduced soft margins with slack variables and hinge loss, making SVMs
+applicable to the bulk of real benchmarks. The polynomial-kernel SVM at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">d=4</annotation></semantics></math>
+reaches 1.1% MNIST test error, narrowly beating the contemporary LeNet-1
+convnet baseline at 1.7%; this result was the headline selling point of
+kernel methods in the late 1990s. <strong>Gaussian-kernel</strong> SVMs
+<span class="citation" data-cites="scholkopf_smola_2002">(Schölkopf and
+Smola 2002)</span> achieve a comparable 1.4% on MNIST with
+cross-validated bandwidth, but the choice between polynomial and RBF
+reflects a kernel-design judgement rather than a principled criterion<a
+href="#fn9" class="footnote-ref" id="fnref9"
+role="doc-noteref"><sup>9</sup></a>. SMO <span class="citation"
+data-cites="platt_smo_1999">(Platt 1999)</span> made these results
+computationally tractable by avoiding a general QP solver, yet the
+underlying
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math>
+Gram-matrix scaling<a href="#fn10" class="footnote-ref" id="fnref10"
+role="doc-noteref"><sup>10</sup></a> put a hard ceiling on dataset size
+that has only been broken by random features and sketching methods (Part
+V).</p>
+<p>The <em>boosting</em> cluster begins with <strong>AdaBoost</strong>
+<span class="citation" data-cites="freund_schapire_1997">(Freund and
+Schapire 1997)</span>, whose training-error bound (the product of
+normalization constants) decays exponentially in the number of rounds.
+<u>The empirical surprise was that test error on UCI Letter kept
+improving from round 5 (training error already at 0) through round 1000,
+an apparent violation of any naive capacity-based bound</u><a
+href="#fn11" class="footnote-ref" id="fnref11"
+role="doc-noteref"><sup>11</sup></a>. <strong>Schapire et al.</strong>
+<span class="citation" data-cites="schapire_margin_1998">(Schapire et
+al. 1998)</span> resolved the puzzle by bounding test error in terms of
+the <em>margin distribution</em> rather than the round count: the
+cumulative fraction of training points with margin below a threshold
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+provides a class-capacity-times-Lipschitz bound that improves as the
+boosting iterates concentrate the margin mass to the right of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>.
+The mechanism is structurally similar to the SVM-margin analysis but
+operates over a randomized hypothesis class rather than a single
+max-margin classifier.</p>
+<figure id="fig:classical-trends">
+<img src="figures/classical-trends.svg" />
+<figcaption>Two-panel summary of the classical leaderboard. Left: MNIST
+test error vs publication year, colour-coded by family; the dotted line
+marks the rough human-estimate floor (~0.5%). Three observations match
+the table reading: (i) kernel SVMs and the LeNet-1 convnet land within
+0.6 percentage points of each other in 1995-2002, far below logistic
+regression and k-NN; (ii) the <em>best-of</em> kernel choice (polynomial
+vs Gaussian) shifts the headline by 0.3% which is within protocol noise;
+(iii) all classical methods plateau in the 1-3% band, leaving the gap to
+deep learning visible only on harder benchmarks (CIFAR, ImageNet).
+Right: AdaBoost test error on UCI Letter as a function of rounds
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+(log scale); training error reaches 0 around
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">T=5</annotation></semantics></math>
+yet test error continues falling through
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><mn>1000</mn></mrow><annotation encoding="application/x-tex">T=1000</annotation></semantics></math>,
+the empirical anomaly that motivated the margin-distribution bound<a
+href="#fn12" class="footnote-ref" id="fnref12"
+role="doc-noteref"><sup>12</sup></a>.</figcaption>
+</figure>
+<p>The table separates four eras: kernel-margin (1992-2002), boosting
+(1997-1998), the early-CNN baseline (1995, included for honest
+comparison), and the non-parametric reference points (1-NN, k-NN). Three
+readings frame the rest of the chapter. <u>First, on MNIST the
+kernel-SVM family and the early-CNN family converge to within roughly
+half a percentage point in the 1995-2002 window, which made the choice
+between them appear as a matter of inductive-bias preference rather than
+capacity.</u> Second, AdaBoost's behaviour on UCI Letter is a clean
+falsification of any pure round-count or pure capacity-count bound: the
+<strong>margin distribution</strong> explanation <span class="citation"
+data-cites="schapire_margin_1998">(Schapire et al. 1998)</span> is the
+historical bridge that connects boosting to the SVM-margin analysis and
+ultimately to the implicit-regularization story of Part IV. Third, every
+entry above relies on an <strong>i.i.d.</strong> sampling assumption<a
+href="#fn13" class="footnote-ref" id="fnref13"
+role="doc-noteref"><sup>13</sup></a> and a <strong>capacity</strong>
+notion that ignores the optimizer<a href="#fn14" class="footnote-ref"
+id="fnref14" role="doc-noteref"><sup>14</sup></a>; both assumptions
+break in modern deep learning, which is the entry point for Parts II
+(PAC-Bayes) and III (NTK / mean-field).</p>
+<h2 id="pac-bayes-and-modern-generalization-theory">PAC-Bayes and Modern
+Generalization Theory</h2>
+<p>Modern generalization theory begins with a puzzle: deep networks fit
+random labels with zero training error yet still generalize when the
+labels are real <span class="citation"
+data-cites="zhang_rethinking_2017">(Zhang et al. 2017)</span>. By any
+classical capacity measure (<strong>VC dimension</strong>, parameter
+count, <strong>Rademacher</strong> complexity on a norm ball wide enough
+to memorize), the hypothesis class is too rich for a non-trivial
+test-error bound; the random-label baseline is therefore not a bound but
+a sharp falsification of capacity-based explanations<a href="#fn15"
+class="footnote-ref" id="fnref15" role="doc-noteref"><sup>15</sup></a>.
+Four resolutions emerged, each with its own well-known structural
+problems walked through paragraph-by-paragraph after the SoTA
+leaderboard below: <strong>PAC-Bayes</strong>,
+<strong>spectrally-normalized</strong> margin bounds,
+<strong>information-theoretic</strong> mutual-information bounds, and
+<strong>sharpness</strong>-based empirical predictors. A fifth strand is
+the <strong>impossibility</strong> result of <span class="citation"
+data-cites="nagarajan_kolter_2019">(Nagarajan and Kolter 2019)</span>,
+which proves a formal obstruction to the entire uniform-convergence
+program.</p>
+<p>The <strong>PAC-Bayes</strong> resolution (section PAC-Bayes Framework) replaces
+worst-case analysis over a hypothesis class with a weighted average over
+an algorithm-dependent posterior
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Q</mi><annotation encoding="application/x-tex">Q</annotation></semantics></math>;
+the bound depends only on the <strong>KL divergence</strong>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>Q</mi><mo stretchy="false" form="postfix">‖</mo><mi>P</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathrm{KL}(Q \Vert P)</annotation></semantics></math>
+between
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Q</mi><annotation encoding="application/x-tex">Q</annotation></semantics></math>
+and a data-independent prior
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>.
+Introduced by <span class="citation"
+data-cites="mcallester_pac_1999">(McAllester 1999)</span>, refined by
+<span class="citation" data-cites="seeger_pac_2002">(Seeger 2002)</span>
+for Gaussian-process classifiers via a binary-kl form, and systematized
+by <span class="citation" data-cites="catoni_pac_2007">(Catoni
+2007)</span> into a thermodynamic formalism, the framework was first
+made non-vacuous on a realistic deep network by <span class="citation"
+data-cites="dziugaite_roy_2017">(Dziugaite and Roy 2017)</span> using a
+SGD-optimized Gaussian posterior on a 3-layer MLP<a href="#fn16"
+class="footnote-ref" id="fnref16" role="doc-noteref"><sup>16</sup></a>.
+<span class="citation" data-cites="neyshabur_pac_bayes_2018">(Neyshabur,
+Bhojanapalli, and Srebro 2018)</span> connected PAC-Bayes with spectral
+norms via a perturbation argument; the resulting bound remains vacuous
+on production-scale ConvNets because the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mrow><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mi>/</mi><mi>n</mi></mrow></msqrt><annotation encoding="application/x-tex">\sqrt{\mathrm{KL}/n}</annotation></semantics></math>
+term blows up under the huge KL between random initialization and the
+trained weights<a href="#fn17" class="footnote-ref" id="fnref17"
+role="doc-noteref"><sup>17</sup></a>, and tightening the KL via a
+posterior shift toward zero conflicts with low train risk<a href="#fn18"
+class="footnote-ref" id="fnref18" role="doc-noteref"><sup>18</sup></a>.
+A second-generation refinement uses <strong>data-dependent
+priors</strong> (priors learned on a held-out split) <span
+class="citation" data-cites="dziugaite_data_dependent_2018">(Dziugaite
+and Roy 2018)</span><span class="citation"
+data-cites="perez_ortiz_tighter_2021">(Perez-Ortiz et al. 2021)</span>,
+at the cost that any data dependence in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>
+inflates the bound or breaks the proof<a href="#fn19"
+class="footnote-ref" id="fnref19"
+role="doc-noteref"><sup>19</sup></a>.</p>
+<p>The <strong>spectrally-normalized margin</strong> resolution (section
+Spectrally-Normalized Margin
+Bounds) extends <span class="citation"
+data-cites="schapire_margin_1998">(Schapire et al. 1998)</span>'s margin
+theory for boosting to neural networks: <span class="citation"
+data-cites="neyshabur_norm_2015">(Neyshabur, Tomioka, and Srebro
+2015)</span> gave the first product-of-Frobenius bound, <span
+class="citation" data-cites="bartlett_foster_telgarsky_2017">(Bartlett,
+Foster, and Telgarsky 2017)</span> sharpened it to the product of
+<strong>spectral</strong> norms divided by the classification
+<strong>margin</strong>. The bound is conceptually clean but suffers
+from spectral-norm vacuity:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∏</mo><mo>ℓ</mo></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>W</mi><mo>ℓ</mo></msub><mo stretchy="false" form="postfix">∥</mo></mrow><annotation encoding="application/x-tex">\prod_\ell \|W_\ell\|</annotation></semantics></math>
+grows polynomially in depth and the bound is vacuous beyond a small
+architecture<a href="#fn20" class="footnote-ref" id="fnref20"
+role="doc-noteref"><sup>20</sup></a>. The
+<strong>information-theoretic</strong> resolution (section Information-Theoretic Generalization
+Bounds) was initiated by <span class="citation"
+data-cites="russo_zou_2016">(Russo and Zou 2016)</span> in the
+adaptive-data-analysis literature and developed into a general tool by
+<span class="citation" data-cites="xu_raginsky_2017">(Xu and Raginsky
+2017)</span>, who replaced capacity with the mutual information
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">I(S; W)</annotation></semantics></math>
+between the training sample and the learned weights. <span
+class="citation" data-cites="bu_zou_veeravalli_2020">(Bu, Zou, and
+Veeravalli 2020)</span> sharpened the bound using per-sample MI
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Z</mi><mi>i</mi></msub><mo>;</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mi>n</mi></mrow><annotation encoding="application/x-tex">I(Z_i; W)/n</annotation></semantics></math>,
+which is tighter but harder to estimate<a href="#fn21"
+class="footnote-ref" id="fnref21" role="doc-noteref"><sup>21</sup></a>;
+<span class="citation" data-cites="haghifam_conditional_2020">(Haghifam
+et al. 2020)</span> gave a <strong>conditional MI</strong> (CMI)
+refinement<a href="#fn22" class="footnote-ref" id="fnref22"
+role="doc-noteref"><sup>22</sup></a>, and <span class="citation"
+data-cites="pensia_langevin_2018">(Pensia, Jog, and Loh 2018)</span>
+applied the framework to Langevin dynamics where the MI admits a closed
+form.</p>
+<p>A complementary line, orthogonal to capacity in the PAC sense, asks
+how <em>parameter count itself</em> relates to robust interpolation.
+<span class="citation" data-cites="bubeck_universal_2021">(Bubeck and
+Sellke 2021)</span> prove the <strong>Universal Law of
+Robustness</strong> via an isoperimetric argument: any class of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>-parameter
+Lipschitz models that interpolates
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+labelled points on a distribution satisfying isoperimetry (Gaussians,
+uniform distributions on spheres, manifolds with positive Ricci
+curvature all qualify) must satisfy
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>≳</mo><mi>n</mi><mi>d</mi></mrow><annotation encoding="application/x-tex">p \gtrsim n d</annotation></semantics></math>
+up to logarithmic factors, where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+is the ambient data dimension. Put differently, the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>n</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(n)</annotation></semantics></math>
+parameters sufficient for <em>non-robust</em> interpolation are provably
+insufficient for <em>smooth</em> (i.e., Lipschitz-bounded) interpolation
+by a multiplicative factor of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>.
+The bound is tight: radial-basis-function constructions with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mi>n</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>d</mi><mo>+</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">p = n(d+1)</annotation></semantics></math>
+parameters achieve
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(1)</annotation></semantics></math>-Lipschitz
+interpolation, confirming that overparameterization by exactly
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+is both necessary and sufficient.</p>
+<p>The isoperimetry assumption controls how Lipschitz functions
+concentrate on the data distribution: for an
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>-Lipschitz
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>,
+it requires
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>Pr</mo><mrow><mo stretchy="true" form="prefix">[</mo><mrow><mo stretchy="true" form="prefix">|</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>f</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo stretchy="true" form="postfix">|</mo></mrow><mo>≥</mo><mi>t</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>≤</mo><mn>2</mn><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>−</mi><mi>d</mi><msup><mi>t</mi><mn>2</mn></msup><mi>/</mi><mn>2</mn><mi>c</mi><msup><mi>L</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Pr[|f(x) - \mathbb{E}[f]| \geq t] \leq 2\exp(-dt^2 / 2cL^2)</annotation></semantics></math>.
+The condition is the reason the bound's factor of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+is ambient dimension and not intrinsic manifold dimension (a distinction
+that matters in practice, since ImageNet data lives in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>ℝ</mi><mn>150528</mn></msup><annotation encoding="application/x-tex">\mathbb{R}^{150528}</annotation></semantics></math>,
+not in a low-dimensional manifold for the purposes of adversarial
+perturbations measured in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mo>ℓ</mo><mn>2</mn></msub><annotation encoding="application/x-tex">\ell_2</annotation></semantics></math>).</p>
+<p><u>The lower bound is algorithm-independent: it applies to any
+procedure returning a Lipschitz interpolator, so neither implicit bias
+nor training dynamics can rescue a model from the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>≳</mo><mi>n</mi><mi>d</mi></mrow><annotation encoding="application/x-tex">p \gtrsim nd</annotation></semantics></math>
+constraint.</u> The bound gives a quantitative explanation of the <span
+class="citation" data-cites="szegedy_intriguing_2014">(Szegedy et al.
+2014)</span> fragility observation (imperceptible adversarial
+perturbations fool AlexNet, with average
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mo>ℓ</mo><mn>2</mn></msub><annotation encoding="application/x-tex">\ell_2</annotation></semantics></math>
+distortion as small as 0.0065 on ImageNet):
+under-parameterized-for-robustness networks cannot achieve small
+Lipschitz constants even when they generalize cleanly on unperturbed
+inputs. Bubeck and Sellke estimate that robust ImageNet models may
+require
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mn>10</mn></msup><annotation encoding="application/x-tex">10^{10}</annotation></semantics></math>–<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mn>11</mn></msup><annotation encoding="application/x-tex">10^{11}</annotation></semantics></math>
+parameters, substantially more than current architectures, which is
+consistent with the persistent failure of adversarial training to close
+the accuracy-robustness gap at scale.</p>
+<p>The <strong>sharpness</strong>-based empirical audit (section Empirical Audit of Bound Tightness) is
+the negative result: <span class="citation"
+data-cites="jiang_fantastic_2020">(Jiang et al. 2020)</span> evaluated
+more than forty complexity measures across ten thousand trained
+networks. The most predictive measures (by Kendall-tau rank correlation
+with the true test gap) are sharpness / PAC-Bayes variants, not the
+norm-products that dominate the theory; the spectral-norm product is
+<em>negatively</em> correlated with the gap across realistic
+hyperparameter sweeps<a href="#fn23" class="footnote-ref" id="fnref23"
+role="doc-noteref"><sup>23</sup></a><a href="#fn24" class="footnote-ref"
+id="fnref24" role="doc-noteref"><sup>24</sup></a>. The
+<strong>impossibility</strong> result of <span class="citation"
+data-cites="nagarajan_kolter_2019">(Nagarajan and Kolter 2019)</span>
+sharpens this picture: no two-sided uniform-convergence bound can be
+non-vacuous on certain linear classifiers under realistic SGD<a
+href="#fn25" class="footnote-ref" id="fnref25"
+role="doc-noteref"><sup>25</sup></a>; <span class="citation"
+data-cites="negrea_defense_uc_2020">(Negrea, Dziugaite, and Roy
+2020)</span> partially defends uniform convergence by restricting
+attention to a hypothesis-class subset.</p>
+<div class="blog-table"><table id="tbl:pb-sota">
+<caption>PAC-Bayes / generalization-theory SoTA leaderboard. Method
+links to the chapter section and cites the canonical paper. Bound class
+= the family (PAC-Bayes-classical, PAC-Bayes-spectral,
+PAC-Bayes-data-dep, Margin-spectral, Norm-product, Information-MI,
+Information-per-sample, Information-CMI, Sharpness-empirical,
+Impossibility, Random-label-baseline). Form = the schematic recipe or
+formula. Benchmark = the model / dataset reported in the original paper.
+Bound value = the headline number on a [0,1] loss (vacuous = greater
+than 1; analytic = no fielded number, only a closed form). Kendall
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
+is from <span class="citation" data-cites="jiang_fantastic_2020">(Jiang
+et al. 2020)</span> across
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>10,000
+CNNs on CIFAR-10 / SVHN where available; – means the paper reports no
+rank-correlation experiment. Comment summarizes the principal
+limitation. Numbers are paper-reported headline values; settings differ
+across rows and only same-row reads are consistent.</caption>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Quality</td>
+<td></td>
+<td>Scope</td>
+</tr>
+<tr>
+<td>Paper</td>
+<td>Year</td>
+<td>Bound class</td>
+<td>Form</td>
+<td>Benchmark</td>
+<td>Bound value</td>
+<td>Kendall
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math></td>
+<td>Comment</td>
+</tr>
+<tr>
+<td>McAllester <span class="citation"
+data-cites="mcallester_pac_1999">(McAllester 1999)</span></td>
+<td>1999</td>
+<td>PAC-Bayes-classical</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mo>+</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><msqrt><mi>n</mi></msqrt><mi>/</mi><mi>δ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><mi>n</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msqrt><annotation encoding="application/x-tex">\sqrt{(\mathrm{KL}+\log(2\sqrt{n}/\delta))/(2n)}</annotation></semantics></math></td>
+<td>toy classifiers</td>
+<td>framework</td>
+<td>–</td>
+<td>foundational; not fielded on a deep net</td>
+</tr>
+<tr>
+<td>Seeger <span class="citation" data-cites="seeger_pac_2002">(Seeger
+2002)</span></td>
+<td>2002</td>
+<td>PAC-Bayes-classical</td>
+<td>binary-kl inversion</td>
+<td>GP / Pima Indians (n=768)</td>
+<td>0.29</td>
+<td>–</td>
+<td>tight near zero empirical risk; GP-only setup</td>
+</tr>
+<tr>
+<td>Catoni <span class="citation" data-cites="catoni_pac_2007">(Catoni
+2007)</span></td>
+<td>2007</td>
+<td>PAC-Bayes-classical</td>
+<td>Legendre / Gibbs
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>Q</mi><mi>β</mi><mo>*</mo></msubsup><annotation encoding="application/x-tex">Q_\beta^*</annotation></semantics></math></td>
+<td>toy / theoretical</td>
+<td>analytic</td>
+<td>–</td>
+<td>unifies square-root and binary-kl via
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>-tuning</td>
+</tr>
+<tr>
+<td>Lacasse C-bound <span class="citation"
+data-cites="lacasse_cbound_2007">(Lacasse et al. 2007)</span></td>
+<td>2007</td>
+<td>PAC-Bayes-classical</td>
+<td>majority-vote derandomization</td>
+<td>toy / theoretical</td>
+<td>analytic</td>
+<td>–</td>
+<td>tightens Gibbs to deterministic conversion</td>
+</tr>
+<tr>
+<td>Neyshabur norm <span class="citation"
+data-cites="neyshabur_norm_2015">(Neyshabur, Tomioka, and Srebro
+2015)</span></td>
+<td>2015</td>
+<td>Norm-product</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∏</mo><mo>ℓ</mo></msub><mo stretchy="false" form="postfix">‖</mo><msub><mi>W</mi><mo>ℓ</mo></msub><msub><mo stretchy="false" form="postfix">‖</mo><mi>F</mi></msub></mrow><annotation encoding="application/x-tex">\prod_\ell \Vert W_\ell \Vert_F</annotation></semantics></math></td>
+<td>small MLP / MNIST</td>
+<td>vacuous</td>
+<td>–</td>
+<td>first norm-based DNN bound; vacuous on real archs</td>
+</tr>
+<tr>
+<td>Russo-Zou <span class="citation" data-cites="russo_zou_2016">(Russo
+and Zou 2016)</span></td>
+<td>2016</td>
+<td>Information-MI</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mi>n</mi></mrow></msqrt><annotation encoding="application/x-tex">\sqrt{2 \sigma^2 I(S;W)/n}</annotation></semantics></math></td>
+<td>adaptive estimator</td>
+<td>analytic</td>
+<td>–</td>
+<td>initiated MI-based bounds for adaptive analysis</td>
+</tr>
+<tr>
+<td>Xu-Raginsky <span class="citation" data-cites="xu_raginsky_2017">(Xu
+and Raginsky 2017)</span></td>
+<td>2017</td>
+<td>Information-MI</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mi>n</mi></mrow></msqrt><annotation encoding="application/x-tex">\sqrt{2 \sigma^2 I(S;W)/n}</annotation></semantics></math></td>
+<td>Gibbs algorithm</td>
+<td>analytic</td>
+<td>–</td>
+<td>first general MI bound; estimator-free for Gibbs</td>
+</tr>
+<tr>
+<td>Dziugaite-Roy <span class="citation"
+data-cites="dziugaite_roy_2017">(Dziugaite and Roy 2017)</span></td>
+<td>2017</td>
+<td>PAC-Bayes-data-dep</td>
+<td>SGD-optimized Gaussian posterior</td>
+<td>3-layer MLP / MNIST T-600</td>
+<td>0.161</td>
+<td>–</td>
+<td>only fielded non-vacuous DNN bound; small-net only</td>
+</tr>
+<tr>
+<td>Bartlett-Foster-Telgarsky <span class="citation"
+data-cites="bartlett_foster_telgarsky_2017">(Bartlett, Foster, and
+Telgarsky 2017)</span></td>
+<td>2017</td>
+<td>Margin-spectral</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∏</mo><mo>ℓ</mo></msub><mo stretchy="false" form="postfix">‖</mo><msub><mi>W</mi><mo>ℓ</mo></msub><msub><mo stretchy="false" form="postfix">‖</mo><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">\prod_\ell \Vert W_\ell \Vert_2</annotation></semantics></math>
+/ margin</td>
+<td>AlexNet / CIFAR-10</td>
+<td>vacuous</td>
+<td>-0.08</td>
+<td>Kendall
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
+negative; counterintuitive sign</td>
+</tr>
+<tr>
+<td>Zhang random-label <span class="citation"
+data-cites="zhang_rethinking_2017">(Zhang et al. 2017)</span></td>
+<td>2017</td>
+<td>Random-label-baseline</td>
+<td>train acc with random labels</td>
+<td>Inception / CIFAR-10</td>
+<td>100%</td>
+<td>–</td>
+<td>not a bound but a falsification of capacity</td>
+</tr>
+<tr>
+<td>Neyshabur PB-spectral <span class="citation"
+data-cites="neyshabur_pac_bayes_2018">(Neyshabur, Bhojanapalli, and
+Srebro 2018)</span></td>
+<td>2018</td>
+<td>PAC-Bayes-spectral</td>
+<td>perturbation + spectral product</td>
+<td>VGG / CIFAR-10</td>
+<td>vacuous</td>
+<td>–</td>
+<td>depth-dependent KL blows up</td>
+</tr>
+<tr>
+<td>Dziugaite data-dep <span class="citation"
+data-cites="dziugaite_data_dependent_2018">(Dziugaite and Roy
+2018)</span></td>
+<td>2018</td>
+<td>PAC-Bayes-data-dep</td>
+<td>data-split prior
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>P</mi><mrow><mi>S</mi><mi>′</mi></mrow></msub><annotation encoding="application/x-tex">P_{S&#39;}</annotation></semantics></math></td>
+<td>MNIST / CIFAR-10</td>
+<td>0.46</td>
+<td>–</td>
+<td>partial-data prior tightens KL; sample-splitting cost</td>
+</tr>
+<tr>
+<td>Pensia-Langevin <span class="citation"
+data-cites="pensia_langevin_2018">(Pensia, Jog, and Loh
+2018)</span></td>
+<td>2018</td>
+<td>Information-MI</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">I(S;W)</annotation></semantics></math>
+under Langevin SDE</td>
+<td>Langevin SGD / synthetic</td>
+<td>analytic</td>
+<td>–</td>
+<td>closed-form MI for noisy GD</td>
+</tr>
+<tr>
+<td>Lei algorithmic <span class="citation"
+data-cites="lei_algorithmic_2019">(Lei and Ying 2020)</span></td>
+<td>2019</td>
+<td>Information-MI</td>
+<td>algorithmic stability to MI</td>
+<td>SGD / convex losses</td>
+<td>analytic</td>
+<td>–</td>
+<td>bridges stability and MI bounds</td>
+</tr>
+<tr>
+<td>Nagarajan-Kolter <span class="citation"
+data-cites="nagarajan_kolter_2019">(Nagarajan and Kolter
+2019)</span></td>
+<td>2019</td>
+<td>Impossibility</td>
+<td>two-sided UC lower bound</td>
+<td>linear / Gaussian mixture</td>
+<td>vacuous (proof)</td>
+<td>–</td>
+<td>rules out tight UC for SGD outputs</td>
+</tr>
+<tr>
+<td>Bu-Zou-Veeravalli <span class="citation"
+data-cites="bu_zou_veeravalli_2020">(Bu, Zou, and Veeravalli
+2020)</span></td>
+<td>2020</td>
+<td>Information-per-sample</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mi>/</mi><mi>n</mi><mo stretchy="true" form="postfix">)</mo></mrow><msub><mo>∑</mo><mi>i</mi></msub><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Z</mi><mi>i</mi></msub><mo>;</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">(1/n) \sum_i I(Z_i; W)</annotation></semantics></math></td>
+<td>Gaussian mean estimator</td>
+<td>analytic</td>
+<td>–</td>
+<td>tighter than
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">I(S;W)</annotation></semantics></math>;
+estimation hard in DNN</td>
+</tr>
+<tr>
+<td>Haghifam CMI <span class="citation"
+data-cites="haghifam_conditional_2020">(Haghifam et al.
+2020)</span></td>
+<td>2020</td>
+<td>Information-CMI</td>
+<td>conditional MI on supersample</td>
+<td>SGD / MNIST</td>
+<td>analytic</td>
+<td>–</td>
+<td>smaller than
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>I</mi><annotation encoding="application/x-tex">I</annotation></semantics></math>;
+estimator still required</td>
+</tr>
+<tr>
+<td>Negrea UC defense <span class="citation"
+data-cites="negrea_defense_uc_2020">(Negrea, Dziugaite, and Roy
+2020)</span></td>
+<td>2020</td>
+<td>PAC-Bayes-data-dep</td>
+<td>restricted-class UC</td>
+<td>linear models</td>
+<td>analytic</td>
+<td>–</td>
+<td>partial rebuttal to Nagarajan-Kolter</td>
+</tr>
+<tr>
+<td>Esposito Renyi <span class="citation"
+data-cites="esposito_generalization_2020_renyi">(Esposito, Gastpar, and
+Issa 2021)</span></td>
+<td>2020</td>
+<td>Information-MI</td>
+<td>Renyi-divergence bound</td>
+<td>Gibbs / theoretical</td>
+<td>analytic</td>
+<td>–</td>
+<td>extends MI to
+Renyi-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+divergences</td>
+</tr>
+<tr>
+<td>Jiang sharpness-magnitude <span class="citation"
+data-cites="jiang_fantastic_2020">(Jiang et al. 2020)</span></td>
+<td>2020</td>
+<td>Sharpness-empirical</td>
+<td>flat ratio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>
+magnitude</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>10k
+CNN / CIFAR-10</td>
+<td>–</td>
+<td>0.484</td>
+<td>top-ranked predictor across the sweep</td>
+</tr>
+<tr>
+<td>Jiang PB-sharpness <span class="citation"
+data-cites="jiang_fantastic_2020">(Jiang et al. 2020)</span></td>
+<td>2020</td>
+<td>Sharpness-empirical</td>
+<td>PAC-Bayes flat ratio at init</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>10k
+CNN / CIFAR-10</td>
+<td>–</td>
+<td>0.318</td>
+<td>second-tier predictor</td>
+</tr>
+<tr>
+<td>Jiang spectral-product <span class="citation"
+data-cites="jiang_fantastic_2020">(Jiang et al. 2020)</span></td>
+<td>2020</td>
+<td>Norm-product</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∏</mo><mo>ℓ</mo></msub><mo stretchy="false" form="postfix">‖</mo><msub><mi>W</mi><mo>ℓ</mo></msub><msub><mo stretchy="false" form="postfix">‖</mo><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">\prod_\ell \Vert W_\ell \Vert_2</annotation></semantics></math></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>10k
+CNN / CIFAR-10</td>
+<td>–</td>
+<td>-0.076</td>
+<td>negatively correlated; theory-empirical mismatch</td>
+</tr>
+<tr>
+<td>Perez-Ortiz tight <span class="citation"
+data-cites="perez_ortiz_tighter_2021">(Perez-Ortiz et al.
+2021)</span></td>
+<td>2021</td>
+<td>PAC-Bayes-data-dep</td>
+<td>data-split prior +
+Catoni-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math></td>
+<td>CIFAR-10 / ImageNet32</td>
+<td>0.179</td>
+<td>–</td>
+<td>best fielded PAC-Bayes on CIFAR-10</td>
+</tr>
+<tr>
+<td>Alquier tutorial <span class="citation"
+data-cites="alquier_pacbayes_2024_tutorial">(Alquier 2024)</span></td>
+<td>2024</td>
+<td>PAC-Bayes-classical</td>
+<td>survey of all variants</td>
+<td>bibliographic</td>
+<td>–</td>
+<td>–</td>
+<td>reference state-of-the-field 2024</td>
+</tr>
+</tbody>
+</table></div>
+<p>The table groups the literature into eight bound families, walked
+through in chronological order. Classical <strong>PAC-Bayes</strong>
+(McAllester, Seeger, Catoni, Lacasse) gave the foundational machinery
+(square-root form, binary-kl inversion, Legendre/Gibbs construction,
+C-bound derandomization) but was applied only to toy classifiers and
+Gaussian-process models; the bounds are tight asymptotically but were
+never fielded on a deep network because the KL between a deep-net random
+init and its SGD-trained weights is far too large for a useful absolute
+bound<a href="#fn26" class="footnote-ref" id="fnref26"
+role="doc-noteref"><sup>26</sup></a><a href="#fn27" class="footnote-ref"
+id="fnref27" role="doc-noteref"><sup>27</sup></a>. The Dziugaite-Roy
+line broke this barrier by <strong>SGD-optimizing the bound
+itself</strong> on a 3-layer MLP<a href="#fn28" class="footnote-ref"
+id="fnref28" role="doc-noteref"><sup>28</sup></a>, reaching 0.161 on
+binary MNIST T-600; Perez-Ortiz tightened the recipe to 0.179 on full
+CIFAR-10 by combining a data-split prior (legal because
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>
+does not see the training fold) with a tuned Catoni
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math><a
+href="#fn29" class="footnote-ref" id="fnref29"
+role="doc-noteref"><sup>29</sup></a>.</p>
+<p>The <strong>spectrally-normalized margin</strong> line
+(Bartlett-Foster-Telgarsky, Neyshabur PB-spectral) unifies VC-style
+class capacity with margin theory. The bound class is conceptually
+appealing because it depends only on weight-matrix norms and the margin
+(no
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Q</mi><annotation encoding="application/x-tex">Q</annotation></semantics></math>-design),
+but the <strong>spectral product</strong>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∏</mo><mo>ℓ</mo></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>W</mi><mo>ℓ</mo></msub><msub><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">\prod_\ell \|W_\ell\|_2</annotation></semantics></math>
+is empirically too large at production scale<a href="#fn30"
+class="footnote-ref" id="fnref30" role="doc-noteref"><sup>30</sup></a>;
+in the <span class="citation" data-cites="jiang_fantastic_2020">(Jiang
+et al. 2020)</span> sweep this family scored Kendall
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mo>≈</mo><mi>−</mi><mn>0.08</mn></mrow><annotation encoding="application/x-tex">\tau \approx -0.08</annotation></semantics></math>,
+the worst rank correlation among 40+ measures and one of the few
+<em>negatively</em> correlated with the test gap. <u>Norm-product
+capacity, despite being the quantity the margin theorems control, is
+therefore a worse predictor of generalization than a coin flip.</u></p>
+<p>The <strong>information-theoretic</strong> line (Russo-Zou,
+Xu-Raginsky, Bu-Zou-Veeravalli, Haghifam CMI, Pensia, Lei, Esposito)
+replaces hypothesis-class capacity with the <strong>mutual
+information</strong>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">I(S; W)</annotation></semantics></math>
+between the training sample and the learned weights, and progressively
+tightens it: per-sample
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Z</mi><mi>i</mi></msub><mo>;</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mi>n</mi></mrow><annotation encoding="application/x-tex">I(Z_i; W)/n</annotation></semantics></math>
+is sharper than
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mi>n</mi></mrow><annotation encoding="application/x-tex">I(S; W)/n</annotation></semantics></math><a
+href="#fn31" class="footnote-ref" id="fnref31"
+role="doc-noteref"><sup>31</sup></a>, conditional MI on a supersample is
+sharper still<a href="#fn32" class="footnote-ref" id="fnref32"
+role="doc-noteref"><sup>32</sup></a>, and Langevin / SGD-noise dynamics
+give analytic closed forms. None of these has been fielded on a deep
+ConvNet: estimating
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">I(S; W)</annotation></semantics></math>
+in dimensions exceeding
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mn>6</mn></msup><annotation encoding="application/x-tex">10^6</annotation></semantics></math>
+remains an open problem, and the bounds are useful as theoretical
+guarantees rather than numerical certificates.</p>
+<figure id="fig:pac-bayes-trends">
+<img src="figures/pac-bayes-trends.svg" />
+<figcaption>PAC-Bayes / generalization-bound landscape across 1999-2024,
+organized by paper year (x-axis) and bound type (y-bands). Marker shape
+and colour encode bound class. Top band: Kendall-tau rank correlation
+with the empirical generalization gap, populated only by sharpness-based
+predictors and norm-products from the <span class="citation"
+data-cites="jiang_fantastic_2020">(Jiang et al. 2020)</span> sweep.
+Middle band: fielded absolute bound value on a [0,1] loss for the four
+data-dependent PAC-Bayes papers (Dziugaite-Roy 0.161 on T-600 binary
+MNIST, Dziugaite 2018 0.46, Perez-Ortiz 0.179 on CIFAR-10) plus Seeger's
+0.29 on Pima Indians. Bottom band: theory-only entries (closed forms but
+no fielded number). Three readings match the table. (i) The
+<em>sharpness</em> and <em>PAC-Bayes-data-dep</em> rows are the only
+families to produce both numerical bounds and rank correlations, the
+dual quality criterion<a href="#fn33" class="footnote-ref" id="fnref33"
+role="doc-noteref"><sup>33</sup></a>. (ii) Norm-product capacity, the
+quantity the spectral-margin theorems control, scores Kendall
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mo>≈</mo><mi>−</mi><mn>0.08</mn></mrow><annotation encoding="application/x-tex">\tau \approx -0.08</annotation></semantics></math>,
+worst in the sweep<a href="#fn34" class="footnote-ref" id="fnref34"
+role="doc-noteref"><sup>34</sup></a>. (iii) The information-theoretic
+line is densely populated post-2017 but every entry is theory-only:
+estimating
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">I(S; W)</annotation></semantics></math>
+on a deep ConvNet remains an open problem<a href="#fn35"
+class="footnote-ref" id="fnref35"
+role="doc-noteref"><sup>35</sup></a>.</figcaption>
+</figure>
+<p>The <strong>sharpness-empirical</strong> line (Jiang and co-authors)
+is conceptually a step back from formal bound-proving: it replaces "what
+is the absolute test gap?" with "which capacity-like measure best
+predicts the gap across a hyperparameter sweep?" This reframing is what
+produces the negative result for spectral-norm capacity and the positive
+result for sharpness-magnitude. Its weakness is <strong>flatness
+fragility</strong>: pointwise reparameterization can rescale sharpness
+arbitrarily without changing the predictor function (Dinh et al.)<a
+href="#fn36" class="footnote-ref" id="fnref36"
+role="doc-noteref"><sup>36</sup></a>, so any sharpness-based measure
+must be carefully normalized to be invariant under reparameterization;
+the field has not converged on a single such normalization.</p>
+<p>The <strong>impossibility</strong> result and its partial rebuttals
+form the methodological coda. <span class="citation"
+data-cites="nagarajan_kolter_2019">(Nagarajan and Kolter 2019)</span>
+prove that on a linear-classifier mixture-of-Gaussians problem, no
+two-sided uniform-convergence bound applied to the SGD-output
+distribution can be tight: the bound is forced to be vacuous regardless
+of how the hypothesis class is parameterized<a href="#fn37"
+class="footnote-ref" id="fnref37" role="doc-noteref"><sup>37</sup></a>.
+<span class="citation" data-cites="negrea_defense_uc_2020">(Negrea,
+Dziugaite, and Roy 2020)</span> partially defends UC by restricting
+attention to a strict hypothesis-class subset that the algorithm visits
+with high probability; the result is that uniform convergence is
+salvageable but only via algorithm-dependent restrictions, which moves
+the framework closer to PAC-Bayes in spirit. Together with <span
+class="citation" data-cites="zhang_rethinking_2017">(Zhang et al.
+2017)</span>'s random-label baseline<a href="#fn38" class="footnote-ref"
+id="fnref38" role="doc-noteref"><sup>38</sup></a>, the impossibility
+line is the negative half of modern generalization theory: a definitive
+falsification of class-capacity-only programs and a forcing function
+toward algorithm-dependent analyses (PAC-Bayes, MI, sharpness).</p>
+<p>The leaderboard separates four eras: foundational PAC-Bayes
+(1999-2007), the deep-learning challenge (2015-2017, when capacity-based
+bounds were shown to be vacuous on real architectures and the puzzle of
+Zhang et al. was sharpened), the bound-engineering era (2017-2021, when
+SGD-optimized PAC-Bayes and data-dependent priors finally produced
+fielded non-vacuous numbers on small models), and the modern
+audit-and-impossibility era (2019-2024, dominated by the Jiang sweep and
+the Nagarajan-Kolter obstruction). Three readings. First, the only
+fielded non-vacuous bounds on real classifiers are
+<strong>PAC-Bayes-data-dep</strong> variants and only on MLPs / small
+CNNs at most; every classical norm-product or margin bound exceeds 1 on
+AlexNet-scale and beyond. Second, the most predictive measures of the
+empirical generalization gap (by Kendall
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>)
+are <strong>sharpness-magnitude</strong> hybrids, not the norm-products
+that dominate the theory. <u>Third, the impossibility result of
+Nagarajan-Kolter shows that the entire class-capacity-only program
+cannot in principle deliver tight bounds for SGD-trained
+classifiers</u>; the path forward is algorithm-dependent, in line with
+PAC-Bayes and MI but in contrast with the spectral-margin tradition.</p>
+<h2 id="neural-tangent-kernel-and-infinite-width">Neural Tangent Kernel
+and Infinite Width</h2>
+<p>Part III's papers sit at the intersection of three older traditions.
+The kernel-methods lineage (Schölkopf-Smola, Rasmussen-Williams)
+supplies the mathematical apparatus (RKHS, positive-definite kernels,
+kernel ridge regression) that the NTK slots into. The
+Bayesian-neural-network lineage (MacKay 1992, Neal 1996, Graves 2011,
+Blundell et al. 2015) supplies the NNGP prior and the
+variational-inference toolkit that extends to finite-width
+approximations. The statistical-physics-of-learning lineage
+(Sompolinsky-Crisanti-Sommers 1988, Seung-Sompolinsky-Tishby 1992,
+Saad-Solla 1995) supplies the mean-field/replica toolkit that underpins
+<span class="citation" data-cites="mei_mean_field_2018">(Mei, Montanari,
+and Nguyen 2018)</span> and the effective theory of <span
+class="citation" data-cites="roberts_principles_2022">(Roberts, Yaida,
+and Hanin 2022)</span>.</p>
+<p>Within Part III's own papers, the intellectual dependency graph runs
+as follows. <span class="citation" data-cites="neal_priors_1996">(Neal
+1996)</span> sits at the root; it establishes the infinite-width-as-GP
+principle for single-layer networks. <span class="citation"
+data-cites="lee_nngp_2018">(Lee et al. 2018)</span> and <span
+class="citation" data-cites="matthews_gaussian_2018">(Matthews et al.
+2018)</span> extend this to deep networks, giving the NNGP recursion (<a
+href="eq:nngp-recursion">eq:nngp-recursion</a>). <span class="citation"
+data-cites="jacot_ntk_2018">(Jacot, Gabriel, and Hongler 2018)</span>
+then introduces the tangent-kernel counterpart that governs dynamics
+rather than priors, and <span class="citation"
+data-cites="lee_wide_2019">(Lee et al. 2019)</span> tightens the
+convergence to a uniform-linearization theorem. <span class="citation"
+data-cites="arora_exact_2019">(Arora et al. 2019)</span> operationalizes
+all of this by computing the NTK exactly at CIFAR-10 scale. The critique
+then emerges in three papers: <span class="citation"
+data-cites="chizat_lazy_2019">(Chizat, Oyallon, and Bach 2019)</span>
+diagnoses the NTK regime as <em>lazy</em> via the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>-scaling
+and demonstrates that feature-learning (rich) regimes exist; <span
+class="citation" data-cites="mei_mean_field_2018">(Mei, Montanari, and
+Nguyen 2018)</span> gives the mean-field PDE as an explicit
+feature-learning limit; <span class="citation"
+data-cites="yang_hu_2021">(Yang and Hu 2021)</span> unifies these under
+the abc-parameterization and identifies
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>P
+as the canonical rich-regime limit. Finally, <span class="citation"
+data-cites="hanin_nica_2019">(Hanin and Nica 2019)</span> and <span
+class="citation" data-cites="roberts_principles_2022">(Roberts, Yaida,
+and Hanin 2022)</span> quantify finite-width corrections as a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi>/</mi><mi>n</mi></mrow><annotation encoding="application/x-tex">1/n</annotation></semantics></math>-expansion,
+and <span class="citation"
+data-cites="geiger_disentangling_2020">(Geiger et al. 2020)</span> and
+<span class="citation"
+data-cites="woodworth_kernel_rich_2020">(Woodworth et al. 2020)</span>
+provide empirical and mathematical evidence that real networks are not
+purely in the NTK regime.</p>
+<h2 id="part-iiis-place-in-the-statistical-dl-story">Part III's place in
+the statistical-DL story</h2>
+<p>Part III sits in a specific position relative to the other parts of
+the book. Part I established classical capacity-based generalization
+theory and its failure on over-parameterized networks. Part II
+introduced PAC-Bayes as a more refined framework that handles
+over-parameterization via posterior-averaging. <u>Part III introduces
+the NTK as a third distinct path: not a generalization bound but a
+generalization model in which training dynamics are explicit and
+closed-form.</u></p>
+<p>The three approaches are complementary. Classical bounds (Part I) are
+architecture-agnostic but loose; PAC-Bayes bounds (Part II) are
+architecture-aware and tight with good priors; NTK analysis (Part III)
+is architecture-specific and gives exact predictions for wide-network
+training. A complete theory of deep-network generalization would combine
+these: PAC-Bayes analysis with NTK-GP priors is a natural synthesis that
+has been pursued <span class="citation"
+data-cites="neyshabur_pac_bayes_2018">(Neyshabur, Bhojanapalli, and
+Srebro 2018)</span> with some success.</p>
+<p>Parts IV and V extend the narrative. Part IV examines <em>benign
+overfitting</em> and <em>double descent</em>, phenomena that the NTK can
+describe in its linearized form but that require finite-width
+corrections to fully explain. Part V examines <em>scaling laws</em>, for
+which the NTK provides a mathematical template (<a
+href="eq:kernel-scaling-law">eq:kernel-scaling-law</a>) but not a
+complete mechanism.</p>
+<p>Collectively the five parts frame a research program:
+statistical-learning-theoretic explanation of deep learning proceeds by
+(i) ruling out classical bounds as sufficient (Parts I, II), (ii)
+establishing the kernel-regression baseline (Part III), (iii)
+characterizing the gap between this baseline and practice (Parts III,
+IV, V). No single part delivers a complete theory; together they outline
+the shape one would take.</p>
+<h2 id="intellectual-lineages-beyond-part-iii">Intellectual lineages
+beyond Part III</h2>
+<p><u>A useful orienting frame is to place Part III's papers in the
+broader intellectual genealogy of the theory of neural networks.</u></p>
+<p>Kernel methods (Aronszajn 1950; <span class="citation"
+data-cites="scholkopf_smola_2002 rasmussen_williams_2006">(Schölkopf and
+Smola 2002; Rasmussen and Williams 2006)</span>). The RKHS framework
+that the NTK slots into was developed in mid-twentieth-century analysis
+for reasons having nothing to do with neural networks. The NTK's
+contribution is to identify a specific family of kernels (those arising
+from neural-architecture parameter-gradients) that inherit the
+architectural inductive bias and are computationally tractable.</p>
+<p>Statistical mechanics of learning (Sompolinsky-Crisanti-Sommers 1988;
+Seung-Sompolinsky-Tishby 1992; Saad-Solla 1995). The physics tradition
+of analyzing learning as a statistical-mechanical system, with
+temperature corresponding to training noise and magnetization
+corresponding to generalization, underlies the mean-field analysis of
+<span class="citation" data-cites="mei_mean_field_2018">(Mei, Montanari,
+and Nguyen 2018)</span> and the effective-theory program of <span
+class="citation" data-cites="roberts_principles_2022">(Roberts, Yaida,
+and Hanin 2022)</span>. The Wasserstein-gradient-flow reformulation of
+(<a href="eq:mean-field-pde">eq:mean-field-pde</a>) is more recent and
+owes to optimal-transport theory <span class="citation"
+data-cites="ambrosio_gradient_flows_2005">(Ambrosio, Gigli, and Savare
+2005)</span>.</p>
+<p>Bayesian neural networks (MacKay 1992; Neal 1996; Graves 2011). The
+NNGP sits at the infinite-width end of this lineage. Finite-width
+Bayesian neural networks remain an active research area with variational
+and Monte Carlo methods; the NNGP provides an analytic benchmark against
+which finite-width approximations can be measured.</p>
+<p>High-dimensional probability and random-matrix theory (Wigner 1955;
+Marchenko-Pastur 1967; recent kernel-random-matrix literature). The
+analysis of kernel Gram matrices, their spectra, and their
+double-descent behavior leans on random-matrix theory. The NTK Gram
+matrix at a random training set has spectral properties determined by
+random-matrix ensembles, which connects to the benign-overfitting /
+double-descent analyses of Part IV.</p>
+<p>Tangent methods in optimization (Amari 1998 natural gradient;
+Martens-Grosse 2015 K-FAC). The NTK is mathematically a specific
+empirical-Fisher-like object; natural-gradient methods that precondition
+by the Fisher information are close relatives. The theoretical insight
+of the NTK is that the <em>linear-ODE structure</em> emerges from the
+infinite-width limit, not the preconditioning itself.</p>
+<p>Gradient-flow analysis of neural networks (Du-Lee-Li-Wang-Zhai 2019;
+Chizat-Bach 2019). A parallel line of work analyzes gradient-flow
+convergence on specific neural architectures (two-layer ReLU, deep
+linear networks) without necessarily taking width to infinity. The NTK
+provides the <em>infinite-width limit point</em> of this line; the
+finite-width analyses give convergence rates for specific architectures
+that the NTK subsumes asymptotically.</p>
+<h2 id="cross-references-into-other-parts">Cross-references into other
+parts</h2>
+<ul>
+<li>Part I (classical
+foundations): VC/Rademacher bounds are replaced by RKHS
+generalization bounds in the NTK regime; the spectral decay of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Θ</mi><mi>∞</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>X</mi><mo>,</mo><mi>X</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Theta_\infty(X,X)</annotation></semantics></math>
+plays the role of capacity.</li>
+<li>Part II (PAC-Bayes): the NTK GP
+posterior is a natural PAC-Bayes prior, and <span class="citation"
+data-cites="lee_wide_2019">(Lee et al. 2019)</span>'s ensemble
+interpretation enables direct PAC-Bayes bounds on NTK-regime
+networks.</li>
+<li>Part IV (benign overfitting
+and double descent): the NTK gives a linearized test-bed in which
+benign overfitting and double descent can be computed exactly; the
+condition number of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Θ</mi><mi>∞</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>X</mi><mo>,</mo><mi>X</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Theta_\infty(X,X)</annotation></semantics></math>
+at the interpolation threshold is the NTK's double-descent
+divergence.</li>
+<li>Part V (scaling laws):
+the solvable neural-scaling-law model of <span class="citation"
+data-cites="maloney_solvable_2022">(Maloney, Roberts, and Sully
+2022)</span> is an NTK model; its power-law exponents come from the
+spectral decay of the NNGP/NTK eigenspectrum.</li>
+<li>Companion book (Deep Gaussian Processes
+in Prob DL): NNGP is the infinite-width endpoint of the DGP
+hierarchy; variational DGP approximations recover finite-width
+corrections in a different expansion.</li>
+</ul>
+<h2 id="cross-paper-sota-positioning">Cross-paper SoTA positioning</h2>
+<p>How do the papers of Part III position against each other in the SoTA
+landscape? A few observations:</p>
+<p><span class="citation" data-cites="jacot_ntk_2018">(Jacot, Gabriel,
+and Hongler 2018)</span> established the theoretical framework but did
+not push benchmark numbers. Its empirical section was limited to small
+synthetic experiments confirming kernel concentration; it did not claim
+that NTK regression was a competitive predictor.</p>
+<p><span class="citation" data-cites="lee_nngp_2018">(Lee et al.
+2018)</span> pushed the NNGP benchmark numbers first. It reported NNGP
+on MNIST matching or exceeding finite networks, which was the first
+public evidence that an infinite-width closed-form kernel could be
+competitive on standard benchmarks.</p>
+<p><span class="citation" data-cites="arora_exact_2019">(Arora et al.
+2019)</span> pushed the NTK benchmark numbers to CIFAR-10. It delivered
+the CNTK vs CNN table we have referenced, and established the 5-7% gap
+as the empirical anchor for subsequent discussions.</p>
+<p><span class="citation" data-cites="lee_wide_2019">(Lee et al.
+2019)</span> closed the theoretical loop by proving uniform
+linearization, which justifies treating infinite-width SGD-trained
+networks as exactly equivalent to kernel regression.</p>
+<p><span class="citation" data-cites="chizat_lazy_2019">(Chizat,
+Oyallon, and Bach 2019)</span> introduced the scaling-based diagnosis of
+the NTK regime, revealing that lazy training is a universal phenomenon
+rather than a neural-network-specific one.</p>
+<p><span class="citation" data-cites="mei_mean_field_2018">(Mei,
+Montanari, and Nguyen 2018)</span> and <span class="citation"
+data-cites="yang_hu_2021">(Yang and Hu 2021)</span> offered
+feature-learning alternatives that explain phenomena the NTK cannot.
+<span class="citation" data-cites="yang_hu_2021">(Yang and Hu
+2021)</span> is particularly influential in practice because
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>P-transfer
+is directly usable.</p>
+<p><span class="citation" data-cites="hanin_nica_2019">(Hanin and Nica
+2019)</span> and <span class="citation"
+data-cites="roberts_principles_2022">(Roberts, Yaida, and Hanin
+2022)</span> quantified finite-width corrections, providing a bridge
+between the idealized infinite-width theory and finite-network
+reality.</p>
+<p><span class="citation" data-cites="geiger_disentangling_2020">(Geiger
+et al. 2020)</span> and <span class="citation"
+data-cites="woodworth_kernel_rich_2020">(Woodworth et al. 2020)</span>
+provided empirical and mathematical evidence that real-network regimes
+lie strictly between the lazy and rich extremes.</p>
+<p><u>The collective arc is from idealization (NTK as exact theory of
+wide networks) through critique (empirical gap is real) to synthesis
+(finite-width corrections and feature-learning parameterizations
+together give a richer picture).</u> Each paper in Part III plays a
+specific role in this arc, and none is self-sufficient.</p>
+<h2 id="connecting-to-scaling-laws-part-v-preview">Connecting to scaling
+laws (Part V preview)</h2>
+<p>Part V treats neural scaling laws as a distinct topic. A brief
+preview of the NTK connection is useful here. The observation that test
+error scales as a power law in compute, data, and parameters <span
+class="citation"
+data-cites="kaplan_scaling_2020 hoffmann_chinchilla_2022">(Kaplan et al.
+2020; Hoffmann et al. 2022)</span> begs the theoretical question of
+<em>why</em> power laws. The NTK provides a partial answer <span
+class="citation" data-cites="maloney_solvable_2022">(Maloney, Roberts,
+and Sully 2022)</span>: for kernel regression with a kernel whose
+eigenvalues decay as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>k</mi></msub><mo>∼</mo><msup><mi>k</mi><mrow><mi>−</mi><mi>α</mi></mrow></msup></mrow><annotation encoding="application/x-tex">\lambda_k \sim k^{-\alpha}</annotation></semantics></math>
+(power law with decay rate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>),
+the test error on a target with coefficients
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mi>k</mi></msub><mo>∼</mo><msup><mi>k</mi><mrow><mi>−</mi><mi>β</mi></mrow></msup></mrow><annotation encoding="application/x-tex">\beta_k \sim k^{-\beta}</annotation></semantics></math>
+scales as</p>
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi><mspace width="0.222em"></mspace><mi mathvariant="normal">e</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mspace width="0.278em"></mspace><mo>∼</mo><mspace width="0.278em"></mspace><msubsup><mi>n</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow><mrow><mi>−</mi><mo>min</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>α</mi><mo>,</mo><mn>2</mn><mi>β</mi><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mi>α</mi></mrow></msubsup><mo>+</mo><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">z</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi><mspace width="0.222em"></mspace><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">s</mi></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}
+\mathbb{E}[\mathrm{test\ error}] \;\sim\; n_{\mathrm{train}}^{-\min(\alpha, 2\beta - 1)/\alpha} + \mathrm{regularization\ terms},
+\end{equation}
+</annotation></semantics></math>
+<p>which is a <em>power law in training-set size</em>. The exponent
+depends on the kernel's spectral decay (architecture-dependent) and the
+target's smoothness (task-dependent). For natural datasets whose
+eigenvalue spectra can be estimated, this predicts scaling exponents
+that match observed ones reasonably well.</p>
+<p>The <em>limitations</em> of this NTK-based scaling story are: it
+assumes the network is in the NTK regime (not feature-learning); it
+predicts a single power-law exponent per (architecture, task) pair,
+whereas observed scaling laws are often better fit by broken power laws
+with regime transitions; it has no mechanism for the <em>emergent
+abilities</em> reported in large language models. So the NTK gives a
+mathematical template for scaling-law derivation but does not account
+for the full empirical picture.</p>
+<h2 id="sota-table-across-ntk-vs-modern-architectures">SoTA table across
+NTK vs modern architectures</h2>
+<div class="blog-table"><table>
+<caption>Leaderboard-style comparison: NTK-regression and modern
+architectures on CIFAR-10 and MNIST. Numbers compiled from <span
+class="citation" data-cites="arora_exact_2019">(Arora et al.
+2019)</span> (CNTK entries), <span class="citation"
+data-cites="lee_nngp_2018">(Lee et al. 2018)</span> (NNGP entries), and
+standard benchmark repositories. The NTK/NNGP entries represent
+<em>infinite-width</em> kernel regression with no training and no data
+augmentation. The WideResNet entry uses Cutout augmentation; the ViT
+entry uses ImageNet-21k pretraining. The point of the table is the
+magnitude of the gap: modern practice exceeds NTK by 19-23 points on
+CIFAR-10, and no finite architecture is within 10 points of the NTK
+ceiling.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>CIFAR-10 (%)</th>
+<th>MNIST (%)</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NNGP (FC, depth 10) <span class="citation"
+data-cites="lee_nngp_2018">(Lee et al. 2018)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>
+54.0</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>
+98.7</td>
+<td>no training; prior-predictive</td>
+</tr>
+<tr>
+<td>CNTK-V (depth 4) <span class="citation"
+data-cites="arora_exact_2019">(Arora et al. 2019)</span></td>
+<td>66.1</td>
+<td>-</td>
+<td>no pooling, no training</td>
+</tr>
+<tr>
+<td>CNTK-GAP (depth 4) <span class="citation"
+data-cites="arora_exact_2019">(Arora et al. 2019)</span></td>
+<td>75.5</td>
+<td>-</td>
+<td>global-avg pool; infinite-width</td>
+</tr>
+<tr>
+<td>CNTK-GAP (depth 21) <span class="citation"
+data-cites="arora_exact_2019">(Arora et al. 2019)</span></td>
+<td>77.4</td>
+<td>-</td>
+<td>ceiling across depths</td>
+</tr>
+<tr>
+<td>CNN-V (depth 11) <span class="citation"
+data-cites="arora_exact_2019">(Arora et al. 2019)</span></td>
+<td>68.4</td>
+<td>-</td>
+<td>same architecture, SGD-trained</td>
+</tr>
+<tr>
+<td>CNN-GAP (depth 21) <span class="citation"
+data-cites="arora_exact_2019">(Arora et al. 2019)</span></td>
+<td>83.0</td>
+<td>-</td>
+<td>same architecture, SGD-trained</td>
+</tr>
+<tr>
+<td>ResNet-34 <span class="citation"
+data-cites="arora_exact_2019">(Arora et al. 2019)</span></td>
+<td>96.0</td>
+<td>&gt; 99.7</td>
+<td>skip connections + BN</td>
+</tr>
+<tr>
+<td>WideResNet-28-10 (Cutout)</td>
+<td>97.1</td>
+<td>&gt; 99.7</td>
+<td>+augmentation; post-2018</td>
+</tr>
+<tr>
+<td>ViT-L/16 (IN21k pretrain)</td>
+<td>99.4</td>
+<td>&gt; 99.9</td>
+<td>+pretraining; post-2020</td>
+</tr>
+</tbody>
+</table></div>
+<p><u>The generalization of this table is: infinite-width kernel methods
+are competitive with non-pretrained, non-augmented, unregularized finite
+networks of matching architecture, but fall far short of modern training
+recipes that exploit feature learning, data augmentation, and transfer
+learning.</u> The NTK theory explains one regime (wide, lazily trained,
+from scratch) and does not explain the regime where modern accuracy
+lives.</p>
+<h2 id="cross-architecture-comparison-of-the-gap">Cross-architecture
+comparison of the gap</h2>
+<div class="blog-table"><table>
+<caption>Cross-architecture comparison of NTK-regression vs finite-width
+SGD-trained accuracy gap on CIFAR-10. Rows are architecture families.
+The "NTK accuracy" column is the best reported infinite-width
+kernel-regression result; the "SGD accuracy" column is the best reported
+finite-width trained result on the same architecture and training-data
+split (no augmentation, no transfer). Numbers are approximate and drawn
+from <span class="citation"
+data-cites="arora_exact_2019 lee_nngp_2018 lee_finite_nngp_infinite_nngp_2020">(Arora
+et al. 2019; Lee et al. 2018, 2020)</span> and successor benchmarking
+efforts.</caption>
+<thead>
+<tr>
+<th>Architecture</th>
+<th>NTK accuracy</th>
+<th>SGD accuracy</th>
+<th>Gap</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FC depth-3</td>
+<td>54.0</td>
+<td>55.0</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>FC depth-10</td>
+<td>54.5</td>
+<td>56.0</td>
+<td>1.5</td>
+</tr>
+<tr>
+<td>CNN-V depth-11</td>
+<td>65.9</td>
+<td>68.4</td>
+<td>2.5</td>
+</tr>
+<tr>
+<td>CNN-GAP depth-6</td>
+<td>77.4</td>
+<td>78.5</td>
+<td>1.1</td>
+</tr>
+<tr>
+<td>CNN-GAP depth-21</td>
+<td>77.4</td>
+<td>83.0</td>
+<td>5.6</td>
+</tr>
+<tr>
+<td>ResNet-like depth-20</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>79</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>87</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>8</td>
+</tr>
+<tr>
+<td>Transformer (vision)</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>73</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>85</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>12</td>
+</tr>
+</tbody>
+</table></div>
+<p>The pattern is clear: gap grows with architectural sophistication.
+Fully-connected networks have essentially no gap; basic CNNs have small
+gaps; modern architectures (ResNets, ViTs) have large gaps. This is the
+empirical shape of feature learning's contribution.</p>
+<h2 id="the-persistence-of-the-gap-across-training-recipes">The
+persistence of the gap across training recipes</h2>
+<p>A natural question is whether the NTK-to-SGD gap can be closed by
+adjusting training recipe. Several attempts have been made, with mixed
+results:</p>
+<p>Training for longer: extending SGD training does not close the gap;
+SGD converges to a feature-learning predictor, and continued training
+does not revert to kernel regression.</p>
+<p>Using larger widths: increasing
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+reduces the kernel fluctuation gap but does not reduce the
+feature-learning gap; infinite-width
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>P
+networks still have feature-learning benefits that NTK lacks.</p>
+<p>Using regularization: explicit regularization (weight decay, dropout)
+can improve generalization but does not close the gap; both NTK and
+SGD-trained networks benefit, and the SGD-trained network still
+wins.</p>
+<p>Using better initialization: initialization schemes that keep
+networks closer to the NTK regime (smaller variance, or effective
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>)
+move the SGD-trained network toward the NTK predictor but at the cost of
+worse final performance.</p>
+<p><u>The persistence of the gap suggests it is structural: SGD-trained
+finite networks operate in a feature-learning regime that is inherently
+better than kernel regression for sufficiently complex tasks, and no
+adjustment of training recipe can move them into the pure kernel regime
+without sacrificing the performance benefit.</u> The gap is a feature of
+practical training, not a bug in the NTK approximation.</p>
+<h2 id="gap-decomposition-by-architecture-family">Gap decomposition by
+architecture family</h2>
+<p>Different architecture families exhibit different NTK-to-SGD gaps. A
+rough taxonomy:</p>
+<p>Fully-connected networks. The NTK gap is small for FC networks at
+moderate width. On MNIST with a 3-layer FC network, the infinite-width
+NNGP reaches 98.7%, the NTK-regression predictor reaches 99.0%, and an
+SGD-trained finite network reaches 99.1%. The gap is within sampling
+noise. The NTK theory is a quantitative theory of wide fully-connected
+networks.</p>
+<p>Vanilla CNNs (no skip connections, no batch norm). The NTK gap is
+intermediate. On CIFAR-10, the gap between CNTK-GAP and the matching
+CNN-GAP is 5-7% in the depth range 11-21 (Table above). This is where
+the feature-learning story becomes essential.</p>
+<p>Modern CNNs (ResNets, WideResNets). The NTK gap is large. Analogs of
+CNTK for ResNets have been proposed <span class="citation"
+data-cites="huang_dynamical_2020">(Huang and Yau 2020)</span> but do not
+capture the training-recipe benefits (augmentation, label smoothing,
+mixup, schedules) that contribute substantially to modern accuracy. A
+precise NTK-vs-SGD comparison on ResNets is not easy to set up fairly,
+but order-of-magnitude estimates place the gap at 10-15% on
+CIFAR-10.</p>
+<p>Transformers. The NTK gap is unclear. Attention-NTKs <span
+class="citation" data-cites="hron_attention_2020">(Hron et al.
+2020)</span> are computable but have not been benchmarked extensively
+against SGD-trained Transformers; the order of limits matters
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>d</mi><mi>k</mi></msub><mo>→</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">d_k \to \infty</annotation></semantics></math>
+before
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mo>→</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">H \to \infty</annotation></semantics></math>,
+or the kernel degenerates), and the resulting NTK has no closed form
+because the softmax requires a double Gaussian integral evaluated by
+Hermite quadrature. On a single-layer infinite-attention experiment with
+IMDB sentiment, NNGP achieves
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>90.1</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">90.1\%</annotation></semantics></math>,
+NTK
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>90.4</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">90.4\%</annotation></semantics></math>,
+and finite-width attention
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>89.8</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">89.8\%</annotation></semantics></math>
+<span class="citation" data-cites="hron_attention_2020">(Hron et al.
+2020)</span>, so for that controlled setting infinite-width predictions
+match finite networks within 1%. Skip connections are essential: without
+residuals the attention NNGP collapses to a constant as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>→</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">L \to \infty</annotation></semantics></math>.
+Layer-norm reduces in the infinite-width limit to a covariance
+normalization
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Σ</mi><mo>↦</mo><mi>Σ</mi><mi>/</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>Σ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Sigma \mapsto \Sigma/\mathrm{tr}(\Sigma)</annotation></semantics></math>.
+At larger scale, preliminary experiments suggest gaps comparable to
+modern CNNs (10-15% on language-modeling metrics), though the comparison
+is complicated by the pretraining-and-fine-tuning structure of
+Transformer workflows.</p>
+<p>Graph networks. Graph NTKs <span class="citation"
+data-cites="du_graph_2019">(Du et al. 2019)</span> are computable for
+message-passing architectures and on graph-classification benchmarks the
+kernel often <em>matches or exceeds</em> SGD-trained GNNs: on MUTAG,
+GNTK reaches
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>90.0</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">90.0\%</annotation></semantics></math>
+vs
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>89.4</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">89.4\%</annotation></semantics></math>
+for the best GIN; on COLLAB,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>83.6</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">83.6\%</annotation></semantics></math>
+vs
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>80.2</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">80.2\%</annotation></semantics></math>,
+and similar inversions hold for 7 of 9 standard benchmarks (PROTEINS,
+NCI1, IMDB-BINARY, IMDB-MULTI, REDDIT-BINARY, REDDIT-5K). The kernel
+decomposes into node-level kernels
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Θ</mi><mrow><mi>u</mi><mo>,</mo><mi>u</mi><mi>′</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>G</mi><mo>,</mo><mi>G</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Theta_{u,u&#39;}(G, G&#39;)</annotation></semantics></math>
+plus sum-pooling, with the number of message-passing rounds
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+entering as a hyperparameter (sweet spot
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">k = 2</annotation></semantics></math>-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>3</mn><annotation encoding="application/x-tex">3</annotation></semantics></math>).
+The cheap, monotone, kernel-favourable picture for graphs may reflect
+the relatively shallow (2-4 layer) depth of typical GNN architectures,
+which keeps them in a more NTK-favorable regime; it also suggests
+feature learning is <em>less</em> critical for graph-classification than
+for vision, an inversion of the standard NTK-versus-feature-learning
+narrative.</p>
+<p><u>The overall pattern is that simpler, shallower, more homogeneous
+architectures are better-described by the NTK, and more sophisticated
+architectures exhibit larger gaps.</u> This is consistent with the
+diagnosis that the NTK-vs-SGD gap tracks the degree to which training
+benefits from feature learning, which in turn tracks architectural
+sophistication.</p>
+<h2 id="ntks-contribution-to-the-theory-of-generalization">NTK's
+contribution to the theory of generalization</h2>
+<p>The NTK's principal contribution to generalization theory is to
+provide a computable baseline against which to measure. Before the NTK,
+generalization analyses of deep networks were either very loose (VC
+dimension, Rademacher complexity) or required strong unverified
+assumptions (PAC-Bayes with specific posterior priors). The NTK changed
+the landscape by delivering:</p>
+<ol>
+<li>An explicit upper bound on capacity: the NTK's RKHS norm ball of
+radius
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>
+has Rademacher complexity
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>R</mi><mo>⋅</mo><msqrt><mrow><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Θ</mi><mi>∞</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>X</mi><mo>,</mo><mi>X</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msqrt><mi>/</mi><msub><mi>n</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(R \cdot \sqrt{\mathrm{tr}(\Theta_\infty(X,X))} / n_{\mathrm{train}})</annotation></semantics></math>,
+which is computable and non-vacuous for wide networks.</li>
+<li>A direct generalization bound: for functions in the NTK RKHS with
+bounded norm, test error is bounded by training error plus the
+Rademacher term, giving non-vacuous bounds of the form "test error
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≤</mo><annotation encoding="application/x-tex">\le</annotation></semantics></math>
+training error +
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>R</mi><mi>/</mi><msqrt><msub><mi>n</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub></msqrt><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(R / \sqrt{n_{\mathrm{train}}})</annotation></semantics></math>".</li>
+<li>A spectral explanation: components of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>y</mi><mo>⋆</mo></msup><annotation encoding="application/x-tex">y^\star</annotation></semantics></math>
+aligned with large eigenvalues of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Θ</mi><mi>∞</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>X</mi><mo>,</mo><mi>X</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Theta_\infty(X,X)</annotation></semantics></math>
+are fit easily and generalize well; components in small eigenvalues
+generalize poorly. This makes spectral decay a quantitative predictor of
+generalization.</li>
+</ol>
+<p>For networks demonstrably in the NTK regime (very wide,
+NTK-parameterized, trained without aggressive recipes), these bounds are
+<em>tight</em>: predicted generalization matches observed generalization
+within small factors. For networks outside the NTK regime, the bounds
+are <em>conservative</em>: they upper-bound the kernel-regression
+generalization, which is worse than the feature-learning generalization
+of the actually-trained network.</p>
+<p><u>This is the pattern that justifies the framing "NTK as baseline":
+wherever the NTK bound is tight, deep learning is kernel learning;
+wherever the NTK bound is loose, the slack is attributable to feature
+learning.</u> The NTK is therefore a tool for <em>diagnosing</em> when
+feature learning matters, by comparison of NTK-predicted-test-error to
+actual test error.</p>
+<h2 id="critiques-and-counter-evidence">Critiques and
+counter-evidence</h2>
+<p><u>Several authors have pushed back on the
+NTK-as-theory-of-deep-learning framing with evidence that finite
+networks behave in ways the NTK cannot predict.</u></p>
+<p>Shift-invariance and data augmentation. <span class="citation"
+data-cites="li_enhanced_ntk_2019">(Li et al. 2019)</span> showed that
+data augmentation is not equivalent to any kernel, and hence the benefit
+of augmentation is invisible to NTK regression. Yet augmentation adds
+2-5% test accuracy on CIFAR-10 in practical training. This rules out any
+argument that the NTK plus appropriate data processing recovers CNN
+accuracy; some benefit of training must come from outside the
+kernel-regression framework.</p>
+<p>Catastrophic forgetting and transfer learning. A trained network can
+be fine-tuned on a new task with transfer of learned features. The NTK
+has no mechanism for this: the kernel is fixed at initialization, so
+fine-tuning a kernel-regression predictor on a new task is just
+re-running kernel regression with the same kernel, which cannot leverage
+prior training. The empirical fact of successful transfer learning
+(BERT, GPT, CLIP, etc.) is therefore evidence against the NTK as a
+complete theory of deep-network training.</p>
+<p>Adversarial robustness. <span class="citation"
+data-cites="tsipras_robustness_2019">(Tsipras et al. 2019)</span> and
+subsequent work show that adversarial-robustly trained networks have
+different feature representations from naturally-trained ones, with
+robust features often being human-interpretable. This feature-selection
+process is a rich-regime phenomenon; adversarial robustness cannot
+emerge from kernel regression on a fixed kernel.</p>
+<p>Emergent abilities. The observation that large language models
+exhibit qualitatively new capabilities (e.g., in-context learning,
+chain-of-thought reasoning) at threshold scales has no NTK explanation.
+The NTK predicts smooth, monotone, power-law-governed performance
+scaling, not phase-transition-like emergence. Even granting that
+emergence may be partly a measurement artifact <span class="citation"
+data-cites="schaeffer_mirage_2023">(Schaeffer, Miranda, and Koyejo
+2023)</span>, the NTK-predicted behavior is insufficient to rationalize
+large-model practice.</p>
+<p>Grokking. <span class="citation"
+data-cites="power_grokking_2022">(Power et al. 2022)</span> report that
+networks trained long past fitting the training data eventually
+<em>suddenly</em> generalize, with test accuracy rising from chance to
+100% over a narrow training window. This is incompatible with the NTK's
+exponential-decay training dynamics (<a
+href="eq:ntk-residual-flow">eq:ntk-residual-flow</a>), which predicts
+that test accuracy should track training loss monotonically.</p>
+<p>Taken together, these phenomena establish that something beyond
+kernel regression is happening in practical deep-learning training. The
+NTK's residual value is as a null model: behaviors the NTK predicts are
+explicable without appeal to feature learning; behaviors it does not are
+evidence for feature-learning mechanisms.</p>
+<h2 id="the-role-of-scale-in-deep-learning-theory">The role of scale in
+deep-learning theory</h2>
+<p>A recurring theme in Part III is that scale is not merely a practical
+scaling axis but a conceptual one: different scales correspond to
+different theoretical regimes. The NTK emerges as <em>width goes to
+infinity</em>; the mean-field regime as <em>width goes to infinity with
+a different parameterization</em>; double descent as <em>training-set
+size approaches the critical threshold</em>; emergent abilities as
+<em>compute or parameters cross task-specific thresholds</em>.</p>
+<p>The theoretical challenge is that each regime is hard on its own
+terms, and transitions between regimes are hard to characterize. The NTK
+regime is tractable but narrow; the mean-field regime is tractable for
+simple architectures; the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>P
+regime is tractable via Tensor Programs but computationally heavy. None
+of them overlap with the <em>practical</em> regime of deep-learning
+training, which involves finite but large networks with complex
+architectures and training recipes.</p>
+<p>A concrete manifestation: the regime analysis of Chapter 3 says that
+practical networks with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+in an intermediate range are in an <em>interpolating</em> regime where
+neither the lazy nor the rich theory directly applies. The description
+of this interpolating regime is an active research direction. Candidate
+approaches include:</p>
+<ul>
+<li>Perturbative expansion around
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>P:
+treat
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>P
+as the base point and expand in the departure from it. This requires
+understanding the <em>structural stability</em> of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>P
+under perturbation, which is not yet understood.</li>
+<li>Interpolation via coupling constants: introduce one or more
+dimensionless coupling constants that smoothly interpolate between lazy
+and rich, and study how observables depend on them. The
+Chizat-Oyallon-Bach
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+is one such coupling; others (for specifically architectural
+perturbations) are under development.</li>
+<li>Empirical characterization with theoretical fits: train a large
+suite of networks at varying scales and parameterizations; extract the
+relevant regime-indicating observables; fit phenomenological models that
+predict the regime transitions. This is the empirical-first approach and
+has the virtue of directly addressing practical networks.</li>
+</ul>
+<p><u>The conceptual shift Part III embodies is from "deep learning is a
+tricky optimization problem" to "deep learning is a multi-regime
+phenomenon whose regimes have different governing equations".</u> This
+shift changes what a "theory of deep learning" should look like: not a
+single theorem, but a family of theorems for different regimes plus a
+characterization of when each applies.</p>
+<h2 id="benign-overfitting-and-double-descent">Benign Overfitting and
+Double Descent</h2>
+<p>The "benign overfitting" research programme crystallized between 2017
+and 2020 around three stubborn empirical facts that uniform-convergence
+theory could not accommodate. First, deep networks fit random labels to
+zero training error while still generalizing on the true labels <span
+class="citation" data-cites="zhang_rethinking_2017">(Zhang et al.
+2017)</span> (and even when they <em>do</em> generalise on natural
+inputs they remain catastrophically fragile to imperceptible adversarial
+perturbations <span class="citation"
+data-cites="szegedy_intriguing_2014">(Szegedy et al. 2014)</span>; the
+two facts together say that the inductive bias selecting a generalising
+interpolator is also selecting a non-robust one, which any capacity-only
+account cannot adjudicate). Second, their test error does not increase
+monotonically with capacity past the interpolation threshold; it
+decreases again, tracing the double-descent curve <span class="citation"
+data-cites="belkin_reconciling_2019 nakkiran_double_descent_2020">(Belkin
+et al. 2019; Nakkiran et al. 2020)</span>. Third, the same phenomenology
+is visible in linear regression, kernel regression, and random-feature
+regression, which admit exact asymptotic analysis <span class="citation"
+data-cites="bartlett_benign_2020 mei_montanari_2022 hastie_ridgeless_2022">(Bartlett
+et al. 2020; Mei and Montanari 2022; Hastie et al. 2022)</span>.
+<u>These three facts together ruled out any explanation based purely on
+function-class capacity and forced the field to look at the interaction
+between the data covariance spectrum, the optimizer's implicit bias, and
+the architectural parameterization.</u></p>
+<p>The lineage of the interpolation idea predates deep learning. <span
+class="citation" data-cites="schapire_margin_1998">(Schapire et al.
+1998)</span> already explained why boosting keeps improving test error
+after training error hits zero (the margin story, see Part I). The kernel community observed
+the same behaviour when interpolating RBF kernels with zero
+regularization, documented systematically by <span class="citation"
+data-cites="belkin_kernel_2018">(Belkin, Ma, and Mandal 2018)</span>:
+kernels with sufficiently flat spectra can interpolate noisy data and
+still generalize, contradicting the bias-variance orthodoxy that
+interpolation must overfit. <u>What deep learning added was scale:
+models routinely exceed sample size by orders of magnitude, pushing into
+a regime where the classical analyses simply do not apply.</u> <span
+class="citation" data-cites="belkin_reconciling_2019">(Belkin et al.
+2019)</span> was the synthesis paper that named the phenomenon ("double
+descent") and drew the canonical figure; a U-curve joined to a second
+descent, with a spike at the interpolation threshold.</p>
+<p>The theoretical settlement came from two directions. <span
+class="citation" data-cites="bartlett_benign_2020">(Bartlett et al.
+2020)</span> gave finite-sample risk bounds for the min-norm linear
+interpolator and identified the effective-rank conditions that govern
+when interpolation is benign; <span class="citation"
+data-cites="tsigler_bartlett_2023">(Tsigler and Bartlett 2023)</span>
+extended this to ridge regression with both positive and negative
+regularization. Independently, <span class="citation"
+data-cites="liang_rakhlin_2020">(Liang and Rakhlin 2020)</span> proved a
+matching statement for kernel ridgeless regression in the
+high-dimensional setting, relating the implicit regularization to the
+curvature of the kernel. On the optimization side, <span
+class="citation" data-cites="soudry_implicit_2018">(Soudry et al.
+2018)</span> showed that gradient descent on separable data with
+logistic-type losses converges to the max-margin (L2 SVM) predictor; the
+implicit bias result that provided the missing algorithmic explanation.
+<span class="citation"
+data-cites="gunasekar_implicit_conv_2018">(Gunasekar et al. 2018)</span>
+extended this to convolutional networks (different implicit bias:
+Fourier-sparse, not L2), and <span class="citation"
+data-cites="ji_telgarsky_2019">(Ji and Telgarsky 2019)</span> closed the
+nonseparable case.</p>
+<p>The final piece was the random-features bridge. <span
+class="citation" data-cites="rahimi_recht_2008">(Rahimi and Recht
+2008)</span> introduced random features as a tractable kernel
+approximation; <span class="citation"
+data-cites="mei_montanari_2022">(Mei and Montanari 2022)</span> used the
+random-features model as an analytically solvable proxy for a two-layer
+neural network and derived the precise asymptotic curves that match
+Belkin and Nakkiran's empirical double-descent plots. <span
+class="citation" data-cites="hastie_ridgeless_2022">(Hastie et al.
+2022)</span> independently analyzed high-dimensional ridgeless least
+squares and also reproduced double descent. <span class="citation"
+data-cites="advani_saxe_2020">(Advani, Saxe, and Sompolinsky
+2020)</span> had earlier given the dynamical picture from statistical
+physics, explaining double descent as an interaction between signal and
+noise modes during training.</p>
+<p>A parallel empirical thread sharpens what <em>role</em>
+overparameterization actually plays. The Lottery Ticket Hypothesis <span
+class="citation" data-cites="frankle_lottery_2019">(Frankle and Carbin
+2019)</span> (ICLR 2019 Best Paper) demonstrated that dense networks
+contain sparse subnetworks ("winning tickets") that, when extracted and
+<em>reset to their original random initialization</em> and retrained in
+isolation, match the dense network's accuracy at roughly 10–20% of the
+original weight count. The construction is iterative magnitude pruning
+(IMP): train the full network to convergence, prune the lowest-magnitude
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>%
+of weights, reset surviving weights to their exact values from before
+any training (not to zero, not to a new random draw; back to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\theta_0</annotation></semantics></math>),
+then retrain the sparse network. Repeating this over multiple rounds
+finds progressively sparser winning tickets.</p>
+<p>On small networks the result is striking. A Lenet winning ticket at
+21.1% sparsity reaches minimum validation loss 38% faster than the full
+network and finishes 0.3 percentage points higher. On CIFAR-10
+convolutional networks, the winning ticket at ~11% sparsity improves
+accuracy by 3.5 points over the dense baseline when matched for
+iteration count.</p>
+<p><u>The core claim is not about expressivity but about initialization
+quality</u>: the dense network's parameter budget functions as a
+<em>search space</em> for discovering an initialization that makes
+sparse training efficient. The winning ticket is not
+sparser-but-equivalent; it trains faster than the full network, which a
+capacity argument cannot explain.</p>
+<p>The scale limitation of the original paper is concrete: IMP fails on
+VGG-19 and ResNet-18 at standard learning rates (0.1), because
+large-network training is sensitive to learning-rate warmup in ways
+small-network training is not. Subsequent work <span class="citation"
+data-cites="frankle_linear_2020">(<strong>frankle_linear_2020?</strong>)</span>
+addressed this by rewinding surviving weights not all the way to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\theta_0</annotation></semantics></math>
+but to a checkpoint taken after a few hundred steps (the "stability
+point"), recovering the winning-ticket property at ImageNet scale. This
+refinement is not in the 2019 paper. The skeptical reading that connects
+Lottery Ticket to double descent: double descent says capacity past
+interpolation helps generalization; Lottery Ticket says the mechanism is
+finding a sparse trainable initialization, not deploying all the
+parameters at inference. <u>This unified reading is not yet a
+theorem</u>, but it is the cleanest framing for why both phenomena
+coexist without contradicting each other.</p>
+<div class="blog-table"><table>
+<caption>SoTA leaderboard for the interpolation regime across modern
+benchmarks. All rows are in the over-parameterized regime (parameters
+much greater than training examples); the point of the table is that
+train error is near zero while test error continues to improve,
+empirically refuting the naive bias-variance bound. Numbers are
+representative headline values reported in the cited papers and
+follow-ups.</caption>
+<thead>
+<tr>
+<th>Model family</th>
+<th>Setting</th>
+<th>Train acc / err</th>
+<th>Test acc / err</th>
+<th>Parameters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Inception, CIFAR-10 true labels <span class="citation"
+data-cites="zhang_rethinking_2017">(Zhang et al. 2017)</span></td>
+<td>SGD to convergence, over-parameterized</td>
+<td>100.0 %</td>
+<td>89.1 % test acc</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>1.6
+M</td>
+</tr>
+<tr>
+<td>Inception, CIFAR-10 random labels <span class="citation"
+data-cites="zhang_rethinking_2017">(Zhang et al. 2017)</span></td>
+<td>Same recipe</td>
+<td>100.0 %</td>
+<td>10 % (chance)</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>1.6
+M</td>
+</tr>
+<tr>
+<td>AlexNet, ImageNet true labels <span class="citation"
+data-cites="zhang_rethinking_2017">(Zhang et al. 2017)</span></td>
+<td>Standard</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>100
+% top-5</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>83
+% top-5</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>60
+M</td>
+</tr>
+<tr>
+<td>ResNet-18, CIFAR-10 15% noise <span class="citation"
+data-cites="nakkiran_double_descent_2020">(Nakkiran et al.
+2020)</span></td>
+<td>Width-parameter 64, epoch 4000</td>
+<td>100 %</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>
+6.5 % test error</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>11
+M</td>
+</tr>
+<tr>
+<td>ResNet-18, CIFAR-10 15% noise <span class="citation"
+data-cites="nakkiran_double_descent_2020">(Nakkiran et al.
+2020)</span></td>
+<td>Width-parameter 10, at EMC threshold</td>
+<td>100 %</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>18
+% test error (peak)</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>0.3
+M</td>
+</tr>
+<tr>
+<td>Standard Transformer, WMT'14 en-fr <span class="citation"
+data-cites="nakkiran_double_descent_2020">(Nakkiran et al.
+2020)</span></td>
+<td>Epoch-wise double descent, 18 layers</td>
+<td>near 0 train loss</td>
+<td>+0.9 BLEU over classical</td>
+<td>base</td>
+</tr>
+<tr>
+<td>Min-norm linear interpolator <span class="citation"
+data-cites="bartlett_benign_2020">(Bartlett et al. 2020)</span></td>
+<td>Gaussian features,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>/</mi><mi>n</mi><mo>→</mo><mi>γ</mi></mrow><annotation encoding="application/x-tex">p/n \to \gamma</annotation></semantics></math></td>
+<td>0 train err</td>
+<td>benign iff eff-rank cond</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>≫</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">p \gg n</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>RF regression, two-layer ReLU <span class="citation"
+data-cites="mei_montanari_2022">(Mei and Montanari 2022)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mi>N</mi><mo>=</mo><mi>d</mi></mrow><annotation encoding="application/x-tex">n = N = d</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ψ</mi><mn>1</mn></msub><mo>=</mo><msub><mi>ψ</mi><mn>2</mn></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\psi_1 = \psi_2 = 1</annotation></semantics></math></td>
+<td>0 train err</td>
+<td>double-descent peak</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mi>d</mi><mo>=</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">N=d=n</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>Laplace kernel, MNIST/CIFAR-2 <span class="citation"
+data-cites="belkin_kernel_2018">(Belkin, Ma, and Mandal
+2018)</span></td>
+<td>Ridgeless, zero training error</td>
+<td>0 train err</td>
+<td>within 1 % of regularized</td>
+<td>kernel $n× n$</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="scaling-laws-and-information-theoretic-views">Scaling Laws and
+Information-Theoretic Views</h2>
+<p>The papers collected in this part span two otherwise disjoint
+literatures: empirical scaling (Kaplan, Chinchilla, Hestness, Bahri) and
+information-theoretic dynamics (Tishby, Shwartz-Ziv, Saxe), connected by
+the question of whether deep networks' generalization curves admit a
+compact functional description. A third, more recent strand (Wei,
+Schaeffer, Power) asks whether the smooth power laws tell the whole
+story or whether discontinuous behaviours (emergence, grokking) live on
+top of them. A fourth strand reframes the bottleneck from
+<em>quantity</em> to <em>quality</em>. <span class="citation"
+data-cites="sorscher_beyond_2022">(Sorscher et al. 2022)</span> (NeurIPS
+2022 Outstanding) argue that the Hestness-Kaplan power law
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>∝</mo><msup><mi>D</mi><mrow><mi>−</mi><msub><mi>α</mi><mi>D</mi></msub></mrow></msup></mrow><annotation encoding="application/x-tex">L \propto D^{-\alpha_D}</annotation></semantics></math>
+is not a property of the learning problem but an artefact of i.i.d.
+random subsetting. When training examples are ranked by difficulty and
+the easiest fraction is discarded, test error decays
+<em>exponentially</em> in the retained fraction
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
+in the over-parameterised regime rather than following the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∝</mo><mn>1</mn><mi>/</mi><msqrt><mi>D</mi></msqrt></mrow><annotation encoding="application/x-tex">\propto 1/\sqrt{D}</annotation></semantics></math>
+rate that classical uniform-convergence theory predicts. The intuition:
+random subsets always retain both easy and redundant samples; a pruned
+subset concentrated on hard, near-decision-boundary examples provides
+more gradient signal per sample, so the model learns the same boundary
+geometry from a smaller dataset.</p>
+<p>Ten difficulty metrics are benchmarked, including EL2N
+(early-training
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mo>ℓ</mo><mn>2</mn></msub><annotation encoding="application/x-tex">\ell_2</annotation></semantics></math>
+error norm), forgetting scores, memorization, ensemble uncertainty, and
+margin. Among supervised metrics, EL2N performs best on CIFAR-10: a
+ResNet-18 trained on the top-50% hardest examples (by EL2N) matches
+full-dataset accuracy. On ImageNet, training on 80% of examples selected
+by memorization score matches the 100% baseline; most supervised metrics
+degrade sharply below 60% retention. A new self-supervised metric is
+proposed: cosine distance to the nearest k-means cluster centroid in
+SWaV embeddings, which matches supervised baselines without requiring
+labels and enables pruning before annotation.</p>
+<p>The exponential advantage is conditional. It holds only in the
+over-parameterised regime (model large enough to fit the retained set)
+and only when the pruning metric aligns well with the true difficulty
+ordering (measured by angular alignment
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+between the probe gradient and the teacher gradient). When the probe
+misaligns by more than roughly 10 degrees, a minimum retained fraction
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mo>min</mo></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f_{\min}(\theta)</annotation></semantics></math>
+exists below which further pruning does not help; the exponential phase
+ends and the standard power law resumes. The paper therefore does not
+supersede scaling laws for the frontier regime (where models are
+maximally over-parameterised and the full pre-training corpus is already
+curated); it applies most directly to fine-tuning and mid-scale training
+where aggressive dataset curation is practical.</p>
+<p><u>The shared methodology is to fit a parametric family to
+train-and-test curves and to ask what the fit exponents mean.</u> In
+Kaplan's setup, the test cross-entropy loss is modelled as three
+single-variable power laws plus an irreducible offset; in Chinchilla it
+is a single joint
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>
+surface; in Hestness it is a dataset-size-only power law; in Bahri the
+exponent is derived from kernel spectra and manifold dimension. The SoTA
+landscape across papers is summarised below by the exponents appearing
+in the three canonical laws</p>
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>N</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msub><mi>N</mi><mi>c</mi></msub><mi>N</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>α</mi><mi>N</mi></msub></msup><mo>,</mo><mspace width="1.0em"></mspace><mi>L</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>D</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msub><mi>D</mi><mi>c</mi></msub><mi>D</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>α</mi><mi>D</mi></msub></msup><mo>,</mo><mspace width="1.0em"></mspace><mi>L</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>C</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msub><mi>C</mi><mi>c</mi></msub><mi>C</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>α</mi><mi>C</mi></msub></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">\begin{equation}
+L(N) = \left(\frac{N_c}{N}\right)^{\alpha_N}, \quad L(D) = \left(\frac{D_c}{D}\right)^{\alpha_D}, \quad L(C) = \left(\frac{C_c}{C}\right)^{\alpha_C}.
+\end{equation}
+</annotation></semantics></math>
+<div class="blog-table"><table>
+<caption>SoTA scaling-law exponents across the papers in this part.
+Empty cells mark laws not reported by that paper. Kaplan's
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>N</mi></msub><annotation encoding="application/x-tex">\alpha_N</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>D</mi></msub><annotation encoding="application/x-tex">\alpha_D</annotation></semantics></math>
+are for transformer LMs trained on WebText2 with non-embedding
+parameters
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>;
+Chinchilla's exponents are symmetric because the compute-optimal recipe
+equalises the contributions of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>.</caption>
+<thead>
+<tr>
+<th>Paper</th>
+<th><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>N</mi></msub><annotation encoding="application/x-tex">\alpha_N</annotation></semantics></math></th>
+<th><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>D</mi></msub><annotation encoding="application/x-tex">\alpha_D</annotation></semantics></math></th>
+<th><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>C</mi></msub><annotation encoding="application/x-tex">\alpha_C</annotation></semantics></math></th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kaplan 2020 <span class="citation"
+data-cites="kaplan_scaling_2020">(Kaplan et al. 2020)</span></td>
+<td>0.076</td>
+<td>0.095</td>
+<td>0.050</td>
+<td>GPT-style LM, WebText2, cross-entropy nats/token</td>
+</tr>
+<tr>
+<td>Chinchilla <span class="citation"
+data-cites="hoffmann_chinchilla_2022">(Hoffmann et al. 2022)</span></td>
+<td>0.34</td>
+<td>0.28</td>
+<td>–</td>
+<td>Joint
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>N</mi><mo>,</mo><mi>D</mi><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(N,D)</annotation></semantics></math>
+fit, symmetric exponents</td>
+</tr>
+<tr>
+<td>Hestness et al. <span class="citation"
+data-cites="hestness_scaling_2017">(Hestness et al. 2017)</span></td>
+<td>–</td>
+<td>0.07–0.35</td>
+<td>–</td>
+<td>Varies by domain: NMT, LM, vision</td>
+</tr>
+<tr>
+<td>Bahri et al. <span class="citation"
+data-cites="bahri_explaining_2024">(Bahri et al. 2024)</span></td>
+<td>derived</td>
+<td>derived</td>
+<td>–</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>∼</mo><mn>4</mn><mi>/</mi><mi>d</mi></mrow><annotation encoding="application/x-tex">\alpha \sim 4/d</annotation></semantics></math>
+or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>K</mi></msub><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\alpha_K - 1</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>Sharma &amp; Kaplan <span class="citation"
+data-cites="sharma_kaplan_2022">(Sharma and Kaplan 2022)</span></td>
+<td>derived</td>
+<td>derived</td>
+<td>–</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>D</mi></msub><mo>=</mo><mn>4</mn><mi>/</mi><msub><mi>d</mi><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">d</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\alpha_D = 4/d_{\mathrm{manifold}}</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>Maloney et al. <span class="citation"
+data-cites="maloney_solvable_2022">(Maloney, Roberts, and Sully
+2022)</span></td>
+<td>analytical</td>
+<td>analytical</td>
+<td>analytical</td>
+<td>Closed form from random-feature model</td>
+</tr>
+<tr>
+<td>Michaud et al. <span class="citation"
+data-cites="michaud_quantization_2023">(Michaud et al. 2023)</span></td>
+<td>derived</td>
+<td>derived</td>
+<td>–</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>β</mi><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mi>β</mi></mrow><annotation encoding="application/x-tex">\alpha = (\beta-1)/\beta</annotation></semantics></math>
+from Zipf exponent</td>
+</tr>
+</tbody>
+</table></div>
+<p>The IB and emergence rows do not fit the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>N</mi></msub><annotation encoding="application/x-tex">\alpha_N</annotation></semantics></math>/<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>D</mi></msub><annotation encoding="application/x-tex">\alpha_D</annotation></semantics></math>/<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>C</mi></msub><annotation encoding="application/x-tex">\alpha_C</annotation></semantics></math>
+schema because those papers report different observables (mutual
+information trajectories, task-by-task accuracy jumps). They appear
+later in this chapter under their own headings.</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-advani_saxe_2020" class="csl-entry" role="listitem">
+Advani, Madhu S., Andrew M. Saxe, and Haim Sompolinsky. 2020.
+<span>“High-Dimensional Dynamics of Generalization Error in Neural
+Networks.”</span> <em>Neural Networks</em> 132: 428–46.
+</div>
+<div id="ref-alquier_pacbayes_2024_tutorial" class="csl-entry"
+role="listitem">
+Alquier, Pierre. 2024. <span>“User-Friendly Introduction to PAC-Bayes
+Bounds.”</span> <em>Foundations and Trends in Machine Learning</em>.
+</div>
+<div id="ref-ambrosio_gradient_flows_2005" class="csl-entry"
+role="listitem">
+Ambrosio, Luigi, Nicola Gigli, and Giuseppe Savare. 2005. <em>Gradient
+Flows in Metric Spaces and in the Space of Probability Measures</em>.
+Birkhauser.
+</div>
+<div id="ref-anthony_bartlett_1999" class="csl-entry" role="listitem">
+Anthony, Martin, and Peter L. Bartlett. 1999. <em>Neural Network
+Learning: Theoretical Foundations</em>. Cambridge University Press.
+</div>
+<div id="ref-arora_exact_2019" class="csl-entry" role="listitem">
+Arora, Sanjeev, Simon S. Du, Wei Hu, Zhiyuan Li, Ruslan Salakhutdinov,
+and Ruosong Wang. 2019. <span>“On Exact Computation with an Infinitely
+Wide Neural Net.”</span> In <em>Advances in Neural Information
+Processing Systems (NeurIPS)</em>.
+</div>
+<div id="ref-bahri_explaining_2024" class="csl-entry" role="listitem">
+Bahri, Yasaman, Ethan Dyer, Jared Kaplan, Jaehoon Lee, and Utkarsh
+Sharma. 2024. <span>“Explaining Neural Scaling Laws.”</span> <em>Proc.
+National Academy of Sciences</em>.
+</div>
+<div id="ref-bartlett_foster_telgarsky_2017" class="csl-entry"
+role="listitem">
+Bartlett, Peter L., Dylan J. Foster, and Matus J. Telgarsky. 2017.
+<span>“Spectrally-Normalized Margin Bounds for Neural Networks.”</span>
+In <em>Advances in Neural Information Processing Systems (NeurIPS)</em>.
+</div>
+<div id="ref-bartlett_benign_2020" class="csl-entry" role="listitem">
+Bartlett, Peter L., Philip M. Long, Gábor Lugosi, and Alexander Tsigler.
+2020. <span>“Benign Overfitting in Linear Regression.”</span> <em>Proc.
+National Academy of Sciences</em> 117 (48): 30063–70.
+</div>
+<div id="ref-bartlett_mendelson_2002" class="csl-entry" role="listitem">
+Bartlett, Peter L., and Shahar Mendelson. 2002. <span>“Rademacher and
+Gaussian Complexities: Risk Bounds and Structural Results.”</span>
+<em>Journal of Machine Learning Research</em> 3: 463–82.
+</div>
+<div id="ref-baum_haussler_1989" class="csl-entry" role="listitem">
+Baum, Eric B., and David Haussler. 1989. <span>“What Size Net Gives
+Valid Generalization?”</span> <em>Neural Computation</em> 1 (1): 151–60.
+</div>
+<div id="ref-belkin_reconciling_2019" class="csl-entry" role="listitem">
+Belkin, Mikhail, Daniel Hsu, Siyuan Ma, and Soumik Mandal. 2019.
+<span>“Reconciling Modern Machine-Learning Practice and the Classical
+Bias-Variance Trade-Off.”</span> <em>Proc. National Academy of
+Sciences</em> 116 (32): 15849–54.
+</div>
+<div id="ref-belkin_kernel_2018" class="csl-entry" role="listitem">
+Belkin, Mikhail, Siyuan Ma, and Soumik Mandal. 2018. <span>“To
+Understand Deep Learning We Need to Understand Kernel Learning.”</span>
+In <em>Proc. International Conference on Machine Learning (ICML)</em>.
+</div>
+<div id="ref-boser_guyon_vapnik_1992" class="csl-entry" role="listitem">
+Boser, Bernhard E., Isabelle M. Guyon, and Vladimir N. Vapnik. 1992.
+<span>“A Training Algorithm for Optimal Margin Classifiers.”</span> In
+<em>Proc. 5th Annual Workshop on Computational Learning Theory
+(COLT)</em>, 144–52.
+</div>
+<div id="ref-boucheron_concentration_2013" class="csl-entry"
+role="listitem">
+Boucheron, Stéphane, Gábor Lugosi, and Pascal Massart. 2013.
+<em>Concentration Inequalities: A Nonasymptotic Theory of
+Independence</em>. Oxford University Press.
+</div>
+<div id="ref-bu_zou_veeravalli_2020" class="csl-entry" role="listitem">
+Bu, Yuheng, Shaofeng Zou, and Venugopal V. Veeravalli. 2020.
+<span>“Tightening Mutual Information-Based Bounds on Generalization
+Error.”</span> <em>IEEE Journal on Selected Areas in Information
+Theory</em> 1 (1): 121–30.
+</div>
+<div id="ref-bubeck_universal_2021" class="csl-entry" role="listitem">
+Bubeck, Sébastien, and Mark Sellke. 2021. <span>“A Universal Law of
+Robustness via Isoperimetry.”</span> In <em>Advances in Neural
+Information Processing Systems (NeurIPS)</em>. <a
+href="https://arxiv.org/abs/2105.12806">https://arxiv.org/abs/2105.12806</a>.
+</div>
+<div id="ref-catoni_pac_2007" class="csl-entry" role="listitem">
+Catoni, Olivier. 2007. <em>PAC-Bayesian Supervised Classification: The
+Thermodynamics of Statistical Learning</em>. Institute of Mathematical
+Statistics.
+</div>
+<div id="ref-chizat_lazy_2019" class="csl-entry" role="listitem">
+Chizat, Lenaïc, Edouard Oyallon, and Francis Bach. 2019. <span>“On Lazy
+Training in Differentiable Programming.”</span> In <em>Advances in
+Neural Information Processing Systems (NeurIPS)</em>.
+</div>
+<div id="ref-cortes_vapnik_1995" class="csl-entry" role="listitem">
+Cortes, Corinna, and Vladimir Vapnik. 1995. <span>“Support-Vector
+Networks.”</span> <em>Machine Learning</em> 20 (3): 273–97.
+</div>
+<div id="ref-du_graph_2019" class="csl-entry" role="listitem">
+Du, Simon S., Kangcheng Hou, Ruslan Salakhutdinov, Barnabas Poczos,
+Ruosong Wang, and Keyulu Xu. 2019. <span>“Graph Neural Tangent Kernel:
+Fusing Graph Neural Networks with Graph Kernels.”</span> In
+<em>NeurIPS</em>.
+</div>
+<div id="ref-dziugaite_roy_2017" class="csl-entry" role="listitem">
+Dziugaite, Gintare Karolina, and Daniel M. Roy. 2017. <span>“Computing
+Nonvacuous Generalization Bounds for Deep (Stochastic) Neural Networks
+with Many More Parameters Than Training Data.”</span> In <em>Proc.
+Uncertainty in Artificial Intelligence (UAI)</em>.
+</div>
+<div id="ref-dziugaite_data_dependent_2018" class="csl-entry"
+role="listitem">
+———. 2018. <span>“Data-Dependent PAC-Bayes Priors via Differential
+Privacy.”</span> In <em>NeurIPS</em>.
+</div>
+<div id="ref-esposito_generalization_2020_renyi" class="csl-entry"
+role="listitem">
+Esposito, Amedeo Roberto, Michael Gastpar, and Ibrahim Issa. 2021.
+<span>“Generalization Error Bounds via Renyi, f-Divergences and Maximal
+Leakage.”</span> <em>IEEE Transactions on Information Theory</em> 67
+(8): 4986–5004.
+</div>
+<div id="ref-frankle_lottery_2019" class="csl-entry" role="listitem">
+Frankle, Jonathan, and Michael Carbin. 2019. <span>“The Lottery Ticket
+Hypothesis: Finding Sparse, Trainable Neural Networks.”</span> In
+<em>International Conference on Learning Representations (ICLR)</em>. <a
+href="https://arxiv.org/abs/1803.03635">https://arxiv.org/abs/1803.03635</a>.
+</div>
+<div id="ref-freund_schapire_1997" class="csl-entry" role="listitem">
+Freund, Yoav, and Robert E. Schapire. 1997. <span>“A Decision-Theoretic
+Generalization of on-Line Learning and an Application to
+Boosting.”</span> <em>Journal of Computer and System Sciences</em> 55
+(1): 119–39.
+</div>
+<div id="ref-geiger_disentangling_2020" class="csl-entry"
+role="listitem">
+Geiger, Mario, Stefano Spigler, Arthur Jacot, and Matthieu Wyart. 2020.
+<span>“Disentangling Feature and Lazy Training in Deep Neural
+Networks.”</span> In <em>Journal of Statistical Mechanics</em>.
+</div>
+<div id="ref-gunasekar_implicit_conv_2018" class="csl-entry"
+role="listitem">
+Gunasekar, Suriya, Jason D. Lee, Daniel Soudry, and Nathan Srebro. 2018.
+<span>“Implicit Bias of Gradient Descent on Linear Convolutional
+Networks.”</span> In <em>Advances in Neural Information Processing
+Systems (NeurIPS)</em>.
+</div>
+<div id="ref-haghifam_conditional_2020" class="csl-entry"
+role="listitem">
+Haghifam, Mahdi, Jeffrey Negrea, Ashish Khisti, Daniel M. Roy, and
+Gintare Karolina Dziugaite. 2020. <span>“Sharpened Generalization Bounds
+Based on Conditional Mutual Information and an Application to Noisy,
+Iterative Algorithms.”</span> In <em>NeurIPS</em>.
+</div>
+<div id="ref-hanin_nica_2019" class="csl-entry" role="listitem">
+Hanin, Boris, and Mihai Nica. 2019. <span>“Finite Depth and Width
+Corrections to the Neural Tangent Kernel.”</span> In <em>Proc.
+International Conference on Learning Representations (ICLR)</em>.
+</div>
+<div id="ref-hastie_ridgeless_2022" class="csl-entry" role="listitem">
+Hastie, Trevor, Andrea Montanari, Saharon Rosset, and Ryan J.
+Tibshirani. 2022. <span>“Surprises in High-Dimensional Ridgeless Least
+Squares Interpolation.”</span> <em>Annals of Statistics</em> 50 (2):
+949–86.
+</div>
+<div id="ref-hastie_elements_2009" class="csl-entry" role="listitem">
+Hastie, Trevor, Robert Tibshirani, and Jerome Friedman. 2009. <em>The
+Elements of Statistical Learning: Data Mining, Inference, and
+Prediction</em>. Second. Springer.
+</div>
+<div id="ref-hestness_scaling_2017" class="csl-entry" role="listitem">
+Hestness, Joel, Sharan Narang, Newsha Ardalani, Gregory Diamos, Heewoo
+Jun, Hassan Kianinejad, Md Mostofa Ali Patwary, Yang Yang, and Yanqi
+Zhou. 2017. <span>“Deep Learning Scaling Is Predictable,
+Empirically.”</span> <em>arXiv Preprint arXiv:1712.00409</em>.
+</div>
+<div id="ref-hoffmann_chinchilla_2022" class="csl-entry"
+role="listitem">
+Hoffmann, Jordan, Sebastian Borgeaud, Arthur Mensch, Elena Buchatskaya,
+Trevor Cai, Eliza Rutherford, Diego de Las Casas, et al. 2022.
+<span>“Training Compute-Optimal Large Language Models.”</span> In
+<em>Advances in Neural Information Processing Systems (NeurIPS)</em>.
+</div>
+<div id="ref-hron_attention_2020" class="csl-entry" role="listitem">
+Hron, Jiri, Yasaman Bahri, Jascha Sohl-Dickstein, and Roman Novak. 2020.
+<span>“Infinite Attention: NNGP and NTK for Deep Attention
+Networks.”</span> In <em>ICML</em>.
+</div>
+<div id="ref-huang_dynamical_2020" class="csl-entry" role="listitem">
+Huang, Jiaoyang, and Horng-Tzer Yau. 2020. <span>“Dynamics of Deep
+Neural Networks and Neural Tangent Hierarchy.”</span> In <em>ICML</em>.
+</div>
+<div id="ref-jacot_ntk_2018" class="csl-entry" role="listitem">
+Jacot, Arthur, Franck Gabriel, and Clément Hongler. 2018. <span>“Neural
+Tangent Kernel: Convergence and Generalization in Neural
+Networks.”</span> In <em>Advances in Neural Information Processing
+Systems (NeurIPS)</em>.
+</div>
+<div id="ref-ji_telgarsky_2019" class="csl-entry" role="listitem">
+Ji, Ziwei, and Matus Telgarsky. 2019. <span>“The Implicit Bias of
+Gradient Descent on Nonseparable Data.”</span> In <em>Proc. Conference
+on Learning Theory (COLT)</em>.
+</div>
+<div id="ref-jiang_fantastic_2020" class="csl-entry" role="listitem">
+Jiang, Yiding, Behnam Neyshabur, Hossein Mobahi, Dilip Krishnan, and
+Samy Bengio. 2020. <span>“Fantastic Generalization Measures and Where to
+Find Them.”</span> In <em>Proc. International Conference on Learning
+Representations (ICLR)</em>.
+</div>
+<div id="ref-kaplan_scaling_2020" class="csl-entry" role="listitem">
+Kaplan, Jared, Sam McCandlish, Tom Henighan, Tom B. Brown, Benjamin
+Chess, Rewon Child, Scott Gray, Alec Radford, Jeffrey Wu, and Dario
+Amodei. 2020. <span>“Scaling Laws for Neural Language Models.”</span>
+<em>arXiv Preprint arXiv:2001.08361</em>.
+</div>
+<div id="ref-lacasse_cbound_2007" class="csl-entry" role="listitem">
+Lacasse, Alexandre, Francois Laviolette, Mario Marchand, Pascal Germain,
+and Nicolas Usunier. 2007. <span>“PAC-Bayes Bounds for the Risk of the
+Majority Vote and the Variance of the Gibbs Classifier.”</span> In
+<em>NeurIPS</em>.
+</div>
+<div id="ref-lee_nngp_2018" class="csl-entry" role="listitem">
+Lee, Jaehoon, Yasaman Bahri, Roman Novak, Samuel S. Schoenholz, Jeffrey
+Pennington, and Jascha Sohl-Dickstein. 2018. <span>“Deep Neural Networks
+as Gaussian Processes.”</span> In <em>Proc. International Conference on
+Learning Representations (ICLR)</em>.
+</div>
+<div id="ref-lee_finite_nngp_infinite_nngp_2020" class="csl-entry"
+role="listitem">
+Lee, Jaehoon, Samuel S. Schoenholz, Jeffrey Pennington, Ben Adlam,
+Lechao Xiao, Roman Novak, and Jascha Sohl-Dickstein. 2020. <span>“Finite
+Versus Infinite Neural Networks: An Empirical Study.”</span> In
+<em>NeurIPS</em>.
+</div>
+<div id="ref-lee_wide_2019" class="csl-entry" role="listitem">
+Lee, Jaehoon, Lechao Xiao, Samuel S. Schoenholz, Yasaman Bahri, Roman
+Novak, Jascha Sohl-Dickstein, and Jeffrey Pennington. 2019. <span>“Wide
+Neural Networks of Any Depth Evolve as Linear Models Under Gradient
+Descent.”</span> In <em>Advances in Neural Information Processing
+Systems (NeurIPS)</em>.
+</div>
+<div id="ref-lei_algorithmic_2019" class="csl-entry" role="listitem">
+Lei, Yunwen, and Yiming Ying. 2020. <span>“Fine-Grained Analysis of
+Stability and Generalization for Stochastic Gradient Descent.”</span> In
+<em>ICML</em>.
+</div>
+<div id="ref-li_enhanced_ntk_2019" class="csl-entry" role="listitem">
+Li, Zhiyuan, Ruosong Wang, Dingli Yu, Simon S. Du, Wei Hu, Ruslan
+Salakhutdinov, and Sanjeev Arora. 2019. <span>“Enhanced Convolutional
+Neural Tangent Kernels.”</span> <em>arXiv Preprint
+arXiv:1911.00809</em>.
+</div>
+<div id="ref-liang_rakhlin_2020" class="csl-entry" role="listitem">
+Liang, Tengyuan, and Alexander Rakhlin. 2020. <span>“Just Interpolate:
+Kernel "Ridgeless" Regression Can Generalize.”</span> <em>Annals of
+Statistics</em> 48 (3): 1329–47.
+</div>
+<div id="ref-maloney_solvable_2022" class="csl-entry" role="listitem">
+Maloney, Alexander, Daniel A. Roberts, and James Sully. 2022. <span>“A
+Solvable Model of Neural Scaling Laws.”</span> <em>arXiv Preprint
+arXiv:2210.16859</em>.
+</div>
+<div id="ref-matthews_gaussian_2018" class="csl-entry" role="listitem">
+Matthews, Alexander G. de G., Mark Rowland, Jiri Hron, Richard E.
+Turner, and Zoubin Ghahramani. 2018. <span>“Gaussian Process Behaviour
+in Wide Deep Neural Networks.”</span> In <em>Proc. International
+Conference on Learning Representations (ICLR)</em>.
+</div>
+<div id="ref-mcallester_pac_1999" class="csl-entry" role="listitem">
+McAllester, David A. 1999. <span>“PAC-Bayesian Model Averaging.”</span>
+In <em>Proc. 12th Annual Conference on Computational Learning Theory
+(COLT)</em>, 164–70.
+</div>
+<div id="ref-mei_montanari_2022" class="csl-entry" role="listitem">
+Mei, Song, and Andrea Montanari. 2022. <span>“The Generalization Error
+of Random Features Regression: Precise Asymptotics and the Double
+Descent Curve.”</span> <em>Communications on Pure and Applied
+Mathematics</em> 75 (4): 667–766.
+</div>
+<div id="ref-mei_mean_field_2018" class="csl-entry" role="listitem">
+Mei, Song, Andrea Montanari, and Phan-Minh Nguyen. 2018. <span>“A Mean
+Field View of the Landscape of Two-Layer Neural Networks.”</span> In
+<em>Proc. National Academy of Sciences</em>, 115:E7665–71. 33.
+</div>
+<div id="ref-michaud_quantization_2023" class="csl-entry"
+role="listitem">
+Michaud, Eric J., Ziming Liu, Uzay Girit, and Max Tegmark. 2023.
+<span>“The Quantization Model of Neural Scaling.”</span> In <em>Advances
+in Neural Information Processing Systems (NeurIPS)</em>.
+</div>
+<div id="ref-mohri_foundations_2018" class="csl-entry" role="listitem">
+Mohri, Mehryar, Afshin Rostamizadeh, and Ameet Talwalkar. 2018.
+<em>Foundations of Machine Learning</em>. Second. MIT Press.
+</div>
+<div id="ref-murphy_pml_intro_2022" class="csl-entry" role="listitem">
+Murphy, Kevin P. 2022. <em>Probabilistic Machine Learning: An
+Introduction</em>. MIT Press. <a
+href="https://probml.github.io/pml-book/book1.html">https://probml.github.io/pml-book/book1.html</a>.
+</div>
+<div id="ref-murphy_pml_advanced_2023" class="csl-entry"
+role="listitem">
+———. 2023. <em>Probabilistic Machine Learning: Advanced Topics</em>. MIT
+Press. <a
+href="https://probml.github.io/pml-book/book2.html">https://probml.github.io/pml-book/book2.html</a>.
+</div>
+<div id="ref-nagarajan_kolter_2019" class="csl-entry" role="listitem">
+Nagarajan, Vaishnavh, and J. Zico Kolter. 2019. <span>“Uniform
+Convergence May Be Unable to Explain Generalization in Deep
+Learning.”</span> In <em>Advances in Neural Information Processing
+Systems (NeurIPS)</em>.
+</div>
+<div id="ref-nakkiran_double_descent_2020" class="csl-entry"
+role="listitem">
+Nakkiran, Preetum, Gal Kaplun, Yamini Bansal, Tristan Yang, Boaz Barak,
+and Ilya Sutskever. 2020. <span>“Deep Double Descent: Where Bigger
+Models and More Data Hurt.”</span> In <em>Proc. International Conference
+on Learning Representations (ICLR)</em>.
+</div>
+<div id="ref-neal_priors_1996" class="csl-entry" role="listitem">
+Neal, Radford M. 1996. <span>“Priors for Infinite Networks.”</span>
+University of Toronto.
+</div>
+<div id="ref-negrea_defense_uc_2020" class="csl-entry" role="listitem">
+Negrea, Jeffrey, Gintare Karolina Dziugaite, and Daniel M. Roy. 2020.
+<span>“In Defense of Uniform Convergence: Generalization via
+Derandomization with an Application to Interpolating Predictors.”</span>
+In <em>ICML</em>.
+</div>
+<div id="ref-neyshabur_pac_bayes_2018" class="csl-entry"
+role="listitem">
+Neyshabur, Behnam, Srinadh Bhojanapalli, and Nathan Srebro. 2018.
+<span>“A PAC-Bayesian Approach to Spectrally-Normalized Margin Bounds
+for Neural Networks.”</span> In <em>Proc. International Conference on
+Learning Representations (ICLR)</em>.
+</div>
+<div id="ref-neyshabur_norm_2015" class="csl-entry" role="listitem">
+Neyshabur, Behnam, Ryota Tomioka, and Nathan Srebro. 2015.
+<span>“Norm-Based Capacity Control in Neural Networks.”</span> In
+<em>Proc. Conference on Learning Theory (COLT)</em>.
+</div>
+<div id="ref-pensia_langevin_2018" class="csl-entry" role="listitem">
+Pensia, Ankit, Varun Jog, and Po-Ling Loh. 2018. <span>“Generalization
+Error Bounds for Noisy, Iterative Algorithms.”</span> In <em>ISIT</em>.
+</div>
+<div id="ref-perez_ortiz_tighter_2021" class="csl-entry"
+role="listitem">
+Perez-Ortiz, Maria, Omar Rivasplata, John Shawe-Taylor, and Csaba
+Szepesvari. 2021. <span>“Tighter Risk Certificates for Neural
+Networks.”</span> <em>Journal of Machine Learning Research</em> 22:
+1–40.
+</div>
+<div id="ref-platt_smo_1999" class="csl-entry" role="listitem">
+Platt, John C. 1999. <span>“Fast Training of Support Vector Machines
+Using Sequential Minimal Optimization.”</span> Microsoft Research.
+</div>
+<div id="ref-power_grokking_2022" class="csl-entry" role="listitem">
+Power, Alethea, Yuri Burda, Harri Edwards, Igor Babuschkin, and Vedant
+Misra. 2022. <span>“Grokking: Generalization Beyond Overfitting on Small
+Algorithmic Datasets.”</span> <em>arXiv Preprint arXiv:2201.02177</em>.
+</div>
+<div id="ref-rahimi_recht_2008" class="csl-entry" role="listitem">
+Rahimi, Ali, and Benjamin Recht. 2008. <span>“Random Features for
+Large-Scale Kernel Machines.”</span> In <em>Advances in Neural
+Information Processing Systems (NeurIPS)</em>.
+</div>
+<div id="ref-rasmussen_williams_2006" class="csl-entry" role="listitem">
+Rasmussen, Carl Edward, and Christopher K. I. Williams. 2006.
+<em>Gaussian Processes for Machine Learning</em>. MIT Press.
+</div>
+<div id="ref-roberts_principles_2022" class="csl-entry" role="listitem">
+Roberts, Daniel A., Sho Yaida, and Boris Hanin. 2022. <em>The Principles
+of Deep Learning Theory: An Effective Theory Approach to Understanding
+Neural Networks</em>. Cambridge University Press.
+</div>
+<div id="ref-russo_zou_2016" class="csl-entry" role="listitem">
+Russo, Daniel, and James Zou. 2016. <span>“Controlling Bias in Adaptive
+Data Analysis Using Information Theory.”</span> In <em>Proc.
+International Conference on Artificial Intelligence and Statistics
+(AISTATS)</em>.
+</div>
+<div id="ref-schaeffer_mirage_2023" class="csl-entry" role="listitem">
+Schaeffer, Rylan, Brando Miranda, and Sanmi Koyejo. 2023. <span>“Are
+Emergent Abilities of Large Language Models a Mirage?”</span> In
+<em>Advances in Neural Information Processing Systems (NeurIPS)</em>.
+</div>
+<div id="ref-schapire_margin_1998" class="csl-entry" role="listitem">
+Schapire, Robert E., Yoav Freund, Peter Bartlett, and Wee Sun Lee. 1998.
+<span>“Boosting the Margin: A New Explanation for the Effectiveness of
+Voting Methods.”</span> <em>Annals of Statistics</em> 26 (5): 1651–86.
+</div>
+<div id="ref-scholkopf_smola_2002" class="csl-entry" role="listitem">
+Schölkopf, Bernhard, and Alexander J. Smola. 2002. <em>Learning with
+Kernels: Support Vector Machines, Regularization, Optimization, and
+Beyond</em>. MIT Press.
+</div>
+<div id="ref-seeger_pac_2002" class="csl-entry" role="listitem">
+Seeger, Matthias. 2002. <span>“PAC-Bayesian Generalisation Error Bounds
+for Gaussian Process Classification.”</span> <em>Journal of Machine
+Learning Research</em> 3: 233–69.
+</div>
+<div id="ref-sharma_kaplan_2022" class="csl-entry" role="listitem">
+Sharma, Utkarsh, and Jared Kaplan. 2022. <span>“Scaling Laws from the
+Data Manifold Dimension.”</span> <em>Journal of Machine Learning
+Research</em> 23: 1–34.
+</div>
+<div id="ref-sorscher_beyond_2022" class="csl-entry" role="listitem">
+Sorscher, Ben, Robert Geirhos, Shashank Shekhar, Surya Ganguli, and Ari
+S. Morcos. 2022. <span>“Beyond Neural Scaling Laws: Beating Power Law
+Scaling via Data Pruning.”</span> In <em>Advances in Neural Information
+Processing Systems (NeurIPS)</em>. <a
+href="https://arxiv.org/abs/2206.14486">https://arxiv.org/abs/2206.14486</a>.
+</div>
+<div id="ref-soudry_implicit_2018" class="csl-entry" role="listitem">
+Soudry, Daniel, Elad Hoffer, Mor Shpigel Nacson, Suriya Gunasekar, and
+Nathan Srebro. 2018. <span>“The Implicit Bias of Gradient Descent on
+Separable Data.”</span> <em>Journal of Machine Learning Research</em>
+19: 1–57.
+</div>
+<div id="ref-szegedy_intriguing_2014" class="csl-entry" role="listitem">
+Szegedy, Christian, Wojciech Zaremba, Ilya Sutskever, Joan Bruna,
+Dumitru Erhan, Ian Goodfellow, and Rob Fergus. 2014. <span>“Intriguing
+Properties of Neural Networks.”</span> In <em>International Conference
+on Learning Representations (ICLR)</em>. <a
+href="https://arxiv.org/abs/1312.6199">https://arxiv.org/abs/1312.6199</a>.
+</div>
+<div id="ref-tsigler_bartlett_2023" class="csl-entry" role="listitem">
+Tsigler, Alexander, and Peter L. Bartlett. 2023. <span>“Benign
+Overfitting in Ridge Regression.”</span> <em>Journal of Machine Learning
+Research</em> 24: 1–76.
+</div>
+<div id="ref-tsipras_robustness_2019" class="csl-entry" role="listitem">
+Tsipras, Dimitris, Shibani Santurkar, Logan Engstrom, Alexander Turner,
+and Aleksander Madry. 2019. <span>“Robustness May Be at Odds with
+Accuracy.”</span> In <em>ICLR</em>.
+</div>
+<div id="ref-vandervaart_asymptotic_1998" class="csl-entry"
+role="listitem">
+Vaart, Aad W. van der. 1998. <em>Asymptotic Statistics</em>. Cambridge
+University Press.
+</div>
+<div id="ref-vapnik_nature_1995" class="csl-entry" role="listitem">
+Vapnik, Vladimir N. 1995. <em>The Nature of Statistical Learning
+Theory</em>. Springer.
+</div>
+<div id="ref-vapnik_chervonenkis_1971" class="csl-entry"
+role="listitem">
+Vapnik, Vladimir N., and Alexey Ya. Chervonenkis. 1971. <span>“On the
+Uniform Convergence of Relative Frequencies of Events to Their
+Probabilities.”</span> <em>Theory of Probability and Its
+Applications</em> 16 (2): 264–80.
+</div>
+<div id="ref-woodworth_kernel_rich_2020" class="csl-entry"
+role="listitem">
+Woodworth, Blake E., Suriya Gunasekar, Jason D. Lee, Edward Moroshko,
+Pedro Savarese, Itay Golan, Daniel Soudry, and Nathan Srebro. 2020.
+<span>“Kernel and Rich Regimes in Overparameterized Models.”</span> In
+<em>Proc. Conference on Learning Theory (COLT)</em>.
+</div>
+<div id="ref-xu_raginsky_2017" class="csl-entry" role="listitem">
+Xu, Aolin, and Maxim Raginsky. 2017. <span>“Information-Theoretic
+Analysis of Generalization Capability of Learning Algorithms.”</span> In
+<em>Advances in Neural Information Processing Systems (NeurIPS)</em>.
+</div>
+<div id="ref-yang_hu_2021" class="csl-entry" role="listitem">
+Yang, Greg, and Edward J. Hu. 2021. <span>“Feature Learning in
+Infinite-Width Neural Networks.”</span> In <em>Proc. International
+Conference on Machine Learning (ICML)</em>.
+</div>
+<div id="ref-zhang_rethinking_2017" class="csl-entry" role="listitem">
+Zhang, Chiyuan, Samy Bengio, Moritz Hardt, Benjamin Recht, and Oriol
+Vinyals. 2017. <span>“Understanding Deep Learning Requires Rethinking
+Generalization.”</span> In <em>Proc. International Conference on
+Learning Representations (ICLR)</em>.
+</div>
+</div>
+<section id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p><em>VC bound vacuity for deep nets</em>: capacity
+proxies (VC dimension, parameter count) overestimate the necessary
+sample size by orders of magnitude. A network with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mo>≈</mo><msup><mn>10</mn><mn>7</mn></msup></mrow><annotation encoding="application/x-tex">W \approx 10^7</annotation></semantics></math>
+parameters has Baum-Haussler VC of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mo>log</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>≈</mo><msup><mn>10</mn><mn>8</mn></msup></mrow><annotation encoding="application/x-tex">O(W \log W) \approx 10^8</annotation></semantics></math>,
+implying
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>≳</mo><msup><mn>10</mn><mn>9</mn></msup></mrow><annotation encoding="application/x-tex">n \gtrsim 10^9</annotation></semantics></math>
+for non-vacuous bounds; ImageNet trains with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>≈</mo><msup><mn>10</mn><mn>6</mn></msup></mrow><annotation encoding="application/x-tex">n \approx 10^6</annotation></semantics></math>
+and generalizes anyway.<a href="#fnref1" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><em>Rademacher tightness gap</em>: data-dependent
+Rademacher complexity <span class="citation"
+data-cites="bartlett_mendelson_2002">(Bartlett and Mendelson
+2002)</span> is provably tighter than VC and removes the worst-case
+dependence on the input distribution, but on over-parameterized networks
+the empirical Rademacher remains close to its trivial upper bound
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mrow><mn>2</mn><mo>log</mo><mn>2</mn><mi>/</mi><mi>n</mi></mrow></msqrt><annotation encoding="application/x-tex">\sqrt{2 \log 2 / n}</annotation></semantics></math>
+and the resulting generalization bound is still vacuous on standard
+image benchmarks.<a href="#fnref2" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p><em>Margin-vs-training-error trade-off</em>: AdaBoost's
+training error can reach 0 after 5-30 rounds while test error keeps
+falling for 1000 rounds; the round-count bound predicts overfitting that
+empirically never occurs. <span class="citation"
+data-cites="schapire_margin_1998">(Schapire et al. 1998)</span> resolved
+this by bounding test error in terms of the <em>margin
+distribution</em>, not the round count.<a href="#fnref3"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p><em>Kernel design as inductive bias</em>: the choice of
+kernel (linear, polynomial, RBF, Matern) encodes the hypothesis class
+via its RKHS, yet there is no principled data-driven selection rule;
+cross-validation over a small grid is the practical default and
+conflates kernel choice with bandwidth tuning.<a href="#fnref4"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p><em>ERM iid assumption</em>: classical bounds assume the
+sample is drawn i.i.d. from a fixed distribution; the assumption fails
+for time-series, online learning, distribution shift, and
+covariate-shift settings, all of which require either domain-adaptation
+extensions or different proof techniques.<a href="#fnref5"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p><em>Concentration looseness for heavy tails</em>:
+Hoeffding gives a sub-Gaussian tail under boundedness alone; Bernstein
+and Bennett tighten this when the variance is small relative to the
+range. Most empirical loss surfaces in deep learning have heavy-tailed
+gradients and per-sample-loss values, so the variance term is large and
+the variance-aware bound is no improvement over Hoeffding.<a
+href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p><em>Capacity-vs-algorithm coupling</em>: classical
+theory bounds the worst-case ERM minimizer over a hypothesis class,
+treating the optimizer as black-box. The actual hypothesis returned by
+SGD on a non-convex loss is a function of the algorithm's geometry
+(initialization, learning-rate schedule, batch size,
+implicit-regularization direction), and the gap between worst-case ERM
+and SGD-output can be many orders of magnitude in the bound.<a
+href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p><em>SMO scaling</em>: kernel SVMs solve a quadratic
+program in the dual with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math>
+Gram-matrix storage and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math>
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>N</mi><mn>3</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(N^3)</annotation></semantics></math>
+compute; SMO <span class="citation" data-cites="platt_smo_1999">(Platt
+1999)</span> avoids a general QP solver via pairwise coordinate ascent
+but the asymptotic scaling persists. Past
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>≈</mo><msup><mn>10</mn><mn>5</mn></msup></mrow><annotation encoding="application/x-tex">N \approx 10^5</annotation></semantics></math>
+the Gram matrix exceeds typical memory and approximation methods
+(Nystrom, random features) become mandatory.<a href="#fnref8"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn9"><p><em>Kernel design as inductive bias</em>: the choice of
+kernel (linear, polynomial, RBF, Matern) encodes the hypothesis class
+via its RKHS, yet there is no principled data-driven selection rule;
+cross-validation over a small grid is the practical default and
+conflates kernel choice with bandwidth tuning.<a href="#fnref9"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn10"><p><em>SMO scaling</em>: kernel SVMs solve a quadratic
+program in the dual with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math>
+Gram-matrix storage and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math>
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>N</mi><mn>3</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(N^3)</annotation></semantics></math>
+compute; SMO <span class="citation" data-cites="platt_smo_1999">(Platt
+1999)</span> avoids a general QP solver via pairwise coordinate ascent
+but the asymptotic scaling persists. Past
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>≈</mo><msup><mn>10</mn><mn>5</mn></msup></mrow><annotation encoding="application/x-tex">N \approx 10^5</annotation></semantics></math>
+the Gram matrix exceeds typical memory and approximation methods
+(Nystrom, random features) become mandatory.<a href="#fnref10"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn11"><p><em>Margin-vs-training-error trade-off</em>: AdaBoost's
+training error can reach 0 after 5-30 rounds while test error keeps
+falling for 1000 rounds; the round-count bound predicts overfitting that
+empirically never occurs. <span class="citation"
+data-cites="schapire_margin_1998">(Schapire et al. 1998)</span> resolved
+this by bounding test error in terms of the <em>margin
+distribution</em>, not the round count.<a href="#fnref11"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn12"><p><em>Margin-vs-training-error trade-off</em>: AdaBoost's
+training error can reach 0 after 5-30 rounds while test error keeps
+falling for 1000 rounds; the round-count bound predicts overfitting that
+empirically never occurs. <span class="citation"
+data-cites="schapire_margin_1998">(Schapire et al. 1998)</span> resolved
+this by bounding test error in terms of the <em>margin
+distribution</em>, not the round count.<a href="#fnref12"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn13"><p><em>ERM iid assumption</em>: classical bounds assume
+the sample is drawn i.i.d. from a fixed distribution; the assumption
+fails for time-series, online learning, distribution shift, and
+covariate-shift settings, all of which require either domain-adaptation
+extensions or different proof techniques.<a href="#fnref13"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn14"><p><em>Capacity-vs-algorithm coupling</em>: classical
+theory bounds the worst-case ERM minimizer over a hypothesis class,
+treating the optimizer as black-box. The actual hypothesis returned by
+SGD on a non-convex loss is a function of the algorithm's geometry
+(initialization, learning-rate schedule, batch size,
+implicit-regularization direction), and the gap between worst-case ERM
+and SGD-output can be many orders of magnitude in the bound.<a
+href="#fnref14" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn15"><p><em>Random-label baseline</em>: <span class="citation"
+data-cites="zhang_rethinking_2017">(Zhang et al. 2017)</span>'s
+randomization test is not a generalization bound but a sharp
+falsification of capacity-based explanations; if a network can memorize
+random labels at training error 0, no class-based capacity argument can
+produce a non-trivial bound on the same architecture for the real-label
+problem.<a href="#fnref15" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn16"><p><em>SGD-optimization of the bound</em>: Dziugaite and
+Roy treat the PAC-Bayes bound as a training loss and optimize a Gaussian
+posterior with SGD; the recipe gives the only fielded non-vacuous bound
+(0.161 on T-600 binary MNIST) but does not scale beyond 3-layer MLPs
+because the KL term grows superlinearly with depth.<a href="#fnref16"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn17"><p><em>Vacuous bounds on deep nets</em>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mrow><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mi>/</mi><mi>n</mi></mrow></msqrt><annotation encoding="application/x-tex">\sqrt{\mathrm{KL}/n}</annotation></semantics></math>
+blows up because the KL between a random initialization (the legal
+prior) and the trained weights (the posterior mean) is huge in deep
+nets, so the resulting bound exceeds 1 on a [0,1] loss except for very
+small networks.<a href="#fnref17" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn18"><p><em>Large KL = small bound trade-off</em>: tightening
+the bound by shifting the posterior mean toward the prior reduces KL but
+also raises empirical risk; the global optimum of the bound trades these
+two terms and on deep nets is dominated by KL except for very small
+models.<a href="#fnref18" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn19"><p><em>Prior must be data-independent</em>: any dependence
+of the prior
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>
+on the training sample
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
+breaks the McAllester proof; legal data-dependent priors (Dziugaite-Roy
+2018, Perez-Ortiz 2021) are constructed on a disjoint split
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mi>′</mi></mrow><annotation encoding="application/x-tex">S&#39;</annotation></semantics></math>,
+trading a smaller KL for sample-splitting overhead and bookkeeping.<a
+href="#fnref19" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn20"><p><em>Spectral-norm product vacuity</em>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∏</mo><mo>ℓ</mo></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>W</mi><mo>ℓ</mo></msub><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">\prod_\ell \|W_\ell\|2</annotation></semantics></math>
+grows polynomially in depth (each layer contributes a factor
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mo>max</mo></mrow><annotation encoding="application/x-tex">\sigma{\max}</annotation></semantics></math>
+that is rarely
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">&lt;1</annotation></semantics></math>
+for ReLU nets at convergence), so the Bartlett-Foster-Telgarsky bound
+exceeds 1 beyond AlexNet-scale architectures even when the empirical gap
+is well-controlled.<a href="#fnref20" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn21"><p><em>MI bounds tighter but harder to estimate</em>:
+information-theoretic bounds replace capacity with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">I(S; W)</annotation></semantics></math>,
+which is finite for noisy SGD and can in principle be smaller than
+KL-based PAC-Bayes; estimating
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">I(S; W)</annotation></semantics></math>
+in high dimensions requires either a Gaussian-process surrogate, a
+Langevin assumption, or kernelized lower bounds.<a href="#fnref21"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn22"><p><em>Conditional MI tightening</em>: <span
+class="citation" data-cites="haghifam_conditional_2020">(Haghifam et al.
+2020)</span> replace
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">I(S; W)</annotation></semantics></math>
+by a conditional MI given a "supersample" construction; the conditioning
+makes the term smaller but shifts the estimation problem to one that is
+in general no easier.<a href="#fnref22" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn23"><p><em>Kendall-rank vs absolute value</em>: a
+generalization measure can have high rank correlation with the true gap
+(its predictive value across a hyperparameter sweep) while its absolute
+number is vacuous; conversely a tight bound on a single model says
+nothing about how the bound moves under perturbation. Reporting both is
+the modern standard.<a href="#fnref23" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn24"><p><em>Flatness measure fragility</em>: sharpness as a
+generalization predictor depends on the parameterization; Dinh et al.
+showed that pointwise reparameterization can scale sharpness arbitrarily
+without changing the predictor function, so a "flat" minimum in one
+parameterization can be sharp in another, defeating naive
+flatness-as-capacity arguments.<a href="#fnref24" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn25"><p><em>Uniform-convergence impossibility</em>: Nagarajan
+and Kolter exhibit a linear-classifier setting in which any two-sided
+uniform-convergence bound is provably nearly vacuous on the SGD-output
+distribution, ruling out the entire classical-style program for
+explaining deep-net generalization.<a href="#fnref25"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn26"><p><em>Vacuous bounds on deep nets</em>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mrow><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mi>/</mi><mi>n</mi></mrow></msqrt><annotation encoding="application/x-tex">\sqrt{\mathrm{KL}/n}</annotation></semantics></math>
+blows up because the KL between a random initialization (the legal
+prior) and the trained weights (the posterior mean) is huge in deep
+nets, so the resulting bound exceeds 1 on a [0,1] loss except for very
+small networks.<a href="#fnref26" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn27"><p><em>Large KL = small bound trade-off</em>: tightening
+the bound by shifting the posterior mean toward the prior reduces KL but
+also raises empirical risk; the global optimum of the bound trades these
+two terms and on deep nets is dominated by KL except for very small
+models.<a href="#fnref27" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn28"><p><em>SGD-optimization of the bound</em>: Dziugaite and
+Roy treat the PAC-Bayes bound as a training loss and optimize a Gaussian
+posterior with SGD; the recipe gives the only fielded non-vacuous bound
+(0.161 on T-600 binary MNIST) but does not scale beyond 3-layer MLPs
+because the KL term grows superlinearly with depth.<a href="#fnref28"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn29"><p><em>Prior must be data-independent</em>: any dependence
+of the prior
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>
+on the training sample
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
+breaks the McAllester proof; legal data-dependent priors (Dziugaite-Roy
+2018, Perez-Ortiz 2021) are constructed on a disjoint split
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mi>′</mi></mrow><annotation encoding="application/x-tex">S&#39;</annotation></semantics></math>,
+trading a smaller KL for sample-splitting overhead and bookkeeping.<a
+href="#fnref29" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn30"><p><em>Spectral-norm product vacuity</em>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∏</mo><mo>ℓ</mo></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>W</mi><mo>ℓ</mo></msub><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">\prod_\ell \|W_\ell\|2</annotation></semantics></math>
+grows polynomially in depth (each layer contributes a factor
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mo>max</mo></mrow><annotation encoding="application/x-tex">\sigma{\max}</annotation></semantics></math>
+that is rarely
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">&lt;1</annotation></semantics></math>
+for ReLU nets at convergence), so the Bartlett-Foster-Telgarsky bound
+exceeds 1 beyond AlexNet-scale architectures even when the empirical gap
+is well-controlled.<a href="#fnref30" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn31"><p><em>MI bounds tighter but harder to estimate</em>:
+information-theoretic bounds replace capacity with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">I(S; W)</annotation></semantics></math>,
+which is finite for noisy SGD and can in principle be smaller than
+KL-based PAC-Bayes; estimating
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">I(S; W)</annotation></semantics></math>
+in high dimensions requires either a Gaussian-process surrogate, a
+Langevin assumption, or kernelized lower bounds.<a href="#fnref31"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn32"><p><em>Conditional MI tightening</em>: <span
+class="citation" data-cites="haghifam_conditional_2020">(Haghifam et al.
+2020)</span> replace
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">I(S; W)</annotation></semantics></math>
+by a conditional MI given a "supersample" construction; the conditioning
+makes the term smaller but shifts the estimation problem to one that is
+in general no easier.<a href="#fnref32" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn33"><p><em>Kendall-rank vs absolute value</em>: a
+generalization measure can have high rank correlation with the true gap
+(its predictive value across a hyperparameter sweep) while its absolute
+number is vacuous; conversely a tight bound on a single model says
+nothing about how the bound moves under perturbation. Reporting both is
+the modern standard.<a href="#fnref33" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn34"><p><em>Flatness measure fragility</em>: sharpness as a
+generalization predictor depends on the parameterization; Dinh et al.
+showed that pointwise reparameterization can scale sharpness arbitrarily
+without changing the predictor function, so a "flat" minimum in one
+parameterization can be sharp in another, defeating naive
+flatness-as-capacity arguments.<a href="#fnref34" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn35"><p><em>MI bounds tighter but harder to estimate</em>:
+information-theoretic bounds replace capacity with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">I(S; W)</annotation></semantics></math>,
+which is finite for noisy SGD and can in principle be smaller than
+KL-based PAC-Bayes; estimating
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">I(S; W)</annotation></semantics></math>
+in high dimensions requires either a Gaussian-process surrogate, a
+Langevin assumption, or kernelized lower bounds.<a href="#fnref35"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn36"><p><em>Flatness measure fragility</em>: sharpness as a
+generalization predictor depends on the parameterization; Dinh et al.
+showed that pointwise reparameterization can scale sharpness arbitrarily
+without changing the predictor function, so a "flat" minimum in one
+parameterization can be sharp in another, defeating naive
+flatness-as-capacity arguments.<a href="#fnref36" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn37"><p><em>Uniform-convergence impossibility</em>: Nagarajan
+and Kolter exhibit a linear-classifier setting in which any two-sided
+uniform-convergence bound is provably nearly vacuous on the SGD-output
+distribution, ruling out the entire classical-style program for
+explaining deep-net generalization.<a href="#fnref37"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn38"><p><em>Random-label baseline</em>: <span class="citation"
+data-cites="zhang_rethinking_2017">(Zhang et al. 2017)</span>'s
+randomization test is not a generalization bound but a sharp
+falsification of capacity-based explanations; if a network can memorize
+random labels at training error 0, no class-based capacity argument can
+produce a non-trivial bound on the same architecture for the real-label
+problem.<a href="#fnref38" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

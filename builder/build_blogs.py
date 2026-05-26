@@ -4,9 +4,12 @@ Run:  python -m builder.build_blogs
 
 Blogs are PRE-GENERATED and committed; the main site build (`python -m builder`)
 does not read the org sources, which live outside the repo under ~/org/roam2.
-Each blog is defined by a BlogSpec: an org file, the section to extract, and
-output metadata. Pandoc renders org -> HTML5 with native MathML (no JS) and
-citeproc-resolved citations from the note's .bib.
+
+Each BlogSpec lists one or more org files; the `Related Work` section of each is
+extracted, footnote labels are namespaced per-file (to avoid collisions when
+combining), and the sections are concatenated under per-file H2 subheadings.
+Pandoc renders org -> HTML5 with native MathML (no JS) and citeproc-resolved
+citations from the folder's shared .bib.
 """
 
 import re
@@ -23,25 +26,23 @@ ORG_ROOT = Path.home() / "org" / "roam2" / "informatics"
 
 @dataclass
 class BlogSpec:
-    slug: str                      # output dir under blogs/
+    slug: str
     title: str
-    meta: str                      # date / byline line
+    meta: str
     description: str
-    org_file: Path                 # source .org
-    section: str = "Related Work"  # top-level heading to extract ("" = whole file)
-    bib: Path | None = None        # bibliography for citeproc
+    sources: list[Path]                # org files whose Related Work is combined
+    bib: Path | None = None
+    section_prefix: str = "Related Work"   # heading prefix to extract
 
 
 # --- org preprocessing ------------------------------------------------------
 
-def _extract_section(text, heading):
-    """Return the body of the top-level `* heading` section (heading line dropped)."""
-    if not heading:
-        return text
+def _extract_section(text, prefix):
+    """Body of the first top-level heading that starts with `prefix`."""
     out, capture = [], False
     for line in text.splitlines():
         if re.match(r"^\*\s", line):
-            capture = line.strip() == f"* {heading}"
+            capture = line.strip().lstrip("*").strip().startswith(prefix)
             continue
         if capture:
             out.append(line)
@@ -57,6 +58,33 @@ def _strip_noise(org_text):
     return org_text
 
 
+def _title_of(text):
+    m = re.search(r"^#\+TITLE:\s*(.+)$", text, flags=re.M)
+    return m.group(1).strip() if m else ""
+
+
+def _namespace_footnotes(text, prefix):
+    """Prefix named footnote labels so combined files don't collide."""
+    return re.sub(r"\[fn:([\w-]+)", rf"[fn:{prefix}-\1", text)
+
+
+def _assemble(spec):
+    """Concatenate the Related Work sections of all sources into one org doc."""
+    multi = len(spec.sources) > 1
+    parts = []
+    for i, src in enumerate(spec.sources):
+        raw = src.read_text()
+        section = _strip_noise(_extract_section(raw, spec.section_prefix))
+        if not section:
+            continue
+        section = _namespace_footnotes(section, f"s{i}")
+        if multi:
+            parts.append(f"** {_title_of(raw)}\n\n{section}")
+        else:
+            parts.append(section)
+    return "\n\n".join(parts)
+
+
 # --- pandoc + HTML postprocessing ------------------------------------------
 
 def _pandoc(org_text, bib):
@@ -69,11 +97,10 @@ def _pandoc(org_text, bib):
 
 def _postprocess(html, org_dir, out_dir):
     """Neutralize internal org links and copy referenced figures locally."""
-    # [[id:...]] cross-note links -> plain text (targets aren't on the site).
-    # pandoc wraps output, so <a and href may be separated by a newline.
+    # [[id:...]] cross-note links -> plain text. pandoc wraps output, so <a and
+    # href may be separated by a newline.
     html = re.sub(r'<a\s+href="id:[^"]*"[^>]*>(.*?)</a>', r"\1", html, flags=re.S)
 
-    # copy referenced figures next to the blog, keep relative src
     figs = set(re.findall(r'src="(figures/[^"]+)"', html))
     if figs:
         (out_dir / "figures").mkdir(parents=True, exist_ok=True)
@@ -82,11 +109,8 @@ def _postprocess(html, org_dir, out_dir):
             if src.exists():
                 shutil.copy2(src, out_dir / rel)
 
-    # wrap tables (which carry attributes) for horizontal scroll on mobile
     html = re.sub(r"<table\b", '<div class="blog-table"><table', html)
     html = html.replace("</table>", "</table></div>")
-
-    # citeproc emits the bibliography without a heading — add one
     html = html.replace('<div id="refs"',
                         '<h2 class="blog-refs-title">References</h2>\n<div id="refs"')
     return html
@@ -123,13 +147,15 @@ BLOG_SHELL = """<!doctype html>
 
 
 def build_blog(spec):
-    org_text = spec.org_file.read_text()
-    section = _strip_noise(_extract_section(org_text, spec.section))
-    body = _pandoc(section, spec.bib)
+    org_text = _assemble(spec)
+    if not org_text.strip():
+        print(f"Warning: no Related Work found for {spec.slug}, skipping", file=sys.stderr)
+        return
+    body = _pandoc(org_text, spec.bib)
 
     out_dir = BASE_DIR / "blogs" / spec.slug
     out_dir.mkdir(parents=True, exist_ok=True)
-    body = _postprocess(body, spec.org_file.parent, out_dir)
+    body = _postprocess(body, spec.sources[0].parent, out_dir)
 
     page = BLOG_SHELL.format(
         title=spec.title, meta=spec.meta, description=spec.description, body=body,
@@ -140,9 +166,20 @@ def build_blog(spec):
 
 # --- registry of blogs to generate -----------------------------------------
 
-RL_DIR = ORG_ROOT / "reinforcement-learning"
+def _folder_sources(folder):
+    """All topic .org files in a folder, sorted, excluding index/sitemap."""
+    skip = {"index", "sitemap"}
+    return sorted(p for p in folder.glob("*.org") if p.stem not in skip)
+
+
+def _spec(slug, title, meta, description, folder):
+    f = ORG_ROOT / folder
+    return BlogSpec(slug=slug, title=title, meta=meta, description=description,
+                    sources=_folder_sources(f), bib=f / f"{folder}.bib")
+
 
 BLOGS = [
+    # RL stays as the single comprehensive cross-chapter survey already published.
     BlogSpec(
         slug="reinforcement-learning",
         title="Reinforcement Learning",
@@ -150,10 +187,48 @@ BLOGS = [
         description="A survey of reinforcement learning models: policy gradients, "
                     "trust-region and actor-critic methods, distributed training, "
                     "model-based RL, and offline / preference-based learning.",
-        org_file=RL_DIR / "01-policy-gradient-foundations.org",
-        section="Related Work",
-        bib=RL_DIR / "reinforcement-learning.bib",
+        sources=[ORG_ROOT / "reinforcement-learning" / "01-policy-gradient-foundations.org"],
+        bib=ORG_ROOT / "reinforcement-learning" / "reinforcement-learning.bib",
     ),
+    _spec("computer-vision", "Computer Vision",
+          "CNN detectors, vision transformers, and detection/segmentation transformers",
+          "A survey of computer-vision models: CNN-based object detection, vision "
+          "transformers, and detection & segmentation transformers.",
+          "computer-vision"),
+    _spec("self-supervised-learning", "Self-Supervised Representation Learning",
+          "Self-supervised pretraining and knowledge distillation",
+          "A survey of self-supervised visual representation learning and knowledge "
+          "distillation.",
+          "deep-learning"),
+    _spec("generative-models", "Generative Models",
+          "Deep generative models, autoregressive generation, diffusion, and VLMs",
+          "A survey of generative models: deep generative models, autoregressive "
+          "visual generation, diffusion transformers, and vision-language models.",
+          "generative-models"),
+    _spec("optimization", "Optimization for Machine Learning",
+          "Optimal transport, Bayesian optimization, and constrained learning",
+          "A survey of optimization in machine learning: optimal transport, Bayesian "
+          "optimization, and constrained optimization.",
+          "optimization"),
+    _spec("probabilistic-deep-learning", "Probabilistic Deep Learning",
+          "Bayesian neural networks, posterior approximation, GPs, and uncertainty",
+          "A survey of probabilistic deep learning: Bayesian neural networks, "
+          "posterior approximation, Gaussian processes, and uncertainty quantification.",
+          "probabilistic-deep-learning"),
+    _spec("statistical-deep-learning", "Statistical Deep Learning",
+          "PAC-Bayes, NTK, benign overfitting / double descent, and scaling laws",
+          "A survey of statistical deep learning: PAC-Bayes generalization, the neural "
+          "tangent kernel, benign overfitting / double descent, and scaling laws.",
+          "statistical-deep-learning"),
+    _spec("quantization-aware-training", "Quantization-Aware Training",
+          "Low-precision deep network training and inference",
+          "A survey of quantization-aware training for low-precision deep networks.",
+          "quantization-aware-training"),
+    _spec("inertial-motion-capture", "Sparse Inertial Motion Capture",
+          "IMU-based pose estimation and sensor fusion",
+          "A survey of sparse inertial motion capture: IMU-based pose estimation and "
+          "sensor fusion.",
+          "inertial-motion-capture"),
 ]
 
 
@@ -165,9 +240,11 @@ def main():
         print("Error: pandoc not found", file=sys.stderr)
         sys.exit(1)
     for spec in BLOGS:
-        if not spec.org_file.exists():
-            print(f"Warning: missing {spec.org_file}, skipping {spec.slug}", file=sys.stderr)
+        existing = [s for s in spec.sources if s.exists()]
+        if not existing:
+            print(f"Warning: no sources for {spec.slug}, skipping", file=sys.stderr)
             continue
+        spec.sources = existing
         build_blog(spec)
 
 

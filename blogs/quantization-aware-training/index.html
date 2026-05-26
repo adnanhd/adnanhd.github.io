@@ -1,0 +1,1105 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="A survey of quantization-aware training for low-precision deep networks." />
+        <title>Quantization-Aware Training - Adnan Harun Dogan</title>
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Quantization-Aware Training</h1>
+            <div class="blog-meta">Low-precision deep network training and inference</div>
+            <article class="blog-body">
+<p>Neural network quantization sits at the intersection of numerical
+analysis, statistical signal processing, and hardware-aware model
+compression. The historical arc divides cleanly into five families,
+walked through paragraph-by-paragraph after the SoTA leaderboard below:
+production INT8 baselines (2011-2018), the
+<strong>binary*/*ternary</strong> extreme-low-bit line (2016-2017),
+<strong>learnable-scale</strong> QAT (2018-2020), mixed-precision and
+transformer-specific QAT (2019-2021), and the LLM-PTQ era (2022-2024).
+Each family is defined by the <strong>granularity</strong><a href="#fn1"
+class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>
+(per-tensor vs per-channel), the placement of trainable parameters
+(clipping bound, step size, zero-point), and the regime of
+weight-vs-activation asymmetry<a href="#fn2" class="footnote-ref"
+id="fnref2" role="doc-noteref"><sup>2</sup></a> that drives the headline
+accuracy.</p>
+<p>Two foundational surveys define the modern vocabulary. <span
+class="citation" data-cites="nagel_white_paper_2021">(Nagel et al.
+2021)</span> is Qualcomm AI Research's practitioner-oriented summary of
+the PTQ state-of-the-art circa 2021, with concrete algorithmic
+descriptions of CLE, AdaRound, and bias correction; <span
+class="citation" data-cites="gholami_survey_2021">(Gholami et al.
+2022)</span> is UC Berkeley's academic literature review organizing
+quantization into a taxonomic tree (precision type, granularity,
+symmetry, scheme). <span class="citation"
+data-cites="nagel_white_paper_2021">(Nagel et al. 2021)</span>'s Section
+4 in particular gives the "calibrate-CLE-biasCorrect-AdaRound" PTQ
+recipe that achieves under 1% INT8 accuracy loss on most CNN
+architectures, and the four-stage ablation on MobileNetV2 INT8 shows
+that skipping any stage costs 0.2-0.8 points top-1; an instructive
+sensitivity to the <strong>calibration data</strong><a href="#fn3"
+class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>
+used at each step.</p>
+<p>The training-time line was crystallized by <span class="citation"
+data-cites="jacob_quantization_2018">(Jacob et al. 2018)</span>, whose
+integer-only inference formulation and fake-quantization graph
+transformation became the reference design for TensorFlow Lite and
+PyTorch Eager Mode. Their work rests on the straight-through estimator
+of <span class="citation" data-cites="bengio_estimating_2013">(Bengio,
+Léonard, and Courville 2013)</span>, which supplies a surrogate gradient
+for the non-differentiable rounding operator and introduces the
+<strong>gradient mismatch</strong><a href="#fn4" class="footnote-ref"
+id="fnref4" role="doc-noteref"><sup>4</sup></a> that all later QAT
+analyses must absorb. <span class="citation"
+data-cites="esser_learned_2020">(Esser et al. 2020)</span> introduced
+the learned step-size formulation (LSQ), demonstrating that the
+<strong>learnable-scale</strong> itself can be treated as a first-class
+trainable parameter; the gradient-scale factor
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo>=</mo><mn>1</mn><mi>/</mi><msqrt><mrow><msub><mi>N</mi><mi>W</mi></msub><msub><mi>q</mi><mo>max</mo></msub></mrow></msqrt></mrow><annotation encoding="application/x-tex">g = 1/\sqrt{N_W q_{\max}}</annotation></semantics></math>
+it derives is what prevents one of the dominant
+<strong>training-instability</strong><a href="#fn5" class="footnote-ref"
+id="fnref5" role="doc-noteref"><sup>5</sup></a> modes when scales
+co-train with weights.</p>
+<div class="blog-table"><table id="tbl:qat-sota">
+<caption>QAT/PTQ SoTA leaderboard. Method links to the chapter section.
+Bits = weight/activation precision (e.g., 4/8 = 4-bit weights, 8-bit
+activations; 4/16 = weight-only with FP16 activations; 1/1 = fully
+binary). Vision (IN1k) reports ImageNet-1k top-1 (%) and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Δ</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math>
+from the FP32 baseline of the listed backbone (negative = drop). NLP
+(GLUE) reports the GLUE-average over 8 tasks for BERT-base derivatives.
+LLM (WT) reports WikiText-2/103 perplexity for LLaMA-7B unless stated;
+lower is better. System reports the model-size compression ratio over
+FP32 (e.g., 4x at INT8, 8x at INT4) and where measured the speedup over
+FP32/FP16 on the originating paper's reference hardware. Loss/Algo cell
+uses (key=value) for headline hyperparameters; CE = cross-entropy, MSE =
+mean-squared error. Dashes mark unreported settings.</caption>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Vision (IN1k)</td>
+<td></td>
+<td></td>
+<td>NLP (GLUE)</td>
+<td>LLM (WT)</td>
+<td>System</td>
+<td></td>
+</tr>
+<tr>
+<td>Method</td>
+<td>Year</td>
+<td>Backbone</td>
+<td>Loss/Algo</td>
+<td>Data</td>
+<td>Bits</td>
+<td>Top-1</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Δ</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math></td>
+<td>Avg</td>
+<td>PPL</td>
+<td>Comp</td>
+<td>Speedup</td>
+</tr>
+<tr>
+<td>Vanhoucke (prod. INT8) <span class="citation"
+data-cites="vanhoucke_improving_2011">(Vanhoucke, Senior, and Mao
+2011)</span></td>
+<td>2011</td>
+<td>DNN-acoustic</td>
+<td>RTN sym. per-tensor</td>
+<td>Voice search</td>
+<td>8/8</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>4x</td>
+<td>3x</td>
+</tr>
+<tr>
+<td>Jacob (TFLite QAT) <span
+class="citation" data-cites="jacob_quantization_2018">(Jacob et al.
+2018)</span></td>
+<td>2018</td>
+<td>MobileNet-V1</td>
+<td>QAT(STE, ReLU6, sym-W asym-A)</td>
+<td>IN1k 1.28M</td>
+<td>8/8</td>
+<td>70.0</td>
+<td>-0.1</td>
+<td>–</td>
+<td>–</td>
+<td>4x</td>
+<td>1.6x</td>
+</tr>
+<tr>
+<td>Krishnamoorthi (per-channel) <span class="citation"
+data-cites="krishnamoorthi_quantizing_2018">(Krishnamoorthi
+2018)</span></td>
+<td>2018</td>
+<td>ResNet-50</td>
+<td>RTN per-channel</td>
+<td>IN1k 1.28M</td>
+<td>8/8</td>
+<td>75.9</td>
+<td>-0.4</td>
+<td>–</td>
+<td>–</td>
+<td>4x</td>
+<td>–</td>
+</tr>
+<tr>
+<td>BNN <span class="citation"
+data-cites="courbariaux_binarized_2016">(Courbariaux et al.
+2016)</span></td>
+<td>2016</td>
+<td>AlexNet</td>
+<td>sign(w) STE, latent-w</td>
+<td>IN1k 1.28M</td>
+<td>1/1</td>
+<td>41.8</td>
+<td>-14.8</td>
+<td>–</td>
+<td>–</td>
+<td>32x</td>
+<td>7-58x</td>
+</tr>
+<tr>
+<td>XNOR-Net <span class="citation"
+data-cites="rastegari_xnor_2016">(Rastegari et al. 2016)</span></td>
+<td>2016</td>
+<td>ResNet-18</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>⋅</mo><mtext mathvariant="normal">sign</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\alpha\cdot\textrm{sign}(w)</annotation></semantics></math>,
+L1-mean</td>
+<td>IN1k 1.28M</td>
+<td>1/1</td>
+<td>51.2</td>
+<td>-18.1</td>
+<td>–</td>
+<td>–</td>
+<td>32x</td>
+<td>58x</td>
+</tr>
+<tr>
+<td>DoReFa-Net <span class="citation"
+data-cites="zhou_dorefa_2016">(Zhou et al. 2016)</span></td>
+<td>2016</td>
+<td>AlexNet</td>
+<td>tanh-norm + uniform-k</td>
+<td>IN1k 1.28M</td>
+<td>1/2</td>
+<td>49.8</td>
+<td>-6.1</td>
+<td>–</td>
+<td>–</td>
+<td>16x</td>
+<td>–</td>
+</tr>
+<tr>
+<td>HWGQ <span class="citation"
+data-cites="cai_deep_2017">(Cai et al. 2017)</span></td>
+<td>2017</td>
+<td>AlexNet</td>
+<td>Lloyd-Max half-Gauss + clipped-STE</td>
+<td>IN1k 1.28M</td>
+<td>1/2</td>
+<td>52.7</td>
+<td>-5.5</td>
+<td>–</td>
+<td>–</td>
+<td>16x</td>
+<td>–</td>
+</tr>
+<tr>
+<td>TWN <span class="citation" data-cites="li_ternary_2016">(Li, Zhang,
+and Liu 2016)</span></td>
+<td>2016</td>
+<td>ResNet-18</td>
+<td>ternary(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Δ</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math>=0.7
+mean-abs)</td>
+<td>IN1k 1.28M</td>
+<td>2/32</td>
+<td>54.5</td>
+<td>-14.8</td>
+<td>–</td>
+<td>–</td>
+<td>16x</td>
+<td>–</td>
+</tr>
+<tr>
+<td>TTQ <span class="citation"
+data-cites="zhu_trained_2017">(Zhu et al. 2017)</span></td>
+<td>2017</td>
+<td>ResNet-18</td>
+<td>trained
+ternary(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>α</mi><mo>+</mo></msup><mo>,</mo><msup><mi>α</mi><mo>−</mo></msup></mrow><annotation encoding="application/x-tex">\alpha^+,\alpha^-</annotation></semantics></math>)</td>
+<td>IN1k 1.28M</td>
+<td>2/32</td>
+<td>57.5</td>
+<td>-11.8</td>
+<td>–</td>
+<td>–</td>
+<td>16x</td>
+<td>–</td>
+</tr>
+<tr>
+<td>PACT <span class="citation"
+data-cites="choi_pact_2018">(Choi et al. 2018)</span></td>
+<td>2018</td>
+<td>ResNet-50</td>
+<td>trainable
+clip(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>,
+wd=1e-4)</td>
+<td>IN1k 1.28M</td>
+<td>4/4</td>
+<td>76.5</td>
+<td>+0.1</td>
+<td>–</td>
+<td>–</td>
+<td>8x</td>
+<td>–</td>
+</tr>
+<tr>
+<td>LSQ <span class="citation"
+data-cites="esser_learned_2020">(Esser et al. 2020)</span></td>
+<td>2020</td>
+<td>ResNet-50</td>
+<td>trainable s,
+g=1/<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mrow><msub><mi>N</mi><mi>W</mi></msub><msub><mi>q</mi><mo>max</mo></msub></mrow></msqrt><annotation encoding="application/x-tex">\sqrt{N_W q_{\max}}</annotation></semantics></math></td>
+<td>IN1k 1.28M</td>
+<td>4/4</td>
+<td>76.7</td>
+<td>+0.6</td>
+<td>–</td>
+<td>–</td>
+<td>8x</td>
+<td>–</td>
+</tr>
+<tr>
+<td>LSQ <span class="citation"
+data-cites="esser_learned_2020">(Esser et al. 2020)</span></td>
+<td>2020</td>
+<td>ResNet-50</td>
+<td>trainable s + clipped-STE</td>
+<td>IN1k 1.28M</td>
+<td>3/3</td>
+<td>77.1</td>
+<td>+1.0</td>
+<td>–</td>
+<td>–</td>
+<td>10.7x</td>
+<td>–</td>
+</tr>
+<tr>
+<td>LSQ+ <span class="citation"
+data-cites="bhalgat_lsq_plus_2020">(Bhalgat et al. 2020)</span></td>
+<td>2020</td>
+<td>EfficientNet-B0</td>
+<td>trainable (s,z), MSE-grid init</td>
+<td>IN1k 1.28M</td>
+<td>3/3</td>
+<td>71.9</td>
+<td>-5.4</td>
+<td>–</td>
+<td>–</td>
+<td>10.7x</td>
+<td>–</td>
+</tr>
+<tr>
+<td>LQ-Nets <span class="citation"
+data-cites="zhang_lq_2018">(D. Zhang et al. 2018)</span></td>
+<td>2018</td>
+<td>ResNet-18</td>
+<td>learned basis, EM-update</td>
+<td>IN1k 1.28M</td>
+<td>2/2</td>
+<td>64.9</td>
+<td>-4.4</td>
+<td>–</td>
+<td>–</td>
+<td>16x</td>
+<td>–</td>
+</tr>
+<tr>
+<td>AdaRound <span class="citation"
+data-cites="nagel_adaround_2020">(Nagel et al. 2020)</span></td>
+<td>2020</td>
+<td>ResNet-18</td>
+<td>learned rounding h(V),
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>-anneal</td>
+<td>IN1k 1024-cal</td>
+<td>4/32</td>
+<td>68.7</td>
+<td>-1.0</td>
+<td>–</td>
+<td>–</td>
+<td>8x</td>
+<td>–</td>
+</tr>
+<tr>
+<td>AdaRound <span class="citation"
+data-cites="nagel_adaround_2020">(Nagel et al. 2020)</span></td>
+<td>2020</td>
+<td>MobileNet-V2</td>
+<td>learned rounding h(V),
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>-anneal</td>
+<td>IN1k 1024-cal</td>
+<td>4/32</td>
+<td>69.3</td>
+<td>-2.4</td>
+<td>–</td>
+<td>–</td>
+<td>8x</td>
+<td>–</td>
+</tr>
+<tr>
+<td>DFQ + BC <span class="citation"
+data-cites="nagel_data_free_2019">(Nagel et al. 2019)</span></td>
+<td>2019</td>
+<td>MobileNet-V2</td>
+<td>CLE + analytic bias-correction (data-free)</td>
+<td>none</td>
+<td>8/8</td>
+<td>71.2</td>
+<td>-0.7</td>
+<td>–</td>
+<td>–</td>
+<td>4x</td>
+<td>–</td>
+</tr>
+<tr>
+<td>HAWQ-V3 <span class="citation"
+data-cites="yao_hawq_v3_2021">(Yao et al. 2021)</span></td>
+<td>2021</td>
+<td>ResNet-50</td>
+<td>ILP(Tr(H), dyadic, BOPs+lat.)</td>
+<td>IN1k 1.28M</td>
+<td>4/8</td>
+<td>75.4</td>
+<td>-0.7</td>
+<td>–</td>
+<td>–</td>
+<td>7.7x</td>
+<td>1.5x</td>
+</tr>
+<tr>
+<td>FracBits <span class="citation"
+data-cites="yang_fracbits_2021">(Yang and Jin 2021)</span></td>
+<td>2021</td>
+<td>MobileNet-V2</td>
+<td>mixture-Q(b=2+6<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>))</td>
+<td>IN1k 1.28M</td>
+<td>4/4</td>
+<td>69.9</td>
+<td>-1.9</td>
+<td>–</td>
+<td>–</td>
+<td>8x</td>
+<td>–</td>
+</tr>
+<tr>
+<td>HAQ <span class="citation"
+data-cites="wang_haq_2019">(Wang et al. 2019)</span></td>
+<td>2019</td>
+<td>MobileNet-V1</td>
+<td>DDPG + hw-sim reward</td>
+<td>IN1k 1.28M</td>
+<td>3.8/8</td>
+<td>70.2</td>
+<td>-0.8</td>
+<td>–</td>
+<td>–</td>
+<td>8.4x</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Q8BERT <span class="citation"
+data-cites="zafrir_q8bert_2019">(Zafrir et al. 2019)</span></td>
+<td>2019</td>
+<td>BERT-base</td>
+<td>QAT(sym-W asym-A, LR=2e-5)</td>
+<td>GLUE+SQuAD</td>
+<td>8/8</td>
+<td>–</td>
+<td>–</td>
+<td>83.2</td>
+<td>–</td>
+<td>4x</td>
+<td>3.7x</td>
+</tr>
+<tr>
+<td>I-BERT <span class="citation"
+data-cites="kim_ibert_2021">(Kim et al. 2021)</span></td>
+<td>2021</td>
+<td>RoBERTa-base</td>
+<td>QAT + integer GELU/softmax/LN</td>
+<td>GLUE</td>
+<td>8/8</td>
+<td>–</td>
+<td>–</td>
+<td>83.0</td>
+<td>–</td>
+<td>4x</td>
+<td>4x</td>
+</tr>
+<tr>
+<td>TernaryBERT <span
+class="citation" data-cites="zhang_ternarybert_2020">(W. Zhang et al.
+2020)</span></td>
+<td>2020</td>
+<td>BERT-base</td>
+<td>TWN+LAT + KD(attn,hidden,logit)</td>
+<td>GLUE</td>
+<td>2/8</td>
+<td>–</td>
+<td>–</td>
+<td>83.2</td>
+<td>–</td>
+<td>14.9x</td>
+<td>–</td>
+</tr>
+<tr>
+<td>GPTQ <span class="citation"
+data-cites="frantar_gptq_2023">(Frantar et al. 2023)</span></td>
+<td>2023</td>
+<td>LLaMA-7B</td>
+<td>OBS-Cholesky(group=128, act-ord)</td>
+<td>C4 128x2048</td>
+<td>4/16</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>5.83</td>
+<td>4x</td>
+<td>3.3-4.5x</td>
+</tr>
+<tr>
+<td>GPTQ <span class="citation"
+data-cites="frantar_gptq_2023">(Frantar et al. 2023)</span></td>
+<td>2023</td>
+<td>LLaMA-7B</td>
+<td>OBS-Cholesky(group=128)</td>
+<td>C4 128x2048</td>
+<td>3/16</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>8.07</td>
+<td>5.3x</td>
+<td>–</td>
+</tr>
+<tr>
+<td>AWQ <span class="citation"
+data-cites="lin_awq_2023">(Lin et al. 2024)</span></td>
+<td>2023</td>
+<td>LLaMA-7B</td>
+<td>per-channel
+scale-search(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>)</td>
+<td>Pile 128x512</td>
+<td>4/16</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>5.78</td>
+<td>4x</td>
+<td>3.2x</td>
+</tr>
+<tr>
+<td>AWQ <span class="citation"
+data-cites="lin_awq_2023">(Lin et al. 2024)</span></td>
+<td>2023</td>
+<td>LLaMA-7B</td>
+<td>per-channel
+scale-search(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>)</td>
+<td>Pile 128x512</td>
+<td>3/16</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>6.24</td>
+<td>5.3x</td>
+<td>–</td>
+</tr>
+<tr>
+<td>SmoothQuant <span
+class="citation" data-cites="xiao_smoothquant_2023">(Xiao et al.
+2023)</span></td>
+<td>2023</td>
+<td>LLaMA-7B</td>
+<td>diag-rescale(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>=0.85),
+W8A8</td>
+<td>Pile 512x512</td>
+<td>8/8</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>5.83</td>
+<td>2x</td>
+<td>1.8-2x</td>
+</tr>
+<tr>
+<td>LLM.int8() <span class="citation"
+data-cites="dettmers_llmint8_2022">(Dettmers et al. 2022)</span></td>
+<td>2022</td>
+<td>OPT-175B</td>
+<td>vector-wise INT8 + FP16-outlier(thr=6)</td>
+<td>Pile-cal</td>
+<td>8/16</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>2x</td>
+<td>0.85x</td>
+</tr>
+<tr>
+<td>QLoRA <span class="citation"
+data-cites="dettmers_qlora_2023">(Dettmers et al. 2023)</span></td>
+<td>2023</td>
+<td>LLaMA-65B</td>
+<td>NF4 base + LoRA(r=64), double-Q</td>
+<td>OASST1</td>
+<td>4/16</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>4x</td>
+<td>0.4x</td>
+</tr>
+<tr>
+<td>SpQR <span class="citation"
+data-cites="dettmers_spqr_2023">(Dettmers et al. 2024)</span></td>
+<td>2023</td>
+<td>LLaMA-33B</td>
+<td>3-bit + 1% FP16 sparse outliers</td>
+<td>C4 calib</td>
+<td>3.94/16</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>4.14</td>
+<td>5.3x</td>
+<td>1.15x</td>
+</tr>
+<tr>
+<td>OmniQuant <span class="citation"
+data-cites="shao_omniquant_2024">(Shao et al. 2024)</span></td>
+<td>2024</td>
+<td>LLaMA-7B</td>
+<td>LWC+LET(block-wise reconst.)</td>
+<td>WikiText 128x2k</td>
+<td>4/4</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>11.26</td>
+<td>8x</td>
+<td>–</td>
+</tr>
+<tr>
+<td>OmniQuant <span class="citation"
+data-cites="shao_omniquant_2024">(Shao et al. 2024)</span></td>
+<td>2024</td>
+<td>LLaMA-7B</td>
+<td>LWC+LET</td>
+<td>WikiText 128x2k</td>
+<td>2/16</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>15.3</td>
+<td>8x</td>
+<td>–</td>
+</tr>
+<tr>
+<td>FP8 <span class="citation"
+data-cites="micikevicius_fp8_2022">(Micikevicius et al.
+2022)</span></td>
+<td>2022</td>
+<td>GPT-3 175B</td>
+<td>E4M3-fwd, E5M2-bwd</td>
+<td>C4-pretrain</td>
+<td>8/8</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>2x</td>
+<td>2x</td>
+</tr>
+</tbody>
+</table></div>
+<p>The table groups the literature into five families, walked through in
+chronological order. The earliest production INT8 line (<span
+class="citation" data-cites="vanhoucke_improving_2011">(Vanhoucke,
+Senior, and Mao 2011)</span>; Krishnamoorthi; <span class="citation"
+data-cites="jacob_quantization_2018">(Jacob et al. 2018)</span>)
+<u>established that PTQ + per-channel weights closes most of the
+FP32-to-INT8 gap on well-behaved CNNs</u> (ResNet, Inception); the
+residual gap on depthwise-heavy architectures (MobileNet, EfficientNet)
+is what motivated the QAT line, because per-tensor <strong>PTQ</strong>
+on MobileNet-V2 collapses to 0.1% top-1<a href="#fn6"
+class="footnote-ref" id="fnref6"
+role="doc-noteref"><sup>6</sup></a>.</p>
+<p>The <strong>binary</strong> and <strong>ternary</strong> extreme line
+(<span class="citation"
+data-cites="courbariaux_binarized_2016">(Courbariaux et al. 2016)</span>
+BNN, <span class="citation" data-cites="rastegari_xnor_2016">(Rastegari
+et al. 2016)</span> XNOR-Net, <span class="citation"
+data-cites="li_ternary_2016">(Li, Zhang, and Liu 2016)</span> TWN, <span
+class="citation" data-cites="zhu_trained_2017">(Zhu et al. 2017)</span>
+TTQ) showed that 1-2 bit weights preserve a substantial fraction of FP32
+accuracy when paired with a learned per-tensor scale
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mo stretchy="false" form="postfix">∥</mo><mi>w</mi><msub><mo stretchy="false" form="postfix">∥</mo><mn>1</mn></msub><mi>/</mi><mi>n</mi></mrow><annotation encoding="application/x-tex">\alpha = \|w\|_1/n</annotation></semantics></math>
+and a <em>first-layer-FP32, last-layer-FP32, binary-core</em> sandwich.
+The XNOR-popcount kernel and the latent-weights training trick are the
+two technical pillars that all subsequent extreme-low-bit work inherits;
+<u>the 18-point IN1k gap of XNOR-Net to FP32 ResNet-18 is the cautionary
+number that pure binary deployment is microcontroller-only and that 4-8
+bit activations are required for production</u><a href="#fn7"
+class="footnote-ref" id="fnref7"
+role="doc-noteref"><sup>7</sup></a>.</p>
+<p>The <strong>learnable-scale</strong> QAT family (DoReFa-Net,
+<strong>PACT</strong> trainable clip
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>,
+LSQ trainable step
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>,
+LSQ+ trainable
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo>,</mo><mi>z</mi><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(s,z)</annotation></semantics></math>)
+made the quantizer's parameters first-class trainables. <u>LSQ at W3A3
+reaches 77.1% on ResNet-50, exceeding the FP32 baseline of 76.1%</u>; a
+regularization-by-noise effect that confirmed <strong>QAT</strong> can
+be lossless or even beneficial at moderate bit-widths. The
+gradient-scale balancing
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo>=</mo><mn>1</mn><mi>/</mi><msqrt><mrow><msub><mi>N</mi><mi>W</mi></msub><msub><mi>q</mi><mo>max</mo></msub></mrow></msqrt></mrow><annotation encoding="application/x-tex">g = 1/\sqrt{N_W q_{\max}}</annotation></semantics></math>
+is load-bearing for convergence<a href="#fn8" class="footnote-ref"
+id="fnref8" role="doc-noteref"><sup>8</sup></a>: without it,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+decays to zero and the quantizer collapses.</p>
+<figure id="fig:qat-family-timeline">
+<img src="figures/qat-family-timeline.svg" />
+<figcaption>QAT/PTQ family evolution from 2011 production INT8 to 2024
+LLM W4A4. Marker shape and colour encode family; the dotted lines mark
+the INT8 (TFLite) and INT4 (LLM weight-only) regimes that anchor the
+field. Three observations match the table reading: (i) the
+<strong>binary*/*ternary</strong> line stayed at 1-2 bits but never
+closed the IN1k gap below 10 points; (ii) the
+<strong>learnable-scale</strong> line crossed FP32 at W3A3 in 2020 (LSQ
+on ResNet-50) and W4A4 in 2018 (PACT); (iii) the
+<strong>LLM-PTQ</strong> era pushed weight-only precision from 16 bits
+(FP16) down to 3 bits (SpQR, OmniQuant) in roughly twelve months, with
+activations still pinned at 16 or 8 bits because <strong>activation
+outliers</strong><a href="#fn9" class="footnote-ref" id="fnref9"
+role="doc-noteref"><sup>9</sup></a> block the W4A4 frontier until
+OmniQuant's block-wise reconstruction in 2024.</figcaption>
+</figure>
+<p><strong>Mixed-precision</strong> allocation (<span class="citation"
+data-cites="dong_hawq_2019">(Dong et al. 2019)</span> HAWQ, HAWQ-V2
+trace, HAWQ-V3 ILP, HAQ DDPG, FracBits) attacked <strong>bit
+allocation</strong><a href="#fn10" class="footnote-ref" id="fnref10"
+role="doc-noteref"><sup>10</sup></a> as a constrained optimization
+problem. <u>HAWQ-V3's one-second ILP over Hessian-trace sensitivity,
+BOPs, and profiled-latency constraints is the most operational of these
+methods</u>; FracBits'
+fractional-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+relaxation cuts the search to a single training run. The family's
+load-bearing limitation is <strong>scaling failure</strong><a
+href="#fn11" class="footnote-ref" id="fnref11"
+role="doc-noteref"><sup>11</sup></a>: per-layer Hessian trace estimation
+costs hours on LLaMA-70B, which is why LLM quantization abandoned
+mixed-precision in favor of weight-only + outlier-handling<a
+href="#fn12" class="footnote-ref" id="fnref12"
+role="doc-noteref"><sup>12</sup></a>.</p>
+<p>The <strong>transformer</strong> QAT line (Q8BERT W8A8, I-BERT
+integer-only GELU/softmax/LN, TernaryBERT W2A8 + KD) and the
+<strong>LLM-PTQ</strong> era (LLM.int8() outlier sidecar, GPTQ
+second-order Cholesky, AWQ scale-search, SmoothQuant diagonal rescale,
+QLoRA NF4+LoRA, SpQR sparse 3-bit, OmniQuant LWC+LET) define the modern
+frontier. <u>The "quantize the matmuls, float the normalization"
+template established by Q8BERT in 2019 is still the universal layout for
+transformer QAT</u>, with <strong>outlier-aware</strong> methods
+stacking on top of it for the 6.7B+ parameter regime where coordinated
+<strong>activation outliers</strong><a href="#fn13" class="footnote-ref"
+id="fnref13" role="doc-noteref"><sup>13</sup></a> emerge. The W4A16
+weight-only regime is essentially solved (GPTQ, AWQ within 0.1 ppl of
+FP16); the W4A4 regime opened only with OmniQuant's block-wise
+reconstruction in 2024<a href="#fn14" class="footnote-ref" id="fnref14"
+role="doc-noteref"><sup>14</sup></a>, and the W2A16 regime is on the
+active research frontier.</p>
+<p>The table separates four regimes by precision: W8A8
+(production-deployable, TFLite/ONNX), W4A4 (mid-2020s frontier, edge
+accelerators with INT4 tensor cores), W4A16 (LLM weight-only,
+memory-bandwidth-bound serving), and W3-W2 (extreme weight compression
+with sparse outlier safety nets). Three readings. First,
+<strong>learnable-scale</strong> methods (LSQ, LSQ+) consistently match
+or exceed <strong>PTQ</strong> methods (RTN, AdaRound) on CNN backbones
+at 3-4 bits, but at the cost of a full retraining budget; for LLMs this
+cost is prohibitive and the LLM-PTQ family wins by construction.
+<u>Second, KD (TernaryBERT) is the load-bearing element for sub-4-bit
+weight-only on small networks: 5+ GLUE points come from the teacher
+signal, not from the quantization recipe itself.</u> Third, the
+activation precision <em>lags</em> the weight precision by one or two
+regimes at every point in the timeline: weights at 1-2 bits with
+activations at 32 in 2016, weights at 4 with activations at 8 in 2020,
+weights at 4 with activations at 16 in 2023, and only OmniQuant 2024
+closing the gap to W4A4 on LLMs. This persistent
+<strong>weight-vs-activation asymmetry</strong><a href="#fn15"
+class="footnote-ref" id="fnref15" role="doc-noteref"><sup>15</sup></a>
+is the single most predictive structural feature for choosing which
+family to deploy.</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-bengio_estimating_2013" class="csl-entry" role="listitem">
+Bengio, Yoshua, Nicholas Léonard, and Aaron Courville. 2013.
+<span>“Estimating or Propagating Gradients Through Stochastic Neurons
+for Conditional Computation.”</span> <em>arXiv</em>. <a
+href="https://arxiv.org/abs/1308.3432">https://arxiv.org/abs/1308.3432</a>.
+</div>
+<div id="ref-bhalgat_lsq_plus_2020" class="csl-entry" role="listitem">
+Bhalgat, Yash, Jinwon Lee, Markus Nagel, Tijmen Blankevoort, and Nojun
+Kwak. 2020. <span>“LSQ+: Improving Low-Bit Quantization Through
+Learnable Offsets and Better Initialization.”</span> In <em>CVPR
+Workshops</em>. <a
+href="https://arxiv.org/abs/2004.09576">https://arxiv.org/abs/2004.09576</a>.
+</div>
+<div id="ref-cai_deep_2017" class="csl-entry" role="listitem">
+Cai, Zhaowei, Xiaodong He, Jian Sun, and Nuno Vasconcelos. 2017.
+<span>“Deep Learning with Low Precision by Half-Wave Gaussian
+Quantization.”</span> <em>CVPR</em>. <a
+href="https://arxiv.org/abs/1702.00953">https://arxiv.org/abs/1702.00953</a>.
+</div>
+<div id="ref-choi_pact_2018" class="csl-entry" role="listitem">
+Choi, Jungwook, Zhuo Wang, Swagath Venkataramani, Pierce I-Jen Chuang,
+Vijayalakshmi Srinivasan, and Kailash Gopalakrishnan. 2018. <span>“PACT:
+Parameterized Clipping Activation for Quantized Neural Networks.”</span>
+In <em>arXiv</em>. <a
+href="https://arxiv.org/abs/1805.06085">https://arxiv.org/abs/1805.06085</a>.
+</div>
+<div id="ref-courbariaux_binarized_2016" class="csl-entry"
+role="listitem">
+Courbariaux, Matthieu, Itay Hubara, Daniel Soudry, Ran El-Yaniv, and
+Yoshua Bengio. 2016. <span>“Binarized Neural Networks: Training Deep
+Neural Networks with Weights and Activations Constrained to +1 or
+-1.”</span> In <em>NeurIPS</em>. <a
+href="https://arxiv.org/abs/1602.02830">https://arxiv.org/abs/1602.02830</a>.
+</div>
+<div id="ref-dettmers_llmint8_2022" class="csl-entry" role="listitem">
+Dettmers, Tim, Mike Lewis, Younes Belkada, and Luke Zettlemoyer. 2022.
+<span>“LLM.int8(): 8-Bit Matrix Multiplication for Transformers at
+Scale.”</span> In <em>NeurIPS</em>. <a
+href="https://arxiv.org/abs/2208.07339">https://arxiv.org/abs/2208.07339</a>.
+</div>
+<div id="ref-dettmers_qlora_2023" class="csl-entry" role="listitem">
+Dettmers, Tim, Artidoro Pagnoni, Ari Holtzman, and Luke Zettlemoyer.
+2023. <span>“QLoRA: Efficient Finetuning of Quantized LLMs.”</span> In
+<em>NeurIPS</em>. <a
+href="https://arxiv.org/abs/2305.14314">https://arxiv.org/abs/2305.14314</a>.
+</div>
+<div id="ref-dettmers_spqr_2023" class="csl-entry" role="listitem">
+Dettmers, Tim, Ruslan Svirschevski, Vage Egiazarian, Denis Kuznedelev,
+Elias Frantar, Saleh Ashkboos, Alexander Borzunov, Torsten Hoefler, and
+Dan Alistarh. 2024. <span>“SpQR: A Sparse-Quantized Representation for
+Near-Lossless LLM Weight Compression.”</span> In <em>ICLR</em>. <a
+href="https://arxiv.org/abs/2306.03078">https://arxiv.org/abs/2306.03078</a>.
+</div>
+<div id="ref-dong_hawq_2019" class="csl-entry" role="listitem">
+Dong, Zhen, Zhewei Yao, Amir Gholami, Michael W. Mahoney, and Kurt
+Keutzer. 2019. <span>“HAWQ: Hessian AWare Quantization of Neural
+Networks with Mixed-Precision.”</span> In <em>ICCV</em>. <a
+href="https://arxiv.org/abs/1905.03696">https://arxiv.org/abs/1905.03696</a>.
+</div>
+<div id="ref-esser_learned_2020" class="csl-entry" role="listitem">
+Esser, Steven K., Jeffrey L. McKinstry, Deepika Bablani, Rathinakumar
+Appuswamy, and Dharmendra S. Modha. 2020. <span>“Learned Step Size
+Quantization.”</span> In <em>ICLR</em>. <a
+href="https://arxiv.org/abs/1902.08153">https://arxiv.org/abs/1902.08153</a>.
+</div>
+<div id="ref-frantar_gptq_2023" class="csl-entry" role="listitem">
+Frantar, Elias, Saleh Ashkboos, Torsten Hoefler, and Dan Alistarh. 2023.
+<span>“GPTQ: Accurate Post-Training Quantization for Generative
+Pre-Trained Transformers.”</span> In <em>ICLR</em>. <a
+href="https://arxiv.org/abs/2210.17323">https://arxiv.org/abs/2210.17323</a>.
+</div>
+<div id="ref-gholami_survey_2021" class="csl-entry" role="listitem">
+Gholami, Amir, Sehoon Kim, Zhen Dong, Zhewei Yao, Michael W. Mahoney,
+and Kurt Keutzer. 2022. <span>“A Survey of Quantization Methods for
+Efficient Neural Network Inference.”</span> In <em>Low-Power Computer
+Vision: Improving the Efficiency of Artificial Intelligence</em>. <a
+href="https://arxiv.org/abs/2103.13630">https://arxiv.org/abs/2103.13630</a>.
+</div>
+<div id="ref-jacob_quantization_2018" class="csl-entry" role="listitem">
+Jacob, Benoit, Skirmantas Kligys, Bo Chen, Menglong Zhu, Matthew Tang,
+Andrew Howard, Hartwig Adam, and Dmitry Kalenichenko. 2018.
+<span>“Quantization and Training of Neural Networks for Efficient
+Integer-Arithmetic-Only Inference.”</span> In <em>CVPR</em>. <a
+href="https://arxiv.org/abs/1712.05877">https://arxiv.org/abs/1712.05877</a>.
+</div>
+<div id="ref-kim_ibert_2021" class="csl-entry" role="listitem">
+Kim, Sehoon, Amir Gholami, Zhewei Yao, Michael W. Mahoney, and Kurt
+Keutzer. 2021. <span>“I-BERT: Integer-Only BERT Quantization.”</span> In
+<em>ICML</em>. <a
+href="https://arxiv.org/abs/2101.01321">https://arxiv.org/abs/2101.01321</a>.
+</div>
+<div id="ref-krishnamoorthi_quantizing_2018" class="csl-entry"
+role="listitem">
+Krishnamoorthi, Raghuraman. 2018. <span>“Quantizing Deep Convolutional
+Networks for Efficient Inference: A Whitepaper.”</span> <em>arXiv</em>.
+<a
+href="https://arxiv.org/abs/1806.08342">https://arxiv.org/abs/1806.08342</a>.
+</div>
+<div id="ref-li_ternary_2016" class="csl-entry" role="listitem">
+Li, Fengfu, Bo Zhang, and Bin Liu. 2016. <span>“Ternary Weight
+Networks.”</span> In <em>arXiv</em>. <a
+href="https://arxiv.org/abs/1605.04711">https://arxiv.org/abs/1605.04711</a>.
+</div>
+<div id="ref-lin_awq_2023" class="csl-entry" role="listitem">
+Lin, Ji, Jiaming Tang, Haotian Tang, Shang Yang, Xingyu Dang, Chuang
+Gan, and Song Han. 2024. <span>“AWQ: Activation-Aware Weight
+Quantization for LLM Compression and Acceleration.”</span> In
+<em>MLSys</em>. <a
+href="https://arxiv.org/abs/2306.00978">https://arxiv.org/abs/2306.00978</a>.
+</div>
+<div id="ref-micikevicius_fp8_2022" class="csl-entry" role="listitem">
+Micikevicius, Paulius, Dusan Stosic, Neil Burgess, Marius Cornea,
+Pradeep Dubey, Richard Grisenthwaite, Sangwon Ha, et al. 2022.
+<span>“FP8 Formats for Deep Learning.”</span> <em>arXiv</em>. <a
+href="https://arxiv.org/abs/2209.05433">https://arxiv.org/abs/2209.05433</a>.
+</div>
+<div id="ref-nagel_adaround_2020" class="csl-entry" role="listitem">
+Nagel, Markus, Rana Ali Amjad, Mart Van Baalen, Christos Louizos, and
+Tijmen Blankevoort. 2020. <span>“Up or down? Adaptive Rounding for
+Post-Training Quantization.”</span> In <em>ICML</em>. <a
+href="https://arxiv.org/abs/2004.10568">https://arxiv.org/abs/2004.10568</a>.
+</div>
+<div id="ref-nagel_data_free_2019" class="csl-entry" role="listitem">
+Nagel, Markus, Mart van Baalen, Tijmen Blankevoort, and Max Welling.
+2019. <span>“Data-Free Quantization Through Weight Equalization and Bias
+Correction.”</span> In <em>ICCV</em>. <a
+href="https://arxiv.org/abs/1906.04721">https://arxiv.org/abs/1906.04721</a>.
+</div>
+<div id="ref-nagel_white_paper_2021" class="csl-entry" role="listitem">
+Nagel, Markus, Marios Fournarakis, Rana Ali Amjad, Yelysei Bondarenko,
+Mart van Baalen, and Tijmen Blankevoort. 2021. <span>“A White Paper on
+Neural Network Quantization.”</span> <em>arXiv</em>. <a
+href="https://arxiv.org/abs/2106.08295">https://arxiv.org/abs/2106.08295</a>.
+</div>
+<div id="ref-rastegari_xnor_2016" class="csl-entry" role="listitem">
+Rastegari, Mohammad, Vicente Ordonez, Joseph Redmon, and Ali Farhadi.
+2016. <span>“XNOR-Net: ImageNet Classification Using Binary
+Convolutional Neural Networks.”</span> In <em>ECCV</em>. <a
+href="https://arxiv.org/abs/1603.05279">https://arxiv.org/abs/1603.05279</a>.
+</div>
+<div id="ref-shao_omniquant_2024" class="csl-entry" role="listitem">
+Shao, Wenqi, Mengzhao Chen, Zhaoyang Zhang, Peng Xu, Lirui Zhao, Zhiqian
+Li, Kaipeng Zhang, Peng Gao, Yu Qiao, and Ping Luo. 2024.
+<span>“OmniQuant: Omnidirectionally Calibrated Quantization for Large
+Language Models.”</span> In <em>ICLR</em>. <a
+href="https://arxiv.org/abs/2308.13137">https://arxiv.org/abs/2308.13137</a>.
+</div>
+<div id="ref-vanhoucke_improving_2011" class="csl-entry"
+role="listitem">
+Vanhoucke, Vincent, Andrew Senior, and Mark Z. Mao. 2011.
+<span>“Improving the Speed of Neural Networks on CPUs.”</span> In
+<em>NeurIPS Workshop on Deep Learning and Unsupervised Feature
+Learning</em>.
+</div>
+<div id="ref-wang_haq_2019" class="csl-entry" role="listitem">
+Wang, Kuan, Zhijian Liu, Yujun Lin, Ji Lin, and Song Han. 2019.
+<span>“HAQ: Hardware-Aware Automated Quantization with Mixed
+Precision.”</span> In <em>CVPR</em>. <a
+href="https://arxiv.org/abs/1811.08886">https://arxiv.org/abs/1811.08886</a>.
+</div>
+<div id="ref-xiao_smoothquant_2023" class="csl-entry" role="listitem">
+Xiao, Guangxuan, Ji Lin, Mickael Seznec, Hao Wu, Julien Demouth, and
+Song Han. 2023. <span>“SmoothQuant: Accurate and Efficient Post-Training
+Quantization for Large Language Models.”</span> In <em>ICML</em>. <a
+href="https://arxiv.org/abs/2211.10438">https://arxiv.org/abs/2211.10438</a>.
+</div>
+<div id="ref-yang_fracbits_2021" class="csl-entry" role="listitem">
+Yang, Linjie, and Qing Jin. 2021. <span>“FracBits: Mixed Precision
+Quantization via Fractional Bit-Widths.”</span> In <em>AAAI</em>. <a
+href="https://arxiv.org/abs/2007.02017">https://arxiv.org/abs/2007.02017</a>.
+</div>
+<div id="ref-yao_hawq_v3_2021" class="csl-entry" role="listitem">
+Yao, Zhewei, Zhen Dong, Zhangcheng Zheng, Amir Gholami, Jiali Yu, Eric
+Tan, Leyuan Wang, et al. 2021. <span>“HAWQ-V3: Dyadic Neural Network
+Quantization.”</span> In <em>ICML</em>. <a
+href="https://arxiv.org/abs/2011.10680">https://arxiv.org/abs/2011.10680</a>.
+</div>
+<div id="ref-yin_understanding_2019" class="csl-entry" role="listitem">
+Yin, Penghang, Jiancheng Lyu, Shuai Zhang, Stanley Osher, Yingyong Qi,
+and Jack Xin. 2019. <span>“Understanding Straight-Through Estimator in
+Training Activation Quantized Neural Nets.”</span> In <em>ICLR</em>. <a
+href="https://arxiv.org/abs/1903.05662">https://arxiv.org/abs/1903.05662</a>.
+</div>
+<div id="ref-zafrir_q8bert_2019" class="csl-entry" role="listitem">
+Zafrir, Ofir, Guy Boudoukh, Peter Izsak, and Moshe Wasserblat. 2019.
+<span>“Q8BERT: Quantized 8Bit BERT.”</span> In <em>NeurIPS Workshop on
+Energy Efficient ML and Cognitive Computing</em>. <a
+href="https://arxiv.org/abs/1910.06188">https://arxiv.org/abs/1910.06188</a>.
+</div>
+<div id="ref-zhang_lq_2018" class="csl-entry" role="listitem">
+Zhang, Dongqing, Jiaolong Yang, Dongqiangzi Ye, and Gang Hua. 2018.
+<span>“LQ-Nets: Learned Quantization for Highly Accurate and Compact
+Deep Neural Networks.”</span> In <em>ECCV</em>. <a
+href="https://arxiv.org/abs/1807.10029">https://arxiv.org/abs/1807.10029</a>.
+</div>
+<div id="ref-zhang_ternarybert_2020" class="csl-entry" role="listitem">
+Zhang, Wei, Lu Hou, Yichun Yin, Lifeng Shang, Xiao Chen, Xin Jiang, and
+Qun Liu. 2020. <span>“TernaryBERT: Distillation-Aware Ultra-Low Bit
+BERT.”</span> In <em>EMNLP</em>. <a
+href="https://arxiv.org/abs/2009.12812">https://arxiv.org/abs/2009.12812</a>.
+</div>
+<div id="ref-zhou_dorefa_2016" class="csl-entry" role="listitem">
+Zhou, Shuchang, Yuxin Wu, Zekun Ni, Xinyu Zhou, He Wen, and Yuheng Zou.
+2016. <span>“DoReFa-Net: Training Low Bitwidth Convolutional Neural
+Networks with Low Bitwidth Gradients.”</span> In <em>arXiv</em>. <a
+href="https://arxiv.org/abs/1606.06160">https://arxiv.org/abs/1606.06160</a>.
+</div>
+<div id="ref-zhu_trained_2017" class="csl-entry" role="listitem">
+Zhu, Chenzhuo, Song Han, Huizi Mao, and William J. Dally. 2017.
+<span>“Trained Ternary Quantization.”</span> In <em>ICLR</em>. <a
+href="https://arxiv.org/abs/1612.01064">https://arxiv.org/abs/1612.01064</a>.
+</div>
+</div>
+<section id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p><em>Per-tensor vs per-channel granularity</em>:
+per-channel weight quantization recovers 2-5 points top-1 on MobileNetV2
+at negligible hardware cost, but per-channel <em>activation</em>
+quantization is rarely supported because the reduction-axis layout in
+INT8 GEMM kernels cannot absorb a per-channel scale lookup at full
+throughput.<a href="#fnref1" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><em>Weight-vs-activation asymmetry</em>: weights
+quantize easier than activations because they are static,
+near-zero-mean, and admit per-output-channel scales; activations are
+runtime-dependent, post-ReLU one-sided, and constrained to per-tensor
+scales by GEMM-kernel layout. The W4A4 regime closed only in 2024
+(OmniQuant) while W8A8 was solved in 2018 (Jacob).<a href="#fnref2"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p><em>Calibration data sensitivity</em>: PTQ accuracy
+depends on 128-1024 calibration samples whose exact indices are rarely
+published; switching from C4 to Pile shifts LLaMA-7B perplexity by
+0.05-0.1 in GPTQ, and below 256 CNN samples the range estimates wobble
+more than 5%.<a href="#fnref3" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p><em>STE gradient mismatch</em>: the straight-through
+estimator skips the rounding nonlinearity in the backward pass, yielding
+a biased surrogate whose bias is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>s</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(s^2)</annotation></semantics></math>
+under a locally linear loss assumption <span class="citation"
+data-cites="yin_understanding_2019">(Yin et al. 2019)</span> but grows
+uncontrollably for sharp minima or saturated activations.<a
+href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p><em>QAT training instability</em>: low-bit (W2/W3)
+training diverges without (i) clipped STE <span class="citation"
+data-cites="cai_deep_2017">(Cai et al. 2017)</span>, (ii) gradient-scale
+balancing of step size vs. weights <span class="citation"
+data-cites="esser_learned_2020">(Esser et al. 2020)</span>, or (iii)
+BN-statistics freezing after warmup; unclipped STE converges to spurious
+critical points <span class="citation"
+data-cites="yin_understanding_2019">(Yin et al. 2019)</span>.<a
+href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p><em>Scaling failure</em>: methods that work for
+ResNet-50 fail on LLaMA. INT8 PTQ collapses on MobileNetV2 (per-tensor:
+0.1% top-1) without per-channel; HAWQ-trace mixed-precision is
+computationally infeasible above ~1B parameters; LLM.int8() is
+<em>counterproductive</em> below 6.7B because the outlier-decomposition
+machinery adds latency without an outlier signal to capture.<a
+href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p><em>Weight-vs-activation asymmetry</em>: weights
+quantize easier than activations because they are static,
+near-zero-mean, and admit per-output-channel scales; activations are
+runtime-dependent, post-ReLU one-sided, and constrained to per-tensor
+scales by GEMM-kernel layout. The W4A4 regime closed only in 2024
+(OmniQuant) while W8A8 was solved in 2018 (Jacob).<a href="#fnref7"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p><em>QAT training instability</em>: low-bit (W2/W3)
+training diverges without (i) clipped STE <span class="citation"
+data-cites="cai_deep_2017">(Cai et al. 2017)</span>, (ii) gradient-scale
+balancing of step size vs. weights <span class="citation"
+data-cites="esser_learned_2020">(Esser et al. 2020)</span>, or (iii)
+BN-statistics freezing after warmup; unclipped STE converges to spurious
+critical points <span class="citation"
+data-cites="yin_understanding_2019">(Yin et al. 2019)</span>.<a
+href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn9"><p><em>Activation outliers (LLM)</em>: at and above ~6.7B
+parameters, 0.1-0.3% of feature dimensions develop activations exceeding
+6 standard deviations <span class="citation"
+data-cites="dettmers_llmint8_2022">(Dettmers et al. 2022)</span>, which
+a single per-tensor scale cannot represent without sacrificing the
+dynamic range of the remaining 99.9%; SmoothQuant migrates the
+difficulty to weights, LLM.int8() routes outlier channels through an
+FP16 sidecar, AWQ scales salient weight channels.<a href="#fnref9"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn10"><p><em>Mixed-precision bit allocation</em>: choosing an
+integer bit-width per layer subject to a memory or BOPs budget is
+NP-hard; HAWQ-V3 reduces the search to a one-second ILP via
+Hessian-trace sensitivity scores, FracBits relaxes integer bit-widths to
+a continuous
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mn>2</mn><mo>,</mo><mn>8</mn><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[2,8]</annotation></semantics></math>
+interpolation, HAQ uses DDPG over hardware simulators.<a href="#fnref10"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn11"><p><em>Scaling failure</em>: methods that work for
+ResNet-50 fail on LLaMA. INT8 PTQ collapses on MobileNetV2 (per-tensor:
+0.1% top-1) without per-channel; HAWQ-trace mixed-precision is
+computationally infeasible above ~1B parameters; LLM.int8() is
+<em>counterproductive</em> below 6.7B because the outlier-decomposition
+machinery adds latency without an outlier signal to capture.<a
+href="#fnref11" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn12"><p><em>LLM-scale calibration cost</em>: AdaRound's
+per-layer 10K-step optimization costs 30 minutes per layer (12+ hours
+total on LLaMA-7B); GPTQ's batched-Cholesky updates do the same job in 4
+GPU-hours by sacrificing per-weight optimality for column-wise error
+compensation.<a href="#fnref12" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn13"><p><em>Activation outliers (LLM)</em>: at and above ~6.7B
+parameters, 0.1-0.3% of feature dimensions develop activations exceeding
+6 standard deviations <span class="citation"
+data-cites="dettmers_llmint8_2022">(Dettmers et al. 2022)</span>, which
+a single per-tensor scale cannot represent without sacrificing the
+dynamic range of the remaining 99.9%; SmoothQuant migrates the
+difficulty to weights, LLM.int8() routes outlier channels through an
+FP16 sidecar, AWQ scales salient weight channels.<a href="#fnref13"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn14"><p><em>Weight-vs-activation asymmetry</em>: weights
+quantize easier than activations because they are static,
+near-zero-mean, and admit per-output-channel scales; activations are
+runtime-dependent, post-ReLU one-sided, and constrained to per-tensor
+scales by GEMM-kernel layout. The W4A4 regime closed only in 2024
+(OmniQuant) while W8A8 was solved in 2018 (Jacob).<a href="#fnref14"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn15"><p><em>Weight-vs-activation asymmetry</em>: weights
+quantize easier than activations because they are static,
+near-zero-mean, and admit per-output-channel scales; activations are
+runtime-dependent, post-ReLU one-sided, and constrained to per-tensor
+scales by GEMM-kernel layout. The W4A4 regime closed only in 2024
+(OmniQuant) while W8A8 was solved in 2018 (Jacob).<a href="#fnref15"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

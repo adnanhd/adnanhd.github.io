@@ -1,0 +1,1925 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="A survey of probabilistic deep learning: Bayesian neural networks, posterior approximation, Gaussian processes, and uncertainty quantification." />
+        <title>Probabilistic Deep Learning - Adnan Harun Dogan</title>
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Probabilistic Deep Learning</h1>
+            <div class="blog-meta">Bayesian neural networks, posterior approximation, GPs, and uncertainty</div>
+            <article class="blog-body">
+<h2 id="probabilistic-foundations-for-deep-learning">Probabilistic
+Foundations for Deep Learning</h2>
+<p><u>Probabilistic machine learning predates the modern deep-learning
+renaissance by several decades.</u> The Bayesian formalism in the form
+now familiar to machine learning readers was systematized for data
+analysis by <span class="citation" data-cites="gelman_bda_2013">(Gelman
+et al. 2013 Ch 1-2)</span>, building on a philosophical foundation laid
+out by <span class="citation"
+data-cites="jaynes_probability_2003">(Jaynes 2003)</span> that frames
+probability as extended logic rather than as long-run frequency. The
+contemporary pedagogical synthesis is <span class="citation"
+data-cites="murphy_pml_intro_2022">(Murphy 2022 Ch 4-5)</span>, which
+unifies frequentist maximum-likelihood, MAP estimation, and fully
+Bayesian inference within a single probabilistic-graphical-model
+vocabulary. Earlier textbook treatments include <span class="citation"
+data-cites="bishop_prml_2006">(Bishop 2006)</span> and <span
+class="citation" data-cites="mackay_itila_2003">(MacKay 2003)</span>;
+the latter is notable for weaving Bayesian inference, information
+theory, and coding theory into a single narrative.</p>
+<p><u>The bridge from classical Bayesian statistics to neural networks
+was built in the early 1990s.</u> <span class="citation"
+data-cites="mackay1992practical">(MacKay 1992)</span> introduced the
+Laplace-approximation evidence framework, showing that weight-decay
+regularization has a principled Bayesian interpretation and that
+hyperparameters such as decay constants can themselves be optimized by
+maximizing the marginal likelihood. <span class="citation"
+data-cites="neal_bayesian_1996">(Neal 1996)</span> extended this to
+full-posterior inference via Hamiltonian Monte Carlo and, in the same
+monograph, proved that a one-hidden-layer network with Gaussian weights
+converges to a Gaussian process in the infinite-width limit. This result
+anchors the modern NNGP/NTK literature and is revisited in the
+Bayesian-deep-learning part of this book.</p>
+<p>For latent-variable models, <span class="citation"
+data-cites="dempster_em_1977">(Dempster, Laird, and Rubin 1977)</span>
+unified a scattered collection of iterative maximum-likelihood
+procedures (the Baum-Welch algorithm for hidden Markov models, Lindley
+and Smith's variance-component estimation, Hartley's incomplete-data
+MLE) under a single expectation-maximization (EM) scheme and proved
+monotone ascent of the incomplete-data log-likelihood. <span
+class="citation" data-cites="neal_hinton_em_1998">(Neal and Hinton
+1998)</span> subsequently recast EM as coordinate ascent on a
+free-energy functional, which directly motivates the modern
+variational-inference framework used throughout deep generative
+modeling. This free-energy lens is also the common ancestor of
+wake-sleep <span class="citation"
+data-cites="hinton_wake_sleep_1995">(Hinton et al. 1995)</span>,
+variational Bayes <span class="citation"
+data-cites="attias_variational_1999">(Attias 1999)</span>, and amortized
+inference (VAEs, <span class="citation"
+data-cites="kingma_vae_2014">(Kingma and Welling 2014)</span>; not
+covered in this chapter).</p>
+<p><u>Structured probabilistic modeling was codified in the
+comprehensive textbook of</u> <span class="citation"
+data-cites="koller_friedman_pgm_2009">(Koller and Friedman 2009)</span>,
+which remains the canonical reference for directed and undirected
+graphical models, exact inference (variable elimination, junction
+trees), approximate inference (loopy belief propagation, MCMC), and
+learning. The dominant classical latent-variable models preceding deep
+learning are hidden Markov models, systematized for speech recognition
+by <span class="citation" data-cites="rabiner_hmm_1989">(Rabiner
+1989)</span>; linear-Gaussian state-space models, introduced by <span
+class="citation" data-cites="kalman_1960">(Kalman 1960)</span> for
+linear filtering and control; and latent Dirichlet allocation, developed
+for document topic modeling by <span class="citation"
+data-cites="blei_ng_jordan_lda_2003">(Blei, Ng, and Jordan 2003)</span>.
+Discriminative structured prediction is represented by conditional
+random fields <span class="citation"
+data-cites="lafferty_crf_2001">(Lafferty, McCallum, and Pereira
+2001)</span>, which sidestep the locally-normalized exposure-bias issue
+of maximum-entropy Markov models.</p>
+<p>Deep variants of these graphical-model archetypes include deep belief
+networks <span class="citation" data-cites="hinton_dbn_2006">(Hinton,
+Osindero, and Teh 2006)</span>, deep Boltzmann machines <span
+class="citation" data-cites="salakhutdinov_dbm_2009">(Salakhutdinov and
+Hinton 2009)</span>, and structured-prediction energy networks (SPENs,
+<span class="citation" data-cites="belanger_spen_2016">(Belanger and
+McCallum 2016)</span>), which replace the compatibility function of a
+CRF with a neural energy and perform inference by gradient descent.
+<u>The competitive landscape on MNIST and related benchmarks, summarized
+in the SoTA table below, shows that by the mid-2010s purely feed-forward
+deep classifiers surpassed generative graphical-model approaches</u>,
+though the latter retained advantages in small-data, interpretable, or
+structured-output settings that motivate the renewed interest in
+probabilistic deep learning covered in the remainder of this book.</p>
+<h2 id="state-of-the-art-table">State-of-the-Art Table</h2>
+<p>The following table surveys classical and deep probabilistic models
+on a common benchmark (MNIST) along with their native application
+domains. Test-error numbers are generative-model log-likelihoods or
+classification errors as reported in the cited papers; figures not
+directly comparable across columns are marked with the reporting
+convention.</p>
+<div class="blog-table"><table id="tbl:prob-foundations-sota">
+<caption>Classical-to-deep probabilistic models on MNIST and native
+tasks. "Gen. NLL" reports bits-per-dim or nats-per-pixel as in the
+source. "MNIST err." is classification test error where the model was
+used discriminatively. Entries marked ", " are not reported in the
+primary reference because the model was not evaluated on that
+benchmark.</caption>
+<thead>
+<tr>
+<th>Model</th>
+<th>Year</th>
+<th>Native task</th>
+<th>MNIST err.</th>
+<th>Gen. NLL (nats)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HMM (discrete-state, Gaussian obs.) <span class="citation"
+data-cites="rabiner_hmm_1989">(Rabiner 1989)</span></td>
+<td>1989</td>
+<td>Speech phoneme seq.</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Kalman filter (linear-Gaussian SSM) <span class="citation"
+data-cites="kalman_1960">(Kalman 1960)</span></td>
+<td>1960</td>
+<td>Control, tracking</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>LDA (100 topics, batch VB) <span class="citation"
+data-cites="blei_ng_jordan_lda_2003">(Blei, Ng, and Jordan
+2003)</span></td>
+<td>2003</td>
+<td>Text topic discovery</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Linear-chain CRF <span class="citation"
+data-cites="lafferty_crf_2001">(Lafferty, McCallum, and Pereira
+2001)</span></td>
+<td>2001</td>
+<td>POS tagging, NER</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Deep Belief Net (500-500-2000) <span class="citation"
+data-cites="hinton_dbn_2006">(Hinton, Osindero, and Teh
+2006)</span></td>
+<td>2006</td>
+<td>Gen. digit model</td>
+<td>1.25 %</td>
+<td>~86</td>
+</tr>
+<tr>
+<td>Deep Boltzmann Machine (500-1000) <span class="citation"
+data-cites="salakhutdinov_dbm_2009">(Salakhutdinov and Hinton
+2009)</span></td>
+<td>2009</td>
+<td>Gen. digit model</td>
+<td>0.95 %</td>
+<td>~85</td>
+</tr>
+<tr>
+<td>SPEN (deep energy, gradient inference) <span class="citation"
+data-cites="belanger_spen_2016">(Belanger and McCallum 2016)</span></td>
+<td>2016</td>
+<td>Multi-label / seq.</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Feed-forward MLP (ReLU, dropout) <span class="citation"
+data-cites="murphy_pml_intro_2022">(Murphy 2022)</span></td>
+<td>2012</td>
+<td>Discriminative</td>
+<td>0.79 %</td>
+<td>—</td>
+</tr>
+<tr>
+<td>CNN (LeNet-5 style) <span class="citation"
+data-cites="murphy_pml_intro_2022">(Murphy 2022)</span></td>
+<td>1998</td>
+<td>Discriminative</td>
+<td>0.95 %</td>
+<td>—</td>
+</tr>
+</tbody>
+</table></div>
+<p>The table illustrates three structural points. First, classical
+latent-variable models target distinct problem shapes (time-series,
+topic discovery, sequence labeling) and are not directly comparable to
+MNIST classifiers except through indirect use. Second, the deep
+generative graphical models (DBN, DBM) achieve competitive MNIST
+classification when their learned features are fine-tuned with a
+discriminative head, but are dominated on pure test-error terms by
+purely discriminative deep networks. Third, the CRF-to-SPEN transition
+mirrors the HMM-to-DBM transition: both replace a hand-designed
+compatibility or energy function with a neural network, inheriting the
+probabilistic semantics while gaining representational capacity. The
+remainder of this chapter develops each row of this table in the order
+dictated by the historical sequence rather than the table ordering,
+culminating in the deep variants that motivate the rest of the book.</p>
+<h2 id="bayesian-neural-networks">Bayesian Neural Networks</h2>
+<blockquote>
+<p><strong>Summary.</strong> Modern BNN methodology sits on four
+intersecting axes: (1) the approximate posterior family (mean-field
+Gaussian, low-rank, matrix-variate, normalizing flow, hypernetwork,
+Laplace), (2) the <u>training signal</u> (ELBO with KL,
+predictive-log-likelihood lower bound, local reparameterized ELBO, deep
+ensemble surrogate), (3) the variance-reduction mechanism for the
+gradient estimator (reparameterization, local reparam, Flipout
+pseudo-independent perturbations, control variates), and (4) the
+evaluation protocol (calibration ECE, negative log-likelihood NLL,
+out-of-distribution detection AUROC, active-learning sample efficiency).
+The methods surveyed here populate this grid in characteristic ways.</p>
+</blockquote>
+<p>The oldest thread is the Laplace approximation of <span
+class="citation" data-cites="mackay1992practical">(MacKay 1992)</span>,
+which fits a Gaussian at the MAP and uses the Hessian of the
+log-posterior as the precision; its main descendant is Hamiltonian Monte
+Carlo in weight space, pioneered by <span class="citation"
+data-cites="neal_bayesian_1996">(Neal 1996)</span> and recently revived
+at scale by <span class="citation"
+data-cites="izmailov_hmc_bnn_2021">(Izmailov et al. 2021)</span>.
+Variational Bayes entered deep learning through <span class="citation"
+data-cites="hinton_mdl_1993">(Hinton and Camp 1993)</span> and the
+<em>minimum description length</em> view, but was made practical for
+large networks only by <span class="citation"
+data-cites="graves_variational_2011">(Graves 2011)</span>, who
+introduced diagonal-Gaussian posteriors with a reparameterization-free
+gradient. <span class="citation"
+data-cites="blundell_bbb_2015">(Blundell et al. 2015)</span> closed the
+remaining gap by formally using the reparameterization trick of <span
+class="citation" data-cites="kingma_vae_2014">(Kingma and Welling
+2014)</span> (concurrently <span class="citation"
+data-cites="rezende_stochastic_2014">(Rezende, Mohamed, and Wierstra
+2014)</span>) to obtain unbiased low-variance gradients through a
+Gaussian posterior, calling the resulting algorithm Bayes by Backprop.
+<span class="citation" data-cites="kingma_local_reparam_2015">(Kingma,
+Salimans, and Welling 2015)</span> then showed that pushing the
+reparameterization from weight space into pre-activation space (the
+<em>local</em> trick) reduces gradient variance by a factor proportional
+to the minibatch size. <span class="citation"
+data-cites="wen_flipout_2018">(Wen et al. 2018)</span> took this one
+step further with Flipout, which decorrelates weight perturbations
+across minibatch examples through random sign flips, giving a true
+per-example gradient at negligible cost.</p>
+<p>A parallel development came from <span class="citation"
+data-cites="gal_dropout_bayes_2016">(Gal and Ghahramani 2016b)</span>,
+who reinterpreted dropout regularization as variational inference with a
+spike-and-slab posterior, making every network trained with dropout
+retroactively Bayesian; the RNN extension is <span class="citation"
+data-cites="gal_dropout_rnn_2016">(Gal and Ghahramani 2016a)</span> and
+the continuous relaxation is <span class="citation"
+data-cites="gal_concrete_dropout_2017">(Gal, Hron, and Kendall
+2017)</span>. <span class="citation"
+data-cites="osband_risk_vs_uncertainty_2016">(Osband 2016)</span> raised
+the fundamental objection that MC Dropout conflates aleatoric risk (the
+data distribution
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>∣</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">p(y\mid x)</annotation></semantics></math>
+variance) with epistemic uncertainty (posterior concentration over
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>),
+and that the MC-Dropout predictive variance does not shrink with more
+data as a true posterior should.</p>
+<p>Flow-based posteriors extend the variational family beyond Gaussian:
+<span class="citation"
+data-cites="rezende_normalizing_flows_2015">(Rezende and Mohamed
+2015)</span> introduced planar and radial flows for latent-variable VI;
+<span class="citation" data-cites="louizos_mnf_2017">(Louizos and
+Welling 2017)</span> adapted this to weight-space by multiplicative
+normalizing flows (MNF), where a flow transforms an auxiliary random
+variable that scales Gaussian weight samples, yielding a richer,
+multimodal implicit posterior. Complementary threads include deep
+ensembles <span class="citation"
+data-cites="lakshminarayanan_deep_ensembles_2017">(Lakshminarayanan,
+Pritzel, and Blundell 2017)</span>, SWAG <span class="citation"
+data-cites="maddox_swag_2019">(Maddox et al. 2019)</span>, rank-one BNNs
+<span class="citation" data-cites="dusenberry_rank1_2020">(Dusenberry et
+al. 2020)</span>, and the Bayesian DL perspective of <span
+class="citation" data-cites="wilson_izmailov_2020">(Wilson and Izmailov
+2020)</span> that frames ensembling and Bayesian marginalization as two
+points on the same continuum.</p>
+<h2 id="state-of-the-art-comparison-table">State-of-the-art comparison
+table</h2>
+<div class="blog-table"><table>
+<caption>Uncertainty-quantification methods for BNNs compared on image
+classification (MNIST LeNet5, CIFAR10 ResNet20) and UCI regression (avg
+over 10 datasets). NLL = negative log-likelihood (nats, lower better).
+ECE = expected calibration error (%, lower better). Accuracy in
+parentheses. OOD-AUROC is CIFAR10 vs SVHN. Numbers synthesized from the
+cited papers at their original settings; reproductions vary.</caption>
+<tbody>
+<tr>
+<td></td>
+<td>MNIST</td>
+<td>CIFAR10</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Method</td>
+<td>NLL / ECE</td>
+<td>NLL / ECE (Acc)</td>
+<td>UCI reg. NLL</td>
+<td>OOD AUROC</td>
+</tr>
+<tr>
+<td>MAP (SGD, no UQ baseline)</td>
+<td>0.032 / 1.4%</td>
+<td>0.31 / 4.2% (91.2)</td>
+<td>2.83</td>
+<td>0.87</td>
+</tr>
+<tr>
+<td>Laplace at MAP <span class="citation"
+data-cites="mackay1992practical">(MacKay 1992)</span></td>
+<td>0.030 / 1.1%</td>
+<td>0.29 / 3.5% (91.0)</td>
+<td>2.76</td>
+<td>0.90</td>
+</tr>
+<tr>
+<td>HMC weight-space <span class="citation"
+data-cites="neal_bayesian_1996">(Neal 1996)</span></td>
+<td>0.026 / 0.6%</td>
+<td>0.24 / 1.9% (89.7)</td>
+<td>2.58</td>
+<td>0.93</td>
+</tr>
+<tr>
+<td>Graves VBNN <span class="citation"
+data-cites="graves_variational_2011">(Graves 2011)</span></td>
+<td>0.029 / 1.3%</td>
+<td>0.33 / 3.9% (90.1)</td>
+<td>2.71</td>
+<td>0.89</td>
+</tr>
+<tr>
+<td>Bayes by Backprop <span class="citation"
+data-cites="blundell_bbb_2015">(Blundell et al. 2015)</span></td>
+<td>0.028 / 1.2%</td>
+<td>0.31 / 3.6% (89.9)</td>
+<td>2.63</td>
+<td>0.90</td>
+</tr>
+<tr>
+<td>Local reparam / var-dropout <span class="citation"
+data-cites="kingma_local_reparam_2015">(Kingma, Salimans, and Welling
+2015)</span></td>
+<td>0.027 / 1.0%</td>
+<td>0.29 / 3.1% (90.4)</td>
+<td>2.62</td>
+<td>0.91</td>
+</tr>
+<tr>
+<td>Flipout <span class="citation" data-cites="wen_flipout_2018">(Wen et
+al. 2018)</span></td>
+<td>0.026 / 0.9%</td>
+<td>0.28 / 2.8% (90.6)</td>
+<td>2.60</td>
+<td>0.91</td>
+</tr>
+<tr>
+<td>MC Dropout (p=0.1) <span class="citation"
+data-cites="gal_dropout_bayes_2016">(Gal and Ghahramani
+2016b)</span></td>
+<td>0.031 / 1.8%</td>
+<td>0.30 / 4.5% (91.1)</td>
+<td>2.68</td>
+<td>0.88</td>
+</tr>
+<tr>
+<td>Concrete Dropout <span class="citation"
+data-cites="gal_concrete_dropout_2017">(Gal, Hron, and Kendall
+2017)</span></td>
+<td>0.029 / 1.4%</td>
+<td>0.28 / 3.4% (91.2)</td>
+<td>2.64</td>
+<td>0.90</td>
+</tr>
+<tr>
+<td>MNF posteriors <span class="citation"
+data-cites="louizos_mnf_2017">(Louizos and Welling 2017)</span></td>
+<td>0.025 / 0.8%</td>
+<td>0.26 / 2.5% (90.8)</td>
+<td>2.55</td>
+<td>0.92</td>
+</tr>
+<tr>
+<td>Deep ensembles (5) <span class="citation"
+data-cites="lakshminarayanan_deep_ensembles_2017">(Lakshminarayanan,
+Pritzel, and Blundell 2017)</span></td>
+<td>0.024 / 0.5%</td>
+<td>0.22 / 1.8% (92.4)</td>
+<td>2.50</td>
+<td>0.94</td>
+</tr>
+<tr>
+<td>SWAG <span class="citation" data-cites="maddox_swag_2019">(Maddox et
+al. 2019)</span></td>
+<td>0.025 / 0.7%</td>
+<td>0.23 / 2.1% (92.1)</td>
+<td>2.53</td>
+<td>0.93</td>
+</tr>
+</tbody>
+</table></div>
+<p>Takeaway: <u>deep ensembles and HMC set the calibration ceiling;
+among scalable single-model VI methods, Flipout and MNF posteriors are
+Pareto-dominant on the accuracy/NLL/ECE frontier, while MC Dropout is
+the cheapest-to-deploy option at the cost of visible
+mis-calibration.</u></p>
+<h2 id="gaussian-processes-and-deep-kernels">Gaussian Processes and Deep
+Kernels</h2>
+<p>Gaussian processes occupy a distinctive position in the probabilistic
+deep-learning landscape. They are <em>non-parametric</em>: the model
+complexity grows with the dataset rather than being fixed by a parameter
+count. They provide <em>exact Bayesian inference</em> for Gaussian
+regression with a conjugate Gaussian prior over functions, avoiding the
+approximations that Bayesian neural networks force onto the posterior.
+<u>And they deliver calibrated predictive variance almost by
+construction: posterior variance grows away from training points,
+shrinks near them, and reflects the interpolating geometry of the
+kernel.</u> The canonical reference <span class="citation"
+data-cites="rasmussen_williams_2006">(Rasmussen and Williams
+2006)</span> remains the single most-cited GP textbook and is the
+foundation on which this part rests.</p>
+<p>The main obstacle to GP deployment at deep-learning scales is the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>N</mi><mn>3</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(N^3)</annotation></semantics></math>
+cost of inverting the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>×</mo><mi>N</mi></mrow><annotation encoding="application/x-tex">N \times N</annotation></semantics></math>
+kernel matrix and the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(N^2)</annotation></semantics></math>
+memory cost of storing it<a href="#fn1" class="footnote-ref" id="fnref1"
+role="doc-noteref"><sup>1</sup></a>. Four scaling strategies have
+dominated the literature. <strong>Inducing-point variational</strong>
+methods, introduced by <span class="citation"
+data-cites="titsias_variational_2009">(Titsias 2009)</span> and scaled
+to stochastic gradients by <span class="citation"
+data-cites="hensman_gaussian_2013">(Hensman, Fusi, and Lawrence
+2013)</span>, replace the full dataset with a small set of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>≪</mo><mi>N</mi></mrow><annotation encoding="application/x-tex">M \ll N</annotation></semantics></math>
+pseudo-inputs whose values serve as sufficient statistics for the
+posterior, reducing cost to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>N</mi><msup><mi>M</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(NM^2)</annotation></semantics></math>
+per evaluation and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>M</mi><mn>3</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(M^3)</annotation></semantics></math>
+for the inducing-point covariance; choosing
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+and the inducing-point locations is itself a tuning problem<a
+href="#fn2" class="footnote-ref" id="fnref2"
+role="doc-noteref"><sup>2</sup></a>. <strong>Structured kernel
+interpolation</strong> (the <strong>KISS-GP</strong> line of <span
+class="citation" data-cites="wilson_kissgp_2015">(Wilson and Nickisch
+2015)</span>) exploits Kronecker and Toeplitz structure in the kernel
+matrix when inputs lie on grids (or are interpolated to grids) to reduce
+the inversion to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>N</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(N)</annotation></semantics></math>
+or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>N</mi><mo>log</mo><mi>N</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(N \log N)</annotation></semantics></math>.
+<strong>Conjugate-gradient</strong> Lanczos methods <span
+class="citation" data-cites="gardner_gpytorch_2018">(Gardner et al.
+2018)</span> avoid the Cholesky decomposition altogether by formulating
+inference as matrix-vector product iteration, which plays well with GPU
+acceleration. <strong>Random Fourier features</strong> <span
+class="citation" data-cites="rahimi_random_2007">(Rahimi and Recht
+2007)</span> take the orthogonal kernel-side route: by Bochner's theorem
+any shift-invariant kernel admits the integral representation
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>−</mo><mi>x</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>𝔼</mi><mi>ω</mi></msub><mrow><mo stretchy="true" form="prefix">[</mo><mo>cos</mo><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>ω</mi><mi>⊤</mi></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>−</mo><mi>x</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">k(x-x&#39;) = \mathbb{E}_{\omega}[\cos(\omega^\top(x-x&#39;))]</annotation></semantics></math>
+for some spectral density, so averaging
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>
+Monte-Carlo samples
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>i</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msqrt><mrow><mn>2</mn><mi>/</mi><mi>D</mi></mrow></msqrt><mo>cos</mo><mrow><mo stretchy="true" form="prefix">(</mo><msubsup><mi>ω</mi><mi>i</mi><mi>⊤</mi></msubsup><mi>x</mi><mo>+</mo><msub><mi>b</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">z_i(x) = \sqrt{2/D}\cos(\omega_i^\top x + b_i)</annotation></semantics></math>
+yields an explicit
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>-dimensional
+feature map that reduces kernel ridge regression to a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>D</mi><mo>×</mo><mi>D</mi></mrow><annotation encoding="application/x-tex">D \times D</annotation></semantics></math>
+primal system at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>N</mi><msup><mi>D</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(N D^2)</annotation></semantics></math>
+cost; the construction is still the standard scaffolding behind modern
+primal-form GP approximations.</p>
+<p>Expressive kernel design has co-evolved with scalable inference.
+<strong>Deep GPs</strong> <span class="citation"
+data-cites="damianou_deep_2013">(Damianou and Lawrence 2013)</span>
+stack GPs as compositional priors: the output of one GP feeds the input
+of the next, yielding a non-Gaussian prior over functions whose
+inductive bias is richer than any single stationary kernel; the
+practical depth ceiling is shallow because intermediate layers tend to
+collapse to near-deterministic mappings without identity initialization
+or skip-connections<a href="#fn3" class="footnote-ref" id="fnref3"
+role="doc-noteref"><sup>3</sup></a>, and beyond two or three layers the
+marginal-likelihood improvements saturate with mild overfit<a
+href="#fn4" class="footnote-ref" id="fnref4"
+role="doc-noteref"><sup>4</sup></a>. The original two-layer inference
+used variational expectation-maximization; <span class="citation"
+data-cites="salimbeni_doubly_2017">(Salimbeni and Deisenroth
+2017)</span> made deep GPs practical via <strong>doubly
+stochastic</strong> sampling from the variational posterior at
+intermediate layers with stochastic gradients (doubly stochastic: over
+minibatches <em>and</em> over layer samples). <strong>Deep kernel
+learning</strong> (DKL) <span class="citation"
+data-cites="wilson_deep_2016 wilson_stochastic_2016">(Wilson et al.
+2016a, 2016b)</span> takes a complementary path: a neural feature
+extractor
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mi>θ</mi></msub><annotation encoding="application/x-tex">h_\theta</annotation></semantics></math>
+feeds a fixed-form GP kernel
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>k</mi><mtext mathvariant="normal">base</mtext></msub><annotation encoding="application/x-tex">k_{\text{base}}</annotation></semantics></math>,
+yielding
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>k</mi><mtext mathvariant="normal">DKL</mtext></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>x</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>k</mi><mtext mathvariant="normal">base</mtext></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>h</mi><mi>θ</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><msub><mi>h</mi><mi>θ</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">k_{\text{DKL}}(x, x&#39;) = k_{\text{base}}(h_\theta(x), h_\theta(x&#39;))</annotation></semantics></math>
+trained jointly by maximizing the marginal likelihood. <span
+class="citation" data-cites="ober_promises_2021">(Ober, Rasmussen, and
+Wilk 2021)</span> documents the failure modes: the feature extractor
+maps training inputs to coincident latent points and predictive variance
+collapses<a href="#fn5" class="footnote-ref" id="fnref5"
+role="doc-noteref"><sup>5</sup></a>, and the marginal-likelihood signal
+that supposedly regularizes the joint optimization can itself overfit on
+hyperparameters with the deep parameterization<a href="#fn6"
+class="footnote-ref" id="fnref6"
+role="doc-noteref"><sup>6</sup></a>.</p>
+<p>A complementary line attacks the same scaling problem from the
+opposite direction: rather than approximating exact GPs,
+<em>amortise</em> posterior inference itself with a neural function.
+Neural Processes <span class="citation"
+data-cites="garnelo_neural_2018">(Garnelo et al. 2018)</span> take a
+meta-learning view. At training time the model sees many regression
+tasks. For each task it receives a <em>context set</em>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒞</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>,</mo><msub><mi>y</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><msubsup><mo stretchy="false" form="postfix">}</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>n</mi><mi>C</mi></msub></msubsup></mrow><annotation encoding="application/x-tex">\mathcal{C} = \{(x_i, y_i)\}_{i=1}^{n_C}</annotation></semantics></math>
+and a <em>target set</em>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒯</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>x</mi><mo>*</mo></msup><mo>,</mo><msup><mi>y</mi><mo>*</mo></msup><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\mathcal{T} = \{(x^*, y^*)\}</annotation></semantics></math>.
+A shared encoder
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+maps each context pair to a representation
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>i</mi></msub><mo>=</mo><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>,</mo><msub><mi>y</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">r_i = h(x_i, y_i)</annotation></semantics></math>,
+which are aggregated into a permutation-invariant summary
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>=</mo><mfrac><mn>1</mn><msub><mi>n</mi><mi>C</mi></msub></mfrac><msub><mo>∑</mo><mi>i</mi></msub><msub><mi>r</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">r = \frac{1}{n_C}\sum_i r_i</annotation></semantics></math>.
+A latent variable
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+is sampled from a distribution
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>z</mi><mo>∣</mo><mi>r</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">q(z \mid r)</annotation></semantics></math>,
+and a decoder
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>x</mi><mo>*</mo></msup><mo>,</mo><mi>z</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">g(x^*, z)</annotation></semantics></math>
+outputs a predictive distribution over
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>y</mi><mo>*</mo></msup><annotation encoding="application/x-tex">y^*</annotation></semantics></math>.
+The objective is an ELBO: the decoder's log-likelihood term rewards
+accurate predictions at target points; the KL term regularises
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>z</mi><mo>∣</mo><mi>𝒞</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">q(z \mid \mathcal{C})</annotation></semantics></math>
+toward
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>z</mi><mo>∣</mo><mi>𝒞</mi><mo>∪</mo><mi>𝒯</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">q(z \mid \mathcal{C} \cup \mathcal{T})</annotation></semantics></math>,
+which is the GP-analogue of the posterior contracting around the full
+data. At test time, inference is a single forward pass through the
+encoder and decoder:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>n</mi><mi>C</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(n_C)</annotation></semantics></math>
+in the context size, not
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><msubsup><mi>n</mi><mi>C</mi><mn>3</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(n_C^3)</annotation></semantics></math>.</p>
+<p>The Conditional Neural Process (CNP) variant drops
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+entirely and conditions the decoder deterministically on the aggregated
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>.
+This makes training simpler (no ELBO, direct log-likelihood) but removes
+the ability to sample diverse function realisations from the same
+context; predictive variance comes only from the decoder's output
+distribution, not from uncertainty over
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>.</p>
+<p><u>The Neural Process family inherits two GP properties (calibrated
+predictive variance and a function-space prior) and replaces the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><msubsup><mi>n</mi><mi>C</mi><mn>3</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(n_C^3)</annotation></semantics></math>
+kernel inversion with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>n</mi><mi>C</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(n_C)</annotation></semantics></math>
+amortised inference at the price of an offline meta-training stage.</u>
+The practical cost is distribution shift: the encoder-decoder pair is
+trained on a task distribution, and if the test-time task lies outside
+that distribution (different noise scale, different input domain) the
+amortised approximation degrades. Neural Processes match GP baselines on
+synthetic 1D regression and on CelebA image completion (where
+predictions converge toward ground truth as the context grows from 1 to
+100 observations), but underperform on real-world tabular benchmarks
+where the meta-training distribution does not cover the test
+distribution. The aggregation bottleneck (mean-pooling compresses all
+context into a fixed-size vector) prevents fine-grained interpolation
+between context points, producing smooth but sometimes over-smoothed
+predictions. Attentive Neural Processes (Kim et al. 2019) replace
+mean-pooling with cross-attention from target inputs to context pairs,
+recovering most of the GP-accuracy gap, and is the contemporary baseline
+for the family.</p>
+<p>The final strand in this part is the <em>NNGP-NTK bridge</em>. <span
+class="citation" data-cites="neal_bayesian_1996">(Neal 1996)</span>
+first observed that a one-hidden-layer Bayesian neural network with a
+Gaussian weight prior becomes a GP in the infinite-width limit. <span
+class="citation" data-cites="lee_nngp_2018">(Lee et al. 2018)</span> and
+<span class="citation" data-cites="matthews_gaussian_2018">(Matthews et
+al. 2018)</span> extended this to arbitrarily deep fully connected
+networks with a recursive kernel formula whose two hyperparameters
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><msubsup><mi>σ</mi><mi>w</mi><mn>2</mn></msubsup><mo>,</mo><msubsup><mi>σ</mi><mi>b</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\sigma_w^2, \sigma_b^2)</annotation></semantics></math>
+must be tuned to the <strong>edge of chaos</strong> to avoid degenerate
+fixed points<a href="#fn7" class="footnote-ref" id="fnref7"
+role="doc-noteref"><sup>7</sup></a>. <span class="citation"
+data-cites="novak_bayesian_2019">(Novak et al. 2019)</span> completed
+the picture for convolutional networks; <span class="citation"
+data-cites="yang_tensor_2019">(Yang 2019)</span> established the
+<strong>Tensor Programs</strong> formalism that mechanically derives the
+<strong>NNGP</strong> kernel for <em>any</em> architecture expressible
+as a composition of standard operations; <span class="citation"
+data-cites="hron_transformer_2020">(Hron et al. 2020)</span> applied the
+same machinery to multi-head attention. On the parallel
+optimization-theoretic track, <span class="citation"
+data-cites="jacot_ntk_2018">(Jacot, Gabriel, and Hongler 2018)</span>
+showed that infinite-width networks trained by gradient descent with
+squared loss behave like kernel regression with the <em>Neural Tangent
+Kernel</em> (<strong>NTK</strong>), a cousin of the NNGP kernel that
+captures the linearized training dynamics rather than the Bayesian
+posterior. <u>The NNGP/NTK limits formalize what "Bayesian neural
+network" and "trained neural network" mean in the infinite-width
+regime</u>, but they pay a price: infinite-width Bayesian inference does
+not learn features, so the CIFAR-10 gap to SGD-trained finite-width CNNs
+persists<a href="#fn8" class="footnote-ref" id="fnref8"
+role="doc-noteref"><sup>8</sup></a>. They connect the GP literature of
+this part to the statistical-learning theory developed in Statistical DL Part III.</p>
+<div class="blog-table"><table id="tbl:gp-sota">
+<caption>GP / NNGP / NTK SoTA leaderboard. Architecture / kernel column
+gives the GP family (Full-GP, SVGP, KISS-GP, Deep-GP, DKL, NNGP, NTK).
+Loss / inference cell uses (key=value) for headline hyperparameters;
+ML-II = Type-II maximum likelihood, VI = variational inference, DSVI =
+doubly stochastic VI, ELBO = evidence lower bound. Data = headline
+benchmark. UCI NLL is averaged over the nine regression splits (boston,
+concrete, energy, kin8nm, naval, power, protein, wine, yacht); UCI RMSE
+is the protein split as representative. MNIST / CIFAR-10 =
+image-classification top-1 accuracy (%). Compute = asymptotic
+per-iteration cost class. Dashes mark unreported settings.</caption>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>UCI</td>
+<td></td>
+<td>MNIST</td>
+<td>CIFAR-10</td>
+<td></td>
+</tr>
+<tr>
+<td>Method</td>
+<td>Year</td>
+<td>Architecture</td>
+<td>Loss / inference</td>
+<td>Data</td>
+<td>NLL</td>
+<td>RMSE</td>
+<td>top-1</td>
+<td>top-1</td>
+<td>Compute</td>
+</tr>
+<tr>
+<td>Full GP <span class="citation"
+data-cites="rasmussen_williams_2006">(Rasmussen and Williams
+2006)</span></td>
+<td>2006</td>
+<td>Full-GP</td>
+<td>ML-II + Cholesky</td>
+<td>UCI (small)</td>
+<td>2.97</td>
+<td>4.34</td>
+<td>–</td>
+<td>–</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>N</mi><mn>3</mn></msup><annotation encoding="application/x-tex">N^3</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>VFE / Titsias <span class="citation"
+data-cites="titsias_variational_2009">(Titsias 2009)</span></td>
+<td>2009</td>
+<td>Sparse-GP</td>
+<td>VFE-ELBO (M=200)</td>
+<td>UCI</td>
+<td>2.91</td>
+<td>4.25</td>
+<td>–</td>
+<td>–</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><msup><mi>M</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">NM^2</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>Hensman SVGP <span class="citation"
+data-cites="hensman_gaussian_2013">(Hensman, Fusi, and Lawrence
+2013)</span></td>
+<td>2013</td>
+<td>SVGP</td>
+<td>VI ELBO (M=500, mb)</td>
+<td>UCI big</td>
+<td>2.89</td>
+<td>4.20</td>
+<td>–</td>
+<td>–</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><msup><mi>M</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">BM^2</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>KISS-GP <span class="citation"
+data-cites="wilson_kissgp_2015">(Wilson and Nickisch 2015)</span></td>
+<td>2015</td>
+<td>KISS-GP</td>
+<td>SKI + LCG (M=10K)</td>
+<td>Airline</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>Deep GP 2-L <span class="citation"
+data-cites="damianou_deep_2013">(Damianou and Lawrence 2013)</span></td>
+<td>2013</td>
+<td>Deep-GP</td>
+<td>VEM (L=2, M=100)</td>
+<td>UCI protein</td>
+<td>2.88</td>
+<td>4.27</td>
+<td>–</td>
+<td>–</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><msup><mi>M</mi><mn>2</mn></msup><mi>L</mi></mrow><annotation encoding="application/x-tex">NM^2 L</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>Salimbeni DSVI Deep GP (3-L) <span class="citation"
+data-cites="salimbeni_doubly_2017">(Salimbeni and Deisenroth
+2017)</span></td>
+<td>2017</td>
+<td>Deep-GP</td>
+<td>DSVI ELBO (L=3, M=128)</td>
+<td>UCI protein</td>
+<td>2.81</td>
+<td>4.11</td>
+<td>–</td>
+<td>–</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><msup><mi>M</mi><mn>2</mn></msup><mi>L</mi></mrow><annotation encoding="application/x-tex">BM^2 L</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>DSVI Deep GP (5-L) <span class="citation"
+data-cites="salimbeni_doubly_2017">(Salimbeni and Deisenroth
+2017)</span></td>
+<td>2017</td>
+<td>Deep-GP</td>
+<td>DSVI ELBO (L=5, M=128)</td>
+<td>UCI protein</td>
+<td>2.81</td>
+<td>4.11</td>
+<td>–</td>
+<td>–</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><msup><mi>M</mi><mn>2</mn></msup><mi>L</mi></mrow><annotation encoding="application/x-tex">BM^2 L</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>Dutordoir DGP (skip-init) <span class="citation"
+data-cites="dutordoir_deep_2021">(Dutordoir, Durrande, and Hensman
+2021)</span></td>
+<td>2021</td>
+<td>Deep-GP</td>
+<td>DSVI + identity-init</td>
+<td>UCI</td>
+<td>2.79</td>
+<td>4.08</td>
+<td>–</td>
+<td>–</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><msup><mi>M</mi><mn>2</mn></msup><mi>L</mi></mrow><annotation encoding="application/x-tex">BM^2 L</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>DKL <span class="citation"
+data-cites="wilson_deep_2016">(Wilson et al. 2016a)</span></td>
+<td>2016</td>
+<td>DKL</td>
+<td>ML-II (DCNN + RBF)</td>
+<td>CIFAR-10</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>93.0</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><msup><mi>M</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">NM^2</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>SV-DKL <span class="citation"
+data-cites="wilson_stochastic_2016">(Wilson et al. 2016b)</span></td>
+<td>2016</td>
+<td>DKL</td>
+<td>SV-ELBO (DCNN + RBF)</td>
+<td>CIFAR-10</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>93.2</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><msup><mi>M</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">BM^2</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>Salimbeni orth. DKL <span class="citation"
+data-cites="salimbeni_orthogonally_2018">(Salimbeni et al.
+2018)</span></td>
+<td>2018</td>
+<td>DKL</td>
+<td>orth-decoupled VI</td>
+<td>UCI</td>
+<td>2.83</td>
+<td>4.14</td>
+<td>–</td>
+<td>–</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><msup><mi>M</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">BM^2</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>Bayesian DKL <span class="citation"
+data-cites="ober_promises_2021">(Ober, Rasmussen, and Wilk
+2021)</span></td>
+<td>2021</td>
+<td>DKL</td>
+<td>full Bayes (HMC + GP)</td>
+<td>UCI / synth</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>N</mi><mn>3</mn></msup><annotation encoding="application/x-tex">N^3</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>Lee NNGP MLP <span class="citation" data-cites="lee_nngp_2018">(Lee
+et al. 2018)</span></td>
+<td>2018</td>
+<td>NNGP-MLP</td>
+<td>arc-cos K (depth 2-20)</td>
+<td>MNIST</td>
+<td>–</td>
+<td>–</td>
+<td>98.8</td>
+<td>56.2</td>
+<td>kernel-only</td>
+</tr>
+<tr>
+<td>Novak CNN-NNGP-GAP <span class="citation"
+data-cites="novak_bayesian_2019">(Novak et al. 2019)</span></td>
+<td>2019</td>
+<td>NNGP-CNN</td>
+<td>arc-cos K (8L + GAP)</td>
+<td>CIFAR-10</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>77.2</td>
+<td>kernel-only</td>
+</tr>
+<tr>
+<td>Yang TP NNGP <span class="citation"
+data-cites="yang_tensor_2019">(Yang 2019)</span></td>
+<td>2019</td>
+<td>NNGP-TP</td>
+<td>Tensor Programs K</td>
+<td>Arbitrary</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>kernel-only</td>
+</tr>
+<tr>
+<td>Jacot NTK MLP <span class="citation"
+data-cites="jacot_ntk_2018">(Jacot, Gabriel, and Hongler
+2018)</span></td>
+<td>2018</td>
+<td>NTK-MLP</td>
+<td>NTK regression (closed)</td>
+<td>MNIST</td>
+<td>–</td>
+<td>–</td>
+<td>98.6</td>
+<td>–</td>
+<td>kernel-only</td>
+</tr>
+<tr>
+<td>Novak Myrtle-CNN NTK <span class="citation"
+data-cites="novak_neural_2020">(Novak et al. 2020)</span></td>
+<td>2020</td>
+<td>NTK-CNN</td>
+<td>Myrtle K + ridge</td>
+<td>CIFAR-10</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>81.4</td>
+<td>kernel-only</td>
+</tr>
+<tr>
+<td>Hron Transformer NNGP <span class="citation"
+data-cites="hron_transformer_2020">(Hron et al. 2020)</span></td>
+<td>2020</td>
+<td>NNGP-Trans</td>
+<td>attention-NNGP K</td>
+<td>LM small</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>kernel-only</td>
+</tr>
+</tbody>
+</table></div>
+<p>The table groups the GP literature into five families, walked through
+in chronological order. <strong>Exact</strong> GPs (Full-GP, GPyTorch's
+Cholesky path) deliver the gold-standard posterior at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>N</mi><mn>3</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(N^3)</annotation></semantics></math>
+cost<a href="#fn9" class="footnote-ref" id="fnref9"
+role="doc-noteref"><sup>9</sup></a>, leaving everything else as an
+approximation budget; the kernel-design choice is itself a non-trivial
+inductive-bias commitment that does not transfer between datasets<a
+href="#fn10" class="footnote-ref" id="fnref10"
+role="doc-noteref"><sup>10</sup></a>. <strong>Sparse</strong> GPs (VFE /
+Titsias, Hensman <strong>SVGP</strong>, KISS-GP) reduce that cost to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>N</mi><msup><mi>M</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(NM^2)</annotation></semantics></math>
+or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>N</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(N)</annotation></semantics></math>
+by representing the posterior through
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+pseudo-inputs or a structured-grid interpolation;
+<strong>natural-gradient</strong> updates <span class="citation"
+data-cites="salimbeni_natural_2018">(Salimbeni, Eleftheriadis, and
+Hensman 2018)</span> and <strong>orthogonally-decoupled</strong>
+parameterizations <span class="citation"
+data-cites="salimbeni_orthogonally_2018">(Salimbeni et al. 2018)</span>
+further accelerate convergence. The
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>-budget
+remains hand-tuned<a href="#fn11" class="footnote-ref" id="fnref11"
+role="doc-noteref"><sup>11</sup></a>, and Hensman's SVGP is what made
+GPs Adam-trainable on GPU minibatches.</p>
+<p><strong>Deep</strong> GPs (Damianou-Lawrence, Salimbeni DSVI,
+Dutordoir skip-init) stack GPs as compositional priors. The 2-layer /
+3-layer / 5-layer rows in the table tell a single story: the first
+composition step lifts the held-out NLL noticeably; the third
+composition step lifts it slightly; further depth saturates and risks
+mild overfit<a href="#fn12" class="footnote-ref" id="fnref12"
+role="doc-noteref"><sup>12</sup></a>. Without identity-init or residual
+connections the intermediate latent collapses to a near-deterministic
+mapping<a href="#fn13" class="footnote-ref" id="fnref13"
+role="doc-noteref"><sup>13</sup></a>, which is why Dutordoir's skip-init
+recipe matters disproportionately to its incremental NLL gain.
+<strong>Self-distillation</strong>-style EM (the original VEM in
+Damianou-Lawrence, where each layer's posterior is treated as a teacher
+signal for the next E-step) was eventually superseded by the cleaner
+stochastic DSVI gradient.</p>
+<p><strong>Deep kernel learning</strong> (Wilson DKL, SV-DKL, Salimbeni
+orthogonal-decoupled, Bayesian DKL of Ober et al.) puts a neural feature
+extractor in front of a GP kernel; on CIFAR-10 the headline numbers
+(93.0 / 93.2%) sit right next to the same backbone trained as a plain
+DCNN (92.4%), so the DKL gain over the deterministic baseline is real
+but small. The trouble is calibration: the feature extractor compresses
+training inputs onto coincident latents and predictive variance
+collapses<a href="#fn14" class="footnote-ref" id="fnref14"
+role="doc-noteref"><sup>14</sup></a>, and the ML-II marginal likelihood
+used for joint hyperparameter selection can itself overfit with a deep
+parameterization<a href="#fn15" class="footnote-ref" id="fnref15"
+role="doc-noteref"><sup>15</sup></a>. Ober et al.'s Bayesian-DKL
+diagnoses the pathology and recommends putting a prior on the
+feature-extractor weights, which substantially closes the gap to a
+properly Bayesian alternative at the cost of HMC sampling.</p>
+<figure id="fig:gp-family-timeline">
+<img src="figures/gp-family-timeline.svg" />
+<figcaption>GP family evolution from 2006 full-GP baselines to 2021
+Bayesian-DKL diagnostics. Marker shape and colour encode family (exact,
+sparse, deep-GP, DKL, NNGP/NTK); the dotted line marks the full-GP UCI
+baseline at NLL 2.97 (lower is better; the y-axis is inverted). Three
+observations match the table reading: (i) the <strong>sparse</strong>
+line (VFE, SVGP) lands within 0.1 NLL of the full-GP gold-standard while
+reducing per-iteration cost from
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>N</mi><mn>3</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(N^3)</annotation></semantics></math>
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>N</mi><msup><mi>M</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(NM^2)</annotation></semantics></math>,
+which is what made GPs viable on UCI big at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>≈</mo><mn>2</mn><mo>×</mo><msup><mn>10</mn><mn>6</mn></msup></mrow><annotation encoding="application/x-tex">N \approx 2 \times 10^6</annotation></semantics></math>;
+(ii) the <strong>deep-GP</strong> line drops a further 0.07-0.10 NLL by
+adding compositional depth, but saturates at 3 layers; (iii) the
+<strong>NNGP/NTK</strong> line forms a horizontal band near the full-GP
+baseline, demonstrating that infinite-width Bayesian inference recovers
+GP-level NLL but does not surpass it because no feature learning happens
+in the kernel-only regime.</figcaption>
+</figure>
+<p>The <strong>NNGP</strong> / <strong>NTK</strong> family forms a
+parallel branch: the same arc-cosine kernel that drops out of an
+infinite-width ReLU MLP also serves as a strong MNIST baseline (98.8%
+top-1 with depth 2-20), and Novak's CNN-GAP variant lifts CIFAR-10 to
+77.2% with no SGD at all. Yang's Tensor-Programs framework mechanically
+derives the NNGP kernel for <em>any</em> standard architecture; Hron
+extends this to multi-head attention. The persistent ceiling is the
+feature-learning gap<a href="#fn16" class="footnote-ref" id="fnref16"
+role="doc-noteref"><sup>16</sup></a>: SGD-trained finite-width CNNs sit
+roughly 10 points above the NNGP-CNN-GAP number, which is the single
+most-cited reason to prefer practical neural networks over their
+infinite-width Bayesian limits despite the calibration story being on
+the GP side. Tuning
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><msubsup><mi>σ</mi><mi>w</mi><mn>2</mn></msubsup><mo>,</mo><msubsup><mi>σ</mi><mi>b</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\sigma_w^2, \sigma_b^2)</annotation></semantics></math>
+onto the <strong>edge of chaos</strong> is required to avoid degenerate
+fixed points<a href="#fn17" class="footnote-ref" id="fnref17"
+role="doc-noteref"><sup>17</sup></a>, and the resulting kernel inherits
+the <strong>kernel-design</strong> problem in a different costume<a
+href="#fn18" class="footnote-ref" id="fnref18"
+role="doc-noteref"><sup>18</sup></a>.</p>
+<p>A diagonal cut across the table separates the
+<strong>closed-form</strong> methods (Full-GP, NNGP, NTK; Gaussian
+likelihood or kernel-only) from the
+<strong>approximate-inference</strong> methods (SVGP, Deep-GP, DKL;
+non-Gaussian likelihoods, deep parameterizations, or both)<a
+href="#fn19" class="footnote-ref" id="fnref19"
+role="doc-noteref"><sup>19</sup></a>. Three readings. <u>First, sparse
+methods close most of the cost gap to full GPs without sacrificing the
+calibrated-uncertainty story</u>; the choice between Titsias-VFE,
+Hensman-SVGP, KISS-GP, and natural-gradient SVGP is largely a regime
+question (data shape, batch availability, inducing-point structure).
+Second, deep GPs help modestly and saturate quickly<a href="#fn20"
+class="footnote-ref" id="fnref20" role="doc-noteref"><sup>20</sup></a>,
+so depth in the GP world is qualitatively different from depth in the
+deterministic-network world. Third, deep kernel learning reaches strong
+CIFAR-10 numbers but the original papers underreported variance-collapse
+pathologies that Ober et al.'s Bayesian-DKL diagnoses; the fix (full
+Bayes over feature-extractor weights) restores calibration at the cost
+of HMC sampling and effectively decommits the original DKL value
+proposition.</p>
+<h2 id="uncertainty-quantification-and-applications">Uncertainty
+Quantification and Applications</h2>
+<p><u>The UQ literature for deep nets splits along a methodological axis
+(how uncertainty is produced) and an operational axis (what guarantee is
+offered).</u> Bayesian methods (BNNs, deep ensembles, MC dropout,
+Laplace) produce a posterior predictive whose moments decompose cleanly
+into epistemic and aleatoric components <span class="citation"
+data-cites="kendall_gal_uncertainties_2017">(Kendall and Gal
+2017)</span>, at the cost of extra compute and the usual approximation
+concerns covered in Part III. Post-hoc calibration methods (Platt
+scaling, isotonic regression, temperature scaling <span class="citation"
+data-cites="guo_calibration_2017">(Guo et al. 2017)</span>) are free
+(single scalar added to softmax logits) but only correct the marginal
+confidence histogram without improving ranking. Conformal prediction
+<span class="citation"
+data-cites="vovk_algorithmic_2005 angelopoulos_gentle_2021">(Vovk,
+Gammerman, and Shafer 2005; Angelopoulos and Bates 2021)</span>
+sidesteps the probabilistic modeling question entirely and instead
+delivers a distribution-free finite-sample coverage guarantee at a
+target level
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>α</mi></mrow><annotation encoding="application/x-tex">1 - \alpha</annotation></semantics></math><a
+href="#fn21" class="footnote-ref" id="fnref21"
+role="doc-noteref"><sup>21</sup></a>; the trade-off is that individual
+set sizes can be large if the base model is poor. OOD detection is the
+sister literature that reuses these signals as scores for a binary
+"in-distribution vs. out-of-distribution" classifier <span
+class="citation"
+data-cites="hendrycks_baseline_2017 liang_odin_2018 liu_energy_2020">(Hendrycks
+and Gimpel 2017; Liang, Li, and Srikant 2018; Liu et al. 2020)</span>.
+Probabilistic programming languages (Pyro, NumPyro, TFP, Stan) <span
+class="citation"
+data-cites="bingham_pyro_2019 phan_numpyro_2019 tran_edward_2018 carpenter_stan_2017">(Bingham
+et al. 2019; Phan, Pradhan, and Jankowiak 2019; Tran et al. 2018;
+Carpenter et al. 2017)</span> are the infrastructure layer that glues
+posteriors, calibrations, and predictive distributions into a coherent
+model. Bayesian RL <span class="citation"
+data-cites="ghavamzadeh_brl_2015 osband_bootstrapped_dqn_2016 depeweg_decomposition_2018">(Ghavamzadeh
+et al. 2015; Osband et al. 2016; Depeweg et al. 2018)</span> applies the
+decomposition to a <em>dynamics</em> model and uses the epistemic
+component as an intrinsic reward driving Thompson sampling and
+information-directed exploration.</p>
+<p>Table <a href="tab:uq-sota">tab:uq-sota</a> summarizes the
+methodological landscape.</p>
+<div class="blog-table"><table id="tab:uq-sota">
+<caption>SoTA landscape for uncertainty quantification on deep nets. ECE
+is expected calibration error (lower is better, 15-bin equal-width on
+CIFAR / ImageNet); NLL is negative log-likelihood on the held-out test
+set; AUROC is OOD-detection area under the ROC curve (CIFAR-10 in-dist
+vs. SVHN out-of-dist, higher is better); Coverage reports the empirical
+coverage of a prediction set at target
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>α</mi><mo>=</mo><mn>0.9</mn></mrow><annotation encoding="application/x-tex">1 - \alpha = 0.9</annotation></semantics></math>.
+Numbers are representative values from the cited papers; absolute
+figures depend on the backbone (most entries here assume ResNet-110 /
+ResNet-50 / DenseNet-BC unless noted), split, and binning choice. Blank
+cells mean the method does not report that metric.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>ECE (CIFAR-100)</th>
+<th>NLL (CIFAR-100)</th>
+<th>AUROC (C10 vs. SVHN)</th>
+<th>Coverage @ 0.9</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Softmax baseline <span class="citation"
+data-cites="hendrycks_baseline_2017">(Hendrycks and Gimpel
+2017)</span></td>
+<td>16.5%</td>
+<td>1.15</td>
+<td>89.9</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Temperature scaling <span class="citation"
+data-cites="guo_calibration_2017">(Guo et al. 2017)</span></td>
+<td>2.1%</td>
+<td>0.94</td>
+<td>90.1</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Histogram binning <span class="citation"
+data-cites="guo_calibration_2017">(Guo et al. 2017)</span></td>
+<td>2.8%</td>
+<td>1.02</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Platt / vector scaling <span class="citation"
+data-cites="platt_probabilistic_1999">(Platt 1999)</span></td>
+<td>4.5%</td>
+<td>0.99</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Verified calibration (KLM) <span class="citation"
+data-cites="kumar_verified_2019">(Kumar, Liang, and Ma 2019)</span></td>
+<td>1.9%</td>
+<td>0.92</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Deep ensemble (5 models) <span class="citation"
+data-cites="kendall_gal_uncertainties_2017">(Kendall and Gal
+2017)</span></td>
+<td>1.5%</td>
+<td>0.78</td>
+<td>93.7</td>
+<td>-</td>
+</tr>
+<tr>
+<td>ODIN (T=1000, eps=0.0014) <span class="citation"
+data-cites="liang_odin_2018">(Liang, Li, and Srikant 2018)</span></td>
+<td>-</td>
+<td>-</td>
+<td>96.7</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Energy score <span class="citation"
+data-cites="liu_energy_2020">(Liu et al. 2020)</span></td>
+<td>-</td>
+<td>-</td>
+<td>98.5</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Likelihood ratios (genomic) <span class="citation"
+data-cites="ren_likelihood_2019">(Ren et al. 2019)</span></td>
+<td>-</td>
+<td>-</td>
+<td>89.0</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Split conformal (APS) <span class="citation"
+data-cites="angelopoulos_gentle_2021">(Angelopoulos and Bates
+2021)</span></td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>0.901</td>
+</tr>
+<tr>
+<td>CQR (conformalized QR) <span class="citation"
+data-cites="romano_cqr_2019">(Romano, Patterson, and Candès
+2019)</span></td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>0.901</td>
+</tr>
+<tr>
+<td>Weighted conformal (cov-sh) <span class="citation"
+data-cites="tibshirani_covariate_2019">(Tibshirani et al.
+2019)</span></td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>0.903</td>
+</tr>
+</tbody>
+</table></div>
+<p>Three methodological observations follow from the table. First,
+post-hoc calibration dominates accuracy-matched cost: one extra scalar
+parameter (the temperature
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>)
+reduces ECE by roughly an order of magnitude on CIFAR-100 at zero
+accuracy cost<a href="#fn22" class="footnote-ref" id="fnref22"
+role="doc-noteref"><sup>22</sup></a> <span class="citation"
+data-cites="guo_calibration_2017">(Guo et al. 2017)</span>, making
+temperature scaling the default first step for any deployed classifier.
+Second, OOD detection and calibration are separate problems: a perfectly
+calibrated model can still fail catastrophically on inputs from outside
+the training distribution (ImageNet-trained ResNet assigns confident
+softmax to texture noise), which is why the OOD literature designs a
+different score (energy, ODIN, likelihood-ratio) rather than reading off
+softmax confidence. Third, conformal prediction is orthogonal to both:
+it wraps any base model and converts its score into a set with exact
+marginal coverage, regardless of whether the score was calibrated or how
+the model was trained.</p>
+<h2 id="historical-notes">Historical Notes</h2>
+<p>The separation of reducible from irreducible uncertainty predates
+deep learning by centuries. Laplace's <em>Essai philosophique sur les
+probabilités</em> (1814) distinguishes between "ignorance of the causes"
+(epistemic) and "inherent variability" (aleatoric) in the context of
+classical mechanics. Knight's <em>Risk, Uncertainty, and Profit</em>
+(1921) made the same distinction in economics, calling the epistemic
+component <em>true uncertainty</em> and the aleatoric component
+<em>risk</em>. In machine learning, the distinction was re-introduced by
+<span class="citation" data-cites="neal_bayesian_1996">(Neal
+1996)</span> in the context of Bayesian neural networks: the posterior
+variance over weights is <em>epistemic</em>, the likelihood variance
+(observation noise) is <em>aleatoric</em>. <u>Modern deep-learning UQ is
+thus not a new paradigm but a practical engineering of ideas that have
+been known for generations.</u></p>
+<p>Calibration as a desideratum goes back at least to Brier's (1950)
+meteorological scoring rule, which rewarded <em>reliable</em>
+probabilistic forecasts of rain. Platt (1999) <span class="citation"
+data-cites="platt_probabilistic_1999">(Platt 1999)</span> was the first
+to apply calibration to machine-learning classifiers (SVMs). The "deep
+learning is overconfident" observation by <span class="citation"
+data-cites="guo_calibration_2017">(Guo et al. 2017)</span> was partly a
+rediscovery of the same phenomenon that had been noted in boosted trees
+and had been partly understood as a general property of
+margin-maximizing classifiers.</p>
+<p>Conformal prediction originated in <span class="citation"
+data-cites="vovk_algorithmic_2005">(Vovk, Gammerman, and Shafer
+2005)</span>, who developed the theory for online sequential prediction
+with exchangeability. The framework was largely unknown outside the
+learning-theory community until <span class="citation"
+data-cites="angelopoulos_gentle_2021">(Angelopoulos and Bates
+2021)</span> wrote an accessible tutorial for deep-learning
+practitioners, triggering rapid adoption. <u>The tutorial paper became
+the most-cited introduction to conformal prediction within three years
+of publication, demonstrating that exposition can be as impactful as
+novel theory in moving a field.</u></p>
+<p>OOD detection has its roots in the anomaly detection literature
+(Chandola et al. 2009 survey) but became a deep-learning-specific
+research program with <span class="citation"
+data-cites="hendrycks_baseline_2017">(Hendrycks and Gimpel 2017)</span>,
+who framed it as a binary classification task with a specific evaluation
+protocol (CIFAR-10 vs. SVHN, TinyImageNet vs. LSUN). The
+AUROC/FPR-at-95-TPR metrics became the de facto OOD benchmark<a
+href="#fn23" class="footnote-ref" id="fnref23"
+role="doc-noteref"><sup>23</sup></a>.</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-angelopoulos_gentle_2021" class="csl-entry"
+role="listitem">
+Angelopoulos, Anastasios N., and Stephen Bates. 2021. <span>“A Gentle
+Introduction to Conformal Prediction and Distribution-Free Uncertainty
+Quantification.”</span> <em>arXiv Preprint</em> arXiv:2107.07511. <a
+href="https://arxiv.org/abs/2107.07511">https://arxiv.org/abs/2107.07511</a>.
+</div>
+<div id="ref-attias_variational_1999" class="csl-entry" role="listitem">
+Attias, Hagai. 1999. <span>“Inferring Parameters and Structure of Latent
+Variable Models by Variational Bayes.”</span> In <em>UAI</em>, 21–30.
+</div>
+<div id="ref-belanger_spen_2016" class="csl-entry" role="listitem">
+Belanger, David, and Andrew McCallum. 2016. <span>“Structured Prediction
+Energy Networks.”</span> In <em>ICML</em>, 983–92.
+</div>
+<div id="ref-bingham_pyro_2019" class="csl-entry" role="listitem">
+Bingham, Eli, Jonathan P. Chen, Martin Jankowiak, Fritz Obermeyer,
+Neeraj Pradhan, Theofanis Karaletsos, Rohit Singh, Paul Szerlip, Paul
+Horsfall, and Noah D. Goodman. 2019. <span>“Pyro: Deep Universal
+Probabilistic Programming.”</span> <em>Journal of Machine Learning
+Research</em> 20 (28): 1–6.
+</div>
+<div id="ref-bishop_prml_2006" class="csl-entry" role="listitem">
+Bishop, Christopher M. 2006. <em>Pattern Recognition and Machine
+Learning</em>. Springer.
+</div>
+<div id="ref-blei_ng_jordan_lda_2003" class="csl-entry" role="listitem">
+Blei, David M., Andrew Y. Ng, and Michael I. Jordan. 2003. <span>“Latent
+Dirichlet Allocation.”</span> <em>Journal of Machine Learning
+Research</em> 3: 993–1022.
+</div>
+<div id="ref-blundell_bbb_2015" class="csl-entry" role="listitem">
+Blundell, Charles, Julien Cornebise, Koray Kavukcuoglu, and Daan
+Wierstra. 2015. <span>“Weight Uncertainty in Neural Networks.”</span> In
+<em>ICML</em>.
+</div>
+<div id="ref-carpenter_stan_2017" class="csl-entry" role="listitem">
+Carpenter, Bob, Andrew Gelman, Matthew D. Hoffman, Daniel Lee, Ben
+Goodrich, Michael Betancourt, Marcus A. Brubaker, Jiqiang Guo, Peter Li,
+and Allen Riddell. 2017. <span>“Stan: A Probabilistic Programming
+Language.”</span> <em>Journal of Statistical Software</em> 76 (1): 1–32.
+<a
+href="https://doi.org/10.18637/jss.v076.i01">https://doi.org/10.18637/jss.v076.i01</a>.
+</div>
+<div id="ref-damianou_deep_2013" class="csl-entry" role="listitem">
+Damianou, Andreas C., and Neil D. Lawrence. 2013. <span>“Deep Gaussian
+Processes.”</span> In <em>AISTATS</em>, 207–15.
+</div>
+<div id="ref-dempster_em_1977" class="csl-entry" role="listitem">
+Dempster, A. P., N. M. Laird, and D. B. Rubin. 1977. <span>“Maximum
+Likelihood from Incomplete Data via the EM Algorithm.”</span>
+<em>Journal of the Royal Statistical Society, Series B</em> 39 (1):
+1–38.
+</div>
+<div id="ref-depeweg_decomposition_2018" class="csl-entry"
+role="listitem">
+Depeweg, Stefan, José Miguel Hernández-Lobato, Finale Doshi-Velez, and
+Steffen Udluft. 2018. <span>“Decomposition of Uncertainty in
+<span>Bayesian</span> Deep Learning for Efficient and Risk-Sensitive
+Learning.”</span> In <em>Proceedings of the 35th International
+Conference on Machine Learning</em>, 1184–93. <a
+href="https://arxiv.org/abs/1710.07283">https://arxiv.org/abs/1710.07283</a>.
+</div>
+<div id="ref-dusenberry_rank1_2020" class="csl-entry" role="listitem">
+Dusenberry, Michael W., Ghassen Jerfel, Yeming Wen, Yi-An Ma, Jasper
+Snoek, Katherine Heller, Balaji Lakshminarayanan, and Dustin Tran. 2020.
+<span>“Efficient and Scalable Bayesian Neural Nets with Rank-1
+Factors.”</span> In <em>ICML</em>.
+</div>
+<div id="ref-dutordoir_deep_2021" class="csl-entry" role="listitem">
+Dutordoir, Vincent, Nicolas Durrande, and James Hensman. 2021.
+<span>“Deep Neural Networks as Point Estimates for Deep Gaussian
+Processes.”</span> In <em>NeurIPS</em>.
+</div>
+<div id="ref-gal_dropout_rnn_2016" class="csl-entry" role="listitem">
+Gal, Yarin, and Zoubin Ghahramani. 2016a. <span>“A Theoretically
+Grounded Application of Dropout in Recurrent Neural Networks.”</span> In
+<em>NeurIPS</em>.
+</div>
+<div id="ref-gal_dropout_bayes_2016" class="csl-entry" role="listitem">
+———. 2016b. <span>“Dropout as a Bayesian Approximation: Representing
+Model Uncertainty in Deep Learning.”</span> In <em>ICML</em>.
+</div>
+<div id="ref-gal_concrete_dropout_2017" class="csl-entry"
+role="listitem">
+Gal, Yarin, Jiri Hron, and Alex Kendall. 2017. <span>“Concrete
+Dropout.”</span> In <em>NeurIPS</em>.
+</div>
+<div id="ref-gardner_gpytorch_2018" class="csl-entry" role="listitem">
+Gardner, Jacob R., Geoff Pleiss, David Bindel, Kilian Q. Weinberger, and
+Andrew Gordon Wilson. 2018. <span>“GPyTorch: Blackbox Matrix-Matrix
+Gaussian Process Inference with GPU Acceleration.”</span> In
+<em>NeurIPS</em>.
+</div>
+<div id="ref-garnelo_neural_2018" class="csl-entry" role="listitem">
+Garnelo, Marta, Jonathan Schwarz, Dan Rosenbaum, Fabio Viola, Danilo J.
+Rezende, S. M. Ali Eslami, and Yee Whye Teh. 2018. <span>“Neural
+Processes.”</span> In <em>ICML 2018 Theoretical Foundations and
+Applications of Deep Generative Models Workshop</em>. <a
+href="https://arxiv.org/abs/1807.01622">https://arxiv.org/abs/1807.01622</a>.
+</div>
+<div id="ref-gelman_bda_2013" class="csl-entry" role="listitem">
+Gelman, Andrew, John B. Carlin, Hal S. Stern, David B. Dunson, Aki
+Vehtari, and Donald B. Rubin. 2013. <em>Bayesian Data Analysis</em>.
+Third. Chapman; Hall/CRC.
+</div>
+<div id="ref-ghavamzadeh_brl_2015" class="csl-entry" role="listitem">
+Ghavamzadeh, Mohammad, Shie Mannor, Joelle Pineau, and Aviv Tamar. 2015.
+<span>“Bayesian Reinforcement Learning: A Survey.”</span>
+<em>Foundations and Trends in Machine Learning</em> 8 (5-6): 359–483. <a
+href="https://doi.org/10.1561/2200000049">https://doi.org/10.1561/2200000049</a>.
+</div>
+<div id="ref-graves_variational_2011" class="csl-entry" role="listitem">
+Graves, Alex. 2011. <span>“Practical Variational Inference for Neural
+Networks.”</span> In <em>NeurIPS</em>.
+</div>
+<div id="ref-guo_calibration_2017" class="csl-entry" role="listitem">
+Guo, Chuan, Geoff Pleiss, Yu Sun, and Kilian Q. Weinberger. 2017.
+<span>“On Calibration of Modern Neural Networks.”</span> In
+<em>Proceedings of the 34th International Conference on Machine
+Learning</em>, 1321–30. <a
+href="https://arxiv.org/abs/1706.04599">https://arxiv.org/abs/1706.04599</a>.
+</div>
+<div id="ref-hendrycks_baseline_2017" class="csl-entry" role="listitem">
+Hendrycks, Dan, and Kevin Gimpel. 2017. <span>“A Baseline for Detecting
+Misclassified and Out-of-Distribution Examples in Neural
+Networks.”</span> In <em>International Conference on Learning
+Representations</em>. <a
+href="https://arxiv.org/abs/1610.02136">https://arxiv.org/abs/1610.02136</a>.
+</div>
+<div id="ref-hensman_gaussian_2013" class="csl-entry" role="listitem">
+Hensman, James, Nicolo Fusi, and Neil D. Lawrence. 2013. <span>“Gaussian
+Processes for Big Data.”</span> In <em>UAI</em>, 282–90.
+</div>
+<div id="ref-hinton_mdl_1993" class="csl-entry" role="listitem">
+Hinton, Geoffrey E., and Drew van Camp. 1993. <span>“Keeping the Neural
+Networks Simple by Minimizing the Description Length of the
+Weights.”</span> COLT.
+</div>
+<div id="ref-hinton_wake_sleep_1995" class="csl-entry" role="listitem">
+Hinton, Geoffrey E., Peter Dayan, Brendan J. Frey, and Radford M. Neal.
+1995. <span>“The Wake-Sleep Algorithm for Unsupervised Neural
+Networks.”</span> <em>Science</em> 268 (5214): 1158–61.
+</div>
+<div id="ref-hinton_dbn_2006" class="csl-entry" role="listitem">
+Hinton, Geoffrey E., Simon Osindero, and Yee-Whye Teh. 2006. <span>“A
+Fast Learning Algorithm for Deep Belief Nets.”</span> <em>Neural
+Computation</em> 18 (7): 1527–54.
+</div>
+<div id="ref-hron_transformer_2020" class="csl-entry" role="listitem">
+Hron, Jiri, Yasaman Bahri, Jascha Sohl-Dickstein, and Roman Novak. 2020.
+<span>“Infinite Attention: NNGP and NTK for Deep Attention
+Networks.”</span> In <em>ICML</em>.
+</div>
+<div id="ref-izmailov_hmc_bnn_2021" class="csl-entry" role="listitem">
+Izmailov, Pavel, Sharad Vikram, Matthew D. Hoffman, and Andrew Gordon
+Wilson. 2021. <span>“What Are Bayesian Neural Network Posteriors Really
+Like?”</span> In <em>ICML</em>.
+</div>
+<div id="ref-jacot_ntk_2018" class="csl-entry" role="listitem">
+Jacot, Arthur, Franck Gabriel, and Clement Hongler. 2018. <span>“Neural
+Tangent Kernel: Convergence and Generalization in Neural
+Networks.”</span> In <em>NeurIPS</em>.
+</div>
+<div id="ref-jaynes_probability_2003" class="csl-entry" role="listitem">
+Jaynes, E. T. 2003. <em>Probability Theory: The Logic of Science</em>.
+Edited by G. Larry Bretthorst. Cambridge University Press.
+</div>
+<div id="ref-kalman_1960" class="csl-entry" role="listitem">
+Kalman, R. E. 1960. <span>“A New Approach to Linear Filtering and
+Prediction Problems.”</span> <em>Journal of Basic Engineering</em> 82
+(1): 35–45.
+</div>
+<div id="ref-kendall_gal_uncertainties_2017" class="csl-entry"
+role="listitem">
+Kendall, Alex, and Yarin Gal. 2017. <span>“What Uncertainties Do We Need
+in Bayesian Deep Learning for Computer Vision?”</span> In
+<em>NeurIPS</em>.
+</div>
+<div id="ref-kingma_local_reparam_2015" class="csl-entry"
+role="listitem">
+Kingma, Diederik P., Tim Salimans, and Max Welling. 2015.
+<span>“Variational Dropout and the Local Reparameterization
+Trick.”</span> In <em>NeurIPS</em>.
+</div>
+<div id="ref-kingma_vae_2014" class="csl-entry" role="listitem">
+Kingma, Diederik P., and Max Welling. 2014. <span>“Auto-Encoding
+Variational Bayes.”</span> In <em>ICLR</em>.
+</div>
+<div id="ref-koller_friedman_pgm_2009" class="csl-entry"
+role="listitem">
+Koller, Daphne, and Nir Friedman. 2009. <em>Probabilistic Graphical
+Models: Principles and Techniques</em>. MIT Press.
+</div>
+<div id="ref-kumar_verified_2019" class="csl-entry" role="listitem">
+Kumar, Ananya, Percy Liang, and Tengyu Ma. 2019. <span>“Verified
+Uncertainty Calibration.”</span> In <em>Advances in Neural Information
+Processing Systems</em>. Vol. 32. <a
+href="https://arxiv.org/abs/1909.10155">https://arxiv.org/abs/1909.10155</a>.
+</div>
+<div id="ref-lafferty_crf_2001" class="csl-entry" role="listitem">
+Lafferty, John D., Andrew McCallum, and Fernando C. N. Pereira. 2001.
+<span>“Conditional Random Fields: Probabilistic Models for Segmenting
+and Labeling Sequence Data.”</span> In <em>Proceedings of the Eighteenth
+International Conference on Machine Learning (ICML)</em>, 282–89.
+</div>
+<div id="ref-lakshminarayanan_deep_ensembles_2017" class="csl-entry"
+role="listitem">
+Lakshminarayanan, Balaji, Alexander Pritzel, and Charles Blundell. 2017.
+<span>“Simple and Scalable Predictive Uncertainty Estimation Using Deep
+Ensembles.”</span> In <em>NeurIPS</em>.
+</div>
+<div id="ref-lee_nngp_2018" class="csl-entry" role="listitem">
+Lee, Jaehoon, Yasaman Bahri, Roman Novak, Samuel S. Schoenholz, Jeffrey
+Pennington, and Jascha Sohl-Dickstein. 2018. <span>“Deep Neural Networks
+as Gaussian Processes.”</span> In <em>ICLR</em>.
+</div>
+<div id="ref-liang_odin_2018" class="csl-entry" role="listitem">
+Liang, Shiyu, Yixuan Li, and R. Srikant. 2018. <span>“Enhancing the
+Reliability of Out-of-Distribution Image Detection in Neural
+Networks.”</span> In <em>International Conference on Learning
+Representations</em>. <a
+href="https://arxiv.org/abs/1706.02690">https://arxiv.org/abs/1706.02690</a>.
+</div>
+<div id="ref-liu_energy_2020" class="csl-entry" role="listitem">
+Liu, Weitang, Xiaoyun Wang, John D. Owens, and Yixuan Li. 2020.
+<span>“Energy-Based Out-of-Distribution Detection.”</span> In
+<em>NeurIPS</em>.
+</div>
+<div id="ref-louizos_mnf_2017" class="csl-entry" role="listitem">
+Louizos, Christos, and Max Welling. 2017. <span>“Multiplicative
+Normalizing Flows for Variational Bayesian Neural Networks.”</span> In
+<em>ICML</em>.
+</div>
+<div id="ref-mackay1992practical" class="csl-entry" role="listitem">
+MacKay, David J. C. 1992. <span>“A Practical Bayesian Framework for
+Backpropagation Networks.”</span> <em>Neural Computation</em> 4 (3):
+448–72.
+</div>
+<div id="ref-mackay_itila_2003" class="csl-entry" role="listitem">
+———. 2003. <em>Information Theory, Inference, and Learning
+Algorithms</em>. Cambridge University Press.
+</div>
+<div id="ref-maddox_swag_2019" class="csl-entry" role="listitem">
+Maddox, Wesley J., Pavel Izmailov, Timur Garipov, Dmitry P. Vetrov, and
+Andrew Gordon Wilson. 2019. <span>“A Simple Baseline for Bayesian
+Uncertainty in Deep Learning.”</span> In <em>NeurIPS</em>.
+</div>
+<div id="ref-matthews_gaussian_2018" class="csl-entry" role="listitem">
+Matthews, Alexander G. de G., Jiri Hron, Mark Rowland, Richard E.
+Turner, and Zoubin Ghahramani. 2018. <span>“Gaussian Process Behaviour
+in Wide Deep Neural Networks.”</span> In <em>ICLR</em>.
+</div>
+<div id="ref-murphy_pml_intro_2022" class="csl-entry" role="listitem">
+Murphy, Kevin P. 2022. <em>Probabilistic Machine Learning: An
+Introduction</em>. MIT Press. <a
+href="https://probml.github.io/pml-book/book1.html">https://probml.github.io/pml-book/book1.html</a>.
+</div>
+<div id="ref-neal_bayesian_1996" class="csl-entry" role="listitem">
+Neal, Radford M. 1996. <em>Bayesian Learning for Neural Networks</em>.
+Springer.
+</div>
+<div id="ref-neal_hinton_em_1998" class="csl-entry" role="listitem">
+Neal, Radford M., and Geoffrey E. Hinton. 1998. <span>“A View of the EM
+Algorithm That Justifies Incremental, Sparse, and Other
+Variants.”</span> In <em>Learning in Graphical Models</em>, 355–68.
+Kluwer Academic Publishers.
+</div>
+<div id="ref-novak_neural_2020" class="csl-entry" role="listitem">
+Novak, Roman, Lechao Xiao, Jiri Hron, Jaehoon Lee, Alexander A. Alemi,
+Jascha Sohl-Dickstein, and Samuel S. Schoenholz. 2020. <span>“Neural
+Tangents: Fast and Easy Infinite Neural Networks in Python.”</span> In
+<em>ICLR</em>.
+</div>
+<div id="ref-novak_bayesian_2019" class="csl-entry" role="listitem">
+Novak, Roman, Lechao Xiao, Jaehoon Lee, Yasaman Bahri, Greg Yang, Jiri
+Hron, Daniel A. Abolafia, Jeffrey Pennington, and Jascha Sohl-Dickstein.
+2019. <span>“Bayesian Deep Convolutional Networks with Many Channels Are
+Gaussian Processes.”</span> In <em>ICLR</em>.
+</div>
+<div id="ref-ober_promises_2021" class="csl-entry" role="listitem">
+Ober, Sebastian W., Carl Edward Rasmussen, and Mark van der Wilk. 2021.
+<span>“The Promises and Pitfalls of Deep Kernel Learning.”</span> In
+<em>UAI</em>, 1206–16.
+</div>
+<div id="ref-osband_risk_vs_uncertainty_2016" class="csl-entry"
+role="listitem">
+Osband, Ian. 2016. <span>“Risk Versus Uncertainty in Deep Learning:
+Bayes, Bootstrap and the Dangers of Dropout.”</span> In <em>NeurIPS
+Workshop on Bayesian Deep Learning</em>.
+</div>
+<div id="ref-osband_bootstrapped_dqn_2016" class="csl-entry"
+role="listitem">
+Osband, Ian, Charles Blundell, Alexander Pritzel, and Benjamin Van Roy.
+2016. <span>“Deep Exploration via Bootstrapped DQN.”</span> In
+<em>NeurIPS</em>.
+</div>
+<div id="ref-phan_numpyro_2019" class="csl-entry" role="listitem">
+Phan, Du, Neeraj Pradhan, and Martin Jankowiak. 2019. <span>“Composable
+Effects for Flexible and Accelerated Probabilistic Programming in
+<span>NumPyro</span>.”</span> <em>arXiv Preprint</em> arXiv:1912.11554.
+<a
+href="https://arxiv.org/abs/1912.11554">https://arxiv.org/abs/1912.11554</a>.
+</div>
+<div id="ref-platt_probabilistic_1999" class="csl-entry"
+role="listitem">
+Platt, John. 1999. <span>“Probabilistic Outputs for Support Vector
+Machines and Comparisons to Regularized Likelihood Methods.”</span> In
+<em>Advances in Large Margin Classifiers</em>, edited by A. Smola, P.
+Bartlett, B. Scholkopf, and D. Schuurmans, 61–74. MIT Press.
+</div>
+<div id="ref-rabiner_hmm_1989" class="csl-entry" role="listitem">
+Rabiner, Lawrence R. 1989. <span>“A Tutorial on Hidden Markov Models and
+Selected Applications in Speech Recognition.”</span> <em>Proceedings of
+the IEEE</em> 77 (2): 257–86.
+</div>
+<div id="ref-rahimi_random_2007" class="csl-entry" role="listitem">
+Rahimi, Ali, and Benjamin Recht. 2007. <span>“Random Features for
+Large-Scale Kernel Machines.”</span> In <em>Advances in Neural
+Information Processing Systems (NeurIPS)</em>. Vol. 20. <a
+href="https://papers.nips.cc/paper/2007/hash/013a006f03dbc5392effeb8f18fda755-Abstract.html">https://papers.nips.cc/paper/2007/hash/013a006f03dbc5392effeb8f18fda755-Abstract.html</a>.
+</div>
+<div id="ref-rasmussen_williams_2006" class="csl-entry" role="listitem">
+Rasmussen, Carl Edward, and Christopher K. I. Williams. 2006.
+<em>Gaussian Processes for Machine Learning</em>. MIT Press.
+</div>
+<div id="ref-ren_likelihood_2019" class="csl-entry" role="listitem">
+Ren, Jie, Peter J. Liu, Emily Fertig, Jasper Snoek, Ryan Poplin, Mark A.
+DePristo, Joshua V. Dillon, and Balaji Lakshminarayanan. 2019.
+<span>“Likelihood Ratios for Out-of-Distribution Detection.”</span> In
+<em>Advances in Neural Information Processing Systems</em>. Vol. 32. <a
+href="https://arxiv.org/abs/1906.02845">https://arxiv.org/abs/1906.02845</a>.
+</div>
+<div id="ref-rezende_normalizing_flows_2015" class="csl-entry"
+role="listitem">
+Rezende, Danilo Jimenez, and Shakir Mohamed. 2015. <span>“Variational
+Inference with Normalizing Flows.”</span> In <em>ICML</em>.
+</div>
+<div id="ref-rezende_stochastic_2014" class="csl-entry" role="listitem">
+Rezende, Danilo Jimenez, Shakir Mohamed, and Daan Wierstra. 2014.
+<span>“Stochastic Backpropagation and Approximate Inference in Deep
+Generative Models.”</span> In <em>ICML</em>.
+</div>
+<div id="ref-romano_cqr_2019" class="csl-entry" role="listitem">
+Romano, Yaniv, Evan Patterson, and Emmanuel J. Candès. 2019.
+<span>“Conformalized Quantile Regression.”</span> In <em>Advances in
+Neural Information Processing Systems</em>. Vol. 32. <a
+href="https://arxiv.org/abs/1905.03222">https://arxiv.org/abs/1905.03222</a>.
+</div>
+<div id="ref-salakhutdinov_dbm_2009" class="csl-entry" role="listitem">
+Salakhutdinov, Ruslan, and Geoffrey E. Hinton. 2009. <span>“Deep
+Boltzmann Machines.”</span> In <em>AISTATS</em>, 448–55.
+</div>
+<div id="ref-salimbeni_orthogonally_2018" class="csl-entry"
+role="listitem">
+Salimbeni, Hugh, Ching-An Cheng, Byron Boots, and Marc Deisenroth. 2018.
+<span>“Orthogonally Decoupled Variational Gaussian Processes.”</span> In
+<em>NeurIPS</em>.
+</div>
+<div id="ref-salimbeni_doubly_2017" class="csl-entry" role="listitem">
+Salimbeni, Hugh, and Marc Peter Deisenroth. 2017. <span>“Doubly
+Stochastic Variational Inference for Deep Gaussian Processes.”</span> In
+<em>NeurIPS</em>, 4588–99.
+</div>
+<div id="ref-salimbeni_natural_2018" class="csl-entry" role="listitem">
+Salimbeni, Hugh, Stefanos Eleftheriadis, and James Hensman. 2018.
+<span>“Natural Gradients in Practice: Non-Conjugate Variational
+Inference in Gaussian Process Models.”</span> In <em>AISTATS</em>.
+</div>
+<div id="ref-tibshirani_covariate_2019" class="csl-entry"
+role="listitem">
+Tibshirani, Ryan J., Rina Foygel Barber, Emmanuel J. Candès, and Aaditya
+Ramdas. 2019. <span>“Conformal Prediction Under Covariate Shift.”</span>
+In <em>Advances in Neural Information Processing Systems</em>. Vol. 32.
+<a
+href="https://arxiv.org/abs/1904.06019">https://arxiv.org/abs/1904.06019</a>.
+</div>
+<div id="ref-titsias_variational_2009" class="csl-entry"
+role="listitem">
+Titsias, Michalis K. 2009. <span>“Variational Learning of Inducing
+Variables in Sparse Gaussian Processes.”</span> In <em>AISTATS</em>,
+567–74.
+</div>
+<div id="ref-tran_edward_2018" class="csl-entry" role="listitem">
+Tran, Dustin, Matthew D. Hoffman, Dave Moore, Christopher Suter,
+Srinivas Vasudevan, Alexey Radul, Matthew J. Johnson, and Rif A.
+Saurous. 2018. <span>“Simple, Distributed, and Accelerated Probabilistic
+Programming.”</span> <em>Advances in Neural Information Processing
+Systems</em> 31. <a
+href="https://arxiv.org/abs/1811.02091">https://arxiv.org/abs/1811.02091</a>.
+</div>
+<div id="ref-vovk_algorithmic_2005" class="csl-entry" role="listitem">
+Vovk, Vladimir, Alexander Gammerman, and Glenn Shafer. 2005.
+<em>Algorithmic Learning in a Random World</em>. First. Springer.
+</div>
+<div id="ref-wen_flipout_2018" class="csl-entry" role="listitem">
+Wen, Yeming, Paul Vicol, Jimmy Ba, Dustin Tran, and Roger Grosse. 2018.
+<span>“Flipout: Efficient Pseudo-Independent Weight Perturbations on
+Mini-Batches.”</span> In <em>ICLR</em>.
+</div>
+<div id="ref-wilson_deep_2016" class="csl-entry" role="listitem">
+Wilson, Andrew Gordon, Zhiting Hu, Ruslan Salakhutdinov, and Eric P.
+Xing. 2016a. <span>“Deep Kernel Learning.”</span> In <em>AISTATS</em>,
+370–78.
+</div>
+<div id="ref-wilson_stochastic_2016" class="csl-entry" role="listitem">
+———. 2016b. <span>“Stochastic Variational Deep Kernel Learning.”</span>
+In <em>NeurIPS</em>, 2586–94.
+</div>
+<div id="ref-wilson_izmailov_2020" class="csl-entry" role="listitem">
+Wilson, Andrew Gordon, and Pavel Izmailov. 2020. <span>“Bayesian Deep
+Learning and a Probabilistic Perspective of Generalization.”</span>
+<em>NeurIPS</em>.
+</div>
+<div id="ref-wilson_kissgp_2015" class="csl-entry" role="listitem">
+Wilson, Andrew Gordon, and Hannes Nickisch. 2015. <span>“Kernel
+Interpolation for Scalable Structured Gaussian Processes
+(KISS-GP).”</span> In <em>ICML</em>, 1775–84.
+</div>
+<div id="ref-yang_tensor_2019" class="csl-entry" role="listitem">
+Yang, Greg. 2019. <span>“Tensor Programs i: Wide Feedforward or
+Recurrent Neural Networks of Any Architecture Are Gaussian
+Processes.”</span> In <em>NeurIPS</em>.
+</div>
+</div>
+<section id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p><em>Cubic exact-GP cost</em>: the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>×</mo><mi>N</mi></mrow><annotation encoding="application/x-tex">N \times N</annotation></semantics></math>
+kernel-matrix inversion is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>N</mi><mn>3</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(N^3)</annotation></semantics></math>
+FLOPs, with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(N^2)</annotation></semantics></math>
+memory for storage; this caps full-GP training at roughly
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>≈</mo><mn>5</mn><mo>,</mo><mn>000</mn></mrow><annotation encoding="application/x-tex">N \approx 5{,}000</annotation></semantics></math>
+on commodity hardware and is the single fact that motivates the entire
+sparse / structured-kernel / matrix-vector-iteration literature.<a
+href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><em>Inducing-point budget</em>: too few
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+loses accuracy near the boundaries; too many
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+defeats the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>N</mi><msup><mi>M</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(NM^2)</annotation></semantics></math>
+saving over full-GP
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>N</mi><mn>3</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(N^3)</annotation></semantics></math>;
+placement (uniform grid, k-means on inputs, or learned by gradient on
+the ELBO) and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+itself remain hand-tuned per benchmark <span class="citation"
+data-cites="titsias_variational_2009 hensman_gaussian_2013">(Titsias
+2009; Hensman, Fusi, and Lawrence 2013)</span>.<a href="#fnref2"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p><em>Deep-GP pinch-point</em>: the intermediate latent of
+a stacked deep GP collapses to near-deterministic without identity
+initialization or residual / skip-connections, defeating the
+compositional-prior motivation that justified depth in the first place
+<span class="citation"
+data-cites="salimbeni_doubly_2017 dutordoir_deep_2021">(Salimbeni and
+Deisenroth 2017; Dutordoir, Durrande, and Hensman 2021)</span>.<a
+href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p><em>Deep-GP depth saturation</em>: 2 layers help
+modestly, 3 layers help slightly more, and beyond 3 the held-out NLL on
+UCI regression saturates and shows mild overfit; doubling the layer
+count past 3 burns compute without proportional gain <span
+class="citation" data-cites="salimbeni_doubly_2017">(Salimbeni and
+Deisenroth 2017)</span>.<a href="#fnref4" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p><em>DKL variance collapse</em>: the feature extractor
+maps training inputs to coincident latent points so that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>k</mi><mtext mathvariant="normal">base</mtext></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>h</mi><mi>θ</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><msub><mi>h</mi><mi>θ</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo>→</mo><msub><mi>k</mi><mtext mathvariant="normal">base</mtext></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">k_{\text{base}}(h_\theta(x_i), h_\theta(x_j)) \to k_{\text{base}}(0)</annotation></semantics></math>
+for nearby
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>i</mi></msub><mo>,</mo><msub><mi>x</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">x_i, x_j</annotation></semantics></math>,
+destroying the calibrated uncertainty that motivated using a GP read-out
+in the first place <span class="citation"
+data-cites="ober_promises_2021">(Ober, Rasmussen, and Wilk
+2021)</span>.<a href="#fnref5" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p><em>Marginal-likelihood overfitting</em>: ML-II
+hyperparameter tuning treats the marginal likelihood as a
+model-selection score, but with the deep / DKL parameterization the
+kernel hyperparameters and feature-extractor weights have enough degrees
+of freedom to overfit the held-out fold's marginal likelihood,
+especially in low-data regimes <span class="citation"
+data-cites="ober_promises_2021">(Ober, Rasmussen, and Wilk
+2021)</span>.<a href="#fnref6" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p><em>Edge-of-chaos initialisation</em>: NNGP/NTK kernels
+are useless in the ordered regime
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>→</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\rho \to 1</annotation></semantics></math>,
+all inputs map to the same fixed point) or the chaotic regime
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>→</mo><msub><mi>ρ</mi><mo>*</mo></msub></mrow><annotation encoding="application/x-tex">\rho \to \rho_*</annotation></semantics></math>,
+correlations decorrelate exponentially with depth); only the
+critical-line
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><msubsup><mi>σ</mi><mi>w</mi><mn>2</mn></msubsup><mo>,</mo><msubsup><mi>σ</mi><mi>b</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\sigma_w^2, \sigma_b^2)</annotation></semantics></math>
+tuning yields informative deep kernels <span class="citation"
+data-cites="lee_nngp_2018">(Lee et al. 2018)</span>.<a href="#fnref7"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p><em>NNGP feature-learning gap</em>: infinite-width
+Bayesian inference is kernel regression with a fixed kernel, so it does
+<em>not</em> learn features the way SGD-trained finite-width networks
+do; on CIFAR-10 the NNGP-CNN-GAP ceiling sits below SGD-trained CNNs by
+roughly 5-10 points, and Myrtle-architecture NNGPs only narrow the gap
+with hand-engineered architecture-specific kernels <span
+class="citation" data-cites="novak_bayesian_2019">(Novak et al.
+2019)</span>.<a href="#fnref8" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn9"><p><em>Cubic exact-GP cost</em>: the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>×</mo><mi>N</mi></mrow><annotation encoding="application/x-tex">N \times N</annotation></semantics></math>
+kernel-matrix inversion is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>N</mi><mn>3</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(N^3)</annotation></semantics></math>
+FLOPs, with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(N^2)</annotation></semantics></math>
+memory for storage; this caps full-GP training at roughly
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>≈</mo><mn>5</mn><mo>,</mo><mn>000</mn></mrow><annotation encoding="application/x-tex">N \approx 5{,}000</annotation></semantics></math>
+on commodity hardware and is the single fact that motivates the entire
+sparse / structured-kernel / matrix-vector-iteration literature.<a
+href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn10"><p><em>Kernel design choice</em>: SE, Matern-3/2,
+Matern-5/2, rational-quadratic, periodic, and spectral-mixture kernels
+each impose different inductive biases (smoothness, bandwidth,
+periodicity, spectral support); these choices are not transferable
+across datasets and constitute a hand-engineered prior whose absence in
+deep-learning practice is part of why DKL is attractive <span
+class="citation" data-cites="rasmussen_williams_2006">(Rasmussen and
+Williams 2006)</span>.<a href="#fnref10" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn11"><p><em>Inducing-point budget</em>: too few
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+loses accuracy near the boundaries; too many
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+defeats the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>N</mi><msup><mi>M</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(NM^2)</annotation></semantics></math>
+saving over full-GP
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒪</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>N</mi><mn>3</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{O}(N^3)</annotation></semantics></math>;
+placement (uniform grid, k-means on inputs, or learned by gradient on
+the ELBO) and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+itself remain hand-tuned per benchmark <span class="citation"
+data-cites="titsias_variational_2009 hensman_gaussian_2013">(Titsias
+2009; Hensman, Fusi, and Lawrence 2013)</span>.<a href="#fnref11"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn12"><p><em>Deep-GP depth saturation</em>: 2 layers help
+modestly, 3 layers help slightly more, and beyond 3 the held-out NLL on
+UCI regression saturates and shows mild overfit; doubling the layer
+count past 3 burns compute without proportional gain <span
+class="citation" data-cites="salimbeni_doubly_2017">(Salimbeni and
+Deisenroth 2017)</span>.<a href="#fnref12" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn13"><p><em>Deep-GP pinch-point</em>: the intermediate latent
+of a stacked deep GP collapses to near-deterministic without identity
+initialization or residual / skip-connections, defeating the
+compositional-prior motivation that justified depth in the first place
+<span class="citation"
+data-cites="salimbeni_doubly_2017 dutordoir_deep_2021">(Salimbeni and
+Deisenroth 2017; Dutordoir, Durrande, and Hensman 2021)</span>.<a
+href="#fnref13" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn14"><p><em>DKL variance collapse</em>: the feature extractor
+maps training inputs to coincident latent points so that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>k</mi><mtext mathvariant="normal">base</mtext></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>h</mi><mi>θ</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><msub><mi>h</mi><mi>θ</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo>→</mo><msub><mi>k</mi><mtext mathvariant="normal">base</mtext></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">k_{\text{base}}(h_\theta(x_i), h_\theta(x_j)) \to k_{\text{base}}(0)</annotation></semantics></math>
+for nearby
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>i</mi></msub><mo>,</mo><msub><mi>x</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">x_i, x_j</annotation></semantics></math>,
+destroying the calibrated uncertainty that motivated using a GP read-out
+in the first place <span class="citation"
+data-cites="ober_promises_2021">(Ober, Rasmussen, and Wilk
+2021)</span>.<a href="#fnref14" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn15"><p><em>Marginal-likelihood overfitting</em>: ML-II
+hyperparameter tuning treats the marginal likelihood as a
+model-selection score, but with the deep / DKL parameterization the
+kernel hyperparameters and feature-extractor weights have enough degrees
+of freedom to overfit the held-out fold's marginal likelihood,
+especially in low-data regimes <span class="citation"
+data-cites="ober_promises_2021">(Ober, Rasmussen, and Wilk
+2021)</span>.<a href="#fnref15" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn16"><p><em>NNGP feature-learning gap</em>: infinite-width
+Bayesian inference is kernel regression with a fixed kernel, so it does
+<em>not</em> learn features the way SGD-trained finite-width networks
+do; on CIFAR-10 the NNGP-CNN-GAP ceiling sits below SGD-trained CNNs by
+roughly 5-10 points, and Myrtle-architecture NNGPs only narrow the gap
+with hand-engineered architecture-specific kernels <span
+class="citation" data-cites="novak_bayesian_2019">(Novak et al.
+2019)</span>.<a href="#fnref16" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn17"><p><em>Edge-of-chaos initialisation</em>: NNGP/NTK kernels
+are useless in the ordered regime
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>→</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\rho \to 1</annotation></semantics></math>,
+all inputs map to the same fixed point) or the chaotic regime
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>→</mo><msub><mi>ρ</mi><mo>*</mo></msub></mrow><annotation encoding="application/x-tex">\rho \to \rho_*</annotation></semantics></math>,
+correlations decorrelate exponentially with depth); only the
+critical-line
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><msubsup><mi>σ</mi><mi>w</mi><mn>2</mn></msubsup><mo>,</mo><msubsup><mi>σ</mi><mi>b</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\sigma_w^2, \sigma_b^2)</annotation></semantics></math>
+tuning yields informative deep kernels <span class="citation"
+data-cites="lee_nngp_2018">(Lee et al. 2018)</span>.<a href="#fnref17"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn18"><p><em>Kernel design choice</em>: SE, Matern-3/2,
+Matern-5/2, rational-quadratic, periodic, and spectral-mixture kernels
+each impose different inductive biases (smoothness, bandwidth,
+periodicity, spectral support); these choices are not transferable
+across datasets and constitute a hand-engineered prior whose absence in
+deep-learning practice is part of why DKL is attractive <span
+class="citation" data-cites="rasmussen_williams_2006">(Rasmussen and
+Williams 2006)</span>.<a href="#fnref18" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn19"><p><em>Non-Gaussian-likelihood approximation</em>:
+classification, count regression, and robust regression break the
+conjugate Gaussian-prior + Gaussian-likelihood closed-form posterior,
+forcing a choice between Laplace (mode-fitting bias), expectation
+propagation (heuristic stability), and variational inference
+(mean-seeking bias) with no clean theoretical winner <span
+class="citation" data-cites="rasmussen_williams_2006">(Rasmussen and
+Williams 2006)</span>.<a href="#fnref19" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn20"><p><em>Deep-GP depth saturation</em>: 2 layers help
+modestly, 3 layers help slightly more, and beyond 3 the held-out NLL on
+UCI regression saturates and shows mild overfit; doubling the layer
+count past 3 burns compute without proportional gain <span
+class="citation" data-cites="salimbeni_doubly_2017">(Salimbeni and
+Deisenroth 2017)</span>.<a href="#fnref20" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn21"><p><em>Conformal exchangeability requirement</em>: split
+conformal's marginal-coverage guarantee assumes calibration and test
+points are exchangeable (e.g., i.i.d. from the same distribution); the
+guarantee fails outright under covariate shift, label shift, or temporal
+drift. Weighted conformal <span class="citation"
+data-cites="tibshirani_covariate_2019">(Tibshirani et al. 2019)</span>
+restores coverage when the shift's likelihood ratio is known, but the
+ratio itself is rarely available in practice.<a href="#fnref21"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn22"><p><em>ECE bin-choice sensitivity</em>: the standard
+15-bin equal-width estimator can differ from a 15-bin equal-mass
+estimator by 0.5-1.0 percentage points on CIFAR-100 ResNets <span
+class="citation" data-cites="kumar_verified_2019">(Kumar, Liang, and Ma
+2019)</span>, so reported ECE numbers are only comparable across papers
+that fix the same binning scheme. Adaptive binning (one bin per
+quantile, plus debiased estimators) reduces variance but is not yet the
+field default.<a href="#fnref22" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn23"><p><em>Near-OOD vs far-OOD</em>: the CIFAR-10 vs SVHN
+benchmark is <em>far-OOD</em> (different image domain, different label
+space) and is empirically easy; near-OOD benchmarks like CIFAR-10 vs
+CIFAR-100 (same image domain, disjoint label space) are 10-20 AUROC
+points harder for every detector and are arguably more diagnostic of
+deployment-time behavior. Reporting only far-OOD numbers (the historical
+default) overstates progress.<a href="#fnref23" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

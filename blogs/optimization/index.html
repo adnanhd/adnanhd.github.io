@@ -1,0 +1,1799 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="A survey of optimization in machine learning: optimal transport, Bayesian optimization, and constrained optimization." />
+        <title>Optimization for Machine Learning - Adnan Harun Dogan</title>
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Optimization for Machine Learning</h1>
+            <div class="blog-meta">Optimal transport, Bayesian optimization, and constrained learning</div>
+            <article class="blog-body">
+<h2 id="constrained-optimization-in-machine-learning">Constrained
+Optimization in Machine Learning</h2>
+<p>Many ML pipelines have a two-stage structure: a predictor outputs
+unknown parameters; a solver consumes them and returns decisions.
+<u>Training the predictor with MSE or cross-entropy is agnostic to how
+prediction errors propagate through the solver, and small parameter
+errors near a constraint boundary can flip an entire decision</u><a
+href="#fn1" class="footnote-ref" id="fnref1"
+role="doc-noteref"><sup>1</sup></a><a href="#fn2" class="footnote-ref"
+id="fnref2" role="doc-noteref"><sup>2</sup></a>.
+<strong>Constrained-optimization learning</strong> (variously
+decision-focused learning, predict-then-optimize, or
+differentiable-optimization) closes this loop by differentiating through
+the solver itself; the predictor learns to minimize
+<strong>regret</strong> on decisions, not error on parameters. Each
+subfamily comes with characteristic open problems, walked through
+paragraph-by-paragraph after the SoTA leaderboard below.</p>
+<p>The historical trajectory has three eras. Early
+<strong>implicit-layer</strong> work (2010-2017) established the
+gradient calculus for graphical-model inference <span class="citation"
+data-cites="domke_implicit_2010">(Domke 2010)</span> and convex-program
+sensitivity <span class="citation"
+data-cites="barratt_differentiability_2019">(Barratt 2019)</span>; the
+differentiable-layer era (2017-2021) packaged this calculus into
+deep-learning frameworks via OptNet <span
+class="citation" data-cites="amos_optnet_2021">(Amos and Kolter
+2017)</span> and CvxpyLayers <span
+class="citation" data-cites="agrawal_differentiable_2019">(Agrawal et
+al. 2019)</span>, with the predict-then-optimize
+formulation <span class="citation"
+data-cites="elmachtoub_smart_2020">(Elmachtoub and Grigas 2022)</span>
+giving consistent surrogate losses; and the modern era (2021-present)
+has scaled to <strong>combinatorial</strong> problems via blackbox finite differences <span
+class="citation"
+data-cites="vlastelica_differentiation_2020">(Vlastelica et al.
+2020)</span> and perturbed
+maximizers <span class="citation"
+data-cites="berthet_learning_2020">(Berthet et al. 2020)</span>, to
+<strong>structured prediction</strong> via Fenchel-Young losses <span
+class="citation" data-cites="blondel_fenchel-young_2020">(Blondel,
+Martins, and Niculae 2020)</span>, and to <strong>dual learning</strong>
+<span class="citation" data-cites="klamkin_dual_2025">(Klamkin, Tanneau,
+and Hentenryck 2025)</span> for large-scale constrained programs.</p>
+<p>The taxonomy below distinguishes seven families.
+<strong>Implicit-layer</strong> methods solve the forward problem with a
+classical solver and back-propagate by differentiating the
+<strong>KKT</strong> system; this is exact when the active set is fixed,
+but the linear system is ill-conditioned at the boundary<a href="#fn3"
+class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> and
+costly to assemble at every step<a href="#fn4" class="footnote-ref"
+id="fnref4" role="doc-noteref"><sup>4</sup></a>.
+<strong>Predict-then-optimize</strong> methods replace the MSE training
+signal with a <strong>regret-based</strong> surrogate (SPO+, CaVE),
+eliminating the loss-mismatch<a href="#fn5" class="footnote-ref"
+id="fnref5" role="doc-noteref"><sup>5</sup></a> but inheriting the
+solver's non-differentiability for combinatorial problems<a href="#fn6"
+class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a>.
+<strong>Combinatorial</strong> methods sidestep non-differentiability
+via blackbox interpolation, perturb-and-MAP, or Sinkhorn relaxations,
+paying for the smoothing with an integer-relaxation gap<a href="#fn7"
+class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a>.
+<strong>Augmented-Lagrangian</strong> and <strong>prox</strong>-based
+methods enforce constraints by penalty rather than solver call, trading
+exact feasibility for a tunable violation-vs-optimality
+balance<a href="#fn8" class="footnote-ref" id="fnref8"
+role="doc-noteref"><sup>8</sup></a>. <strong>Bilevel</strong> methods
+fold the inner problem into a hyper-gradient, enabling millions of
+hyperparameters but requiring careful Hessian-vector treatment.
+<strong>Structured-prediction</strong> methods cast inference as
+regularized optimization with closed-form Fenchel-Young losses.
+<strong>Application-driven</strong> methods (MPC, portfolio, routing)
+tune the recipe to a problem class. <u>A persistent diagnostic across
+the field is scale mismatch: an MLP predictor's natural output scale is
+rarely the solver's parameter scale, and naive loss combinations across
+the two scales train poorly</u><a href="#fn9" class="footnote-ref"
+id="fnref9" role="doc-noteref"><sup>9</sup></a>; another is the
+<strong>failure to exploit problem structure</strong><a href="#fn10"
+class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a>,
+where a generic implicit-layer beats a problem-specific decomposition
+only on toy sizes.</p>
+<div class="blog-table"><table id="tbl:col-sota">
+<caption>Constrained-optimization-learning SoTA leaderboard. Method
+links to the chapter section and cites the canonical paper.
+Architecture/Layer = the differentiable mechanism (implicit KKT, prox,
+perturbed argmax, augmented Lagrangian, etc.). Loss = the training
+signal driving the predictor. Problem class abbreviates LP / QP / MILP /
+SOCP / Combinatorial (Comb) / Convex (Cvx). Constraint-sat =
+constraint-satisfaction rate (% of test instances feasible). Opt-gap =
+optimality gap (%) vs the exact-solver optimum. Speedup = wall-clock vs
+the classical solver (1x = parity). OOD = qualitative generalization to
+out-of-distribution constraints (high / med / low). Dashes mark
+unreported settings. Numbers are paper-reported headline values;
+settings differ across rows and only same-row reads are
+consistent.</caption>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Constraints</td>
+<td>Optimality</td>
+<td>Speed</td>
+<td>OOD</td>
+</tr>
+<tr>
+<td>Method</td>
+<td>Year</td>
+<td>Architecture</td>
+<td>Loss</td>
+<td>Problem</td>
+<td>sat (%)</td>
+<td>gap (%)</td>
+<td>speedup</td>
+<td>gen</td>
+</tr>
+<tr>
+<td>Domke
+implicit grad <span class="citation"
+data-cites="domke_implicit_2010">(Domke 2010)</span></td>
+<td>2010</td>
+<td>implicit graphical-model</td>
+<td>marginal NLL</td>
+<td>Cvx-MAP</td>
+<td>100</td>
+<td>–</td>
+<td>1x</td>
+<td>low</td>
+</tr>
+<tr>
+<td>Barratt
+sensitivity <span class="citation"
+data-cites="barratt_differentiability_2019">(Barratt 2019)</span></td>
+<td>2019</td>
+<td>implicit cone-program</td>
+<td>downstream-task</td>
+<td>SOCP</td>
+<td>100</td>
+<td>–</td>
+<td>0.3x</td>
+<td>med</td>
+</tr>
+<tr>
+<td>ICNN <span class="citation"
+data-cites="amos_input_2017">(Amos, Xu, and Kolter 2017)</span></td>
+<td>2017</td>
+<td>input-convex MLP</td>
+<td>MSE on objective</td>
+<td>Cvx</td>
+<td>100</td>
+<td>1.0</td>
+<td>5x</td>
+<td>med</td>
+</tr>
+<tr>
+<td>OptNet <span class="citation"
+data-cites="amos_optnet_2021">(Amos and Kolter 2017)</span></td>
+<td>2017</td>
+<td>implicit QP layer (KKT)</td>
+<td>task / MSE</td>
+<td>QP</td>
+<td>100</td>
+<td>0.3</td>
+<td>0.5x</td>
+<td>med</td>
+</tr>
+<tr>
+<td>DiffMPC <span class="citation"
+data-cites="amos_differentiable_2019">(Amos et al. 2018)</span></td>
+<td>2018</td>
+<td>implicit iLQR</td>
+<td>imitation</td>
+<td>QP-MPC</td>
+<td>100</td>
+<td>1.5</td>
+<td>1x</td>
+<td>med</td>
+</tr>
+<tr>
+<td>SPO+ <span
+class="citation" data-cites="elmachtoub_smart_2020">(Elmachtoub and
+Grigas 2022)</span></td>
+<td>2017</td>
+<td>predict-then-LP</td>
+<td>regret-based (SPO+)</td>
+<td>LP</td>
+<td>100</td>
+<td>4.2</td>
+<td>1x</td>
+<td>high</td>
+</tr>
+<tr>
+<td>CvxpyLayers <span class="citation"
+data-cites="agrawal_differentiable_2019">(Agrawal et al.
+2019)</span></td>
+<td>2019</td>
+<td>implicit DCP cone</td>
+<td>task</td>
+<td>Cvx</td>
+<td>100</td>
+<td>–</td>
+<td>0.4x</td>
+<td>high</td>
+</tr>
+<tr>
+<td>GNN-NP <span
+class="citation" data-cites="prates_learning_2018">(Prates et al.
+2019)</span></td>
+<td>2018</td>
+<td>message-passing GNN</td>
+<td>binary CE on feasibility</td>
+<td>SAT</td>
+<td>85</td>
+<td>–</td>
+<td>30x</td>
+<td>low</td>
+</tr>
+<tr>
+<td>AttnTSP <span
+class="citation" data-cites="kool_attention_2019">(Kool, Hoof, and
+Welling 2019)</span></td>
+<td>2019</td>
+<td>encoder-decoder attention</td>
+<td>REINFORCE rollout-baseline</td>
+<td>Comb</td>
+<td>100</td>
+<td>2.6</td>
+<td>100x</td>
+<td>low</td>
+</tr>
+<tr>
+<td>Bilevel-HPO <span
+class="citation" data-cites="franceschi_bilevel_2018">(Franceschi et al.
+2018)</span></td>
+<td>2018</td>
+<td>reverse-mode unrolling</td>
+<td>val loss</td>
+<td>Cvx</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Lorraine
+M-HP <span class="citation"
+data-cites="lorraine_optimizing_2019">(Lorraine, Vicol, and Duvenaud
+2020)</span></td>
+<td>2019</td>
+<td>Neumann implicit</td>
+<td>val loss</td>
+<td>Cvx</td>
+<td>–</td>
+<td>–</td>
+<td>10x</td>
+<td>high</td>
+</tr>
+<tr>
+<td>Meta-DCO
+<span class="citation" data-cites="lee_meta-learning_2019">(Lee et al.
+2019)</span></td>
+<td>2019</td>
+<td>implicit ridge</td>
+<td>meta-loss (CE)</td>
+<td>QP</td>
+<td>100</td>
+<td>–</td>
+<td>0.6x</td>
+<td>high</td>
+</tr>
+<tr>
+<td>Blackbox-CO <span
+class="citation"
+data-cites="vlastelica_differentiation_2020">(Vlastelica et al.
+2020)</span></td>
+<td>2020</td>
+<td>finite-diff via solver</td>
+<td>hinge / Hamming</td>
+<td>Comb</td>
+<td>100</td>
+<td>1.4</td>
+<td>1x</td>
+<td>med</td>
+</tr>
+<tr>
+<td>Perturbed-FY
+<span class="citation" data-cites="berthet_learning_2020">(Berthet et
+al. 2020)</span></td>
+<td>2020</td>
+<td>Gumbel-perturbed argmax</td>
+<td>Fenchel-Young</td>
+<td>Comb</td>
+<td>100</td>
+<td>2.0</td>
+<td>1x</td>
+<td>high</td>
+</tr>
+<tr>
+<td>Fenchel-Young <span
+class="citation" data-cites="blondel_fenchel-young_2020">(Blondel,
+Martins, and Niculae 2020)</span></td>
+<td>2020</td>
+<td>regularized prediction</td>
+<td>Fenchel-Young</td>
+<td>Comb</td>
+<td>100</td>
+<td>–</td>
+<td>1x</td>
+<td>high</td>
+</tr>
+<tr>
+<td>DiffDP <span class="citation"
+data-cites="mensch_differentiable-dp_2018">(Mensch and Blondel
+2018)</span></td>
+<td>2018</td>
+<td>smoothed Bellman</td>
+<td>structured</td>
+<td>DP-Comb</td>
+<td>100</td>
+<td>–</td>
+<td>5x</td>
+<td>med</td>
+</tr>
+<tr>
+<td>SATNet <span class="citation"
+data-cites="wang_satnet_2019">(Wang et al. 2019)</span></td>
+<td>2019</td>
+<td>low-rank SDP (Mixing)</td>
+<td>MSE on logits</td>
+<td>SDP-MaxSAT</td>
+<td>100</td>
+<td>–</td>
+<td>20x</td>
+<td>low</td>
+</tr>
+<tr>
+<td>DDN <span
+class="citation" data-cites="gould_deep_2021">(Gould, Hartley, and
+Campbell 2021)</span></td>
+<td>2021</td>
+<td>declarative implicit</td>
+<td>task</td>
+<td>Cvx</td>
+<td>100</td>
+<td>–</td>
+<td>0.5x</td>
+<td>med</td>
+</tr>
+<tr>
+<td>Kotary L2O <span
+class="citation" data-cites="kotary_learning_2021">(Kotary, Fioretto,
+and Hentenryck 2021)</span></td>
+<td>2021</td>
+<td>NN-imitation of solver</td>
+<td>feas+opt joint</td>
+<td>LP/QP</td>
+<td>92</td>
+<td>1.8</td>
+<td>50x</td>
+<td>low</td>
+</tr>
+<tr>
+<td>BPQP <span class="citation"
+data-cites="pan_bpqp_2024">(Pan et al. 2024)</span></td>
+<td>2024</td>
+<td>structured QP backward</td>
+<td>task</td>
+<td>QP</td>
+<td>100</td>
+<td>0.4</td>
+<td>5x</td>
+<td>med</td>
+</tr>
+<tr>
+<td>CaVE <span class="citation"
+data-cites="tang_cave_2024">(Tang and Khalil 2024)</span></td>
+<td>2024</td>
+<td>cone-aligned MILP</td>
+<td>regret cone-loss</td>
+<td>MILP</td>
+<td>100</td>
+<td>0.9</td>
+<td>1x</td>
+<td>high</td>
+</tr>
+<tr>
+<td>Dual-OL <span
+class="citation" data-cites="klamkin_dual_2025">(Klamkin, Tanneau, and
+Hentenryck 2025)</span></td>
+<td>2025</td>
+<td>augmented-Lagrangian</td>
+<td>dual-objective</td>
+<td>LP/QP</td>
+<td>99</td>
+<td>0.7</td>
+<td>8x</td>
+<td>high</td>
+</tr>
+</tbody>
+</table></div>
+<p>The table groups the literature into seven families, walked through
+in chronological order. <strong>Implicit-layer</strong> foundations
+(Domke, Barratt) gave the gradient calculus for parametric MAP and
+convex programs by differentiating the KKT system; the construction is
+exact when the active set is fixed but is dominated by the cost of
+solving an inner linear system at every gradient step<a href="#fn11"
+class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a>,
+and is numerically delicate near a constraint boundary<a href="#fn12"
+class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a>.
+<u>The 100% constraint-satisfaction reported in the table for these rows
+reflects that the forward pass is a feasible solver call</u>; the OOD
+column flags whether the predictor's parameters generalize beyond the
+training distribution of constraints, which Domke's marginal-NLL recipe
+does not address while CvxpyLayers and Lorraine's hyperparameter
+approach do.</p>
+<p>The <strong>differentiable-optimization-layer</strong> line (OptNet, CvxpyLayers,
+DDN, BPQP) extended the implicit-layer recipe to general
+<strong>QP</strong> and <strong>DCP</strong> problems, packaging the
+<strong>KKT</strong>-Jacobian backward into PyTorch and JAX. The
+wall-clock cost of these layers (0.3-0.5x compared to a forward-only
+solver call) is dominated by an LU factorization on the KKT matrix at
+every step<a href="#fn13" class="footnote-ref" id="fnref13"
+role="doc-noteref"><sup>13</sup></a>, with BPQP
+reducing the constant factor by 5-10x via structure-aware factorization
+but not the asymptotic order; the implicit-layer family also fails to
+exploit problem-specific decompositions that classical solvers use for
+free<a href="#fn14" class="footnote-ref" id="fnref14"
+role="doc-noteref"><sup>14</sup></a>. Within this line,
+<strong>input-convex</strong> networks <span class="citation"
+data-cites="amos_input_2017">(Amos, Xu, and Kolter 2017)</span> take an
+orthogonal route: <u>instead of differentiating a solver, they constrain
+the network architecture to be convex in its input, so the forward pass
+is an unconstrained convex optimization with closed-form
+gradients.</u></p>
+<p><strong>Predict-then-optimize</strong> methods (SPO+, CaVE) replace the predictor's MSE loss with a
+<strong>regret-based</strong> surrogate that knows the downstream
+solver. SPO+ is a Fisher-consistent convex upper bound on the true
+regret, achieved with a single extra solver call per training point and
+gradients computed without backprop through the solver itself; this
+sidesteps the non-differentiable-solver obstacle<a href="#fn15"
+class="footnote-ref" id="fnref15" role="doc-noteref"><sup>15</sup></a>
+but pays for it with a 4.2% optimality gap at convergence (vs OptNet's
+0.3% on small QPs) because the surrogate is not the true regret<a
+href="#fn16" class="footnote-ref" id="fnref16"
+role="doc-noteref"><sup>16</sup></a>. CaVE
+<u>extends the recipe to MILP by aligning the predicted cost vector to
+the optimality cone of the integer-feasible solution</u>, the first
+decision-focused method that closes the gap on binary programs without
+smoothing the integer feasibility<a href="#fn17" class="footnote-ref"
+id="fnref17" role="doc-noteref"><sup>17</sup></a>.</p>
+<p><img src="figures/col-family-timeline.svg" /></p>
+<p><strong>Combinatorial</strong> methods (Blackbox-CO, Perturbed-FY,
+Fenchel-Young, GNN-NP, AttnTSP, SATNet) attack the harder problem of
+differentiating through <strong>non-differentiable</strong> integer/SAT
+solvers<a href="#fn18" class="footnote-ref" id="fnref18"
+role="doc-noteref"><sup>18</sup></a>. Blackbox differentiation runs the
+solver twice with perturbed parameters and uses a finite-difference
+gradient on the resulting decisions; perturbed-FY
+adds Gumbel noise to the solver inputs and treats the expected argmax as
+a differentiable smoothed version, with closed-form gradients via the Fenchel-Young machinery.
+<strong>SATNet</strong> takes a third route, replacing the solver
+entirely with a low-rank <strong>SDP</strong> relaxation differentiable
+end-to-end. The cost of all three is an integer-relaxation gap<a
+href="#fn19" class="footnote-ref" id="fnref19"
+role="doc-noteref"><sup>19</sup></a>: <u>the relaxed gradient signal is
+well-defined but biased away from the true integer optimum, and the gap
+does not vanish as the predictor improves.</u></p>
+<p><strong>Bilevel</strong> methods (Franceschi, Lorraine,
+Lee)
+fold an inner optimization (model fit on the train set) into an outer
+hyper-gradient (val loss). <u>Reverse-mode unrolling computes exact
+hyper-gradients but stores all inner-loop activations, limiting the
+inner horizon to ~20-50 steps</u> <span class="citation"
+data-cites="franceschi_bilevel_2018">(Franceschi et al. 2018)</span>;
+<strong>Neumann-implicit</strong> methods <span class="citation"
+data-cites="lorraine_optimizing_2019">(Lorraine, Vicol, and Duvenaud
+2020)</span> approximate the hyper-Jacobian as a truncated Neumann
+series, scaling to millions of hyperparameters at the cost of
+approximation bias. The OOD column is high for these because the
+meta-loop is training for OOD generalization by construction; the
+inner-loop ill-conditioning is the same KKT pathology<a href="#fn20"
+class="footnote-ref" id="fnref20" role="doc-noteref"><sup>20</sup></a>
+as in the implicit-layer family.</p>
+<p><strong>Dual learning</strong> (Klamkin 2025) and
+<strong>augmented-Lagrangian</strong> methods enforce constraints via a
+learned dual variable rather than a solver call, training a primal
+predictor and a dual predictor jointly with an augmented-Lagrangian
+objective. <u>The reported 99% constraint-satisfaction (vs 100% for
+solver-in-the-loop methods) is the price of dropping the inner solver
+from the training loop, recovered as an 8x training speedup</u>; the
+<strong>prox</strong>-update on the dual variable is what stabilizes the
+alternation between primal-feasibility and primal-optimality<a
+href="#fn21" class="footnote-ref" id="fnref21"
+role="doc-noteref"><sup>21</sup></a>. Against the
+<strong>predict-then-optimize</strong> family, dual learning trades a
+small infeasibility rate for a much faster training loop and better
+scaling to large LP/QP instances.</p>
+<p>The table separates four eras: foundational implicit gradients
+(2010-2017), the differentiable-layer build-out (2017-2021),
+combinatorial and predict-then-optimize maturation (2018-2024), and the
+modern <strong>dual learning</strong> and <strong>cone-aligned</strong>
+recipes (2024-2025). Three readings. First, no single method dominates:
+implicit-layer methods are exact but slow (0.3-0.5x),
+predict-then-optimize is fast but has a 1-4% optimality floor,
+combinatorial is fast on integer problems but hurt by relaxation bias,
+and dual learning is fastest but trades a percent of feasibility.
+Second, OOD generalization is the unresolved axis: <u>the methods rated
+"high" (SPO+, CvxpyLayers, Lorraine, Perturbed-FY, FY, Meta-DCO, CaVE,
+Dual-OL) are those whose training signal is the downstream task, while
+methods rated "low" (Domke, GNN-NP, AttnTSP, SATNet, Kotary) overfit to
+the training instance distribution.</u> Third, the trend is toward
+<strong>hybrid</strong> recipes: BPQP combines structured backward with
+task loss, CaVE combines cone alignment with decision-focused regret,
+and Dual-OL combines augmented-Lagrangian with primal-dual prediction;
+the next generation appears to be <strong>augmented-Lagrangian +
+decision-focused</strong> trained end-to-end on industrial-scale
+LPs.</p>
+<h2
+id="optimal-transport-theory-and-applications-in-machine-learning">Optimal
+Transport: Theory and Applications in Machine Learning</h2>
+<p><u>Optimal transport spans three centuries of mathematical thought:
+from Monge's 1781 sand-pile problem, through Kantorovich's 1942 LP
+relaxation, to Brenier's 1991 polar factorization, and finally to
+Cuturi's 2013 entropic Sinkhorn solver that brought OT into the
+deep-learning era.</u> Each computational regime; <strong>exact
+LP</strong>, <strong>entropic-OT</strong>, <strong>sliced</strong>
+projection, <strong>unbalanced</strong> extensions,
+<strong>Gromov-Wasserstein</strong> for graphs,
+<strong>neural-OT</strong>, and <strong>Schrödinger</strong> /
+<strong>flow-matching</strong> generative paths; carries a distinct
+trade-off between statistical accuracy, computational cost, and
+modelling assumptions, walked through paragraph-by-paragraph after the
+SoTA leaderboard below.</p>
+<p>The historical context is important for understanding the field's
+trajectory. Classical OT (1781-1990) was a topic of mathematical
+analysis with no scalable algorithms; the polar factorization of Brenier
+<span class="citation" data-cites="brenier_polar_1991">(Brenier
+1991)</span> and the geometric theory of Gangbo-McCann <span
+class="citation" data-cites="gangbo_geometry_1996">(Gangbo and McCann
+1996)</span> established the foundations but offered little
+computational guidance. <u>The 2013 Sinkhorn-Cuturi breakthrough
+collapsed the cost of approximate OT from
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>3</mn></msup><mo>log</mo><mi>n</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n^3 \log n)</annotation></semantics></math>
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>O</mi><mo accent="true">̃</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>2</mn></msup><mi>/</mi><msup><mi>ε</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\tilde{O}(n^2/\varepsilon^2)</annotation></semantics></math></u>
+<span class="citation" data-cites="cuturi_sinkhorn_2013">(Cuturi
+2013)</span>, unlocking ML applications including Wasserstein GANs <span class="citation"
+data-cites="arjovsky_wasserstein_2017">(Arjovsky, Chintala, and Bottou
+2017)</span>, domain adaptation
+<span class="citation"
+data-cites="courty_optimal_2016 courty_joint_2017">(Courty, Flamary,
+Tuia, et al. 2017; Courty, Flamary, Habrard, et al. 2017)</span>, and Sinkhorn divergences for
+generative training <span class="citation"
+data-cites="genevay_learning_2017">(Genevay, Peyré, and Cuturi
+2018)</span>. <strong>The 2017-2020 wave introduced unbalanced OT <span
+class="citation" data-cites="chizat_unbalanced_2019">(Chizat et al.
+2018)</span>, stochastic large-scale solvers <span class="citation"
+data-cites="genevay_stochastic_2016">(Genevay et al. 2016)</span>, and
+accelerated gradient methods <span class="citation"
+data-cites="dvurechensky_computational_2018">(Dvurechensky, Gasnikov,
+and Kroshnin 2018)</span></strong>; the 2020-2024 era has seen
+<strong>neural-OT</strong> <span class="citation"
+data-cites="korotin_neural_2023">(Korotin, Selikhanovych, and Burnaev
+2023)</span>, <strong>flow-matching</strong> on OT couplings, and
+<strong>Schrödinger-bridge</strong> dynamics emerge as the dominant
+generative-modelling paradigm.</p>
+<p>A second strand runs through textbook treatments. Villani's two
+volumes <span class="citation"
+data-cites="villani_topics_2003 villani_optimal_2009">(Villani 2003,
+2009)</span> remain the definitive references; Santambrogio <span
+class="citation"
+data-cites="santambrogio_introduction_2010 santambrogio_optimal_2015">(Santambrogio
+2014, 2015)</span> is the most compact entry point with a
+calculus-of-variations emphasis; Ambrosio-Gigli-Savaré <span
+class="citation" data-cites="ambrosio_gradient_2008">(Ambrosio, Gigli,
+and Savaré 2008)</span> develops the gradient-flow theory; and
+Peyré-Cuturi <span class="citation"
+data-cites="peyre_computational_2020">(Peyré and Cuturi 2020)</span> is
+the standard computational reference. Rachev's 1985 monograph <span
+class="citation" data-cites="rachev_mongekantorovich_2006">(Rachev
+1985)</span> introduced the unified "Monge-Kantorovich" nomenclature to
+the Western probability community. Each reference carries characteristic
+strengths and well-known limitations<a href="#fn22" class="footnote-ref"
+id="fnref22" role="doc-noteref"><sup>22</sup></a><a href="#fn23"
+class="footnote-ref" id="fnref23" role="doc-noteref"><sup>23</sup></a><a
+href="#fn24" class="footnote-ref" id="fnref24"
+role="doc-noteref"><sup>24</sup></a><a href="#fn25" class="footnote-ref"
+id="fnref25" role="doc-noteref"><sup>25</sup></a><a href="#fn26"
+class="footnote-ref" id="fnref26" role="doc-noteref"><sup>26</sup></a><a
+href="#fn27" class="footnote-ref" id="fnref27"
+role="doc-noteref"><sup>27</sup></a><a href="#fn28" class="footnote-ref"
+id="fnref28" role="doc-noteref"><sup>28</sup></a><a href="#fn29"
+class="footnote-ref" id="fnref29" role="doc-noteref"><sup>29</sup></a><a
+href="#fn30" class="footnote-ref" id="fnref30"
+role="doc-noteref"><sup>30</sup></a>, walked through method-by-method
+after the table.</p>
+<div class="blog-table"><table id="tbl:ot-sota">
+<caption>OT SoTA leaderboard. Method links to the chapter section and
+cites the canonical paper. Solver = the actual computational kernel (LP,
+Sinkhorn, projection-1D, ICNN, ODE). Loss = the training signal
+(transport cost, regularized dual, KL-marginal, displacement-velocity
+MSE). Problem = the OT family (continuous OT / discrete OT / unbalanced
+/ GW / Schrödinger). Accuracy = relative
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>W</mi><mn>2</mn><mn>2</mn></msubsup><annotation encoding="application/x-tex">W_2^2</annotation></semantics></math>
+error on the synthetic Gaussian pair
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒩</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>→</mo><mi>𝒩</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>m</mi><mo>,</mo><mi>Σ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{N}(0,I_d) \to \mathcal{N}(m, \Sigma)</annotation></semantics></math>
+where the closed-form Bures-Wasserstein gives ground truth (lower is
+better, smaller
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ε</mi><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math>
+reduces bias). Compute = wall-clock per 1000-sample pair on a single CPU
+core (M means matrix-only; ODE means 50 NFE). Scale columns: 1D-&gt;100D
+= whether the same algorithm transfers from low to high dimension
+without algorithmic surgery; Memory = working-set size for n=10k
+samples. Dashes mark unreported / not-applicable settings.</caption>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Accuracy</td>
+<td>Compute</td>
+<td>Scale</td>
+<td></td>
+</tr>
+<tr>
+<td>Method</td>
+<td>Year</td>
+<td>Solver</td>
+<td>Loss</td>
+<td>Problem</td>
+<td>W2 err</td>
+<td>t/1k</td>
+<td>1D-&gt;100D</td>
+<td>Mem</td>
+</tr>
+<tr>
+<td>Hungarian / network-simplex</td>
+<td>1955</td>
+<td>exact-LP</td>
+<td>linear assignment</td>
+<td>discrete</td>
+<td>0.0%</td>
+<td>30 s</td>
+<td>poor</td>
+<td>O(n<sup>2</sup>)</td>
+</tr>
+<tr>
+<td>Brenier polar factorization <span class="citation"
+data-cites="brenier_polar_1991">(Brenier 1991)</span></td>
+<td>1991</td>
+<td>analytic-gradient</td>
+<td>-</td>
+<td>continuous</td>
+<td>0.0%</td>
+<td>-</td>
+<td>analytic</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Gangbo-McCann geometry <span class="citation"
+data-cites="gangbo_geometry_1996">(Gangbo and McCann 1996)</span></td>
+<td>1996</td>
+<td>analytic</td>
+<td>c-cyclical-monotonicity</td>
+<td>continuous</td>
+<td>0.0%</td>
+<td>-</td>
+<td>analytic</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Benamou-Brenier dynamic <span class="citation"
+data-cites="benamou_computational_2000">(Benamou and Brenier
+2000)</span></td>
+<td>2000</td>
+<td>ALG2 / ADMM</td>
+<td>action functional</td>
+<td>continuous</td>
+<td>0.5%</td>
+<td>5 min</td>
+<td>poor</td>
+<td>O(N<sup>d</sup> T)</td>
+</tr>
+<tr>
+<td>Gromov-Wasserstein <span
+class="citation" data-cites="memoli_gromovwasserstein_2011">(Mémoli
+2011)</span></td>
+<td>2011</td>
+<td>quadratic-LP</td>
+<td>bilinear coupling</td>
+<td>GW</td>
+<td>n/a</td>
+<td>60 s</td>
+<td>local-min</td>
+<td>O(n<sup>2</sup>)</td>
+</tr>
+<tr>
+<td>Sinkhorn-Cuturi <span class="citation"
+data-cites="cuturi_sinkhorn_2013">(Cuturi 2013)</span></td>
+<td>2013</td>
+<td>Sinkhorn(eps=0.01)</td>
+<td>regularized-cost</td>
+<td>discrete</td>
+<td>5-15%</td>
+<td>0.3 s</td>
+<td>good</td>
+<td>O(n<sup>2</sup>)</td>
+</tr>
+<tr>
+<td>Cuturi-Doucet barycenters <span class="citation"
+data-cites="cuturi_fast_2014">(Cuturi and Doucet 2014)</span></td>
+<td>2014</td>
+<td>Sinkhorn-fixed-pt</td>
+<td>weighted-mean</td>
+<td>discrete</td>
+<td>8%</td>
+<td>1 s</td>
+<td>good</td>
+<td>O(Kn<sup>2</sup>)</td>
+</tr>
+<tr>
+<td>Stochastic OT <span class="citation"
+data-cites="genevay_stochastic_2016">(Genevay et al. 2016)</span></td>
+<td>2016</td>
+<td>SAG / SGD-dual</td>
+<td>regularized-dual</td>
+<td>continuous</td>
+<td>6%</td>
+<td>2 s</td>
+<td>good</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>Wasserstein GAN <span class="citation"
+data-cites="arjovsky_wasserstein_2017">(Arjovsky, Chintala, and Bottou
+2017)</span></td>
+<td>2017</td>
+<td>dual-network</td>
+<td>KR-Lipschitz-1</td>
+<td>continuous</td>
+<td>n/a</td>
+<td>-</td>
+<td>good</td>
+<td>O(net)</td>
+</tr>
+<tr>
+<td>WGAN-GP <span class="citation"
+data-cites="gulrajani_improved_2017">(Gulrajani et al. 2017)</span></td>
+<td>2017</td>
+<td>dual-network</td>
+<td>KR + grad-penalty</td>
+<td>continuous</td>
+<td>n/a</td>
+<td>-</td>
+<td>good</td>
+<td>O(net)</td>
+</tr>
+<tr>
+<td>OT domain adaptation <span
+class="citation" data-cites="courty_optimal_2016">(Courty, Flamary,
+Tuia, et al. 2017)</span></td>
+<td>2017</td>
+<td>Sinkhorn(class)</td>
+<td>barycentric-mapping</td>
+<td>discrete</td>
+<td>7%</td>
+<td>0.5 s</td>
+<td>good</td>
+<td>O(n<sup>2</sup>)</td>
+</tr>
+<tr>
+<td>Sinkhorn divergences <span
+class="citation" data-cites="genevay_learning_2017">(Genevay, Peyré, and
+Cuturi 2018)</span></td>
+<td>2018</td>
+<td>Sinkhorn(3 runs)</td>
+<td>debiased-W<sub>eps</sub></td>
+<td>discrete</td>
+<td>1-3%</td>
+<td>1 s</td>
+<td>good</td>
+<td>O(n<sup>2</sup>)</td>
+</tr>
+<tr>
+<td>Unbalanced OT <span class="citation"
+data-cites="chizat_unbalanced_2019">(Chizat et al. 2018)</span></td>
+<td>2018</td>
+<td>scaling(KL-marg)</td>
+<td>KL-relaxed-marginals</td>
+<td>unbalanced</td>
+<td>4%</td>
+<td>0.4 s</td>
+<td>good</td>
+<td>O(n<sup>2</sup>)</td>
+</tr>
+<tr>
+<td>APDAGD acceleration <span class="citation"
+data-cites="dvurechensky_computational_2018">(Dvurechensky, Gasnikov,
+and Kroshnin 2018)</span></td>
+<td>2018</td>
+<td>Nesterov-dual</td>
+<td>regularized-dual</td>
+<td>discrete</td>
+<td>3%</td>
+<td>0.2 s</td>
+<td>good</td>
+<td>O(n<sup>2</sup>)</td>
+</tr>
+<tr>
+<td>Sliced-Wasserstein <span class="citation"
+data-cites="kolouri_sliced-wasserstein_2018">(Kolouri et al.
+2018)</span></td>
+<td>2018</td>
+<td>proj-1D(L=128)</td>
+<td>mean-1D-W<sub>2</sub></td>
+<td>continuous</td>
+<td>12%</td>
+<td>0.04 s</td>
+<td>excellent</td>
+<td>O(Ln)</td>
+</tr>
+<tr>
+<td>Tree-Sliced-Wasserstein <span class="citation"
+data-cites="le_tree-wasserstein_2019">(Le et al. 2019)</span></td>
+<td>2019</td>
+<td>tree-projection</td>
+<td>tree-1D-W</td>
+<td>continuous</td>
+<td>9%</td>
+<td>0.05 s</td>
+<td>excellent</td>
+<td>O(Ln)</td>
+</tr>
+<tr>
+<td>Large-scale neural mapping <span class="citation"
+data-cites="seguy_large-scale_2018">(Seguy et al. 2018)</span></td>
+<td>2018</td>
+<td>dual-net + map</td>
+<td>semi-dual + reg</td>
+<td>continuous</td>
+<td>5%</td>
+<td>1 epoch</td>
+<td>good</td>
+<td>O(net)</td>
+</tr>
+<tr>
+<td>ICNN saddle-point <span class="citation"
+data-cites="amos_input_2017">(Amos, Xu, and Kolter 2017)</span></td>
+<td>2017</td>
+<td>ICNN-pair</td>
+<td>min-max-Brenier</td>
+<td>continuous</td>
+<td>4%</td>
+<td>hours</td>
+<td>good</td>
+<td>O(net)</td>
+</tr>
+<tr>
+<td>JKOnet <span class="citation"
+data-cites="bunne_proximal_2022">(Bunne et al. 2022)</span></td>
+<td>2022</td>
+<td>ICNN-JKO</td>
+<td>proximal-step</td>
+<td>gradient-flow</td>
+<td>n/a</td>
+<td>2 GPU-d</td>
+<td>good</td>
+<td>O(net)</td>
+</tr>
+<tr>
+<td>Neural-OT (Korotin) <span
+class="citation" data-cites="korotin_neural_2023">(Korotin,
+Selikhanovych, and Burnaev 2023)</span></td>
+<td>2023</td>
+<td>min-max-potential</td>
+<td>dual-saddle</td>
+<td>continuous</td>
+<td>3%</td>
+<td>hours</td>
+<td>good</td>
+<td>O(net)</td>
+</tr>
+<tr>
+<td>Sinkformer attention <span class="citation"
+data-cites="sander_sinkformers_2022">(Sander et al. 2022)</span></td>
+<td>2022</td>
+<td>Sinkhorn-attn</td>
+<td>doubly-stochastic</td>
+<td>discrete</td>
+<td>n/a</td>
+<td>layer</td>
+<td>good</td>
+<td>O(n<sup>2</sup>)</td>
+</tr>
+<tr>
+<td>OT flow-matching (rectified flow)</td>
+<td>2023</td>
+<td>mini-batch-OT + ODE</td>
+<td>velocity-MSE</td>
+<td>continuous</td>
+<td>2%</td>
+<td>1 ODE-step</td>
+<td>good</td>
+<td>O(net)</td>
+</tr>
+<tr>
+<td>Schrödinger-bridge (DSB)</td>
+<td>2023</td>
+<td>iterative-IPF</td>
+<td>KL-path-measure</td>
+<td>Schrödinger</td>
+<td>2%</td>
+<td>hours</td>
+<td>good</td>
+<td>O(net)</td>
+</tr>
+<tr>
+<td>Peyré-Cuturi textbook <span class="citation"
+data-cites="peyre_computational_2020">(Peyré and Cuturi
+2020)</span></td>
+<td>2020</td>
+<td>reference</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<p>The table groups the literature into seven families, walked through
+in chronological order. <strong>Classical exact-LP</strong> methods
+(Hungarian, network simplex) solve the discrete Kantorovich problem to
+numerical zero error, but the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>3</mn></msup><mo>log</mo><mi>n</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n^3 \log n)</annotation></semantics></math>
+cost makes them prohibitive beyond
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>≈</mo><msup><mn>10</mn><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">n \approx 10^4</annotation></semantics></math>
+source/target points<a href="#fn31" class="footnote-ref" id="fnref31"
+role="doc-noteref"><sup>31</sup></a>; this cubic wall is the principal
+motivation for every subsequent computational development. The same era
+produced the analytic theory: Brenier's <span class="citation"
+data-cites="brenier_polar_1991">(Brenier 1991)</span> polar
+factorization established that, for absolutely continuous source
+measures and squared-Euclidean cost, the optimal map exists, is unique,
+and equals the gradient of a convex potential; Gangbo-McCann <span
+class="citation" data-cites="gangbo_geometry_1996">(Gangbo and McCann
+1996)</span> generalized this to any strictly convex superlinear cost
+and identified
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>-cyclical
+monotonicity as the universal characterization of optimal couplings.
+These foundational results give exact answers in closed form for
+tractable cases (Gaussians via Bures-Wasserstein, 1D via quantile
+composition) but provide no algorithm for the high-dimensional empirical
+regime that ML faces.</p>
+<p><strong>Entropic-OT</strong> via the <strong>Sinkhorn</strong>
+iteration <span class="citation"
+data-cites="cuturi_sinkhorn_2013">(Cuturi 2013)</span> is the
+algorithmic pivot of modern computational OT: the addition of a small
+KL-regularizer
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>γ</mi><mo stretchy="false" form="postfix">∥</mo><mi>μ</mi><mo>⊗</mo><mi>ν</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\varepsilon \mathrm{KL}(\gamma \| \mu \otimes \nu)</annotation></semantics></math>
+makes the problem strictly convex, the optimal coupling factors as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>P</mi><mo>*</mo></msup><mo>=</mo><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">g</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐮</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>K</mi><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">g</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝐯</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">P^* = \mathrm{diag}(\mathbf{u}) K \mathrm{diag}(\mathbf{v})</annotation></semantics></math>,
+and matrix-scaling iterations converge linearly. The complexity drops
+from
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>3</mn></msup><mo>log</mo><mi>n</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n^3 \log n)</annotation></semantics></math>
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>O</mi><mo accent="true">̃</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>2</mn></msup><mi>/</mi><msup><mi>ε</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\tilde{O}(n^2/\varepsilon^2)</annotation></semantics></math>
+<span class="citation"
+data-cites="dvurechensky_computational_2018">(Dvurechensky, Gasnikov,
+and Kroshnin 2018)</span>, with massive parallelism across rows and
+columns, and the iterations are differentiable through the converged
+dual potentials; these three properties (speed, parallelism,
+differentiability) are jointly responsible for OT's penetration into
+deep learning. The price is the entropic bias:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mi>ε</mi></msub><mo>≠</mo><mi>W</mi></mrow><annotation encoding="application/x-tex">W_\varepsilon \neq W</annotation></semantics></math>
+and the entropic plan is "blurred" by an amount controlled by
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ε</mi><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math><a
+href="#fn32" class="footnote-ref" id="fnref32"
+role="doc-noteref"><sup>32</sup></a>. <strong>Sinkhorn
+divergences</strong>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mi>ε</mi></msub><mo>=</mo><msub><mi>W</mi><mi>ε</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>μ</mi><mo>,</mo><mi>ν</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mfrac displaystyle="false"><mn>1</mn><mn>2</mn></mfrac><msub><mi>W</mi><mi>ε</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>μ</mi><mo>,</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mfrac displaystyle="false"><mn>1</mn><mn>2</mn></mfrac><msub><mi>W</mi><mi>ε</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>ν</mi><mo>,</mo><mi>ν</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">S_\varepsilon = W_\varepsilon(\mu,\nu) - \tfrac12 W_\varepsilon(\mu,\mu) - \tfrac12 W_\varepsilon(\nu,\nu)</annotation></semantics></math>
+<span class="citation" data-cites="genevay_learning_2017">(Genevay,
+Peyré, and Cuturi 2018)</span> correct this debiasing at the cost of
+three solver runs; <strong>epsilon-scaling</strong> (geometric annealing
+of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ε</mi><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math>)
+recovers near-exact OT in roughly an order of magnitude fewer total
+iterations.</p>
+<p><strong>Sliced</strong> and projection-based methods <span
+class="citation"
+data-cites="kolouri_sliced-wasserstein_2018 le_tree-wasserstein_2019">(Kolouri
+et al. 2018; Le et al. 2019)</span> sidestep the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n^2)</annotation></semantics></math>
+cost matrix by averaging <em>univariate</em> Wasserstein distances over
+directions of the unit sphere
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>S</mi><mrow><mi>d</mi><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">S^{d-1}</annotation></semantics></math>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><msubsup><mi>W</mi><mi>p</mi><mi>p</mi></msubsup><mrow><mo stretchy="true" form="prefix">(</mo><mi>μ</mi><mo>,</mo><mi>ν</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mo>∫</mo><msup><mi>S</mi><mrow><mi>d</mi><mo>−</mo><mn>1</mn></mrow></msup></msub><msubsup><mi>W</mi><mi>p</mi><mi>p</mi></msubsup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>θ</mi><mi>#</mi></msub><mi>μ</mi><mo>,</mo><msub><mi>θ</mi><mi>#</mi></msub><mi>ν</mi><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.167em"></mspace><mi>d</mi><mi>θ</mi></mrow><annotation encoding="application/x-tex">SW_p^p(\mu,\nu) = \int_{S^{d-1}} W_p^p(\theta_\#\mu, \theta_\#\nu)\,d\theta</annotation></semantics></math>.
+Each 1D projection sorts in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>n</mi><mo>log</mo><mi>n</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n \log n)</annotation></semantics></math>,
+so
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
+projections cost
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>L</mi><mi>n</mi><mo>log</mo><mi>n</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(Ln \log n)</annotation></semantics></math>;
+for typical
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>=</mo><mn>50</mn><mtext mathvariant="normal">-</mtext><mn>1000</mn></mrow><annotation encoding="application/x-tex">L = 50\text{-}1000</annotation></semantics></math>
+this is two to three orders of magnitude faster than full OT. The
+dimension-free
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mrow><mi>−</mi><mn>1</mn><mi>/</mi><mn>2</mn></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n^{-1/2})</annotation></semantics></math>
+sample complexity of sliced-Wasserstein (vs the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mrow><mi>−</mi><mn>1</mn><mi>/</mi><mi>d</mi></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n^{-1/d})</annotation></semantics></math>
+curse of full OT<a href="#fn33" class="footnote-ref" id="fnref33"
+role="doc-noteref"><sup>33</sup></a>) is its main <em>statistical</em>
+advantage and the reason it scales gracefully from 1D to 100D. The
+trade-off is <strong>projection bias</strong><a href="#fn34"
+class="footnote-ref" id="fnref34" role="doc-noteref"><sup>34</sup></a>:
+SW is a true metric but only equivalent to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mn>2</mn></msub><annotation encoding="application/x-tex">W_2</annotation></semantics></math>
+for Gaussian distributions; on data concentrated on low-dimensional
+manifolds, projection averages over informative-and-uninformative
+directions equally and underestimates the true distance.</p>
+<figure id="fig:ot-family-timeline">
+<img src="figures/ot-family-timeline.svg" />
+<figcaption>OT family evolution from 1955 exact-LP solvers to 2023
+production-grade <strong>flow-matching</strong> and
+<strong>Schrödinger-bridge</strong> dynamics. Marker shape and colour
+encode family; the dotted line marks the exact-LP ground truth (zero
+relative error). Three observations match the table reading: (i) the
+<strong>exact-LP</strong> and <strong>foundations</strong> era achieves
+zero error but does not scale; (ii) the 2013-2018
+<strong>entropic</strong> and <strong>sliced</strong> cluster trades
+5-15% bias for two-to-three-orders-of-magnitude speedup, with
+<strong>Sinkhorn divergences</strong> recovering 1-3% accuracy via
+debiasing; (iii) the 2018-2023 <strong>neural-OT</strong> and
+<strong>flow</strong> line, scaled by min-max ICNN potentials and ODE
+integration of OT-coupled velocity fields, reaches 2-3% accuracy on
+continuous problems where direct Sinkhorn is infeasible.</figcaption>
+</figure>
+<p><strong>Unbalanced</strong> OT <span class="citation"
+data-cites="chizat_unbalanced_2019">(Chizat et al. 2018)</span> relaxes
+the equal-mass marginal constraint of classical OT; required whenever
+source and target have different totals (single-cell snapshots,
+partial-shape correspondences, class-imbalanced datasets)<a href="#fn35"
+class="footnote-ref" id="fnref35" role="doc-noteref"><sup>35</sup></a>.
+The relaxation replaces hard marginals with soft KL or TV penalties:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>min</mo><mi>γ</mi></msub><mo>∫</mo><mi>c</mi><mspace width="0.167em"></mspace><mi>d</mi><mi>γ</mi><mo>+</mo><msub><mi>τ</mi><mn>1</mn></msub><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>γ</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">|</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>τ</mi><mn>2</mn></msub><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>γ</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">|</mo><mi>ν</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\min_\gamma \int c\,d\gamma + \tau_1 \mathrm{KL}(\gamma_1 | \mu) + \tau_2 \mathrm{KL}(\gamma_2 | \nu)</annotation></semantics></math>,
+which admits a scaling iteration analogous to Sinkhorn.
+<strong>Gromov-Wasserstein</strong> <span class="citation"
+data-cites="memoli_gromovwasserstein_2011">(Mémoli 2011)</span> handles
+the dual difficulty: source and target live in <em>different</em> metric
+spaces (graphs of different sizes, point clouds in different ambient
+dimensions), so there is no shared cost
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">c(x,y)</annotation></semantics></math>;
+GW instead matches <em>pair-distances</em> via a quadratic objective
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>min</mo><mi>γ</mi></msub><msub><mo>∑</mo><mrow><mi>i</mi><mi>j</mi><mi>k</mi><mi>l</mi></mrow></msub><msup><mrow><mo stretchy="true" form="prefix">|</mo><msubsup><mi>d</mi><mrow><mi>i</mi><mi>k</mi></mrow><mi>X</mi></msubsup><mo>−</mo><msubsup><mi>d</mi><mrow><mi>j</mi><mi>l</mi></mrow><mi>Y</mi></msubsup><mo stretchy="true" form="postfix">|</mo></mrow><mn>2</mn></msup><msub><mi>γ</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><msub><mi>γ</mi><mrow><mi>k</mi><mi>l</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\min_\gamma \sum_{ijkl} |d^X_{ik} - d^Y_{jl}|^2 \gamma_{ij}\gamma_{kl}</annotation></semantics></math>.
+The objective is a quadratic assignment problem, NP-hard in general and
+non-convex in the coupling; entropic GW solvers depend strongly on
+initialization, with random / spectral / identity warm-starts producing
+different local optima<a href="#fn36" class="footnote-ref" id="fnref36"
+role="doc-noteref"><sup>36</sup></a>.</p>
+<p><strong>Neural-OT</strong> methods <span class="citation"
+data-cites="korotin_neural_2023 seguy_large-scale_2018 amos_input_2017">(Korotin,
+Selikhanovych, and Burnaev 2023; Seguy et al. 2018; Amos, Xu, and Kolter
+2017)</span> parameterize Kantorovich potentials
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>,</mo><mi>g</mi></mrow><annotation encoding="application/x-tex">f, g</annotation></semantics></math>
+(or the Brenier potential
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>)
+as neural networks and solve the dual saddle-point min-max objective by
+stochastic gradient ascent-descent. <strong>Input convex neural
+networks</strong> (ICNNs) <span class="citation"
+data-cites="amos_input_2017">(Amos, Xu, and Kolter 2017)</span> enforce
+the convexity required by Brenier's theorem via non-negative weights and
+convex non-decreasing activations; this guarantees the gradient
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>∇</mi><msub><mi>ϕ</mi><mi>θ</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">T(x) = \nabla \phi_\theta(x)</annotation></semantics></math>
+is a valid Brenier map. The price is the <strong>adversarial</strong>
+training instability of all GAN-class objectives<a href="#fn37"
+class="footnote-ref" id="fnref37" role="doc-noteref"><sup>37</sup></a>:
+hyperparameter sensitivity, mode collapse, and oscillation; mitigated by
+careful learning-rate scheduling, gradient penalties, and warm-starting
+from Sinkhorn-derived initial maps. <strong>JKOnet</strong> <span
+class="citation" data-cites="bunne_proximal_2022">(Bunne et al.
+2022)</span> uses ICNNs to discretize Wasserstein gradient flows via the
+<strong>JKO scheme</strong>, learning energy landscapes from population
+snapshots.</p>
+<p><strong>OT flow-matching</strong> and
+<strong>Schrödinger-bridge</strong> methods are the 2022-2024
+generative-modelling synthesis. <strong>Flow-matching</strong> trains a
+velocity field whose ODE integration transports noise to data; the
+OT-conditional variant uses mini-batch OT couplings (rather than the
+diffusion's stochastic noise schedule) to define straighter probability
+paths, which simpler velocity fields can learn and which integrate in
+fewer ODE solver steps<a href="#fn38" class="footnote-ref" id="fnref38"
+role="doc-noteref"><sup>38</sup></a>. <strong>Schrödinger
+bridges</strong> solve the entropy-regularized OT problem in
+path-measure space via iterative proportional fitting (the dynamic
+analog of Sinkhorn), interpolating between deterministic OT
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi><mo>→</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\varepsilon \to 0</annotation></semantics></math>)
+and pure diffusion
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi><mo>→</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">\varepsilon \to \infty</annotation></semantics></math>).
+The table separates four eras: exact-LP and analytic foundations
+(1955-2000), entropic and sliced (2013-2018), unbalanced / GW / neural
+(2017-2022), and the modern flow / bridge synthesis (2022-2024). Three
+readings emerge. First, the entropic-to-sliced-to-neural progression
+traded statistical accuracy for scalability, with Sinkhorn divergences
+and OT-flow recovering 1-3% accuracy at the high-dimensional continuous
+regime where direct exact-LP is infeasible. Second, the unbalanced and
+GW extensions are not Pareto-dominated by classical OT; they
+<em>enable</em> problems (unequal-mass biology, graph matching) that
+classical OT cannot even formulate. <u>Third, neural OT and
+flow-matching are converging on a single paradigm in which Brenier
+potentials, Schrödinger bridges, and continuous-time normalizing flows
+are different parameterizations of the same underlying
+displacement-interpolation theory introduced by Brenier and
+Benamou-Brenier three decades earlier.</u></p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-agrawal_differentiable_2019" class="csl-entry"
+role="listitem">
+Agrawal, Akshay, Brandon Amos, Shane Barratt, Stephen Boyd, Steven
+Diamond, and Zico Kolter. 2019. <span>“Differentiable
+<span>Convex</span> <span>Optimization</span>
+<span>Layers</span>.”</span> In <em>Advances in Neural Information
+Processing Systems (NeurIPS)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1910.12430">https://doi.org/10.48550/arXiv.1910.12430</a>.
+</div>
+<div id="ref-ambrosio_gradient_2008" class="csl-entry" role="listitem">
+Ambrosio, Luigi, Nicola Gigli, and Giuseppe Savaré. 2008. <em>Gradient
+<span>Flows</span>: <span>In</span> <span>Metric</span>
+<span>Spaces</span> and in the <span>Space</span> of
+<span>Probability</span> <span>Measures</span></em>. 2nd ed. Birkhäuser.
+<a
+href="https://doi.org/10.1007/978-3-7643-8722-8">https://doi.org/10.1007/978-3-7643-8722-8</a>.
+</div>
+<div id="ref-amos_optnet_2021" class="csl-entry" role="listitem">
+Amos, Brandon, and J. Zico Kolter. 2017. <span>“<span>OptNet</span>:
+<span>Differentiable</span> <span>Optimization</span> as a
+<span>Layer</span> in <span>Neural</span> <span>Networks</span>.”</span>
+In <em>International Conference on Machine Learning (ICML)</em>. <a
+href="https://doi.org/10.48550/arXiv.1703.00443">https://doi.org/10.48550/arXiv.1703.00443</a>.
+</div>
+<div id="ref-amos_differentiable_2019" class="csl-entry"
+role="listitem">
+Amos, Brandon, Ivan Dario Jimenez Rodriguez, Jacob Sacks, Byron Boots,
+and J. Zico Kolter. 2018. <span>“Differentiable <span>MPC</span> for
+<span>End</span>-to-End <span>Planning</span> and
+<span>Control</span>.”</span> In <em>Advances in Neural Information
+Processing Systems (NeurIPS)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1810.13400">https://doi.org/10.48550/arXiv.1810.13400</a>.
+</div>
+<div id="ref-amos_input_2017" class="csl-entry" role="listitem">
+Amos, Brandon, Lei Xu, and J. Zico Kolter. 2017. <span>“Input
+<span>Convex</span> <span>Neural</span> <span>Networks</span>.”</span>
+In <em>International Conference on Machine Learning (ICML)</em>. arXiv.
+<a
+href="https://doi.org/10.48550/arXiv.1609.07152">https://doi.org/10.48550/arXiv.1609.07152</a>.
+</div>
+<div id="ref-arjovsky_wasserstein_2017" class="csl-entry"
+role="listitem">
+Arjovsky, Martin, Soumith Chintala, and Léon Bottou. 2017.
+<span>“Wasserstein <span>GAN</span>.”</span> In <em>International
+Conference on Machine Learning (ICML)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1701.07875">https://doi.org/10.48550/arXiv.1701.07875</a>.
+</div>
+<div id="ref-barratt_differentiability_2019" class="csl-entry"
+role="listitem">
+Barratt, Shane. 2019. <span>“On the <span>Differentiability</span> of
+the <span>Solution</span> to <span>Convex</span>
+<span>Optimization</span> <span>Problems</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.1804.05098">https://doi.org/10.48550/arXiv.1804.05098</a>.
+</div>
+<div id="ref-benamou_computational_2000" class="csl-entry"
+role="listitem">
+Benamou, Jean-David, and Yann Brenier. 2000. <span>“A Computational
+Fluid Mechanics Solution to the
+<span>Monge</span>-<span>Kantorovich</span> Mass Transfer
+Problem.”</span> <em>Numerische Mathematik</em> 84 (3): 375–93. <a
+href="https://doi.org/10.1007/s002110050002">https://doi.org/10.1007/s002110050002</a>.
+</div>
+<div id="ref-berthet_learning_2020" class="csl-entry" role="listitem">
+Berthet, Quentin, Mathieu Blondel, Olivier Teboul, Marco Cuturi,
+Jean-Philippe Vert, and Francis Bach. 2020. <span>“Learning with
+<span>Differentiable</span> <span>Perturbed</span>
+<span>Optimizers</span>.”</span> In <em>Advances in Neural Information
+Processing Systems (<span>NeurIPS</span>)</em>. Vol. 33. <a
+href="http://arxiv.org/abs/2002.08676">http://arxiv.org/abs/2002.08676</a>.
+</div>
+<div id="ref-blondel_fenchel-young_2020" class="csl-entry"
+role="listitem">
+Blondel, Mathieu, André F. T. Martins, and Vlad Niculae. 2020.
+<span>“Learning with <span>Fenchel</span>-<span>Young</span>
+<span>Losses</span>.”</span> <a
+href="https://doi.org/10.48550/arXiv.1901.02324">https://doi.org/10.48550/arXiv.1901.02324</a>.
+</div>
+<div id="ref-brenier_polar_1991" class="csl-entry" role="listitem">
+Brenier, Yann. 1991. <span>“Polar Factorization and Monotone
+Rearrangement of Vector‐valued Functions.”</span> <em>Communications on
+Pure and Applied Mathematics</em> 44 (4): 375–417. <a
+href="https://doi.org/10.1002/cpa.3160440402">https://doi.org/10.1002/cpa.3160440402</a>.
+</div>
+<div id="ref-bunne_proximal_2022" class="csl-entry" role="listitem">
+Bunne, Charlotte, Laetitia Meng-Papaxanthos, Andreas Krause, and Marco
+Cuturi. 2022. <span>“Proximal <span>Optimal</span>
+<span>Transport</span> <span>Modeling</span> of <span>Population</span>
+<span>Dynamics</span>.”</span> <a
+href="https://doi.org/10.48550/arXiv.2106.06345">https://doi.org/10.48550/arXiv.2106.06345</a>.
+</div>
+<div id="ref-chizat_unbalanced_2019" class="csl-entry" role="listitem">
+Chizat, Lenaic, Gabriel Peyré, Bernhard Schmitzer, and François-Xavier
+Vialard. 2018. <span>“Unbalanced <span>Optimal</span>
+<span>Transport</span>: <span>Dynamic</span> and
+<span>Kantorovich</span> <span>Formulation</span>.”</span> <em>Journal
+of Functional Analysis</em>, February. <a
+href="https://doi.org/10.48550/arXiv.1508.05216">https://doi.org/10.48550/arXiv.1508.05216</a>.
+</div>
+<div id="ref-courty_joint_2017" class="csl-entry" role="listitem">
+Courty, Nicolas, Rémi Flamary, Amaury Habrard, and Alain Rakotomamonjy.
+2017. <span>“Joint <span>Distribution</span> <span>Optimal</span>
+<span>Transportation</span> for <span>Domain</span>
+<span>Adaptation</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.1705.08848">https://doi.org/10.48550/arXiv.1705.08848</a>.
+</div>
+<div id="ref-courty_optimal_2016" class="csl-entry" role="listitem">
+Courty, Nicolas, Rémi Flamary, Devis Tuia, and Alain Rakotomamonjy.
+2017. <span>“Optimal <span>Transport</span> for <span>Domain</span>
+<span>Adaptation</span>.”</span> <em>IEEE Transactions on Pattern
+Analysis and Machine Intelligence (TPAMI)</em>, June. <a
+href="https://doi.org/10.48550/arXiv.1507.00504">https://doi.org/10.48550/arXiv.1507.00504</a>.
+</div>
+<div id="ref-cuturi_sinkhorn_2013" class="csl-entry" role="listitem">
+Cuturi, Marco. 2013. <span>“Sinkhorn <span>Distances</span>:
+<span>Lightspeed</span> <span>Computation</span> of <span>Optimal</span>
+<span>Transportation</span> <span>Distances</span>.”</span> In
+<em>Advances in Neural Information Processing Systems (NeurIPS)</em>.
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.1306.0895">https://doi.org/10.48550/arXiv.1306.0895</a>.
+</div>
+<div id="ref-cuturi_fast_2014" class="csl-entry" role="listitem">
+Cuturi, Marco, and Arnaud Doucet. 2014. <span>“Fast
+<span>Computation</span> of <span>Wasserstein</span>
+<span>Barycenters</span>.”</span> In <em>International Conference on
+Machine Learning (ICML)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1310.4375">https://doi.org/10.48550/arXiv.1310.4375</a>.
+</div>
+<div id="ref-domke_implicit_2010" class="csl-entry" role="listitem">
+Domke, Justin. 2010. <span>“Implicit <span>Differentiation</span> by
+<span>Perturbation</span>.”</span> In <em>Advances in
+<span>Neural</span> <span>Information</span> <span>Processing</span>
+<span>Systems</span></em>. Vol. 23. Curran Associates, Inc. <a
+href="https://papers.nips.cc/paper_files/paper/2010/hash/6ecbdd6ec859d284dc13885a37ce8d81-Abstract.html">https://papers.nips.cc/paper_files/paper/2010/hash/6ecbdd6ec859d284dc13885a37ce8d81-Abstract.html</a>.
+</div>
+<div id="ref-dvurechensky_computational_2018" class="csl-entry"
+role="listitem">
+Dvurechensky, Pavel, Alexander Gasnikov, and Alexey Kroshnin. 2018.
+<span>“Computational <span>Optimal</span> <span>Transport</span>:
+<span>Complexity</span> by <span>Accelerated</span>
+<span>Gradient</span> <span>Descent</span> <span>Is</span>
+<span>Better</span> <span>Than</span> by <span>Sinkhorn</span>’s
+<span>Algorithm</span>.”</span> In <em>International Conference on
+Machine Learning (ICML)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1802.04367">https://doi.org/10.48550/arXiv.1802.04367</a>.
+</div>
+<div id="ref-elmachtoub_smart_2020" class="csl-entry" role="listitem">
+Elmachtoub, Adam N., and Paul Grigas. 2022. <span>“Smart
+"<span>Predict</span>, Then <span>Optimize</span>".”</span>
+<em>Management Science</em>, November. <a
+href="https://doi.org/10.48550/arXiv.1710.08005">https://doi.org/10.48550/arXiv.1710.08005</a>.
+</div>
+<div id="ref-franceschi_bilevel_2018" class="csl-entry" role="listitem">
+Franceschi, Luca, Paolo Frasconi, Saverio Salzo, Riccardo Grazzi, and
+Massimilano Pontil. 2018. <span>“Bilevel <span>Programming</span> for
+<span>Hyperparameter</span> <span>Optimization</span> and
+<span>Meta</span>-<span>Learning</span>.”</span> In <em>International
+Conference on Machine Learning (ICML)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1806.04910">https://doi.org/10.48550/arXiv.1806.04910</a>.
+</div>
+<div id="ref-gangbo_geometry_1996" class="csl-entry" role="listitem">
+Gangbo, Wilfrid, and Robert J. McCann. 1996. <span>“The Geometry of
+Optimal Transportation.”</span> <em>Acta Mathematica</em> 177 (2):
+113–61. <a
+href="https://doi.org/10.1007/BF02392620">https://doi.org/10.1007/BF02392620</a>.
+</div>
+<div id="ref-genevay_stochastic_2016" class="csl-entry" role="listitem">
+Genevay, Aude, Marco Cuturi, Gabriel Peyré, and Francis Bach. 2016.
+<span>“Stochastic <span>Optimization</span> for <span>Large</span>-Scale
+<span>Optimal</span> <span>Transport</span>.”</span> In <em>Advances in
+Neural Information Processing Systems (NeurIPS)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1605.08527">https://doi.org/10.48550/arXiv.1605.08527</a>.
+</div>
+<div id="ref-genevay_learning_2017" class="csl-entry" role="listitem">
+Genevay, Aude, Gabriel Peyré, and Marco Cuturi. 2018. <span>“Learning
+<span>Generative</span> <span>Models</span> with <span>Sinkhorn</span>
+<span>Divergences</span>.”</span> In <em>International Conference on
+Artificial Intelligence and Statistics (AISTATS)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1706.00292">https://doi.org/10.48550/arXiv.1706.00292</a>.
+</div>
+<div id="ref-gould_deep_2021" class="csl-entry" role="listitem">
+Gould, Stephen, Richard Hartley, and Dylan Campbell. 2021. <span>“Deep
+<span>Declarative</span> <span>Networks</span>: <span>A</span>
+<span>New</span> <span>Hope</span>.”</span> <em>IEEE Transactions on
+Pattern Analysis and Machine Intelligence</em>, 1–1. <a
+href="https://doi.org/10.1109/TPAMI.2021.3059462">https://doi.org/10.1109/TPAMI.2021.3059462</a>.
+</div>
+<div id="ref-gulrajani_improved_2017" class="csl-entry" role="listitem">
+Gulrajani, Ishaan, Faruk Ahmed, Martin Arjovsky, Vincent Dumoulin, and
+Aaron Courville. 2017. <span>“Improved <span>Training</span> of
+<span>Wasserstein</span> <span>GANs</span>.”</span> In <em>Advances in
+Neural Information Processing Systems (NeurIPS)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1704.00028">https://doi.org/10.48550/arXiv.1704.00028</a>.
+</div>
+<div id="ref-klamkin_dual_2025" class="csl-entry" role="listitem">
+Klamkin, Michael, Mathieu Tanneau, and Pascal Van Hentenryck. 2025.
+<span>“Dual <span>Interior</span> <span>Point</span>
+<span>Optimization</span> <span>Learning</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2402.02596">https://doi.org/10.48550/arXiv.2402.02596</a>.
+</div>
+<div id="ref-kolouri_sliced-wasserstein_2018" class="csl-entry"
+role="listitem">
+Kolouri, Soheil, Phillip E. Pope, Charles E. Martin, and Gustavo K.
+Rohde. 2018. <span>“Sliced-<span>Wasserstein</span>
+<span>Autoencoder</span>: <span>An</span> <span>Embarrassingly</span>
+<span>Simple</span> <span>Generative</span> <span>Model</span>.”</span>
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.1804.01947">https://doi.org/10.48550/arXiv.1804.01947</a>.
+</div>
+<div id="ref-kool_attention_2019" class="csl-entry" role="listitem">
+Kool, Wouter, Herke van Hoof, and Max Welling. 2019. <span>“Attention,
+<span>Learn</span> to <span>Solve</span> <span>Routing</span>
+<span>Problems</span>!”</span> In <em>International Conference on
+Learning Representations (ICLR)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1803.08475">https://doi.org/10.48550/arXiv.1803.08475</a>.
+</div>
+<div id="ref-korotin_neural_2023" class="csl-entry" role="listitem">
+Korotin, Alexander, Daniil Selikhanovych, and Evgeny Burnaev. 2023.
+<span>“Neural <span>Optimal</span> <span>Transport</span>.”</span> In
+<em>International Conference on Learning Representations (ICLR)</em>.
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2201.12220">https://doi.org/10.48550/arXiv.2201.12220</a>.
+</div>
+<div id="ref-kotary_learning_2021" class="csl-entry" role="listitem">
+Kotary, James, Ferdinando Fioretto, and Pascal Van Hentenryck. 2021.
+<span>“Learning <span>Hard</span> <span>Optimization</span>
+<span>Problems</span>: <span>A</span> <span>Data</span>
+<span>Generation</span> <span>Perspective</span>.”</span> In
+<em>Advances in Neural Information Processing Systems (NeurIPS)</em>.
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2106.02601">https://doi.org/10.48550/arXiv.2106.02601</a>.
+</div>
+<div id="ref-le_tree-wasserstein_2019" class="csl-entry"
+role="listitem">
+Le, Tam, Makoto Yamada, Kenji Fukumizu, and Marco Cuturi. 2019.
+<span>“Tree-<span>Sliced</span> <span>Variants</span> of
+<span>Wasserstein</span> <span>Distances</span>.”</span> In <em>Advances
+in Neural Information Processing Systems (<span>NeurIPS</span>)</em>.
+Vol. 32. <a
+href="http://arxiv.org/abs/1902.00342">http://arxiv.org/abs/1902.00342</a>.
+</div>
+<div id="ref-lee_meta-learning_2019" class="csl-entry" role="listitem">
+Lee, Kwonjoon, Subhransu Maji, Avinash Ravichandran, and Stefano Soatto.
+2019. <span>“Meta-<span>Learning</span> <span>With</span>
+<span>Differentiable</span> <span>Convex</span>
+<span>Optimization</span>.”</span> In <em>2019
+<span>IEEE</span>/<span>CVF</span> <span>Conference</span> on
+<span>Computer</span> <span>Vision</span> and <span>Pattern</span>
+<span>Recognition</span> (<span>CVPR</span>)</em>, 10649–57. Long Beach,
+CA, USA: IEEE. <a
+href="https://doi.org/10.1109/CVPR.2019.01091">https://doi.org/10.1109/CVPR.2019.01091</a>.
+</div>
+<div id="ref-lorraine_optimizing_2019" class="csl-entry"
+role="listitem">
+Lorraine, Jonathan, Paul Vicol, and David Duvenaud. 2020.
+<span>“Optimizing <span>Millions</span> of <span>Hyperparameters</span>
+by <span>Implicit</span> <span>Differentiation</span>.”</span> In
+<em>International Conference on Artificial Intelligence and Statistics
+(AISTATS)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1911.02590">https://doi.org/10.48550/arXiv.1911.02590</a>.
+</div>
+<div id="ref-memoli_gromovwasserstein_2011" class="csl-entry"
+role="listitem">
+Mémoli, Facundo. 2011. <span>“Gromov–<span>Wasserstein</span>
+<span>Distances</span> and the <span>Metric</span> <span>Approach</span>
+to <span>Object</span> <span>Matching</span>.”</span> <em>Foundations of
+Computational Mathematics</em> 11 (4): 417–87. <a
+href="https://doi.org/10.1007/s10208-011-9093-5">https://doi.org/10.1007/s10208-011-9093-5</a>.
+</div>
+<div id="ref-mensch_differentiable-dp_2018" class="csl-entry"
+role="listitem">
+Mensch, Arthur, and Mathieu Blondel. 2018. <span>“Differentiable
+<span>Dynamic</span> <span>Programming</span> for
+<span>Structured</span> <span>Prediction</span> and
+<span>Attention</span>.”</span> In <em>International Conference on
+Machine Learning (ICML)</em>. <a
+href="https://doi.org/10.48550/arXiv.1802.03676">https://doi.org/10.48550/arXiv.1802.03676</a>.
+</div>
+<div id="ref-pan_bpqp_2024" class="csl-entry" role="listitem">
+Pan, Jianming, Zeqi Ye, Xiao Yang, Xu Yang, Weiqing Liu, Lewen Wang, and
+Jiang Bian. 2024. <span>“<span>BPQP</span>: <span>A</span>
+<span>Differentiable</span> <span>Convex</span>
+<span>Optimization</span> <span>Framework</span> for
+<span>Efficient</span> <span>End</span>-to-<span>End</span>
+<span>Learning</span>.”</span> In <em>Advances in Neural Information
+Processing Systems (NeurIPS)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2411.19285">https://doi.org/10.48550/arXiv.2411.19285</a>.
+</div>
+<div id="ref-peyre_computational_2020" class="csl-entry"
+role="listitem">
+Peyré, Gabriel, and Marco Cuturi. 2020. <em>Computational
+<span>Optimal</span> <span>Transport</span></em>. Foundations and Trends
+in Machine Learning. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1803.00567">https://doi.org/10.48550/arXiv.1803.00567</a>.
+</div>
+<div id="ref-prates_learning_2018" class="csl-entry" role="listitem">
+Prates, Marcelo O. R., Pedro H. C. Avelar, Henrique Lemos, Luis Lamb,
+and Moshe Vardi. 2019. <span>“Learning to <span>Solve</span>
+<span>NP</span>-<span>Complete</span> <span>Problems</span> -
+<span>A</span> <span>Graph</span> <span>Neural</span>
+<span>Network</span> for <span>Decision</span> <span>TSP</span>.”</span>
+In <em>AAAI Conference on Artificial Intelligence</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1809.02721">https://doi.org/10.48550/arXiv.1809.02721</a>.
+</div>
+<div id="ref-rachev_mongekantorovich_2006" class="csl-entry"
+role="listitem">
+Rachev, S. T. 1985. <span>“The
+<span>Monge</span>–<span>Kantorovich</span> <span>Mass</span>
+<span>Transference</span> <span>Problem</span> and <span>Its</span>
+<span>Stochastic</span> <span>Applications</span>.”</span> <em>Theory of
+Probability &amp; Its Applications</em>, July. <a
+href="https://doi.org/10.1137/1129093">https://doi.org/10.1137/1129093</a>.
+</div>
+<div id="ref-sander_sinkformers_2022" class="csl-entry" role="listitem">
+Sander, Michaël E., Pierre Ablin, Mathieu Blondel, and Gabriel Peyré.
+2022. <span>“Sinkformers: <span>Transformers</span> with
+<span>Doubly</span> <span>Stochastic</span>
+<span>Attention</span>.”</span> <a
+href="https://doi.org/10.48550/arXiv.2110.11773">https://doi.org/10.48550/arXiv.2110.11773</a>.
+</div>
+<div id="ref-santambrogio_introduction_2010" class="csl-entry"
+role="listitem">
+Santambrogio, Filippo. 2014. <span>“Introduction to <span>Optimal</span>
+<span>Transport</span> <span>Theory</span>.”</span> In <em>Optimal
+Transport: Theory and Applications (London Math. Soc. Lecture Note
+Series 413)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1009.3856">https://doi.org/10.48550/arXiv.1009.3856</a>.
+</div>
+<div id="ref-santambrogio_optimal_2015" class="csl-entry"
+role="listitem">
+———. 2015. <em>Optimal <span>Transport</span> for <span>Applied</span>
+<span>Mathematicians</span>: <span>Calculus</span> of
+<span>Variations</span>, <span>PDEs</span>, and
+<span>Modeling</span></em>. Vol. 87. Progress in <span>Nonlinear</span>
+<span>Differential</span> <span>Equations</span> and <span>Their</span>
+<span>Applications</span>. Cham: Springer International Publishing. <a
+href="https://doi.org/10.1007/978-3-319-20828-2">https://doi.org/10.1007/978-3-319-20828-2</a>.
+</div>
+<div id="ref-seguy_large-scale_2018" class="csl-entry" role="listitem">
+Seguy, Vivien, Bharath Bhushan Damodaran, Rémi Flamary, Nicolas Courty,
+Antoine Rolet, and Mathieu Blondel. 2018.
+<span>“Large-<span>Scale</span> <span>Optimal</span>
+<span>Transport</span> and <span>Mapping</span>
+<span>Estimation</span>.”</span> In <em>International Conference on
+Learning Representations (ICLR)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1711.02283">https://doi.org/10.48550/arXiv.1711.02283</a>.
+</div>
+<div id="ref-tang_cave_2024" class="csl-entry" role="listitem">
+Tang, Bo, and Elias B. Khalil. 2024. <span>“<span>CaVE</span>:
+<span>A</span> <span>Cone</span>-<span>Aligned</span>
+<span>Approach</span> for <span>Fast</span>
+<span>Predict</span>-Then-Optimize with <span>Binary</span>
+<span>Linear</span> <span>Programs</span>.”</span> In <em>International
+Conference on Machine Learning (ICML)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2312.07718">https://doi.org/10.48550/arXiv.2312.07718</a>.
+</div>
+<div id="ref-villani_topics_2003" class="csl-entry" role="listitem">
+Villani, Cédric. 2003. <em>Topics in <span>Optimal</span>
+<span>Transportation</span></em>. Vol. 58. Graduate <span>Studies</span>
+in <span>Mathematics</span>. American Mathematical Society.
+</div>
+<div id="ref-villani_optimal_2009" class="csl-entry" role="listitem">
+———. 2009. <em>Optimal <span>Transport</span>: <span>Old</span> and
+<span>New</span></em>. Springer. <a
+href="https://doi.org/10.1007/978-3-540-71050-9">https://doi.org/10.1007/978-3-540-71050-9</a>.
+</div>
+<div id="ref-vlastelica_differentiation_2020" class="csl-entry"
+role="listitem">
+Vlastelica, Marin, Anselm Paulus, Vít Musil, Georg Martius, and Michal
+Rolínek. 2020. <span>“Differentiation of <span>Blackbox</span>
+<span>Combinatorial</span> <span>Solvers</span>.”</span> In
+<em>International Conference on Learning Representations (ICLR)</em>.
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.1912.02175">https://doi.org/10.48550/arXiv.1912.02175</a>.
+</div>
+<div id="ref-wang_satnet_2019" class="csl-entry" role="listitem">
+Wang, Po-Wei, Priya L. Donti, Bryan Wilder, and Zico Kolter. 2019.
+<span>“<span>SATNet</span>: <span>Bridging</span> Deep Learning and
+Logical Reasoning Using a Differentiable Satisfiability Solver.”</span>
+In <em>International Conference on Machine Learning
+(<span>ICML</span>)</em>, 97:6545–54. Proceedings of Machine Learning
+Research. PMLR. <a
+href="http://arxiv.org/abs/1905.12149">http://arxiv.org/abs/1905.12149</a>.
+</div>
+</div>
+<section id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p><em>Decision-vs-prediction loss mismatch</em>: minimum
+MSE on parameters is not minimum regret on decisions; errors that cross
+a constraint or objective boundary are arbitrarily more costly than
+errors that don't.<a href="#fnref1" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><em>Active-set discontinuity</em>: the solver's argmax
+is piecewise-linear in its parameters with jump discontinuities at
+active-set transitions; a small input perturbation can flip which
+constraints bind, producing infinite local Lipschitz constants that
+defeat first-order training.<a href="#fnref2" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p><em>Ill-conditioned KKT system</em>: at the active-set
+boundary the KKT matrix becomes singular and its condition number
+diverges; gradient noise then dominates the signal and training
+oscillates without explicit regularization (typically a small
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mi>I</mi></mrow><annotation encoding="application/x-tex">\epsilon I</annotation></semantics></math>
+on the slack block).<a href="#fnref3" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p><em>Implicit-differentiation cost</em>: each backward
+pass solves an
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n^2)</annotation></semantics></math>-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>3</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n^3)</annotation></semantics></math>
+linear system in the inner-problem variables, so wrapping an LP/QP
+solver inside a training loop adds 5-50x wall-clock overhead per step
+relative to plain autograd.<a href="#fnref4" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p><em>Decision-vs-prediction loss mismatch</em>: minimum
+MSE on parameters is not minimum regret on decisions; errors that cross
+a constraint or objective boundary are arbitrarily more costly than
+errors that don't.<a href="#fnref5" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p><em>Non-differentiable solver</em>: branch-and-bound,
+simplex, and SAT solvers are piecewise-constant in their parameters, so
+naive autograd returns zero gradients; smoothing, blackbox finite
+differences, or perturbed-MAP estimators are required.<a href="#fnref6"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p><em>Integer-relaxation gap</em>: continuous relaxations
+(LP-relaxation, Sinkhorn, perturbed argmax) have a gap to the true
+integer optimum that does not shrink with predictor accuracy; the
+learned solution can be near-optimal in relaxation yet infeasible after
+rounding.<a href="#fnref7" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p><em>Constraint violation</em>: an unconstrained NN
+output may violate the feasible set; projection layers, penalty terms,
+and dual updates each trade feasibility against optimality and gradient
+quality.<a href="#fnref8" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn9"><p><em>Scale mismatch between predictor and solver</em>:
+the predictor's output scale (network logits) is rarely the solver's
+parameter scale (cost coefficients in the same units as the objective);
+without per-feature standardization or a learned output gain, gradients
+through the solver are dominated by the largest-magnitude coordinate and
+training stalls.<a href="#fnref9" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn10"><p><em>Failure to exploit problem structure</em>: a
+generic OptNet/CvxpyLayer ignores LP-totally-unimodular structure,
+network-flow decompositions, or block-diagonal Hessians that classical
+solvers exploit, so neural-augmented pipelines often run slower than
+tuned commercial solvers on structured instances despite better
+worst-case generalization.<a href="#fnref10" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn11"><p><em>Implicit-differentiation cost</em>: each backward
+pass solves an
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n^2)</annotation></semantics></math>-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>3</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n^3)</annotation></semantics></math>
+linear system in the inner-problem variables, so wrapping an LP/QP
+solver inside a training loop adds 5-50x wall-clock overhead per step
+relative to plain autograd.<a href="#fnref11" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn12"><p><em>Ill-conditioned KKT system</em>: at the active-set
+boundary the KKT matrix becomes singular and its condition number
+diverges; gradient noise then dominates the signal and training
+oscillates without explicit regularization (typically a small
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mi>I</mi></mrow><annotation encoding="application/x-tex">\epsilon I</annotation></semantics></math>
+on the slack block).<a href="#fnref12" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn13"><p><em>Implicit-differentiation cost</em>: each backward
+pass solves an
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n^2)</annotation></semantics></math>-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>3</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n^3)</annotation></semantics></math>
+linear system in the inner-problem variables, so wrapping an LP/QP
+solver inside a training loop adds 5-50x wall-clock overhead per step
+relative to plain autograd.<a href="#fnref13" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn14"><p><em>Failure to exploit problem structure</em>: a
+generic OptNet/CvxpyLayer ignores LP-totally-unimodular structure,
+network-flow decompositions, or block-diagonal Hessians that classical
+solvers exploit, so neural-augmented pipelines often run slower than
+tuned commercial solvers on structured instances despite better
+worst-case generalization.<a href="#fnref14" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn15"><p><em>Non-differentiable solver</em>: branch-and-bound,
+simplex, and SAT solvers are piecewise-constant in their parameters, so
+naive autograd returns zero gradients; smoothing, blackbox finite
+differences, or perturbed-MAP estimators are required.<a href="#fnref15"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn16"><p><em>Decision-vs-prediction loss mismatch</em>: minimum
+MSE on parameters is not minimum regret on decisions; errors that cross
+a constraint or objective boundary are arbitrarily more costly than
+errors that don't.<a href="#fnref16" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn17"><p><em>Integer-relaxation gap</em>: continuous relaxations
+(LP-relaxation, Sinkhorn, perturbed argmax) have a gap to the true
+integer optimum that does not shrink with predictor accuracy; the
+learned solution can be near-optimal in relaxation yet infeasible after
+rounding.<a href="#fnref17" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn18"><p><em>Non-differentiable solver</em>: branch-and-bound,
+simplex, and SAT solvers are piecewise-constant in their parameters, so
+naive autograd returns zero gradients; smoothing, blackbox finite
+differences, or perturbed-MAP estimators are required.<a href="#fnref18"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn19"><p><em>Integer-relaxation gap</em>: continuous relaxations
+(LP-relaxation, Sinkhorn, perturbed argmax) have a gap to the true
+integer optimum that does not shrink with predictor accuracy; the
+learned solution can be near-optimal in relaxation yet infeasible after
+rounding.<a href="#fnref19" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn20"><p><em>Ill-conditioned KKT system</em>: at the active-set
+boundary the KKT matrix becomes singular and its condition number
+diverges; gradient noise then dominates the signal and training
+oscillates without explicit regularization (typically a small
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mi>I</mi></mrow><annotation encoding="application/x-tex">\epsilon I</annotation></semantics></math>
+on the slack block).<a href="#fnref20" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn21"><p><em>Constraint violation</em>: an unconstrained NN
+output may violate the feasible set; projection layers, penalty terms,
+and dual updates each trade feasibility against optimality and gradient
+quality.<a href="#fnref21" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn22"><p><em>Cubic exact-LP cost</em>: classical network-simplex
+/ Hungarian algorithms solve the discrete Kantorovich LP in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>3</mn></msup><mo>log</mo><mi>n</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n^3 \log n)</annotation></semantics></math>
+time, prohibitive beyond
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>≈</mo><msup><mn>10</mn><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">n \approx 10^4</annotation></semantics></math>
+and the principal motivation for entropic regularization.<a
+href="#fnref22" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn23"><p><em>Entropy regularization bias</em>: the Sinkhorn
+solution is <em>not</em> the true Wasserstein-2 distance;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mi>ε</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>μ</mi><mo>,</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">W_\varepsilon(\mu,\mu) &gt; 0</annotation></semantics></math>
+for non-Dirac
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>,
+and the entropic plan is "blurred" by an amount controlled by
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ε</mi><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math>;
+Sinkhorn divergences correct this at the cost of three solver runs.<a
+href="#fnref23" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn24"><p><em>Curse of dimensionality</em>: empirical OT
+estimation rate is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>W</mi><mi>p</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mover><mi>μ</mi><mo accent="true">̂</mo></mover><mi>n</mi></msub><mo>,</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mrow><mi>−</mi><mn>1</mn><mi>/</mi><mi>d</mi></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathbb{E}[W_p(\hat\mu_n, \mu)] = O(n^{-1/d})</annotation></semantics></math>
+in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+dimensions, which is catastrophic for image/text data; sliced and
+entropic estimators trade bias for dimension-free
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mrow><mi>−</mi><mn>1</mn><mi>/</mi><mn>2</mn></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n^{-1/2})</annotation></semantics></math>
+rates.<a href="#fnref24" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn25"><p><em>Unbalanced-mass mismatch</em>: classical OT
+requires equal source and target mass, an unrealistic constraint when
+comparing single-cell snapshots, partial-shape correspondences, or
+class-imbalanced datasets; relaxed marginals via KL or TV penalties are
+required.<a href="#fnref25" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn26"><p><em>Non-convex Gromov-Wasserstein</em>: the GW
+objective is a quadratic assignment problem that is non-convex in the
+coupling; local minima are pervasive and entropic GW solvers depend
+strongly on initialization (random vs spectral vs identity).<a
+href="#fnref26" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn27"><p><em>Dual-potential training instability</em>: neural-OT
+solvers <span class="citation"
+data-cites="korotin_neural_2023">(Korotin, Selikhanovych, and Burnaev
+2023)</span> parameterize Kantorovich potentials
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>,</mo><mi>g</mi></mrow><annotation encoding="application/x-tex">f, g</annotation></semantics></math>
+as competing networks; the resulting saddle-point optimization inherits
+the adversarial dynamics of GANs (mode collapse, oscillation,
+hyperparameter sensitivity).<a href="#fnref27" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn28"><p><em>Sample complexity</em>: an accurate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>×</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">n \times n</annotation></semantics></math>
+cost matrix needs
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>n</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n)</annotation></semantics></math>
+samples per distribution and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n^2)</annotation></semantics></math>
+cost evaluations, dominating compute budgets when the cost (e.g.,
+embedding distance) is itself expensive; mini-batch OT trades bias for
+cost.<a href="#fnref28" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn29"><p><em>Sliced-projection bias</em>: 1D-projection-based
+estimators average univariate Wasserstein distances over directions of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>S</mi><mrow><mi>d</mi><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">S^{d-1}</annotation></semantics></math>;
+the resulting metric is weaker than
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>p</mi></msub><annotation encoding="application/x-tex">W_p</annotation></semantics></math>
+(only equivalent on Gaussians) and loses sharpness on distributions
+concentrated on low-dimensional manifolds.<a href="#fnref29"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn30"><p><em>Non-differentiability of the cost surface</em>:
+exact OT plans are sparse
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≤</mo><mn>2</mn><mi>n</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\le 2n-1</annotation></semantics></math>
+nonzeros) and discrete; their gradient with respect to inputs is
+undefined at vertex changes; entropic OT smooths this at the cost of
+bias, and structured loss functions (Sinkhorn divergence, Sliced) are
+differentiable but no longer the true Wasserstein.<a href="#fnref30"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn31"><p><em>Cubic exact-LP cost</em>: classical network-simplex
+/ Hungarian algorithms solve the discrete Kantorovich LP in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>3</mn></msup><mo>log</mo><mi>n</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n^3 \log n)</annotation></semantics></math>
+time, prohibitive beyond
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>≈</mo><msup><mn>10</mn><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">n \approx 10^4</annotation></semantics></math>
+and the principal motivation for entropic regularization.<a
+href="#fnref31" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn32"><p><em>Entropy regularization bias</em>: the Sinkhorn
+solution is <em>not</em> the true Wasserstein-2 distance;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mi>ε</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>μ</mi><mo>,</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">W_\varepsilon(\mu,\mu) &gt; 0</annotation></semantics></math>
+for non-Dirac
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>,
+and the entropic plan is "blurred" by an amount controlled by
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ε</mi><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math>;
+Sinkhorn divergences correct this at the cost of three solver runs.<a
+href="#fnref32" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn33"><p><em>Curse of dimensionality</em>: empirical OT
+estimation rate is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>W</mi><mi>p</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mover><mi>μ</mi><mo accent="true">̂</mo></mover><mi>n</mi></msub><mo>,</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mrow><mi>−</mi><mn>1</mn><mi>/</mi><mi>d</mi></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathbb{E}[W_p(\hat\mu_n, \mu)] = O(n^{-1/d})</annotation></semantics></math>
+in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+dimensions, which is catastrophic for image/text data; sliced and
+entropic estimators trade bias for dimension-free
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mrow><mi>−</mi><mn>1</mn><mi>/</mi><mn>2</mn></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n^{-1/2})</annotation></semantics></math>
+rates.<a href="#fnref33" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn34"><p><em>Sliced-projection bias</em>: 1D-projection-based
+estimators average univariate Wasserstein distances over directions of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>S</mi><mrow><mi>d</mi><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">S^{d-1}</annotation></semantics></math>;
+the resulting metric is weaker than
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>p</mi></msub><annotation encoding="application/x-tex">W_p</annotation></semantics></math>
+(only equivalent on Gaussians) and loses sharpness on distributions
+concentrated on low-dimensional manifolds.<a href="#fnref34"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn35"><p><em>Unbalanced-mass mismatch</em>: classical OT
+requires equal source and target mass, an unrealistic constraint when
+comparing single-cell snapshots, partial-shape correspondences, or
+class-imbalanced datasets; relaxed marginals via KL or TV penalties are
+required.<a href="#fnref35" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn36"><p><em>Non-convex Gromov-Wasserstein</em>: the GW
+objective is a quadratic assignment problem that is non-convex in the
+coupling; local minima are pervasive and entropic GW solvers depend
+strongly on initialization (random vs spectral vs identity).<a
+href="#fnref36" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn37"><p><em>Dual-potential training instability</em>: neural-OT
+solvers <span class="citation"
+data-cites="korotin_neural_2023">(Korotin, Selikhanovych, and Burnaev
+2023)</span> parameterize Kantorovich potentials
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>,</mo><mi>g</mi></mrow><annotation encoding="application/x-tex">f, g</annotation></semantics></math>
+as competing networks; the resulting saddle-point optimization inherits
+the adversarial dynamics of GANs (mode collapse, oscillation,
+hyperparameter sensitivity).<a href="#fnref37" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn38"><p><em>Flow-step cost</em>: OT-conditional flow matching
+trains a velocity field whose ODE integration at inference time still
+costs
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><mn>10</mn><mtext mathvariant="normal">-</mtext><mn>50</mn></mrow><annotation encoding="application/x-tex">\sim 10\text{-}50</annotation></semantics></math>
+function evaluations; the OT path is straighter than the diffusion path
+but not free, and the mini-batch OT pre-computation adds per-step
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>m</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(m^2)</annotation></semantics></math>
+overhead.<a href="#fnref38" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

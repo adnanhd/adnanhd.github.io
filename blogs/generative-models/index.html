@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="A survey of generative models: deep generative models, autoregressive visual generation, diffusion transformers, and vision-language models." />
+        <title>Generative Models - Adnan Harun Dogan</title>
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Generative Models</h1>
+            <div class="blog-meta">Deep generative models, autoregressive generation, diffusion, and VLMs</div>
+            <article class="blog-body">
+<h2 id="deep-generative-models">Deep Generative Models</h2>
+<p><u>Generative modeling aims to learn the underlying data distribution
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mtext mathvariant="normal">data</mtext></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">p_{\text{data}}(x)</annotation></semantics></math>
+and generate new samples from it.</u> Classical approaches include
+Gaussian mixture models <span class="citation"
+data-cites="reynolds_gaussian_2009">(Reynolds 2009)</span>, kernel
+density estimation, and graphical models (Bayesian networks, Markov
+random fields). <u>These methods scale poorly to high-dimensional
+data</u>: Gaussian mixtures require exponentially many components,
+kernel methods suffer from the curse of dimensionality, and
+graphical-model inference is intractable for dense dependencies. <u>Deep
+learning revolutionized this field by enabling learning of complex,
+high-dimensional distributions through expressive neural-network
+parameterizations with scalable optimization.</u></p>
+<p>Variational Autoencoders
+<span class="citation" data-cites="kingma_auto-encoding_2022">(Kingma
+and Welling 2014)</span> introduced amortized variational inference with
+neural networks, enabling efficient approximate posterior inference
+through the Evidence Lower Bound (ELBO).
+Extensions include importance-weighted bounds
+<span class="citation" data-cites="burda_importance_2016">(Burda,
+Grosse, and Salakhutdinov 2016)</span>, disentangled representations <span
+class="citation" data-cites="higgins_beta-vae_2017">(Higgins et al.
+2017)</span>, and hierarchical architectures <span
+class="citation" data-cites="vahdat_nvae_2021">(Vahdat and Kautz
+2020)</span>. The VAE framework connects to classical variational Bayes
+<span class="citation" data-cites="jordan_introduction_1999">(Jordan et
+al. 1999)</span> and neural autoencoders <span class="citation"
+data-cites="hinton_reducing_2006">(Hinton and Salakhutdinov
+2006)</span>, combining the probabilistic principles of the former with
+the representation-learning flexibility of the latter.</p>
+<p>Generative Adversarial
+Networks <span class="citation"
+data-cites="goodfellow_generative_2014">(Goodfellow et al. 2014)</span>
+frame generation as a game between generator and discriminator networks
+through the adversarial game. Key
+advances include stable training
+techniques <span class="citation"
+data-cites="gulrajani_improved_2017">(Gulrajani et al. 2017)</span>, progressive growing <span
+class="citation" data-cites="karras_progressive_2018">(Karras et al.
+2018)</span>, and style-based generation <span
+class="citation" data-cites="karras_style-based_2019">(Karras, Laine,
+and Aila 2019)</span>. The game-theoretic framing inspired an array of
+subsequent ``adversarial'' methods: adversarial training (Madry et al.),
+adversarial domain adaptation, and adversarial robustness.</p>
+<p>Normalizing Flows <span
+class="citation" data-cites="rezende_variational_2016">(Rezende and
+Mohamed 2015)</span> provide exact likelihood computation through
+invertible transformations. Notable architectures include Real NVP <span class="citation"
+data-cites="dinh_density_2017">(Dinh, Sohl-Dickstein, and Bengio
+2017)</span>, MAF <span
+class="citation" data-cites="papamakarios_masked_2018">(Papamakarios,
+Pavlakou, and Murray 2018)</span>, Glow <span
+class="citation" data-cites="kingma_glow_2018">(Kingma and Dhariwal
+2018)</span>, and Neural Spline
+Flows <span class="citation" data-cites="durkan_neural_2019">(Durkan
+et al. 2019)</span>. Flows generalize classical change-of-variables
+density estimation by using deep neural networks as the transformation,
+with careful design constraints to maintain invertibility and efficient
+Jacobian computation.</p>
+<p>Score-based models
+<span class="citation" data-cites="song_generative_2020">(Y. Song and
+Ermon 2020)</span> learn the gradient of the log-density and generate
+via Langevin dynamics. The
+connection to diffusion
+models <span class="citation" data-cites="ho_denoising_2020">(Ho,
+Jain, and Abbeel 2020)</span> established a unified framework through stochastic differential equations
+<span class="citation" data-cites="song_score-based_2021">(Y. Song et
+al. 2021)</span>. Score-based generation builds on score matching <span
+class="citation" data-cites="hyvarinen_estimation_2005">(Hyvärinen
+2005)</span> and denoising autoencoders <span class="citation"
+data-cites="vincent_extracting_2008">(Vincent et al. 2008)</span>, with
+the continuous-time formulation drawing on results from stochastic
+calculus (Anderson's reverse-time diffusion theorem from 1982).</p>
+<p>Autoregressive models (PixelRNN <span class="citation"
+data-cites="van_den_oord_pixel_2016">(Oord, Kalchbrenner, and
+Kavukcuoglu 2016)</span>, PixelCNN <span class="citation"
+data-cites="van_den_oord_conditional_2016">(Oord, Kalchbrenner, et al.
+2016)</span>, WaveNet <span class="citation"
+data-cites="van_den_oord_wavenet_2016">(Oord, Dieleman, et al.
+2016)</span>, GPT <span class="citation"
+data-cites="radford_language_2019">(Radford et al. 2019)</span>) provide
+a competing paradigm that factorizes the joint via the chain rule and
+models each conditional with a deep neural network. For discrete data
+and sequences, autoregressive models are often the natural choice; for
+continuous high-dimensional data, they have been largely superseded by
+diffusion models due to sampling speed.</p>
+<p><u>Recent work has focused on unifying these paradigms through the
+score SDE framework</u> <span class="citation"
+data-cites="song_score-based_2021">(Y. Song et al. 2021)</span>, <u>Flow
+Matching</u> <span class="citation"
+data-cites="lipman_flow_2023">(Lipman et al. 2023)</span>, <u>and the
+Schrödinger bridge perspective</u> <span class="citation"
+data-cites="debortoli_diffusion_2021">(De Bortoli et al. 2021)</span>.
+<u>The field increasingly views VAE/GAN/flow/diffusion as different
+instantiations of a common transport-map framework, with architectural
+and training-objective choices distinguishing them rather than
+fundamental paradigm differences.</u></p>
+<p><img src="figures/dgm-taxonomy.svg" /></p>
+<h2 id="diffusion-models-and-transformer-architectures">Diffusion Models
+and Transformer Architectures</h2>
+<p>The diffusion-model literature spans pixel-space to latent-space,
+U-Net to transformer, single-model to cascade, and image to video; the
+leaderboard in Table <a href="tab:diffusion-sota">tab:diffusion-sota</a>
+anchors the dominant lineage by reported FID at canonical resolutions,
+parameter count, and inference NFE so each prose paragraph below grounds
+in a numerical comparator. The columns isolate the three axes that drive
+design choices: <em>quality</em> (FID), <em>scale</em> (parameters), and
+<em>sampling efficiency</em> (NFE); GAN baselines (BigGAN at 7.4 FID)
+are included to clarify the diffusion-vs-GAN crossover that ADM
+established and EDM widened.</p>
+<div class="blog-table"><table id="tab:diffusion-sota">
+<caption>Selected diffusion / flow / transformer milestones on standard
+benchmarks. FID rows mix ImageNet 256×256 (class-conditional), CIFAR-10
+(unconditional), and zero-shot MS-COCO (text-to-image) at the resolution
+called out by each paper; FVD covers UCF-101. NFE = inference function
+evaluations at the reported FID. Citations point to the original sources
+cataloged in subsequent sections.</caption>
+<thead>
+<tr>
+<th>Model</th>
+<th>Year</th>
+<th>Backbone</th>
+<th>Resolution / Task</th>
+<th>FID</th>
+<th>NFE</th>
+<th>Params</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BigGAN (GAN baseline)</td>
+<td>2018</td>
+<td>GAN</td>
+<td>ImageNet 256</td>
+<td>7.4</td>
+<td>1</td>
+<td>158M</td>
+</tr>
+<tr>
+<td>DDPM <span class="citation" data-cites="ho_denoising_2020">(Ho,
+Jain, and Abbeel 2020)</span></td>
+<td>2020</td>
+<td>U-Net</td>
+<td>CIFAR-10 uncond</td>
+<td>3.17</td>
+<td>1000</td>
+<td>36M</td>
+</tr>
+<tr>
+<td>DDIM <span class="citation" data-cites="song_denoising_2022">(J.
+Song, Meng, and Ermon 2021)</span></td>
+<td>2021</td>
+<td>U-Net</td>
+<td>CIFAR-10 (S=50)</td>
+<td>4.67</td>
+<td>50</td>
+<td>36M</td>
+</tr>
+<tr>
+<td>Improved DDPM <span class="citation"
+data-cites="nichol_improved_2021">(Nichol and Dhariwal 2021)</span></td>
+<td>2021</td>
+<td>U-Net</td>
+<td>ImageNet 64 (bpd 2.94)</td>
+<td>-</td>
+<td>250</td>
+<td>100M</td>
+</tr>
+<tr>
+<td>ADM-G <span class="citation"
+data-cites="dhariwal_diffusion_2021">(Dhariwal and Nichol
+2021)</span></td>
+<td>2021</td>
+<td>U-Net</td>
+<td>ImageNet 256 cls-cond</td>
+<td>4.59</td>
+<td>250</td>
+<td>554M</td>
+</tr>
+<tr>
+<td>ADM-G + upsmp <span class="citation"
+data-cites="dhariwal_diffusion_2021">(Dhariwal and Nichol
+2021)</span></td>
+<td>2021</td>
+<td>U-Net casc.</td>
+<td>ImageNet 256 cls-cond</td>
+<td>2.97</td>
+<td>~ 250</td>
+<td>~1.0B</td>
+</tr>
+<tr>
+<td>EDM <span class="citation"
+data-cites="karras_elucidating_2022">(Karras et al. 2022)</span></td>
+<td>2022</td>
+<td>U-Net</td>
+<td>CIFAR-10 uncond</td>
+<td>1.79</td>
+<td>35</td>
+<td>56M</td>
+</tr>
+<tr>
+<td>LDM-8 <span class="citation"
+data-cites="rombach_high-resolution_2022">(Rombach et al.
+2022)</span></td>
+<td>2022</td>
+<td>U-Net</td>
+<td>ImageNet 256 cls-cond</td>
+<td>3.60</td>
+<td>250</td>
+<td>400M</td>
+</tr>
+<tr>
+<td>GLIDE <span class="citation" data-cites="nichol_glide_2022">(Nichol
+et al. 2022)</span></td>
+<td>2022</td>
+<td>U-Net</td>
+<td>MS-COCO zero-shot</td>
+<td>12.2</td>
+<td>250</td>
+<td>3.5B</td>
+</tr>
+<tr>
+<td>Imagen <span class="citation"
+data-cites="saharia_photorealistic_2022">(Saharia et al.
+2022)</span></td>
+<td>2022</td>
+<td>U-Net casc.</td>
+<td>MS-COCO zero-shot</td>
+<td>7.27</td>
+<td>~ 256</td>
+<td>~7.6B</td>
+</tr>
+<tr>
+<td>DALL-E 2 <span class="citation"
+data-cites="ramesh_hierarchical_2022">(Ramesh et al. 2022)</span></td>
+<td>2022</td>
+<td>U-Net casc.</td>
+<td>MS-COCO zero-shot</td>
+<td>10.4</td>
+<td>~ 250</td>
+<td>4.5B</td>
+</tr>
+<tr>
+<td>eDiff-I <span class="citation"
+data-cites="balaji_ediff-i_2023">(Balaji et al. 2023)</span></td>
+<td>2023</td>
+<td>U-Net casc.</td>
+<td>MS-COCO zero-shot</td>
+<td>6.95</td>
+<td>~ 250</td>
+<td>~9B</td>
+</tr>
+<tr>
+<td>DiT-XL/2 <span class="citation"
+data-cites="peebles_scalable_2023">(Peebles and Xie 2023)</span></td>
+<td>2023</td>
+<td>DiT</td>
+<td>ImageNet 256 (cfg=1.5)</td>
+<td>2.27</td>
+<td>250</td>
+<td>675M</td>
+</tr>
+<tr>
+<td>U-ViT <span class="citation" data-cites="bao_all_2023">(Bao et al.
+2023)</span></td>
+<td>2023</td>
+<td>U-ViT</td>
+<td>ImageNet 256 cls-cond</td>
+<td>2.29</td>
+<td>250</td>
+<td>501M</td>
+</tr>
+<tr>
+<td>SDXL <span class="citation" data-cites="podell_sdxl_2023">(Podell et
+al. 2023)</span></td>
+<td>2023</td>
+<td>U-Net</td>
+<td>T2I 1024 (PartiPrompt)</td>
+<td>n/a</td>
+<td>50</td>
+<td>2.6B</td>
+</tr>
+<tr>
+<td>PixArt-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+<span class="citation" data-cites="chen_pixart-_2023">(Chen et al.
+2023)</span></td>
+<td>2023</td>
+<td>DiT</td>
+<td>T2I 1024 (DrawBench)</td>
+<td>n/a</td>
+<td>20</td>
+<td>600M</td>
+</tr>
+<tr>
+<td>DALL-E 3 <span class="citation"
+data-cites="betker_improving_2023">(Betker et al. 2023)</span></td>
+<td>2023</td>
+<td>LDM</td>
+<td>DrawBench GPT-4V judge</td>
+<td>n/a</td>
+<td>~ 50</td>
+<td>undisc.</td>
+</tr>
+<tr>
+<td>Consistency D. <span class="citation"
+data-cites="song_consistency_2023">(Y. Song et al. 2023)</span></td>
+<td>2023</td>
+<td>EDM-init</td>
+<td>CIFAR-10 (1 step)</td>
+<td>3.55</td>
+<td>1</td>
+<td>56M</td>
+</tr>
+<tr>
+<td>Flow Matching <span class="citation"
+data-cites="lipman_flow_2023">(Lipman et al. 2023)</span></td>
+<td>2023</td>
+<td>EDM-net</td>
+<td>ImageNet 64 (bpd 3.31)</td>
+<td>-</td>
+<td>142</td>
+<td>62M</td>
+</tr>
+<tr>
+<td>SD3 (MM-DiT) <span class="citation"
+data-cites="esser_scaling_2024">(Esser et al. 2024)</span></td>
+<td>2024</td>
+<td>MM-DiT</td>
+<td>T2I 1024 (GenEval)</td>
+<td>n/a</td>
+<td>28</td>
+<td>8B</td>
+</tr>
+<tr>
+<td>SVD <span class="citation"
+data-cites="blattmann_stable_2023">(Blattmann, Dockhorn, et al.
+2023)</span></td>
+<td>2023</td>
+<td>LDM+temp.</td>
+<td>UCF-101 (FVD)</td>
+<td>~140</td>
+<td>25</td>
+<td>1.5B</td>
+</tr>
+</tbody>
+</table></div>
+<p><u>Diffusion models have emerged as the dominant paradigm for
+generative modeling</u>, surpassing GANs in image quality while offering
+stable training and mode coverage. The foundational work on Denoising
+Diffusion Probabilistic Models (DDPM) <span class="citation"
+data-cites="ho_denoising_2020">(Ho, Jain, and Abbeel 2020)</span>
+demonstrated that iteratively denoising samples from Gaussian noise
+produces high-quality images, achieving state-of-the-art FID scores on
+CIFAR-10 (3.17) and competitive results on LSUN.[fn:s2-ddpm-impl] This
+work established the connection between diffusion models and denoising
+score matching, providing both
+theoretical grounding and practical training recipes.</p>
+<p>Subsequent work focused on accelerating sampling, which originally
+required 1000+ steps. Denoising Diffusion Implicit
+Models (DDIM) <span class="citation"
+data-cites="song_denoising_2022">(J. Song, Meng, and Ermon 2021)</span>
+introduced a non-Markovian formulation enabling 10-50× faster sampling
+by treating the reverse process as
+solving an ODE rather than simulating an SDE. Improved DDPM <span
+class="citation" data-cites="nichol_improved_2021">(Nichol and Dhariwal
+2021)</span> showed that learning the variance schedule and using fewer
+steps maintains quality while reducing computation. DPM-Solver++ <span
+class="citation" data-cites="lu_dpm-solver_2022">(Lu et al. 2022)</span>
+further improved sampling efficiency through high-order ODE solvers
+specifically designed for guided diffusion, enabling 15-20 step
+generation.</p>
+<p><u>The architecture evolution moved from U-Net to Transformer
+backbones.</u> Diffusion Models Beat GANs <span class="citation"
+data-cites="dhariwal_diffusion_2021">(Dhariwal and Nichol 2021)</span>
+demonstrated that architectural improvements (attention at multiple
+resolutions, adaptive group normalization) and classifier guidance
+enable diffusion models to surpass BigGAN on ImageNet. The EDM framework
+<span class="citation" data-cites="karras_elucidating_2022">(Karras et
+al. 2022)</span> unified the design space, achieving SOTA FID of 1.79 on
+CIFAR-10 through careful analysis of noise schedules, preconditioning,
+and sampling.</p>
+<p>The Diffusion Transformer (DiT) <span
+class="citation" data-cites="peebles_scalable_2023">(Peebles and Xie
+2023)</span> replaced U-Net with a Vision Transformer operating on
+latent patches, demonstrating clean scaling laws: higher compute
+(GFLOPs) consistently yields lower FID. DiT-XL/2 achieved 2.27 FID on
+ImageNet 256×256, establishing transformers as viable diffusion
+backbones. U-ViT <span class="citation"
+data-cites="bao_all_2023">(Bao et al. 2023)</span> showed that
+<u>treating time, condition, and image patches uniformly as tokens with
+long skip connections achieves comparable results with simpler
+architecture</u>.</p>
+<p>Text-to-image synthesis scaled these techniques dramatically. Latent Diffusion Models (LDM) <span
+class="citation" data-cites="rombach_high-resolution_2022">(Rombach et
+al. 2022)</span> <u>moved diffusion to the latent space of a pretrained
+autoencoder, reducing computation by 4-16× while maintaining
+quality</u>. GLIDE <span class="citation"
+data-cites="nichol_glide_2022">(Nichol et al. 2022)</span> demonstrated
+classifier-free guidance outperforms CLIP guidance for photorealism.
+Imagen <span class="citation"
+data-cites="saharia_photorealistic_2022">(Saharia et al. 2022)</span>
+showed that scaling the text encoder (T5-XXL) matters more than scaling
+the image model, achieving breakthrough text-image alignment. DALL-E 2
+<span class="citation" data-cites="ramesh_hierarchical_2022">(Ramesh et
+al. 2022)</span> used a two-stage approach: CLIP prior generating image
+embeddings, then diffusion decoder.</p>
+<p>The Stable Diffusion family
+democratized text-to-image. SDXL <span class="citation"
+data-cites="podell_sdxl_2023">(Podell et al. 2023)</span> scaled to 3×
+larger U-Net with dual text encoders, achieving quality competitive with
+closed-source models.
+PixArt-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+<span class="citation" data-cites="chen_pixart-_2023">(Chen et al.
+2023)</span> demonstrated efficient training by decomposing into stages
+(pixel dependency, text alignment, aesthetics), requiring only 10.8% of
+Stable Diffusion's training compute. Stable Diffusion 3 <span
+class="citation" data-cites="esser_scaling_2024">(Esser et al.
+2024)</span> introduced the MM-DiT architecture
+with separate weights for image and text modalities and rectified flow
+formulation.</p>
+<p><u>Video generation extended these techniques temporally.</u> Video
+Diffusion Models <span class="citation" data-cites="ho_video_2022">(Ho,
+Salimans, et al. 2022)</span> added 3D attention for temporal coherence.
+Imagen Video <span class="citation" data-cites="ho_imagen_2022">(Ho,
+Chan, et al. 2022)</span> used cascaded diffusion with spatial and
+temporal super-resolution. Video LDM <span class="citation"
+data-cites="blattmann_align_2023">(Blattmann, Rombach, et al.
+2023)</span> inserted temporal layers into pretrained image LDMs. Stable
+Video Diffusion <span class="citation"
+data-cites="blattmann_stable_2023">(Blattmann, Dockhorn, et al.
+2023)</span> demonstrated the importance of data curation for video
+quality. AnimateDiff <span class="citation"
+data-cites="guo_animatediff_2024">(Guo et al. 2024)</span> showed motion
+modules can animate any personalized text-to-image model without
+retraining.</p>
+<p>Flow matching <span class="citation"
+data-cites="lipman_flow_2023">(Lipman et al. 2023)</span> provided an
+alternative training paradigm for continuous normalizing flows. <u>Instead of
+learning a score function, flow matching directly regresses a velocity
+field that transports noise to data</u>; the score
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>∇</mi><mi>x</mi></msub><mo>log</mo><msub><mi>p</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\nabla_x \log p_t(x)</annotation></semantics></math>
+is replaced by a learned velocity
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>θ</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">v_\theta(x, t)</annotation></semantics></math>
+generating a probability path
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>p</mi><mi>t</mi></msub><annotation encoding="application/x-tex">p_t</annotation></semantics></math>
+interpolating between noise
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>0</mn></msub><mo>=</mo><mi>𝒩</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mi>I</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">p_0 = \mathcal{N}(0, I)</annotation></semantics></math>
+and data
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo>=</mo><msub><mi>p</mi><mtext mathvariant="normal">data</mtext></msub></mrow><annotation encoding="application/x-tex">p_1 = p_{\text{data}}</annotation></semantics></math>.
+The conditional flow matching (CFM) objective is:</p>
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℒ</mi><mtext mathvariant="normal">CFM</mtext><mo>=</mo><mi>𝔼</mi><mrow><mi>t</mi><mo>,</mo><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><msub><mi>x</mi><mi>t</mi></msub></mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>v</mi><mi>θ</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>t</mi></msub><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><msub><mi>u</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">|</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\begin{equation}
+\mathcal{L}{\text{CFM}} = \mathbb{E}{t, x_1, x_t} \|v_\theta(x_t, t) - u_t(x_t | x_1)\|^2
+\end{equation}
+</annotation></semantics></math>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">|</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">u_t(x_t | x_1)</annotation></semantics></math>
+is the target velocity for the conditional path
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>t</mi></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>x</mi><mn>0</mn></msub><mo>+</mo><mi>t</mi><msub><mi>x</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">x_t = (1-t)x_0 + t x_1</annotation></semantics></math>
+(linear interpolation with OT paths). Compared to score matching, CFM
+yields straighter trajectories that require fewer integration steps at
+inference (typically 20–50 NFEs vs. 100–1000 for standard diffusion).
+The OT variant uses
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>t</mi></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>σ</mi><mo>min</mo></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>x</mi><mn>0</mn></msub><mo>+</mo><mi>t</mi><msub><mi>x</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">x_t = (1-(1-\sigma_{\min})t)x_0 + tx_1</annotation></semantics></math>,
+producing nearly straight paths that can be sampled with Euler
+integration in as few as 5 steps. Consistency models <span
+class="citation" data-cites="song_consistency_2023">(Y. Song et al.
+2023)</span> learn to directly map any noisy
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>t</mi></msub><annotation encoding="application/x-tex">x_t</annotation></semantics></math>
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mn>0</mn></msub><annotation encoding="application/x-tex">x_0</annotation></semantics></math>
+via a self-consistency constraint
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>θ</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>t</mi></msub><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>f</mi><mi>θ</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mrow><mi>t</mi><mi>′</mi></mrow></msub><mo>,</mo><mi>t</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f_\theta(x_t, t) = f_\theta(x_{t&#39;}, t&#39;)</annotation></semantics></math>
+for all
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>,</mo><mi>t</mi><mi>′</mi></mrow><annotation encoding="application/x-tex">t, t&#39;</annotation></semantics></math>
+on the same trajectory, enabling one-step generation.</p>
+<p><u>Controllable generation became practical with ControlNet</u> <span
+class="citation" data-cites="zhang_adding_2023">(Zhang, Rao, and
+Agrawala 2023)</span>, which adds spatial conditioning (edges, depth,
+pose) to pretrained models via trainable copies of encoder blocks
+connected with zero convolutions. InstructPix2Pix <span class="citation"
+data-cites="brooks_instructpix2pix_2023">(Brooks, Holynski, and Efros
+2023)</span> enabled instruction-based editing by training on synthetic
+edit pairs. Prompt-to-Prompt <span class="citation"
+data-cites="hertz_prompt--prompt_2022">(Hertz et al. 2022)</span> showed
+that manipulating cross-attention maps enables localized editing without
+retraining.</p>
+<p>The field continues advancing rapidly, with Sora <span
+class="citation"
+data-cites="noauthor_sora_2024">(<span>“<span>SORA</span>:
+<span>Video</span> Generation Models as World Simulators”</span>
+2024)</span> demonstrating minute-long coherent video generation,
+<u>suggesting diffusion transformers can serve as world simulators
+understanding physical dynamics and 3D consistency</u>.</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-balaji_ediff-i_2023" class="csl-entry" role="listitem">
+Balaji, Yogesh, Seungjun Nah, Xun Huang, Arash Vahdat, Jiaming Song,
+Qinsheng Zhang, Karsten Kreis, et al. 2023. <span>“<span
+class="nocase">eDiff</span>-<span>I</span>:
+<span>Text</span>-to-<span>Image</span> <span>Diffusion</span>
+<span>Models</span> with an <span>Ensemble</span> of <span>Expert</span>
+<span>Denoisers</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2211.01324">https://doi.org/10.48550/arXiv.2211.01324</a>.
+</div>
+<div id="ref-bao_all_2023" class="csl-entry" role="listitem">
+Bao, Fan, Shen Nie, Kaiwen Xue, Yue Cao, Chongxuan Li, Hang Su, and Jun
+Zhu. 2023. <span>“All Are <span>Worth</span> <span>Words</span>:
+<span>A</span> <span>ViT</span> <span>Backbone</span> for
+<span>Diffusion</span> <span>Models</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2209.12152">https://doi.org/10.48550/arXiv.2209.12152</a>.
+</div>
+<div id="ref-betker_improving_2023" class="csl-entry" role="listitem">
+Betker, James, Gabriel Goh, Li Jing, Tim Brooks, Jianfeng Wang, Linjie
+Li, Long Ouyang, et al. 2023. <span>“Improving <span>Image</span>
+<span>Generation</span> with <span>Better</span>
+<span>Captions</span>.”</span>
+</div>
+<div id="ref-blattmann_stable_2023" class="csl-entry" role="listitem">
+Blattmann, Andreas, Tim Dockhorn, Sumith Kulal, Daniel Mendelevitch,
+Maciej Kilian, Dominik Lorenz, Yam Levi, et al. 2023. <span>“Stable
+<span>Video</span> <span>Diffusion</span>: <span>Scaling</span>
+<span>Latent</span> <span>Video</span> <span>Diffusion</span>
+<span>Models</span> to <span>Large</span> <span>Datasets</span>.”</span>
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2311.15127">https://doi.org/10.48550/arXiv.2311.15127</a>.
+</div>
+<div id="ref-blattmann_align_2023" class="csl-entry" role="listitem">
+Blattmann, Andreas, Robin Rombach, Huan Ling, Tim Dockhorn, Seung Wook
+Kim, Sanja Fidler, and Karsten Kreis. 2023. <span>“Align Your
+<span>Latents</span>: <span>High</span>-<span>Resolution</span>
+<span>Video</span> <span>Synthesis</span> with <span>Latent</span>
+<span>Diffusion</span> <span>Models</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2304.08818">https://doi.org/10.48550/arXiv.2304.08818</a>.
+</div>
+<div id="ref-brooks_instructpix2pix_2023" class="csl-entry"
+role="listitem">
+Brooks, Tim, Aleksander Holynski, and Alexei A. Efros. 2023.
+<span>“<span>InstructPix2Pix</span>: <span>Learning</span> to
+<span>Follow</span> <span>Image</span> <span>Editing</span>
+<span>Instructions</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2211.09800">https://doi.org/10.48550/arXiv.2211.09800</a>.
+</div>
+<div id="ref-burda_importance_2016" class="csl-entry" role="listitem">
+Burda, Yuri, Roger Grosse, and Ruslan Salakhutdinov. 2016.
+<span>“Importance <span>Weighted</span>
+<span>Autoencoders</span>.”</span> In <em>International Conference on
+Learning Representations</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1509.00519">https://doi.org/10.48550/arXiv.1509.00519</a>.
+</div>
+<div id="ref-chen_pixart-_2023" class="csl-entry" role="listitem">
+Chen, Junsong, Jincheng Yu, Chongjian Ge, Lewei Yao, Enze Xie, Yue Wu,
+Zhongdao Wang, et al. 2023. <span>“<span>PixArt</span>-$α$:
+<span>Fast</span> <span>Training</span> of <span>Diffusion</span>
+<span>Transformer</span> for <span>Photorealistic</span>
+<span>Text</span>-to-<span>Image</span> <span>Synthesis</span>.”</span>
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2310.00426">https://doi.org/10.48550/arXiv.2310.00426</a>.
+</div>
+<div id="ref-debortoli_diffusion_2021" class="csl-entry"
+role="listitem">
+De Bortoli, Valentin, James Thornton, Jeremy Heng, and Arnaud Doucet.
+2021. <span>“Diffusion <span class="nocase">Schr<span
+class="nocase">ö</span>dinger</span> Bridge with Applications to
+Score-Based Generative Modeling.”</span> In <em>Advances in Neural
+Information Processing Systems (<span>NeurIPS</span>)</em>. <a
+href="https://arxiv.org/abs/2106.01357">https://arxiv.org/abs/2106.01357</a>.
+</div>
+<div id="ref-dhariwal_diffusion_2021" class="csl-entry" role="listitem">
+Dhariwal, Prafulla, and Alex Nichol. 2021. <span>“Diffusion
+<span>Models</span> <span>Beat</span> <span>GANs</span> on
+<span>Image</span> <span>Synthesis</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2105.05233">https://doi.org/10.48550/arXiv.2105.05233</a>.
+</div>
+<div id="ref-dinh_density_2017" class="csl-entry" role="listitem">
+Dinh, Laurent, Jascha Sohl-Dickstein, and Samy Bengio. 2017.
+<span>“Density Estimation Using <span>Real</span>
+<span>NVP</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.1605.08803">https://doi.org/10.48550/arXiv.1605.08803</a>.
+</div>
+<div id="ref-durkan_neural_2019" class="csl-entry" role="listitem">
+Durkan, Conor, Artur Bekasov, Iain Murray, and George Papamakarios.
+2019. <span>“Neural <span>Spline</span> <span>Flows</span>.”</span>
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.1906.04032">https://doi.org/10.48550/arXiv.1906.04032</a>.
+</div>
+<div id="ref-esser_scaling_2024" class="csl-entry" role="listitem">
+Esser, Patrick, Sumith Kulal, Andreas Blattmann, Rahim Entezari, Jonas
+Müller, Harry Saini, Yam Levi, et al. 2024. <span>“Scaling
+<span>Rectified</span> <span>Flow</span> <span>Transformers</span> for
+<span>High</span>-<span>Resolution</span> <span>Image</span>
+<span>Synthesis</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2403.03206">https://doi.org/10.48550/arXiv.2403.03206</a>.
+</div>
+<div id="ref-goodfellow_generative_2014" class="csl-entry"
+role="listitem">
+Goodfellow, Ian J., Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David
+Warde-Farley, Sherjil Ozair, Aaron Courville, and Yoshua Bengio. 2014.
+<span>“Generative <span>Adversarial</span>
+<span>Networks</span>.”</span> In <em>Advances in Neural Information
+Processing Systems</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1406.2661">https://doi.org/10.48550/arXiv.1406.2661</a>.
+</div>
+<div id="ref-gulrajani_improved_2017" class="csl-entry" role="listitem">
+Gulrajani, Ishaan, Faruk Ahmed, Martin Arjovsky, Vincent Dumoulin, and
+Aaron Courville. 2017. <span>“Improved <span>Training</span> of
+<span>Wasserstein</span> <span>GANs</span>.”</span> In <em>Advances in
+Neural Information Processing Systems</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1704.00028">https://doi.org/10.48550/arXiv.1704.00028</a>.
+</div>
+<div id="ref-guo_animatediff_2024" class="csl-entry" role="listitem">
+Guo, Yuwei, Ceyuan Yang, Anyi Rao, Zhengyang Liang, Yaohui Wang, Yu
+Qiao, Maneesh Agrawala, Dahua Lin, and Bo Dai. 2024.
+<span>“<span>AnimateDiff</span>: <span>Animate</span> <span>Your</span>
+<span>Personalized</span> <span>Text</span>-to-<span>Image</span>
+<span>Diffusion</span> <span>Models</span> Without <span>Specific</span>
+<span>Tuning</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2307.04725">https://doi.org/10.48550/arXiv.2307.04725</a>.
+</div>
+<div id="ref-hertz_prompt--prompt_2022" class="csl-entry"
+role="listitem">
+Hertz, Amir, Ron Mokady, Jay Tenenbaum, Kfir Aberman, Yael Pritch, and
+Daniel Cohen-Or. 2022. <span>“Prompt-to-<span>Prompt</span>
+<span>Image</span> <span>Editing</span> with <span>Cross</span>
+<span>Attention</span> <span>Control</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2208.01626">https://doi.org/10.48550/arXiv.2208.01626</a>.
+</div>
+<div id="ref-higgins_beta-vae_2017" class="csl-entry" role="listitem">
+Higgins, Irina, Loic Matthey, Arka Pal, Christopher Burgess, Xavier
+Glorot, Matthew Botvinick, Shakir Mohamed, and Alexander Lerchner. 2017.
+<span>“Beta-<span>VAE</span>: <span>Learning</span> <span>Basic</span>
+<span>Visual</span> <span>Concepts</span> with a
+<span>Constrained</span> <span>Variational</span>
+<span>Framework</span>.”</span> In. <a
+href="https://openreview.net/forum?id=Sy2fzU9gl">https://openreview.net/forum?id=Sy2fzU9gl</a>.
+</div>
+<div id="ref-hinton_reducing_2006" class="csl-entry" role="listitem">
+Hinton, Geoffrey E., and Ruslan R. Salakhutdinov. 2006. <span>“Reducing
+the Dimensionality of Data with Neural Networks.”</span>
+<em>Science</em> 313 (5786): 504–7.
+</div>
+<div id="ref-ho_imagen_2022" class="csl-entry" role="listitem">
+Ho, Jonathan, William Chan, Chitwan Saharia, Jay Whang, Ruiqi Gao,
+Alexey Gritsenko, Diederik P. Kingma, et al. 2022. <span>“Imagen
+<span>Video</span>: <span>High</span> <span>Definition</span>
+<span>Video</span> <span>Generation</span> with <span>Diffusion</span>
+<span>Models</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2210.02303">https://doi.org/10.48550/arXiv.2210.02303</a>.
+</div>
+<div id="ref-ho_denoising_2020" class="csl-entry" role="listitem">
+Ho, Jonathan, Ajay Jain, and Pieter Abbeel. 2020. <span>“Denoising
+<span>Diffusion</span> <span>Probabilistic</span>
+<span>Models</span>.”</span> In <em>Advances in Neural Information
+Processing Systems</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2006.11239">https://doi.org/10.48550/arXiv.2006.11239</a>.
+</div>
+<div id="ref-ho_video_2022" class="csl-entry" role="listitem">
+Ho, Jonathan, Tim Salimans, Alexey Gritsenko, William Chan, Mohammad
+Norouzi, and David J. Fleet. 2022. <span>“Video <span>Diffusion</span>
+<span>Models</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2204.03458">https://doi.org/10.48550/arXiv.2204.03458</a>.
+</div>
+<div id="ref-hyvarinen_estimation_2005" class="csl-entry"
+role="listitem">
+Hyvärinen, Aapo. 2005. <span>“Estimation of Non-Normalized Statistical
+Models by Score Matching.”</span> <em>Journal of Machine Learning
+Research (<span>JMLR</span>)</em> 6: 695–709.
+</div>
+<div id="ref-jordan_introduction_1999" class="csl-entry"
+role="listitem">
+Jordan, Michael I., Zoubin Ghahramani, Tommi S. Jaakkola, and Lawrence
+K. Saul. 1999. <span>“An Introduction to Variational Methods for
+Graphical Models.”</span> <em>Machine Learning</em> 37 (2): 183–233.
+</div>
+<div id="ref-karras_progressive_2018" class="csl-entry" role="listitem">
+Karras, Tero, Timo Aila, Samuli Laine, and Jaakko Lehtinen. 2018.
+<span>“Progressive <span>Growing</span> of <span>GANs</span> for
+<span>Improved</span> <span>Quality</span>, <span>Stability</span>, and
+<span>Variation</span>.”</span> In <em>International Conference on
+Learning Representations</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1710.10196">https://doi.org/10.48550/arXiv.1710.10196</a>.
+</div>
+<div id="ref-karras_elucidating_2022" class="csl-entry" role="listitem">
+Karras, Tero, Miika Aittala, Timo Aila, and Samuli Laine. 2022.
+<span>“Elucidating the <span>Design</span> <span>Space</span> of
+<span>Diffusion</span>-<span>Based</span> <span>Generative</span>
+<span>Models</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2206.00364">https://doi.org/10.48550/arXiv.2206.00364</a>.
+</div>
+<div id="ref-karras_style-based_2019" class="csl-entry" role="listitem">
+Karras, Tero, Samuli Laine, and Timo Aila. 2019. <span>“A
+<span>Style</span>-<span>Based</span> <span>Generator</span>
+<span>Architecture</span> for <span>Generative</span>
+<span>Adversarial</span> <span>Networks</span>.”</span> In <em>IEEE/CVF
+Conference on Computer Vision and Pattern Recognition (CVPR)</em>.
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.1812.04948">https://doi.org/10.48550/arXiv.1812.04948</a>.
+</div>
+<div id="ref-kingma_glow_2018" class="csl-entry" role="listitem">
+Kingma, Diederik P., and Prafulla Dhariwal. 2018. <span>“Glow:
+<span>Generative</span> <span>Flow</span> with <span>Invertible</span>
+1x1 <span>Convolutions</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.1807.03039">https://doi.org/10.48550/arXiv.1807.03039</a>.
+</div>
+<div id="ref-kingma_auto-encoding_2022" class="csl-entry"
+role="listitem">
+Kingma, Diederik P., and Max Welling. 2014.
+<span>“Auto-<span>Encoding</span> <span>Variational</span>
+<span>Bayes</span>.”</span> In <em>International Conference on Learning
+Representations</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1312.6114">https://doi.org/10.48550/arXiv.1312.6114</a>.
+</div>
+<div id="ref-lipman_flow_2023" class="csl-entry" role="listitem">
+Lipman, Yaron, Ricky T. Q. Chen, Heli Ben-Hamu, Maximilian Nickel, and
+Matt Le. 2023. <span>“Flow <span>Matching</span> for
+<span>Generative</span> <span>Modeling</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2210.02747">https://doi.org/10.48550/arXiv.2210.02747</a>.
+</div>
+<div id="ref-lu_dpm-solver_2022" class="csl-entry" role="listitem">
+Lu, Cheng, Yuhao Zhou, Fan Bao, Jianfei Chen, Chongxuan Li, and Jun Zhu.
+2022. <span>“<span>DPM</span>-<span>Solver</span>++: <span>Fast</span>
+<span>Solver</span> for <span>Guided</span> <span>Sampling</span> of
+<span>Diffusion</span> <span>Probabilistic</span>
+<span>Models</span>.”</span> <em>Machine Intelligence Research</em> 22
+(4): 730–51. <a
+href="https://doi.org/10.1007/s11633-025-1562-4">https://doi.org/10.1007/s11633-025-1562-4</a>.
+</div>
+<div id="ref-nichol_improved_2021" class="csl-entry" role="listitem">
+Nichol, Alex, and Prafulla Dhariwal. 2021. <span>“Improved
+<span>Denoising</span> <span>Diffusion</span> <span>Probabilistic</span>
+<span>Models</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2102.09672">https://doi.org/10.48550/arXiv.2102.09672</a>.
+</div>
+<div id="ref-nichol_glide_2022" class="csl-entry" role="listitem">
+Nichol, Alex, Prafulla Dhariwal, Aditya Ramesh, Pranav Shyam, Pamela
+Mishkin, Bob McGrew, Ilya Sutskever, and Mark Chen. 2022.
+<span>“<span>GLIDE</span>: <span>Towards</span>
+<span>Photorealistic</span> <span>Image</span> <span>Generation</span>
+and <span>Editing</span> with <span>Text</span>-<span>Guided</span>
+<span>Diffusion</span> <span>Models</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2112.10741">https://doi.org/10.48550/arXiv.2112.10741</a>.
+</div>
+<div id="ref-van_den_oord_wavenet_2016" class="csl-entry"
+role="listitem">
+Oord, Aäron van den, Sander Dieleman, Heiga Zen, Karen Simonyan, Oriol
+Vinyals, Alex Graves, Nal Kalchbrenner, Andrew Senior, and Koray
+Kavukcuoglu. 2016. <span>“<span>WaveNet</span>: A Generative Model for
+Raw Audio.”</span> <a
+href="https://arxiv.org/abs/1609.03499">https://arxiv.org/abs/1609.03499</a>.
+</div>
+<div id="ref-van_den_oord_pixel_2016" class="csl-entry" role="listitem">
+Oord, Aäron van den, Nal Kalchbrenner, and Koray Kavukcuoglu. 2016.
+<span>“Pixel Recurrent Neural Networks.”</span> In <em>International
+Conference on Machine Learning (<span>ICML</span>)</em>. <a
+href="https://arxiv.org/abs/1601.06759">https://arxiv.org/abs/1601.06759</a>.
+</div>
+<div id="ref-van_den_oord_conditional_2016" class="csl-entry"
+role="listitem">
+Oord, Aäron van den, Nal Kalchbrenner, Oriol Vinyals, Lasse Espeholt,
+Alex Graves, and Koray Kavukcuoglu. 2016. <span>“Conditional Image
+Generation with <span>PixelCNN</span> Decoders.”</span> In <em>Advances
+in Neural Information Processing Systems (<span>NeurIPS</span>)</em>. <a
+href="https://arxiv.org/abs/1606.05328">https://arxiv.org/abs/1606.05328</a>.
+</div>
+<div id="ref-papamakarios_masked_2018" class="csl-entry"
+role="listitem">
+Papamakarios, George, Theo Pavlakou, and Iain Murray. 2018.
+<span>“Masked <span>Autoregressive</span> <span>Flow</span> for
+<span>Density</span> <span>Estimation</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.1705.07057">https://doi.org/10.48550/arXiv.1705.07057</a>.
+</div>
+<div id="ref-peebles_scalable_2023" class="csl-entry" role="listitem">
+Peebles, William, and Saining Xie. 2023. <span>“Scalable
+<span>Diffusion</span> <span>Models</span> with
+<span>Transformers</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2212.09748">https://doi.org/10.48550/arXiv.2212.09748</a>.
+</div>
+<div id="ref-podell_sdxl_2023" class="csl-entry" role="listitem">
+Podell, Dustin, Zion English, Kyle Lacey, Andreas Blattmann, Tim
+Dockhorn, Jonas Müller, Joe Penna, and Robin Rombach. 2023.
+<span>“<span>SDXL</span>: <span>Improving</span> <span>Latent</span>
+<span>Diffusion</span> <span>Models</span> for
+<span>High</span>-<span>Resolution</span> <span>Image</span>
+<span>Synthesis</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2307.01952">https://doi.org/10.48550/arXiv.2307.01952</a>.
+</div>
+<div id="ref-radford_language_2019" class="csl-entry" role="listitem">
+Radford, Alec, Jeffrey Wu, Rewon Child, David Luan, Dario Amodei, and
+Ilya Sutskever. 2019. <span>“Language Models Are Unsupervised Multitask
+Learners.”</span> OpenAI Technical Report.
+</div>
+<div id="ref-ramesh_hierarchical_2022" class="csl-entry"
+role="listitem">
+Ramesh, Aditya, Prafulla Dhariwal, Alex Nichol, Casey Chu, and Mark
+Chen. 2022. <span>“Hierarchical
+<span>Text</span>-<span>Conditional</span> <span>Image</span>
+<span>Generation</span> with <span>CLIP</span>
+<span>Latents</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2204.06125">https://doi.org/10.48550/arXiv.2204.06125</a>.
+</div>
+<div id="ref-reynolds_gaussian_2009" class="csl-entry" role="listitem">
+Reynolds, Douglas A. 2009. <span>“<span>Gaussian</span> Mixture
+Models.”</span> In <em>Encyclopedia of Biometrics</em>, edited by Stan
+Z. Li and Anil K. Jain, 659–63. Springer.
+</div>
+<div id="ref-rezende_variational_2016" class="csl-entry"
+role="listitem">
+Rezende, Danilo Jimenez, and Shakir Mohamed. 2015. <span>“Variational
+<span>Inference</span> with <span>Normalizing</span>
+<span>Flows</span>.”</span> In <em>International Conference on Machine
+Learning (ICML)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1505.05770">https://doi.org/10.48550/arXiv.1505.05770</a>.
+</div>
+<div id="ref-rombach_high-resolution_2022" class="csl-entry"
+role="listitem">
+Rombach, Robin, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and
+Björn Ommer. 2022. <span>“High-<span>Resolution</span>
+<span>Image</span> <span>Synthesis</span> with <span>Latent</span>
+<span>Diffusion</span> <span>Models</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2112.10752">https://doi.org/10.48550/arXiv.2112.10752</a>.
+</div>
+<div id="ref-saharia_photorealistic_2022" class="csl-entry"
+role="listitem">
+Saharia, Chitwan, William Chan, Saurabh Saxena, Lala Li, Jay Whang,
+Emily Denton, Seyed Kamyar Seyed Ghasemipour, et al. 2022.
+<span>“Photorealistic <span>Text</span>-to-<span>Image</span>
+<span>Diffusion</span> <span>Models</span> with <span>Deep</span>
+<span>Language</span> <span>Understanding</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2205.11487">https://doi.org/10.48550/arXiv.2205.11487</a>.
+</div>
+<div id="ref-song_denoising_2022" class="csl-entry" role="listitem">
+Song, Jiaming, Chenlin Meng, and Stefano Ermon. 2021. <span>“Denoising
+<span>Diffusion</span> <span>Implicit</span>
+<span>Models</span>.”</span> In <em>International Conference on Learning
+Representations</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2010.02502">https://doi.org/10.48550/arXiv.2010.02502</a>.
+</div>
+<div id="ref-song_consistency_2023" class="csl-entry" role="listitem">
+Song, Yang, Prafulla Dhariwal, Mark Chen, and Ilya Sutskever. 2023.
+<span>“Consistency <span>Models</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2303.01469">https://doi.org/10.48550/arXiv.2303.01469</a>.
+</div>
+<div id="ref-song_generative_2020" class="csl-entry" role="listitem">
+Song, Yang, and Stefano Ermon. 2020. <span>“Generative
+<span>Modeling</span> by <span>Estimating</span> <span>Gradients</span>
+of the <span>Data</span> <span>Distribution</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.1907.05600">https://doi.org/10.48550/arXiv.1907.05600</a>.
+</div>
+<div id="ref-song_score-based_2021" class="csl-entry" role="listitem">
+Song, Yang, Jascha Sohl-Dickstein, Diederik P. Kingma, Abhishek Kumar,
+Stefano Ermon, and Ben Poole. 2021. <span>“Score-<span>Based</span>
+<span>Generative</span> <span>Modeling</span> Through
+<span>Stochastic</span> <span>Differential</span>
+<span>Equations</span>.”</span> In <em>International Conference on
+Learning Representations</em>. <a
+href="https://doi.org/10.48550/arXiv.2011.13456">https://doi.org/10.48550/arXiv.2011.13456</a>.
+</div>
+<div id="ref-noauthor_sora_2024" class="csl-entry" role="listitem">
+<span>“<span>SORA</span>: <span>Video</span> Generation Models as World
+Simulators.”</span> 2024. <a
+href="https://openai.com/index/video-generation-models-as-world-simulators/">https://openai.com/index/video-generation-models-as-world-simulators/</a>.
+</div>
+<div id="ref-vahdat_nvae_2021" class="csl-entry" role="listitem">
+Vahdat, Arash, and Jan Kautz. 2020. <span>“<span>NVAE</span>:
+<span>A</span> <span>Deep</span> <span>Hierarchical</span>
+<span>Variational</span> <span>Autoencoder</span>.”</span> In
+<em>Advances in Neural Information Processing Systems</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2007.03898">https://doi.org/10.48550/arXiv.2007.03898</a>.
+</div>
+<div id="ref-vincent_extracting_2008" class="csl-entry" role="listitem">
+Vincent, Pascal, Hugo Larochelle, Yoshua Bengio, and Pierre-Antoine
+Manzagol. 2008. <span>“Extracting and Composing Robust Features with
+Denoising Autoencoders.”</span> In <em>International Conference on
+Machine Learning (<span>ICML</span>)</em>.
+</div>
+<div id="ref-zhang_adding_2023" class="csl-entry" role="listitem">
+Zhang, Lvmin, Anyi Rao, and Maneesh Agrawala. 2023. <span>“Adding
+<span>Conditional</span> <span>Control</span> to
+<span>Text</span>-to-<span>Image</span> <span>Diffusion</span>
+<span>Models</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2302.05543">https://doi.org/10.48550/arXiv.2302.05543</a>.
+</div>
+</div>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

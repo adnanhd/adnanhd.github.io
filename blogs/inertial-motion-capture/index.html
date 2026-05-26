@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="A survey of sparse inertial motion capture: IMU-based pose estimation and sensor fusion." />
+        <title>Sparse Inertial Motion Capture - Adnan Harun Dogan</title>
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Sparse Inertial Motion Capture</h1>
+            <div class="blog-meta">IMU-based pose estimation and sensor fusion</div>
+            <article class="blog-body">
+<p>Human motion capture traditionally relies on marker-based optical
+systems (Vicon, OptiTrack) or dense sensor suits, both requiring
+controlled environments and expensive infrastructure. Sparse inertial
+motion capture has emerged as a compelling alternative, using only 6
+Inertial Measurement Units (IMUs) placed at key body locations to
+reconstruct full-body pose in unconstrained environments <span
+class="citation" data-cites="yi_transpose_2021">(Yi, Zhou, and Xu
+2021)</span>. <u>Unlike vision-based methods, IMU-based approaches are
+immune to occlusion and work in any lighting condition, though they face
+challenges from sensor drift, noise, and the inherent ambiguity of
+mapping sparse measurements to full-body pose.</u></p>
+<p><u>Early learning-based methods applied recurrent neural networks to
+model temporal dependencies in IMU sequences, but struggled with
+physical plausibility; producing motions with floating, sliding, or
+ground penetration artifacts.</u> Physical Inertial Poser (PIP) <span
+class="citation" data-cites="yi_physical_2022">(Yi et al. 2022)</span>
+introduced physics-aware optimization to enforce ground contact
+constraints and biomechanical feasibility, combining neural kinematics
+estimation with physics-based refinement. Physical Non-inertial Poser
+(PNP) <span class="citation" data-cites="yi_physical_2024">(Yi, Zhou,
+and Xu 2024)</span> extended this by modeling fictitious forces in
+non-inertial reference frames, addressing errors that arise when the
+pelvis (root) undergoes significant acceleration or rotation.</p>
+<p>Calibration presents a fundamental challenge: sensors must be
+precisely aligned to body segments, and magnetometer drift causes
+heading errors over time. Traditional calibration requires static poses
+(T-pose, N-pose), breaking workflow and failing when sensors shift.
+Transformer IMU Calibrator (TIC) <span class="citation"
+data-cites="zuo_transformer_2025">(Zuo et al. 2025)</span> achieves
+dynamic, implicit calibration by learning to estimate calibration
+matrices from diverse motion patterns, enabling seamless "put on and
+use" operation without explicit calibration procedures.</p>
+<p>Multi-modal fusion enhances accuracy by combining IMU with
+complementary sensors. DiffCap <span class="citation"
+data-cites="pan_diffcap_2025">(Pan et al. 2025)</span> fuses sparse IMUs
+with monocular camera using diffusion
+models, where visual information provides dense constraints when
+available and IMU ensures robustness during occlusion. BaroPoser <span
+class="citation" data-cites="zhang_baroposer_2025">(Zhang, Yi, and Xu
+2025)</span> incorporates barometric pressure from everyday devices
+(smartphones, smartwatches) to estimate height changes, enabling motion
+capture on non-flat terrain. Ultra Inertial Poser <span class="citation"
+data-cites="armani_ultra_2024">(Armani et al. 2024)</span> adds
+ultra-wideband (UWB) ranging between sensors, providing absolute
+inter-sensor distances that dramatically reduce drift and jitter.</p>
+<p>Recent work addresses practical deployment challenges. Loose Inertial
+Poser <span class="citation" data-cites="zuo_loose_2024">(Zuo et al.
+2024)</span> enables motion capture from sensors embedded in
+loose-fitting clothing by modeling secondary motion effects. MagShield
+<span class="citation" data-cites="shao_magshield_2025">(Shao et al.
+2025)</span> detects and corrects magnetic disturbances that corrupt
+orientation estimates in real-world environments. Group Inertial Poser
+<span class="citation" data-cites="xue_group_2025">(Xue et al.
+2025)</span> extends to multi-person tracking by leveraging inter-person
+UWB distances for relative positioning.</p>
+<p><u>The field has converged on: (1) deep neural networks for learning
+motion priors from large datasets, (2) physics-based refinement for
+physical plausibility, (3) multi-modal fusion for enhanced accuracy, and
+(4) dynamic calibration for practical deployment.</u> Global translation
+estimation; particularly in the vertical direction; remains challenging,
+with physics-based contact reasoning <span class="citation"
+data-cites="yi_improving_2025">(Yi, Pan, and Xu 2025)</span> providing
+the current best solution.</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-armani_ultra_2024" class="csl-entry" role="listitem">
+Armani, Rayan, Changlin Qian, Jiaxi Jiang, and Christian Holz. 2024.
+<span>“Ultra <span>Inertial</span> <span>Poser</span>:
+<span>Scalable</span> <span>Motion</span> <span>Capture</span> and
+<span>Tracking</span> from <span>Sparse</span> <span>Inertial</span>
+<span>Sensors</span> and <span>Ultra</span>-<span>Wideband</span>
+<span>Ranging</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2404.19541">https://doi.org/10.48550/arXiv.2404.19541</a>.
+</div>
+<div id="ref-pan_diffcap_2025" class="csl-entry" role="listitem">
+Pan, Shaohua, Xinyu Yi, Yan Zhou, Weihua Jian, Yuan Zhang, Pengfei Wan,
+and Feng Xu. 2025. <span>“<span>DiffCap</span>:
+<span>Diffusion</span>-Based <span>Real</span>-Time <span>Human</span>
+<span>Motion</span> <span>Capture</span> Using <span>Sparse</span>
+<span>IMUs</span> and a <span>Monocular</span>
+<span>Camera</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2508.06139">https://doi.org/10.48550/arXiv.2508.06139</a>.
+</div>
+<div id="ref-shao_magshield_2025" class="csl-entry" role="listitem">
+Shao, Yunzhe, Xinyu Yi, Lu Yin, Shihui Guo, Junhai Yong, and Feng Xu.
+2025. <span>“<span>MagShield</span>: <span>Towards</span>
+<span>Better</span> <span>Robustness</span> in <span>Sparse</span>
+<span>Inertial</span> <span>Motion</span> <span>Capture</span>
+<span>Under</span> <span>Magnetic</span>
+<span>Disturbances</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2506.22907">https://doi.org/10.48550/arXiv.2506.22907</a>.
+</div>
+<div id="ref-xue_group_2025" class="csl-entry" role="listitem">
+Xue, Ying, Jiaxi Jiang, Rayan Armani, Dominik Hollidt, Yi-Chi Liao, and
+Christian Holz. 2025. <span>“Group <span>Inertial</span>
+<span>Poser</span>: <span>Multi</span>-<span>Person</span>
+<span>Pose</span> and <span>Global</span> <span>Translation</span> from
+<span>Sparse</span> <span>Inertial</span> <span>Sensors</span> and
+<span>Ultra</span>-<span>Wideband</span> <span>Ranging</span>.”</span>
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2510.21654">https://doi.org/10.48550/arXiv.2510.21654</a>.
+</div>
+<div id="ref-yi_improving_2025" class="csl-entry" role="listitem">
+Yi, Xinyu, Shaohua Pan, and Feng Xu. 2025. <span>“Improving
+<span>Global</span> <span>Motion</span> <span>Estimation</span> in
+<span>Sparse</span> <span>IMU</span>-Based <span>Motion</span>
+<span>Capture</span> with <span>Physics</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2505.05010">https://doi.org/10.48550/arXiv.2505.05010</a>.
+</div>
+<div id="ref-yi_physical_2022" class="csl-entry" role="listitem">
+Yi, Xinyu, Yuxiao Zhou, Marc Habermann, Soshi Shimada, Vladislav
+Golyanik, Christian Theobalt, and Feng Xu. 2022. <span>“Physical
+<span>Inertial</span> <span>Poser</span> (<span>PIP</span>):
+<span>Physics</span>-Aware <span>Real</span>-Time <span>Human</span>
+<span>Motion</span> <span>Tracking</span> from <span>Sparse</span>
+<span>Inertial</span> <span>Sensors</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2203.08528">https://doi.org/10.48550/arXiv.2203.08528</a>.
+</div>
+<div id="ref-yi_transpose_2021" class="csl-entry" role="listitem">
+Yi, Xinyu, Yuxiao Zhou, and Feng Xu. 2021.
+<span>“<span>TransPose</span>: <span>Real</span>-Time <span>3D</span>
+<span>Human</span> <span>Translation</span> and <span>Pose</span>
+<span>Estimation</span> with <span>Six</span> <span>Inertial</span>
+<span>Sensors</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2105.04605">https://doi.org/10.48550/arXiv.2105.04605</a>.
+</div>
+<div id="ref-yi_physical_2024" class="csl-entry" role="listitem">
+———. 2024. <span>“Physical <span>Non</span>-Inertial <span>Poser</span>
+(<span>PNP</span>): <span>Modeling</span> <span>Non</span>-Inertial
+<span>Effects</span> in <span>Sparse</span>-Inertial <span>Human</span>
+<span>Motion</span> <span>Capture</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2404.19619">https://doi.org/10.48550/arXiv.2404.19619</a>.
+</div>
+<div id="ref-zhang_baroposer_2025" class="csl-entry" role="listitem">
+Zhang, Libo, Xinyu Yi, and Feng Xu. 2025. <span>“<span>BaroPoser</span>:
+<span>Real</span>-Time <span>Human</span> <span>Motion</span>
+<span>Tracking</span> from <span>IMUs</span> and <span>Barometers</span>
+in <span>Everyday</span> <span>Devices</span>.”</span> In
+<em>Proceedings of the 38th <span>Annual</span> <span>ACM</span>
+<span>Symposium</span> on <span>User</span> <span>Interface</span>
+<span>Software</span> and <span>Technology</span></em>, 1–9. <a
+href="https://doi.org/10.1145/3746059.3747731">https://doi.org/10.1145/3746059.3747731</a>.
+</div>
+<div id="ref-zuo_transformer_2025" class="csl-entry" role="listitem">
+Zuo, Chengxu, Jiawei Huang, Xiao Jiang, Yuan Yao, Xiangren Shi, Rui Cao,
+Xinyu Yi, Feng Xu, Shihui Guo, and Yipeng Qin. 2025. <span>“Transformer
+<span>IMU</span> <span>Calibrator</span>: <span>Dynamic</span>
+<span>On</span>-Body <span>IMU</span> <span>Calibration</span> for
+<span>Inertial</span> <span>Motion</span> <span>Capture</span>.”</span>
+<em>ACM Transactions on Graphics</em> 44 (4): 1–14. <a
+href="https://doi.org/10.1145/3730937">https://doi.org/10.1145/3730937</a>.
+</div>
+<div id="ref-zuo_loose_2024" class="csl-entry" role="listitem">
+Zuo, Chengxu, Yiming Wang, Lishuang Zhan, Shihui Guo, Xinyu Yi, Feng Xu,
+and Yipeng Qin. 2024. <span>“Loose <span>Inertial</span>
+<span>Poser</span>: <span>Motion</span> <span>Capture</span> with
+<span>IMU</span>-Attached <span>Loose</span>-<span>Wear</span>
+<span>Jacket</span>.”</span> In <em>2024
+<span>IEEE</span>/<span>CVF</span> <span>Conference</span> on
+<span>Computer</span> <span>Vision</span> and <span>Pattern</span>
+<span>Recognition</span> (<span>CVPR</span>)</em>, 2209–19. Seattle, WA,
+USA: IEEE. <a
+href="https://doi.org/10.1109/CVPR52733.2024.00215">https://doi.org/10.1109/CVPR52733.2024.00215</a>.
+</div>
+</div>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

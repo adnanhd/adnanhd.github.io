@@ -25,4 +25,44 @@
     <lastmod>2026-05-26</lastmod>
     <priority>0.6</priority>
   </url>
+  <url>
+    <loc>https://adnanhd.github.io/blogs/computer-vision/index.html</loc>
+    <lastmod>2026-05-26</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://adnanhd.github.io/blogs/generative-models/index.html</loc>
+    <lastmod>2026-05-26</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://adnanhd.github.io/blogs/self-supervised-learning/index.html</loc>
+    <lastmod>2026-05-26</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://adnanhd.github.io/blogs/optimization/index.html</loc>
+    <lastmod>2026-05-26</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://adnanhd.github.io/blogs/probabilistic-deep-learning/index.html</loc>
+    <lastmod>2026-05-26</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://adnanhd.github.io/blogs/statistical-deep-learning/index.html</loc>
+    <lastmod>2026-05-26</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://adnanhd.github.io/blogs/quantization-aware-training/index.html</loc>
+    <lastmod>2026-05-26</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://adnanhd.github.io/blogs/inertial-motion-capture/index.html</loc>
+    <lastmod>2026-05-26</lastmod>
+    <priority>0.6</priority>
+  </url>
 </urlset>
