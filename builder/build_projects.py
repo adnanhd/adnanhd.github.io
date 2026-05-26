@@ -10,7 +10,7 @@ import re
 
 from .build_config import BASE_DIR
 from .build_html import render_tags
-from .build_utils import esc, format_date, highlight_author, slugify
+from .build_utils import esc, file_hash, format_date, highlight_author, slugify
 
 PROJECT_SHELL = """<!doctype html>
 <html lang="en">
@@ -19,7 +19,7 @@ PROJECT_SHELL = """<!doctype html>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="description" content="{description}" />
         <title>{title} - Adnan Harun Dogan</title>
-        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css?v={css_v}" />
         <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
         <link rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
@@ -169,6 +169,7 @@ def _write(slug, *, title, meta, description, back, back_label,
     page = PROJECT_SHELL.format(
         title=esc(title), meta=meta, description=esc(description),
         back=back, back_label=back_label,
+        css_v=file_hash(BASE_DIR / "assets" / "css" / "style.css"),
         image=image, body=body, links=_links_html(links),
     )
     (out / "index.html").write_text(page)
