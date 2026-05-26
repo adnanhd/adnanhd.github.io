@@ -48,19 +48,31 @@ PROJECT_SHELL = """<!doctype html>
 
 
 _MD_LINK = re.compile(r"\[([^\]]+)\]\((https?://[^\s)]+)\)")
+_MD_CODE = re.compile(r"`([^`]+)`")
+
+
+def _esc_code(s):
+    """Escape text, turning `code` spans into <code> elements."""
+    out, last = [], 0
+    for m in _MD_CODE.finditer(s):
+        out.append(esc(s[last:m.start()]))
+        out.append(f"<code>{esc(m.group(1))}</code>")
+        last = m.end()
+    out.append(esc(s[last:]))
+    return "".join(out)
 
 
 def _inline(s):
-    """Escape text but turn markdown links [label](http...) into anchors."""
+    """Escape text but render markdown links [label](http...) and `code` spans."""
     out, last = [], 0
     for m in _MD_LINK.finditer(s):
-        out.append(esc(s[last:m.start()]))
+        out.append(_esc_code(s[last:m.start()]))
         out.append(
             f'<a href="{esc(m.group(2))}" target="_blank" rel="noopener noreferrer">'
-            f'{esc(m.group(1))}</a>'
+            f'{_esc_code(m.group(1))}</a>'
         )
         last = m.end()
-    out.append(esc(s[last:]))
+    out.append(_esc_code(s[last:]))
     return "".join(out)
 
 
@@ -101,8 +113,19 @@ def _render_summary(text):
     def flush_all():
         flush_para(); flush_bullets(); flush_table()
 
+    code, in_code = [], False
     for line in str(text).split("\n"):
         s = line.strip()
+        if s.startswith("```"):
+            if in_code:
+                html.append(f"<pre><code>{esc(chr(10).join(code))}</code></pre>")
+                code, in_code = [], False
+            else:
+                flush_all(); in_code = True
+            continue
+        if in_code:
+            code.append(line)
+            continue
         if not s:
             flush_all()
         elif s.startswith("## "):
@@ -117,6 +140,8 @@ def _render_summary(text):
         else:
             flush_bullets(); flush_table()
             para.append(s)
+    if in_code:
+        html.append(f"<pre><code>{esc(chr(10).join(code))}</code></pre>")
     flush_all()
     return "".join(html)
 

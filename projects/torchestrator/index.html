@@ -19,7 +19,35 @@
             <h1>torchestrator</h1>
             <div class="blog-meta"><div class="work-tags"><span class="tech-badge" style="background:#3776AB"><i class="devicon-python-plain" aria-hidden="true"></i>Python</span><span class="tech-badge" style="background:#EE4C2C"><i class="devicon-pytorch-original" aria-hidden="true"></i>PyTorch</span></div></div>
             
-            <div class="blog-body"><p>torchestrator is a Dockerfile-like declarative experiment runner for PyTorch. One experiment is a &quot;torchfile&quot;: a YAML-ish config that names the model, dataset, optimizer, loss, metrics and training loop, with FROM inheritance between torchfiles. The runner builds and runs it, and on success pickles the live objects (model, dataset, optimizer, scheduler) into a content-addressed hub at ~/.cache/torchestrator/, so a child torchfile that FROMs a parent inherits the trained objects on cascade load, with no state_dict surgery or manual checkpoint paths.</p><p>By design it is not an experiment tracker, hyperparameter sweeper or job scheduler: it wires to W&amp;B / MLflow / TensorBoard for telemetry, pairs with Optuna / Ray Tune for search, and delegates execution to srun / apptainer / docker. It is the runner the paper-reproductions monorepo builds on. (v0.7.0, alpha; repository currently private.)</p></div>
+            <div class="blog-body"><p>torchestrator is a Dockerfile-like declarative experiment runner for PyTorch. One experiment is a &quot;torchfile&quot;: a config that names the model, dataset, optimizer, loss, metrics and training loop in named blocks (<code>MODEL</code>, <code>DATA</code>, <code>TRAIN</code>, <code>EVAL</code>, <code>ENV</code>, <code>LOGGING</code>, <code>METERS</code>), resolved to a typed config and built by a dependency-injection engine over a name-based registry. Components talk through named slots via <code>call</code> / <code>outs</code> mappings, and shapes, dtypes and parameter counts are verified at build time before any training starts.</p><h3>A torchfile</h3><pre><code>MODEL:
+  type: Sequential
+  call: { input: image }
+  outs: [logits]
+  data:
+    layers:
+      flatten: { type: Flatten }
+      fc1: { type: Linear, data: { in_features: 784, out_features: 128 } }
+      relu: { type: ReLU }
+      fc2: { type: Linear, data: { in_features: 128, out_features: 10 } }
+
+DATA:
+  dataset: { type: MNIST, root: ./data, train: true }
+  batch_size: 128
+  outs: [image, label]
+
+TRAIN:
+  epochs: 10
+  optimizer: { type: Adam, data: { lr: 0.001 } }
+  loss:
+    type: CrossEntropyLoss
+    call: { input: logits, target: label }
+    outs: [loss]
+
+EVAL:
+  metrics:
+    - type: MulticlassAccuracy
+      call: { input: logits, target: label }
+      outs: [accuracy]</code></pre><h3>Layered FROM chains and a content-addressed hub</h3><p>Torchfiles inherit with <code>FROM</code> (and override with <code>DELETE</code>), so configs stack as datasets -&gt; baselines -&gt; your experiment. A successful run pickles its live model, dataset, optimizer and scheduler into a hub at <code>~/.cache/torchestrator/</code>, keyed by the torchfile&#x27;s content hash; a child that <code>FROM</code>s a parent inherits those trained objects on cascade load, with no <code>state_dict</code> surgery or manual checkpoint paths. Named layers (<code>hub://name</code>) and remote pulls (<code>hub+ssh://host/name</code>) let you, for example, train on an HPC cluster and load the result on a laptop for eval, and a <code>hub_ref</code> marker splices a parent module into a child&#x27;s model slot (e.g. SimCLR replace-the-head finetune).</p><h3>Highlights</h3><ul><li>Auto-registration: drop <code>.py</code> files next to a torchfile and custom models,</li></ul><p>losses, hooks and datasets are registered with no boilerplate.</p><ul><li>Built-in extensions: optimizers (LARS, LAMB, Lion), losses (Focal, Dice,</li></ul><p>Tversky, InfoNCE), schedulers (cosine/linear/poly warmup), hooks (EMA, SWA, early stopping, gradient clipping).</p><ul><li><code>MODEL.meta.freeze</code> freezes module prefixes; the optimizer is built only</li></ul><p>over still-trainable parameters. Held-out <code>EVAL.data</code> runs a final no-grad pass.</p><ul><li>Pluggable logging sinks (console, JSONL, CSV, TensorBoard, W&amp;B, MLflow,</li></ul><p>Logfire, OpenTelemetry) and a <code>METERS</code> section of probes for sub-step timing, GPU memory and gradient norms.</p><ul><li><code>export</code> emits a standalone, dependency-free PyTorch script (custom types</li></ul><p>inlined via <code>inspect.getsource</code>).</p><ul><li>Pinned Docker and Apptainer images (CUDA 11.8 / Python 3.10 / PyTorch</li></ul><p>2.0.1) for CI, cloud GPUs and HPC.</p><h3>CLI</h3><div class="blog-table"><table><thead><tr><th>Command</th><th>Purpose</th></tr></thead><tbody><tr><td><code>run &lt;config&gt;</code></td><td>Run an experiment locally</td></tr><tr><td><code>validate &lt;config&gt;</code></td><td>Validate a config without running</td></tr><tr><td><code>export &lt;config&gt;</code></td><td>Generate a standalone PyTorch script</td></tr><tr><td><code>status &lt;config&gt;</code></td><td>Cache status for a torchfile / FROM chain</td></tr><tr><td><code>cache info</code> / <code>cache purge</code></td><td>Inspect or clear cached checkpoints</td></tr><tr><td><code>plot &lt;logfile&gt;</code></td><td>Plot training curves from JSONL / CSV logs</td></tr><tr><td><code>diagnose</code></td><td>Print Python / PyTorch / CUDA diagnostics</td></tr></tbody></table></div><p>It depends on the sister projects <a href="https://github.com/adnanhd/torchdatasets" target="_blank" rel="noopener noreferrer">torchdatasets</a> and <a href="https://github.com/adnanhd/registry-pattern" target="_blank" rel="noopener noreferrer">registry-pattern</a>, and is the runner the paper-reproductions monorepo builds on. By design it is not an experiment tracker, hyperparameter sweeper or job scheduler: it wires out to W&amp;B / MLflow for tracking, pairs with Optuna / Ray Tune for search, and delegates execution to srun / apptainer / docker. (v0.7.0, alpha; repository currently private.)</p></div>
             <div class="publication-links"><a href="https://github.com/adnanhd/torchestrator" class="pub-link" target="_blank" rel="noopener noreferrer">GitHub</a></div>
         </div>
         <script>
