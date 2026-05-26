@@ -19,7 +19,20 @@
             <h1>registry-pattern</h1>
             <div class="blog-meta"><div class="work-tags"><span class="tech-badge" style="background:#3776AB"><i class="devicon-python-plain" aria-hidden="true"></i>Python</span><span class="work-tag">Design Patterns</span></div></div>
             
-            <div class="blog-body"><p>registry-pattern provides name-based registries for classes and functions plus a recursive factory that builds object graphs from JSON-friendly envelopes. A TypeRegistry or FunctionalRegistry collects artifacts by name via a register decorator; build() then consumes a {type, repo, data, meta} envelope, validates the data against the target&#x27;s signature, and recurses on nested envelopes to assemble whole pipelines from config. serialize() is the inverse, turning a live object graph back into the same envelope for round-tripping.</p><p>Registries are tree-shaped and pass post_init / serialize_meta / pre_call / post_call hooks down by inheritance, so a sub-registry can add validation or emit provenance into the meta dict, and optional meters and reporters layer observability on top. The core depends only on Pydantic and typing-extensions. Published on PyPI as registry-pattern.</p></div>
+            <div class="blog-body"><p>registry-pattern provides name-based registries for classes and functions plus a recursive factory that builds object graphs from JSON-friendly <code>{type, repo, data, meta}</code> envelopes.</p><h3>Example</h3><pre><code>from registry import TypeRegistry, build, serialize
+import torch.nn as nn
+
+class ModelRegistry(TypeRegistry[nn.Module]):
+    pass
+
+@ModelRegistry.register_artifact
+class MLP(nn.Module):
+    def __init__(self, hidden: int = 128):
+        super().__init__()
+        self.hidden = hidden
+
+model = build({&quot;type&quot;: &quot;MLP&quot;, &quot;data&quot;: {&quot;hidden&quot;: 256}})  # -&gt; MLP(hidden=256)
+env = serialize(model)                                   # -&gt; {type, data, meta}</code></pre><h3>How it works</h3><p>A <code>TypeRegistry</code> or <code>FunctionalRegistry</code> collects artifacts by name via the <code>register_artifact</code> decorator. <code>build()</code> consumes a <code>{type, repo, data, meta}</code> envelope, validates the data against the target&#x27;s signature with Pydantic, recurses on nested envelopes to assemble whole pipelines, and runs hooks; <code>serialize()</code> is the inverse, producing the same envelope for round-tripping. Registries are tree-shaped and pass <code>post_init</code> / <code>serialize_meta</code> (and <code>pre_call</code> / <code>post_call</code>) hooks down by inheritance, so a sub-registry can add validation or emit provenance into <code>meta</code>, with optional meters and reporters for observability. The core depends only on Pydantic and typing-extensions; published on PyPI as <code>registry-pattern</code>.</p></div>
             <div class="publication-links"><a href="https://github.com/adnanhd/registry-pattern" class="pub-link" target="_blank" rel="noopener noreferrer">GitHub</a></div>
         </div>
         <script>

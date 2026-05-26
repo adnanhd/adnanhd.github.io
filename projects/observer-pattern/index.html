@@ -19,7 +19,18 @@
             <h1>observer-pattern</h1>
             <div class="blog-meta"><div class="work-tags"><span class="tech-badge" style="background:#3776AB"><i class="devicon-python-plain" aria-hidden="true"></i>Python</span><span class="work-tag">Design Patterns</span></div></div>
             
-            <div class="blog-body"><p>observer-pattern (published as eventforge) is a message-driven execution and event library. Its Observable / Eventful / Dispatcher core lets any object emit events; on top sit a topic-keyed MessageQueue (pub/sub with Pydantic-validated messages), a competing-consumer WorkQueue with ack / nack / dead-letter, and an Executor that runs work sequentially, across threads, or across processes. A single @task decorator makes a function callable both directly and through the queue, with the same success / failure and observer hooks on either path.</p><p>Queue-RPC adds request / reply on top of the queue, and a RemoteQueue bridges queues across nodes over TCP for distributed pipelines; built-in Meter and Reporter observers profile timing, metrics, memory and CPU without touching task code. It is the dispatch and execution half that pairs with registry-pattern&#x27;s serialization.</p></div>
+            <div class="blog-body"><p>observer-pattern (published as <code>eventforge</code>) is a message-driven execution and event library.</p><h3>Example</h3><pre><code>from eventforge import task, MessageQueue, Executor, ExecutionMode
+
+queue = MessageQueue()
+executor = Executor(mode=ExecutionMode.THREAD)
+
+@task(queue=queue, topic=&quot;process.data&quot;, executor=executor,
+      on_success=lambda ctx: print(ctx.result))
+def process_data(data):
+    return data.upper()
+
+process_data(&quot;hello&quot;)                    # direct call -&gt; &quot;HELLO&quot;
+queue.publish(&quot;process.data&quot;, &quot;world&quot;)   # same path, async via the queue</code></pre><h3>Components</h3><p>The Observable / Eventful / Dispatcher core lets any object emit events. On top sit a topic-keyed <code>MessageQueue</code> (pub/sub with Pydantic-validated messages and a request/reply pattern), a competing-consumer <code>WorkQueue</code> with ack / nack / dead-letter, and an <code>Executor</code> that runs work sequentially, across threads, or across processes. A single <code>@task</code> decorator makes a function callable both directly and through the queue, with the same <code>on_execute</code> / <code>on_success</code> / <code>on_failure</code> / <code>on_complete</code> hooks. <code>RPCServer</code> / <code>RPCClient</code> layer remote procedure calls on the queue, and a <code>RemoteQueue</code> bridges nodes over TCP; built-in Meter and Reporter observers profile timing, metrics, memory and CPU without touching task code. It pairs with registry-pattern for serialization.</p></div>
             <div class="publication-links"><a href="https://github.com/adnanhd/observer-pattern" class="pub-link" target="_blank" rel="noopener noreferrer">GitHub</a></div>
         </div>
         <script>

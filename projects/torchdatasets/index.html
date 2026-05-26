@@ -19,7 +19,18 @@
             <h1>torchdatasets</h1>
             <div class="blog-meta"><div class="work-tags"><span class="tech-badge" style="background:#3776AB"><i class="devicon-python-plain" aria-hidden="true"></i>Python</span><span class="tech-badge" style="background:#EE4C2C"><i class="devicon-pytorch-original" aria-hidden="true"></i>PyTorch</span><span class="work-tag">Data</span></div></div>
             
-            <div class="blog-body"><p>torchdatasets extends PyTorch&#x27;s Dataset API with a TensorFlow-data-style pipeline: map transformations applied directly to a dataset and caching of samples in RAM or on disk, so preprocessing is declared once and reused rather than rebuilt each epoch. It supports both map-style Datasets and IterableDatasets and keeps overhead minimal, staying drop-in compatible with existing PyTorch training code. Published on PyPI.</p></div>
+            <div class="blog-body"><p>torchdatasets extends PyTorch&#x27;s <code>Dataset</code> and <code>IterableDataset</code> with a functional, cached pipeline in the style of <code>tf.data</code>.</p><h3>Example</h3><pre><code>import torchdatasets as td
+import torchvision
+
+# map a transform onto a dataset, then cache the results
+images = Images(&quot;./data&quot;).map(torchvision.transforms.ToTensor()).cache()
+
+# cache the first 1000 samples in RAM, the rest on disk
+images = (
+    dataset.map(torchvision.transforms.ToTensor())
+           .cache(td.modifiers.UpToIndex(1000, td.cachers.Memory()))
+           .cache(td.cachers.Pickle(&quot;./cache&quot;))
+)</code></pre><h3>Features</h3><p>Use <code>map</code>, <code>apply</code>, <code>reduce</code> and <code>filter</code> directly on <code>Dataset</code> objects; cache in RAM, on disk, or via a custom cacher (partial caching supported); general maps such as <code>Flatten</code> and <code>Select</code>; and a <code>WrapDataset</code> adapter for torchvision datasets (ImageFolder, MNIST, CIFAR10). A <code>Dataset</code> subclass adds one <code>super().__init__()</code> call. Published on PyPI.</p></div>
             <div class="publication-links"><a href="https://github.com/adnanhd/torchdatasets" class="pub-link" target="_blank" rel="noopener noreferrer">GitHub</a></div>
         </div>
         <script>
