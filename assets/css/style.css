@@ -1628,3 +1628,13 @@ footer {
     margin-left: auto;
     margin-right: auto;
 }
+
+/* project/blog summary lists */
+.blog-body ul {
+    margin: 0 0 1.1em;
+    padding-left: 1.4em;
+}
+
+.blog-body li {
+    margin-bottom: 0.4em;
+}

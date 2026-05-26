@@ -44,10 +44,41 @@ PROJECT_SHELL = """<!doctype html>
 """
 
 
-def _prose(text):
-    """Render plain prose (blank-line separated) into escaped <p> paragraphs."""
-    paras = [p.strip() for p in str(text or "").split("\n\n") if p.strip()]
-    return "".join(f"<p>{esc(p)}</p>" for p in paras)
+def _render_summary(text):
+    """Render a stored summary (static text) with a tiny markdown subset:
+    '## ' -> <h3>, '- ' -> <ul><li>, blank-line-separated blocks -> <p>.
+    Consecutive non-blank lines join into one paragraph. Everything is escaped;
+    no fetching or generation happens here — only formatting of stored text.
+    """
+    if not text:
+        return ""
+    html, para, bullets = [], [], []
+
+    def flush_para():
+        if para:
+            html.append(f"<p>{esc(' '.join(para))}</p>")
+            para.clear()
+
+    def flush_bullets():
+        if bullets:
+            html.append("<ul>" + "".join(f"<li>{esc(b)}</li>" for b in bullets) + "</ul>")
+            bullets.clear()
+
+    for line in str(text).split("\n"):
+        s = line.strip()
+        if not s:
+            flush_para(); flush_bullets()
+        elif s.startswith("## "):
+            flush_para(); flush_bullets()
+            html.append(f"<h3>{esc(s[3:])}</h3>")
+        elif s.startswith("- "):
+            flush_para()
+            bullets.append(s[2:])
+        else:
+            flush_bullets()
+            para.append(s)
+    flush_para(); flush_bullets()
+    return "".join(html)
 
 
 def _links_html(links):
@@ -85,7 +116,7 @@ def generate_project_pages(data):
             f'<img class="project-image" src="../../{esc(p["image"])}" '
             f'alt="{esc(p["title"])}" />' if p.get("image") else ""
         )
-        body = _prose(p.get("abstract"))
+        body = _render_summary(p.get("abstract"))
         _write(slugify(p["title"]), title=p["title"], meta=meta,
                description=p.get("abstract") or p.get("venue", ""),
                image=image, body=body, links=p.get("links"))
@@ -93,7 +124,7 @@ def generate_project_pages(data):
 
     for w in (data.get("works") or {}).get("works", []):
         meta = render_tags(w.get("tags"))
-        body = _prose(w.get("body") or w.get("description"))
+        body = _render_summary(w.get("body") or w.get("description"))
         links = [{"name": "GitHub", "url": w["url"]}] if w.get("url") else []
         _write(slugify(w["title"]), title=w["title"], meta=meta,
                description=w.get("description", ""), body=body, links=links)

@@ -3,16 +3,46 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="description" content="Ranking-based losses align object-detection training with evaluation
-metrics, but require O(PN) pairwise comparisons between positive and
-negative predictions, which does not scale. Bucketed Ranking-based Losses
-group the negatives into B buckets, reducing the cost to
-O(max(N log N, P^2)) while preserving the ranking signal.
+        <meta name="description" content="## Problem
+Ranking-based losses such as AP Loss and RS Loss train detectors by ranking
+positive predictions above negatives. They align well with detection
+metrics and are robust to the extreme foreground-background imbalance, but
+they compare every positive against every negative — O(PN) pairwise terms.
+For a detector like ATSS on COCO the negative count N reaches about 10^8, so
+the full P-by-N comparison matrix (~10^16 entries) cannot fit on a GPU. This
+cost is the main reason ranking losses had stayed impractical for
+large-scale and transformer detectors.
 
-The losses leave detection accuracy intact while training roughly 2x
-faster on average across detectors and datasets, and are the first to let
-transformer-based detectors such as Co-DETR benefit from ranking-based
-training. Published at ECCV 2024.
+## Method: bucketing the negatives
+The key observation is that negatives are ~99.9% of predictions and many
+share almost the same score. Bucketed Ranking-based Losses sort all logits,
+group the consecutive negatives lying between successive positives into B
+&quot;buckets&quot;, and represent each bucket by a single prototype (its mean
+logit). Pairwise comparisons are then computed only between the P positives
+and the B prototypes (with B &lt;= 2|P|+1), lowering the cost from O(PN) to
+O(max(N log N, P^2)) — the sort dominates. Per-negative gradients are
+recovered by distributing each prototype&#x27;s gradient across its members.
+
+The paper proves (Theorem 4.1) that with smoothing delta = 0 the Bucketed
+AP and RS losses yield exactly the same gradients as their unbucketed
+originals, and remain empirically equivalent for delta &gt; 0 — so the speed-up
+costs essentially no accuracy.
+
+## Results
+On COCO the bucketed losses train about 2x faster on average (up to 6x for
+Cascade R-CNN; up to 40x faster loss computation in isolation) while
+preserving accuracy across Faster/Cascade R-CNN, ATSS, PAA and Mask R-CNN
+(e.g. Faster R-CNN 39.4 -&gt; 39.5 AP). They also make ranking losses practical
+for transformers for the first time: BRS-DETR (built on Co-DETR) reaches
+50.1 AP with ResNet-50 (+0.8 over Co-DETR), 52.3 with Swin-T and 57.2 with
+Swin-L, while cutting Co-DETR&#x27;s loss step from 4.14s to 0.69s per iteration
+(~6x). Ranking losses also need far fewer hyperparameters than score-based
+losses (one versus five to nine).
+
+## Takeaway
+Bucketing removes the computational bottleneck that kept ranking-based
+losses out of modern detectors, combining their imbalance-robustness and
+metric alignment with the training speed of score-based losses.
 " />
         <title>Bucketed Ranking Loss for Efficient Ranking-based Training of Object Detectors - Adnan Harun Dogan</title>
         <link rel="stylesheet" href="../../assets/css/style.css" />
@@ -28,14 +58,7 @@ training. Published at ECCV 2024.
             <h1>Bucketed Ranking Loss for Efficient Ranking-based Training of Object Detectors</h1>
             <div class="blog-meta">Yavuz, F., Cam B.C., <strong>Dogan, A. H.</strong>, Oksuz, K., Kalkan, S., Akbas, E. &middot; European Conference on Computer Vision (ECCV) &middot; 2024</div>
             <img class="project-image" src="../../assets/img/publications/eccv2024.png" alt="Bucketed Ranking Loss for Efficient Ranking-based Training of Object Detectors" />
-            <div class="blog-body"><p>Ranking-based losses align object-detection training with evaluation
-metrics, but require O(PN) pairwise comparisons between positive and
-negative predictions, which does not scale. Bucketed Ranking-based Losses
-group the negatives into B buckets, reducing the cost to
-O(max(N log N, P^2)) while preserving the ranking signal.</p><p>The losses leave detection accuracy intact while training roughly 2x
-faster on average across detectors and datasets, and are the first to let
-transformer-based detectors such as Co-DETR benefit from ranking-based
-training. Published at ECCV 2024.</p></div>
+            <div class="blog-body"><h3>Problem</h3><p>Ranking-based losses such as AP Loss and RS Loss train detectors by ranking positive predictions above negatives. They align well with detection metrics and are robust to the extreme foreground-background imbalance, but they compare every positive against every negative — O(PN) pairwise terms. For a detector like ATSS on COCO the negative count N reaches about 10^8, so the full P-by-N comparison matrix (~10^16 entries) cannot fit on a GPU. This cost is the main reason ranking losses had stayed impractical for large-scale and transformer detectors.</p><h3>Method: bucketing the negatives</h3><p>The key observation is that negatives are ~99.9% of predictions and many share almost the same score. Bucketed Ranking-based Losses sort all logits, group the consecutive negatives lying between successive positives into B &quot;buckets&quot;, and represent each bucket by a single prototype (its mean logit). Pairwise comparisons are then computed only between the P positives and the B prototypes (with B &lt;= 2|P|+1), lowering the cost from O(PN) to O(max(N log N, P^2)) — the sort dominates. Per-negative gradients are recovered by distributing each prototype&#x27;s gradient across its members.</p><p>The paper proves (Theorem 4.1) that with smoothing delta = 0 the Bucketed AP and RS losses yield exactly the same gradients as their unbucketed originals, and remain empirically equivalent for delta &gt; 0 — so the speed-up costs essentially no accuracy.</p><h3>Results</h3><p>On COCO the bucketed losses train about 2x faster on average (up to 6x for Cascade R-CNN; up to 40x faster loss computation in isolation) while preserving accuracy across Faster/Cascade R-CNN, ATSS, PAA and Mask R-CNN (e.g. Faster R-CNN 39.4 -&gt; 39.5 AP). They also make ranking losses practical for transformers for the first time: BRS-DETR (built on Co-DETR) reaches 50.1 AP with ResNet-50 (+0.8 over Co-DETR), 52.3 with Swin-T and 57.2 with Swin-L, while cutting Co-DETR&#x27;s loss step from 4.14s to 0.69s per iteration (~6x). Ranking losses also need far fewer hyperparameters than score-based losses (one versus five to nine).</p><h3>Takeaway</h3><p>Bucketing removes the computational bottleneck that kept ranking-based losses out of modern detectors, combining their imbalance-robustness and metric alignment with the training speed of score-based losses.</p></div>
             <div class="publication-links"><a href="https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/7634_ECCV_2024_paper.php" class="pub-link" target="_blank" rel="noopener noreferrer">ECVA</a><a href="https://doi.org/10.48550/arXiv.2407.14204" class="pub-link" target="_blank" rel="noopener noreferrer">DOI</a><a href="https://github.com/blisgard/BucketedRankingBasedLosses" class="pub-link" target="_blank" rel="noopener noreferrer">GitHub</a></div>
         </div>
         <script>
