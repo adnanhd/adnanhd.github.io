@@ -3,7 +3,17 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="description" content="International Conference on Robotics and Automation (IEEE ICRA)" />
+        <meta name="description" content="Classical Kalman filters assume white Gaussian sensor noise and degrade
+when that noise is concentrated in particular frequency bands. FW-NKF
+addresses this by inserting a learnable IIR filter on the Kalman
+innovations and training it with spectral supervision, so the filter
+learns frequency-selective denoising guided by the observation model.
+
+Across synthetic systems (the Lorenz attractor and a nonlinear pendulum)
+and real-world tracking — EuRoC MAV IMU odometry and UWB–IMU human pose
+estimation — FW-NKF consistently outperforms classical and neural Kalman
+baselines under frequency-localized noise.
+" />
         <title>Frequency-Weighted Neural Kalman Filters - Adnan Harun Dogan</title>
         <link rel="stylesheet" href="../../assets/css/style.css" />
         <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
@@ -18,7 +28,14 @@
             <h1>Frequency-Weighted Neural Kalman Filters</h1>
             <div class="blog-meta"><strong>Dogan, A. H.</strong>, Demirel, B. U., Holz, C. &middot; International Conference on Robotics and Automation (IEEE ICRA) &middot; 2026</div>
             <img class="project-image" src="../../assets/img/publications/icra2026.png" alt="Frequency-Weighted Neural Kalman Filters" />
-            <div class="blog-body"></div>
+            <div class="blog-body"><p>Classical Kalman filters assume white Gaussian sensor noise and degrade
+when that noise is concentrated in particular frequency bands. FW-NKF
+addresses this by inserting a learnable IIR filter on the Kalman
+innovations and training it with spectral supervision, so the filter
+learns frequency-selective denoising guided by the observation model.</p><p>Across synthetic systems (the Lorenz attractor and a nonlinear pendulum)
+and real-world tracking — EuRoC MAV IMU odometry and UWB–IMU human pose
+estimation — FW-NKF consistently outperforms classical and neural Kalman
+baselines under frequency-localized noise.</p></div>
             <div class="publication-links"><a href="https://github.com/eth-siplab/Frequency-weighted-neural-Kalman-filters/" class="pub-link" target="_blank" rel="noopener noreferrer">GitHub</a></div>
         </div>
         <script>

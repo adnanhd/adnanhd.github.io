@@ -3,7 +3,17 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="description" content="European Conference on Computer Vision (ECCV)" />
+        <meta name="description" content="Ranking-based losses align object-detection training with evaluation
+metrics, but require O(PN) pairwise comparisons between positive and
+negative predictions, which does not scale. Bucketed Ranking-based Losses
+group the negatives into B buckets, reducing the cost to
+O(max(N log N, P^2)) while preserving the ranking signal.
+
+The losses leave detection accuracy intact while training roughly 2x
+faster on average across detectors and datasets, and are the first to let
+transformer-based detectors such as Co-DETR benefit from ranking-based
+training. Published at ECCV 2024.
+" />
         <title>Bucketed Ranking Loss for Efficient Ranking-based Training of Object Detectors - Adnan Harun Dogan</title>
         <link rel="stylesheet" href="../../assets/css/style.css" />
         <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
@@ -18,7 +28,14 @@
             <h1>Bucketed Ranking Loss for Efficient Ranking-based Training of Object Detectors</h1>
             <div class="blog-meta">Yavuz, F., Cam B.C., <strong>Dogan, A. H.</strong>, Oksuz, K., Kalkan, S., Akbas, E. &middot; European Conference on Computer Vision (ECCV) &middot; 2024</div>
             <img class="project-image" src="../../assets/img/publications/eccv2024.png" alt="Bucketed Ranking Loss for Efficient Ranking-based Training of Object Detectors" />
-            <div class="blog-body"></div>
+            <div class="blog-body"><p>Ranking-based losses align object-detection training with evaluation
+metrics, but require O(PN) pairwise comparisons between positive and
+negative predictions, which does not scale. Bucketed Ranking-based Losses
+group the negatives into B buckets, reducing the cost to
+O(max(N log N, P^2)) while preserving the ranking signal.</p><p>The losses leave detection accuracy intact while training roughly 2x
+faster on average across detectors and datasets, and are the first to let
+transformer-based detectors such as Co-DETR benefit from ranking-based
+training. Published at ECCV 2024.</p></div>
             <div class="publication-links"><a href="https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/7634_ECCV_2024_paper.php" class="pub-link" target="_blank" rel="noopener noreferrer">ECVA</a><a href="https://doi.org/10.48550/arXiv.2407.14204" class="pub-link" target="_blank" rel="noopener noreferrer">DOI</a><a href="https://github.com/blisgard/BucketedRankingBasedLosses" class="pub-link" target="_blank" rel="noopener noreferrer">GitHub</a></div>
         </div>
         <script>

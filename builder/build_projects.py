@@ -44,6 +44,12 @@ PROJECT_SHELL = """<!doctype html>
 """
 
 
+def _prose(text):
+    """Render plain prose (blank-line separated) into escaped <p> paragraphs."""
+    paras = [p.strip() for p in str(text or "").split("\n\n") if p.strip()]
+    return "".join(f"<p>{esc(p)}</p>" for p in paras)
+
+
 def _links_html(links):
     items = "".join(
         f'<a href="{esc(l["url"])}" class="pub-link" target="_blank" '
@@ -79,7 +85,7 @@ def generate_project_pages(data):
             f'<img class="project-image" src="../../{esc(p["image"])}" '
             f'alt="{esc(p["title"])}" />' if p.get("image") else ""
         )
-        body = f'<p>{esc(p["abstract"])}</p>' if p.get("abstract") else ""
+        body = _prose(p.get("abstract"))
         _write(slugify(p["title"]), title=p["title"], meta=meta,
                description=p.get("abstract") or p.get("venue", ""),
                image=image, body=body, links=p.get("links"))
@@ -87,9 +93,7 @@ def generate_project_pages(data):
 
     for w in (data.get("works") or {}).get("works", []):
         meta = render_tags(w.get("tags"))
-        body = f'<p>{esc(w["description"])}</p>' if (w.get("body") is None and w.get("description")) else ""
-        if w.get("body"):
-            body = w["body"]
+        body = _prose(w.get("body") or w.get("description"))
         links = [{"name": "GitHub", "url": w["url"]}] if w.get("url") else []
         _write(slugify(w["title"]), title=w["title"], meta=meta,
                description=w.get("description", ""), body=body, links=links)
