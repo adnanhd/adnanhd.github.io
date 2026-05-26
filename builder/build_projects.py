@@ -47,12 +47,28 @@ PROJECT_SHELL = """<!doctype html>
 """
 
 
+_MD_LINK = re.compile(r"\[([^\]]+)\]\((https?://[^\s)]+)\)")
+
+
+def _inline(s):
+    """Escape text but turn markdown links [label](http...) into anchors."""
+    out, last = [], 0
+    for m in _MD_LINK.finditer(s):
+        out.append(esc(s[last:m.start()]))
+        out.append(
+            f'<a href="{esc(m.group(2))}" target="_blank" rel="noopener noreferrer">'
+            f'{esc(m.group(1))}</a>'
+        )
+        last = m.end()
+    out.append(esc(s[last:]))
+    return "".join(out)
+
+
 def _render_summary(text):
     """Render a stored summary (static text) with a tiny markdown subset:
-    '## ' -> <h3>, '- ' -> <ul><li>, blank-line-separated blocks -> <p>.
-    Consecutive non-blank lines join into one paragraph. Everything is escaped;
-    math delimiters \\(...\\) / \\[...\\] pass through for MathJax to render.
-    No fetching or generation happens here - only formatting of stored text.
+    '## ' -> <h3>, '- ' -> <ul><li>, '|...|' -> table, blank lines -> <p>.
+    '[label](url)' becomes a link; math delimiters \\(...\\) / \\[...\\] pass
+    through for MathJax. Static formatting only - no fetching or generation.
     """
     if not text:
         return ""
@@ -60,12 +76,12 @@ def _render_summary(text):
 
     def flush_para():
         if para:
-            html.append(f"<p>{esc(' '.join(para))}</p>")
+            html.append(f"<p>{_inline(' '.join(para))}</p>")
             para.clear()
 
     def flush_bullets():
         if bullets:
-            html.append("<ul>" + "".join(f"<li>{esc(b)}</li>" for b in bullets) + "</ul>")
+            html.append("<ul>" + "".join(f"<li>{_inline(b)}</li>" for b in bullets) + "</ul>")
             bullets.clear()
 
     def flush_table():
@@ -77,7 +93,7 @@ def _render_summary(text):
         body = rows[2:] if has_head else rows
         thead = ("<thead><tr>" + "".join(f"<th>{esc(c)}</th>" for c in head) + "</tr></thead>") if head else ""
         tbody = "<tbody>" + "".join(
-            "<tr>" + "".join(f"<td>{esc(c)}</td>" for c in row) + "</tr>" for row in body
+            "<tr>" + "".join(f"<td>{_inline(c)}</td>" for c in row) + "</tr>" for row in body
         ) + "</tbody>"
         html.append(f'<div class="blog-table"><table>{thead}{tbody}</table></div>')
         table.clear()
