@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="description" content="A generic implementation of the observer design pattern for Python." />
+        <meta name="description" content="Message-driven execution library (eventforge): pub/sub queues, a competing-consumer work queue, executors, queue-RPC and remote queues behind one @task decorator." />
         <title>observer-pattern - Adnan Harun Dogan</title>
         <link rel="stylesheet" href="../../assets/css/style.css" />
         <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
@@ -15,11 +15,11 @@
     </head>
     <body>
         <div class="blog-page project-page">
-            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <a href="../../index.html#about:selected-repos" class="blog-back">&larr; Open source</a>
             <h1>observer-pattern</h1>
             <div class="blog-meta"><div class="work-tags"><span class="tech-badge" style="background:#3776AB"><i class="devicon-python-plain" aria-hidden="true"></i>Python</span><span class="work-tag">Design Patterns</span></div></div>
             
-            <div class="blog-body"><p>observer-pattern (published as `eventforge`) is a Python library for message-driven task execution: publish/subscribe messaging, local thread/process executors, and RPC over TCP behind a single `@task` decorator that works for both direct and queue-triggered calls.</p><p>It ships built-in observers for profiling (timing, metrics, memory, CPU) and request-reply patterns, giving a unified execution and observability layer across local and distributed runs.</p></div>
+            <div class="blog-body"><p>observer-pattern (published as eventforge) is a message-driven execution and event library. Its Observable / Eventful / Dispatcher core lets any object emit events; on top sit a topic-keyed MessageQueue (pub/sub with Pydantic-validated messages), a competing-consumer WorkQueue with ack / nack / dead-letter, and an Executor that runs work sequentially, across threads, or across processes. A single @task decorator makes a function callable both directly and through the queue, with the same success / failure and observer hooks on either path.</p><p>Queue-RPC adds request / reply on top of the queue, and a RemoteQueue bridges queues across nodes over TCP for distributed pipelines; built-in Meter and Reporter observers profile timing, metrics, memory and CPU without touching task code. It is the dispatch and execution half that pairs with registry-pattern&#x27;s serialization.</p></div>
             <div class="publication-links"><a href="https://github.com/adnanhd/observer-pattern" class="pub-link" target="_blank" rel="noopener noreferrer">GitHub</a></div>
         </div>
         <script>

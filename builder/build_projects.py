@@ -29,7 +29,7 @@ PROJECT_SHELL = """<!doctype html>
     </head>
     <body>
         <div class="blog-page project-page">
-            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <a href="{back}" class="blog-back">&larr; {back_label}</a>
             <h1>{title}</h1>
             <div class="blog-meta">{meta}</div>
             {image}
@@ -114,11 +114,13 @@ def _links_html(links):
     return f'<div class="publication-links">{items}</div>' if items else ""
 
 
-def _write(slug, *, title, meta, description, image="", body="", links=None):
+def _write(slug, *, title, meta, description, back, back_label,
+           image="", body="", links=None):
     out = BASE_DIR / "projects" / slug
     out.mkdir(parents=True, exist_ok=True)
     page = PROJECT_SHELL.format(
         title=esc(title), meta=meta, description=esc(description),
+        back=back, back_label=back_label,
         image=image, body=body, links=_links_html(links),
     )
     (out / "index.html").write_text(page)
@@ -143,6 +145,8 @@ def generate_project_pages(data):
         body = _render_summary(p.get("abstract"))
         _write(slugify(p["title"]), title=p["title"], meta=meta,
                description=p.get("venue", ""),
+               back="../../index.html#about:selected-works",
+               back_label="Selected publications",
                image=image, body=body, links=p.get("links"))
         count += 1
 
@@ -151,7 +155,10 @@ def generate_project_pages(data):
         body = _render_summary(w.get("body") or w.get("description"))
         links = [{"name": "GitHub", "url": w["url"]}] if w.get("url") else []
         _write(slugify(w["title"]), title=w["title"], meta=meta,
-               description=w.get("description", ""), body=body, links=links)
+               description=w.get("description", ""),
+               back="../../index.html#about:selected-repos",
+               back_label="Open source",
+               body=body, links=links)
         count += 1
 
     print(f"Built {count} project pages")

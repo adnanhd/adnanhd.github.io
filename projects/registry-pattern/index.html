@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="description" content="A generic implementation of the registry design pattern for Python." />
+        <meta name="description" content="Name-based class/function registries plus a recursive factory that builds object graphs from JSON-friendly {type, repo, data, meta} envelopes." />
         <title>registry-pattern - Adnan Harun Dogan</title>
         <link rel="stylesheet" href="../../assets/css/style.css" />
         <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
@@ -15,11 +15,11 @@
     </head>
     <body>
         <div class="blog-page project-page">
-            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <a href="../../index.html#about:selected-repos" class="blog-back">&larr; Open source</a>
             <h1>registry-pattern</h1>
             <div class="blog-meta"><div class="work-tags"><span class="tech-badge" style="background:#3776AB"><i class="devicon-python-plain" aria-hidden="true"></i>Python</span><span class="work-tag">Design Patterns</span></div></div>
             
-            <div class="blog-body"><p>registry-pattern is a small Python library providing name-based registries for classes and functions, together with a recursive factory that builds object graphs from JSON-like configuration. Registrations are Pydantic-validated and observable, with built-in meters for performance tracking and reporters for external observability, and the core depends only on the standard library.</p><p>It underpins the configuration and instantiation layer of the author&#x27;s training tooling and is published on PyPI as `registry-pattern`.</p></div>
+            <div class="blog-body"><p>registry-pattern provides name-based registries for classes and functions plus a recursive factory that builds object graphs from JSON-friendly envelopes. A TypeRegistry or FunctionalRegistry collects artifacts by name via a register decorator; build() then consumes a {type, repo, data, meta} envelope, validates the data against the target&#x27;s signature, and recurses on nested envelopes to assemble whole pipelines from config. serialize() is the inverse, turning a live object graph back into the same envelope for round-tripping.</p><p>Registries are tree-shaped and pass post_init / serialize_meta / pre_call / post_call hooks down by inheritance, so a sub-registry can add validation or emit provenance into the meta dict, and optional meters and reporters layer observability on top. The core depends only on Pydantic and typing-extensions. Published on PyPI as registry-pattern.</p></div>
             <div class="publication-links"><a href="https://github.com/adnanhd/registry-pattern" class="pub-link" target="_blank" rel="noopener noreferrer">GitHub</a></div>
         </div>
         <script>
