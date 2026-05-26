@@ -38,13 +38,26 @@ class BlogSpec:
 # --- org preprocessing ------------------------------------------------------
 
 def _extract_section(text, prefix):
-    """Body of the first top-level heading that starts with `prefix`."""
-    out, capture = [], False
+    """Body of the first heading (any level) whose title starts with `prefix`.
+
+    Captures until the next heading of the same or higher level, so nested
+    subsections (e.g. a `*** SoTA Leaderboard` under a `** Related Work`) are
+    kept. Handles both top-level `* Related Work` and nested `** Related Work`.
+    """
+    out, level = [], None
     for line in text.splitlines():
-        if re.match(r"^\*\s", line):
-            capture = line.strip().lstrip("*").strip().startswith(prefix)
+        m = re.match(r"^(\*+)\s+(.*)", line)
+        if m:
+            stars, title = len(m.group(1)), m.group(2).strip()
+            if level is None:
+                if title.startswith(prefix):
+                    level = stars
+                continue
+            if stars <= level:
+                break          # next sibling/parent heading ends the section
+            out.append(line)   # deeper heading: part of the section
             continue
-        if capture:
+        if level is not None:
             out.append(line)
     return "\n".join(out).strip()
 

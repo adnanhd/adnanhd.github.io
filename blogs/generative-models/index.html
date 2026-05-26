@@ -14,6 +14,291 @@
             <h1>Generative Models</h1>
             <div class="blog-meta">Deep generative models, autoregressive generation, diffusion, and VLMs</div>
             <article class="blog-body">
+<h2 id="autoregressive-models-for-visual-generation">Autoregressive
+Models for Visual Generation</h2>
+<p>Autoregressive visual generation evolved through four overlapping
+waves: (i) <em>pixel-level</em> models that factorise the image
+distribution as a product of conditionals over raw RGB values (PixelRNN
+<span class="citation" data-cites="oord_pixel_2016">(A. van den Oord,
+Kalchbrenner, and Kavukcuoglu 2016a)</span>, PixelCNN <span
+class="citation" data-cites="oord_conditional_2016">(A. van den Oord et
+al. 2016)</span>, PixelCNN++ <span class="citation"
+data-cites="salimans_pixelcnn_2017">(Salimans et al. 2017)</span>); (ii)
+<em>discrete tokenisation</em> that compresses pixels into learned
+codebooks before autoregression (VQ-VAE <span class="citation"
+data-cites="oord_neural_2018">(A. van den Oord, Vinyals, and Kavukcuoglu
+2017)</span>, VQ-VAE-2 <span class="citation"
+data-cites="razavi_generating_2019">(Razavi, Oord, and Vinyals
+2019)</span>, RQ-VAE <span class="citation"
+data-cites="lee_autoregressive_2022">(D. Lee et al. 2022)</span>); (iii)
+<em>transformer-based generation</em> that ports GPT-style decoders to
+image and text-to-image (iGPT <span class="citation"
+data-cites="chen_generative_2020">(M. Chen et al. 2020)</span>, DALL-E
+<span class="citation" data-cites="ramesh_zero-shot_2021">(Ramesh et al.
+2021)</span>, Parti <span class="citation"
+data-cites="yu_scaling_2022">(Yu et al. 2022)</span>, LlamaGen <span
+class="citation" data-cites="sun_autoregressive_2024">(Sun et al.
+2024)</span>), inheriting the encoder-decoder sequence-modelling
+architecture from neural machine translation (Sutskever's
+sequence-to-sequence formulation <span class="citation"
+data-cites="sutskever_sequence_2014">(Sutskever, Vinyals, and Le
+2014)</span> and Bahdanau's content-based attention <span
+class="citation" data-cites="bahdanau_neural_2015">(Bahdanau, Cho, and
+Bengio 2015)</span>) where the conditional-token-by-token factorisation
+was first stress-tested at scale; and (iv) <em>alternative orderings and
+parallel decoding</em> that break the strict raster-scan dependency
+(MaskGIT <span class="citation" data-cites="chang_maskgit_2022">(Chang
+et al. 2022)</span>, MAGE <span class="citation"
+data-cites="li_mage_2023">(T. Li et al. 2023)</span>, Muse <span
+class="citation" data-cites="chang_muse_2023">(Chang et al.
+2023)</span>, ARDM <span class="citation"
+data-cites="hoogeboom_autoregressive_2022">(Hoogeboom et al.
+2022)</span>, VAR <span class="citation"
+data-cites="tian_visual_2024">(Tian et al. 2024)</span>, Infinity <span
+class="citation" data-cites="han_infinity_2025">(Han et al.
+2025)</span>, InfinityStar <span class="citation"
+data-cites="liu_infinitystar_2025">(J. Liu et al. 2025)</span>, VARGPT
+<span class="citation" data-cites="zhuang_vargpt_2025">(Zhuang et al.
+2025)</span>). Video extends these designs along the temporal axis
+(VideoGPT <span class="citation" data-cites="yan_videogpt_2021">(Yan et
+al. 2021)</span>, TATS <span class="citation"
+data-cites="ge_long_2022">(Ge et al. 2022)</span>, Phenaki <span
+class="citation" data-cites="villegas_phenaki_2022">(Villegas et al.
+2023)</span>, MCVD <span class="citation"
+data-cites="voleti_mcvd_2022">(Voleti, Jolicoeur-Martineau, and Pal
+2022)</span>) and scene-conditioned generation injects layout priors
+(Make-A-Scene <span class="citation"
+data-cites="gafni_make--scene_2022">(Gafni et al. 2022)</span>,
+Semantic-Diffusion <span class="citation"
+data-cites="zhou_semantic_2025">(Weilun Wang et al. 2023)</span>).
+Theoretical scaffolding around scale and substrate is provided by
+autoregressive scaling laws <span class="citation"
+data-cites="henighan_scaling_2020">(Henighan et al. 2020)</span>, ViT
+scaling <span class="citation" data-cites="zhai_scaling_2022">(Zhai et
+al. 2022)</span>, and hardware-lottery analysis <span class="citation"
+data-cites="hooker_hardware_2020">(Hooker 2020)</span>.</p>
+<p>The state-of-the-art landscape on standard image-generation
+benchmarks shows AR models reaching parity with and in places exceeding
+diffusion. The leaderboard below collates the headline numbers
+(ImageNet-256 FID for class-conditional, zero-shot MS-COCO FID for
+text-to-image where applicable; tokenizer column reports the discrete
+code source; latency is per-image at the listed resolution; "Cite"
+anchors to the in-chapter section).</p>
+<div class="blog-table"><table id="tbl:ar-leaderboard">
+<caption>Autoregressive image-generation leaderboard. ImageNet-256 FID
+is class-conditional; COCO-FID is zero-shot at
+256<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>256;
+latency is wall-clock seconds per image at the listed deployment
+resolution. Tokenizer column lists the discrete code source. Empty cells
+denote not-reported or not-applicable. Models tagged "masked" use
+parallel iterative decoding; "next-scale" use coarse-to-fine scale
+autoregression; "raster-AR" use sequential next-token. The "first AR
+model to beat diffusion on ImageNet" milestone is VAR-d30 at FID 1.73,
+narrowly edging DiT-XL/2's 2.27 at the same parameter count.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>Year</th>
+<th>Params</th>
+<th>Tokenizer</th>
+<th>Decoding</th>
+<th>ImageNet-FID</th>
+<th>COCO-FID</th>
+<th>Latency</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PixelRNN <span class="citation" data-cites="oord_pixel_2016">(A. van
+den Oord, Kalchbrenner, and Kavukcuoglu 2016a)</span></td>
+<td>2016</td>
+<td>~50M</td>
+<td>Raw 8-bit pixel</td>
+<td>raster-AR</td>
+<td>3.00 bpd</td>
+<td></td>
+<td>very slow</td>
+</tr>
+<tr>
+<td>PixelCNN <span class="citation"
+data-cites="oord_conditional_2016">(A. van den Oord et al.
+2016)</span></td>
+<td>2016</td>
+<td>~80M</td>
+<td>Raw 8-bit pixel</td>
+<td>raster-AR</td>
+<td>3.03 bpd</td>
+<td></td>
+<td>slow</td>
+</tr>
+<tr>
+<td>PixelCNN++ <span class="citation"
+data-cites="salimans_pixelcnn_2017">(Salimans et al. 2017)</span></td>
+<td>2017</td>
+<td>~95M</td>
+<td>Raw + logistic mix</td>
+<td>raster-AR</td>
+<td>2.92 bpd</td>
+<td></td>
+<td>slow</td>
+</tr>
+<tr>
+<td>VQ-VAE-2 <span class="citation"
+data-cites="razavi_generating_2019">(Razavi, Oord, and Vinyals
+2019)</span></td>
+<td>2019</td>
+<td>~13B*</td>
+<td>Hierarchical VQ</td>
+<td>raster-AR</td>
+<td>31.11</td>
+<td></td>
+<td>minutes</td>
+</tr>
+<tr>
+<td>iGPT-L <span class="citation" data-cites="chen_generative_2020">(M.
+Chen et al. 2020)</span></td>
+<td>2020</td>
+<td>1.4B</td>
+<td>k-means 9-bit pixel</td>
+<td>raster-AR</td>
+<td>36.4</td>
+<td></td>
+<td>minutes</td>
+</tr>
+<tr>
+<td>DALL-E <span class="citation"
+data-cites="ramesh_zero-shot_2021">(Ramesh et al. 2021)</span></td>
+<td>2021</td>
+<td>12B</td>
+<td>dVAE 8192</td>
+<td>raster-AR</td>
+<td></td>
+<td>~17</td>
+<td>~30s/64 cands</td>
+</tr>
+<tr>
+<td>MaskGIT <span class="citation"
+data-cites="chang_maskgit_2022">(Chang et al. 2022)</span></td>
+<td>2022</td>
+<td>227M</td>
+<td>VQ-GAN 1024</td>
+<td>masked</td>
+<td>6.18</td>
+<td></td>
+<td>~0.5s</td>
+</tr>
+<tr>
+<td>Make-A-Scene <span class="citation"
+data-cites="gafni_make--scene_2022">(Gafni et al. 2022)</span></td>
+<td>2022</td>
+<td>4B</td>
+<td>Triple-VQ</td>
+<td>raster-AR</td>
+<td></td>
+<td>11.84</td>
+<td>~10s</td>
+</tr>
+<tr>
+<td>Parti-20B <span class="citation" data-cites="yu_scaling_2022">(Yu et
+al. 2022)</span></td>
+<td>2022</td>
+<td>20B</td>
+<td>ViT-VQGAN 8192</td>
+<td>raster-AR</td>
+<td></td>
+<td>7.23</td>
+<td>~15s</td>
+</tr>
+<tr>
+<td>MAGE-L <span class="citation" data-cites="li_mage_2023">(T. Li et
+al. 2023)</span></td>
+<td>2023</td>
+<td>300M</td>
+<td>VQ-GAN 1024</td>
+<td>masked</td>
+<td>6.93</td>
+<td></td>
+<td>~0.5s</td>
+</tr>
+<tr>
+<td>Muse <span class="citation" data-cites="chang_muse_2023">(Chang et
+al. 2023)</span></td>
+<td>2023</td>
+<td>3B+3B</td>
+<td>ViT-VQGAN 8192</td>
+<td>masked+SR</td>
+<td></td>
+<td>7.88</td>
+<td>1.3s</td>
+</tr>
+<tr>
+<td>LlamaGen-3B <span class="citation"
+data-cites="sun_autoregressive_2024">(Sun et al. 2024)</span></td>
+<td>2024</td>
+<td>3.1B</td>
+<td>VQ-GAN 16384</td>
+<td>raster-AR</td>
+<td>2.18</td>
+<td>7.2</td>
+<td>~2s w/ vLLM</td>
+</tr>
+<tr>
+<td>VAR-d30 <span class="citation" data-cites="tian_visual_2024">(Tian
+et al. 2024)</span></td>
+<td>2024</td>
+<td>2.0B</td>
+<td>Multi-scale RQ-VAE</td>
+<td>next-scale</td>
+<td>1.73</td>
+<td></td>
+<td>~0.3s</td>
+</tr>
+<tr>
+<td>Infinity-2B <span class="citation"
+data-cites="han_infinity_2025">(Han et al. 2025)</span></td>
+<td>2025</td>
+<td>2B</td>
+<td>LFQ 32-bit (no book)</td>
+<td>next-scale</td>
+<td></td>
+<td>0.69 GE</td>
+<td>0.8s @ 1024</td>
+</tr>
+<tr>
+<td>InfinityStar <span class="citation"
+data-cites="liu_infinitystar_2025">(J. Liu et al. 2025)</span></td>
+<td>2025</td>
+<td>8B</td>
+<td>3D LFQ</td>
+<td>next-scale</td>
+<td></td>
+<td>83.74 VB</td>
+<td>40s/5s 720p</td>
+</tr>
+<tr>
+<td>VARGPT <span class="citation"
+data-cites="zhuang_vargpt_2025">(Zhuang et al. 2025)</span></td>
+<td>2025</td>
+<td>7B</td>
+<td>VAR-style + CLIP</td>
+<td>next-scale</td>
+<td></td>
+<td>14.8</td>
+<td>~0.3s+text</td>
+</tr>
+</tbody>
+</table></div>
+<p>(*) VQ-VAE-2's 13B figure aggregates the top-prior 48-layer
+Transformer (~12B) with the bottom-prior 20-layer PixelCNN (~1B);
+per-paper accounting practice varies. "GE" denotes GenEval composite
+score (text-to-image alignment, higher is better, 0–1) and "VB" denotes
+VBench composite (text-to-video, higher is better, 0–100); these
+benchmarks are not directly comparable to FID. Pixel-level rows report
+bits-per-dimension instead of FID because Inception-v3 features are
+uninformative at
+32<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>32
+resolution.</p>
+<p><img src="figures/ar-causal-masking.svg" /></p>
 <h2 id="deep-generative-models">Deep Generative Models</h2>
 <p><u>Generative modeling aims to learn the underlying data distribution
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mtext mathvariant="normal">data</mtext></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">p_{\text{data}}(x)</annotation></semantics></math>
@@ -89,12 +374,12 @@ data-cites="vincent_extracting_2008">(Vincent et al. 2008)</span>, with
 the continuous-time formulation drawing on results from stochastic
 calculus (Anderson's reverse-time diffusion theorem from 1982).</p>
 <p>Autoregressive models (PixelRNN <span class="citation"
-data-cites="van_den_oord_pixel_2016">(Oord, Kalchbrenner, and
-Kavukcuoglu 2016)</span>, PixelCNN <span class="citation"
-data-cites="van_den_oord_conditional_2016">(Oord, Kalchbrenner, et al.
-2016)</span>, WaveNet <span class="citation"
-data-cites="van_den_oord_wavenet_2016">(Oord, Dieleman, et al.
-2016)</span>, GPT <span class="citation"
+data-cites="van_den_oord_pixel_2016">(A. van den Oord, Kalchbrenner, and
+Kavukcuoglu 2016b)</span>, PixelCNN <span class="citation"
+data-cites="van_den_oord_conditional_2016">(A. van den Oord,
+Kalchbrenner, et al. 2016)</span>, WaveNet <span class="citation"
+data-cites="van_den_oord_wavenet_2016">(A. van den Oord, Dieleman, et
+al. 2016)</span>, GPT <span class="citation"
 data-cites="radford_language_2019">(Radford et al. 2019)</span>) provide
 a competing paradigm that factorizes the joint via the chain rule and
 models each conditional with a deep neural network. For discrete data
@@ -299,7 +584,7 @@ al. 2023)</span></td>
 </tr>
 <tr>
 <td>PixArt-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
-<span class="citation" data-cites="chen_pixart-_2023">(Chen et al.
+<span class="citation" data-cites="chen_pixart-_2023">(J. Chen et al.
 2023)</span></td>
 <td>2023</td>
 <td>DiT</td>
@@ -427,7 +712,7 @@ data-cites="podell_sdxl_2023">(Podell et al. 2023)</span> scaled to 3×
 larger U-Net with dual text encoders, achieving quality competitive with
 closed-source models.
 PixArt-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
-<span class="citation" data-cites="chen_pixart-_2023">(Chen et al.
+<span class="citation" data-cites="chen_pixart-_2023">(J. Chen et al.
 2023)</span> demonstrated efficient training by decomposing into stages
 (pixel dependency, text alignment, aesthetics), requiring only 10.8% of
 Stable Diffusion's training compute. Stable Diffusion 3 <span
@@ -508,9 +793,488 @@ data-cites="noauthor_sora_2024">(<span>“<span>SORA</span>:
 2024)</span> demonstrating minute-long coherent video generation,
 <u>suggesting diffusion transformers can serve as world simulators
 understanding physical dynamics and 3D consistency</u>.</p>
+<h2
+id="vision-language-models-from-contrastive-learning-to-multimodal-assistants">Vision-Language
+Models: From Contrastive Learning to Multimodal Assistants</h2>
+<p>The foundation of modern VLMs was established by CLIP <span
+class="citation" data-cites="radford_learning_2021">(Radford et al.
+2021)</span>, which demonstrated that contrastive learning on 400
+million image-text pairs enables zero-shot transfer to diverse visual
+tasks.[fn:s3-clip-impl] <u>CLIP's text tower inherits a long
+lineage</u>: distributed word representations trained by contrasting
+context-word co-occurrences against negative samples (the word2vec
+construction of <span class="citation"
+data-cites="mikolov_distributed_2013">(Mikolov et al. 2013)</span>,
+which introduced negative sampling as a replacement for hierarchical
+softmax, frequent-word subsampling, and phrase representations, making
+billion-token corpora trainable on a single machine) were the first
+widely-deployed evidence that geometry in a learned embedding space
+reflects semantic structure, and the InfoNCE loss CLIP uses is
+essentially the same noise-contrastive estimator generalised to
+cross-modal positive pairs. ALIGN <span class="citation"
+data-cites="jia_scaling_2021">(Jia et al. 2021)</span> showed that noisy
+web-scale data can substitute for curation when sufficient scale is
+achieved. SigLIP <span class="citation"
+data-cites="zhai_sigmoid_2023">(Zhai et al. 2023)</span> introduced a
+simpler sigmoid loss that scales more efficiently than softmax-based
+contrastive learning. The contrastive pre-training lineage also includes
+earlier work like VirTex (2020, caption-based supervision), ConVIRT
+(2020, medical domain), and UniCL (2022, unified classification and
+contrastive learning), with CLIP's influence coming from its combination
+of scale, simplicity, and public release. The longer arc reaches back to
+<strong>Baby Talk</strong> <span class="citation"
+data-cites="kulkarni_babytalk_2011">(Kulkarni et al. 2011)</span>, the
+first end-to-end pipeline that generated natural-language descriptions
+of unseen images from hand-engineered object/attribute/preposition
+detectors fed into a tree-CRF; that paper's central claim that visual
+content can be linearised into compositional language predates
+CLIP-style contrastive coupling by a decade and frames every subsequent
+VLM benchmark. Subsequent refinements include OpenCLIP (open
+reimplementation with documented data), FILIP (fine-grained token-level
+alignment), and MetaCLIP (careful data curation matching CLIP's original
+recipe).</p>
+<p>Self-supervised visual learning reached new heights with DINOv2 <span
+class="citation" data-cites="oquab_dinov2_2024">(Oquab et al.
+2024)</span>, which produces all-purpose visual features through careful
+data curation and training at scale (below).
+Chinese CLIP <span class="citation" data-cites="yang_chinese_2023">(Yang
+et al. 2023)</span> extended contrastive pre-training to Chinese
+language.</p>
+<p>The BLIP series <span class="citation"
+data-cites="li_blip_2022 li_blip-2_2023 xue_xgen-mm_2025">(J. Li et al.
+2022, 2023; Xue et al. 2024)</span> introduced bootstrapping approaches
+that filter noisy captions and enable efficient adaptation of frozen
+encoders (BLIP, BLIP-2). InstructBLIP <span class="citation"
+data-cites="dai_instructblip_2023">(Dai et al. 2023)</span> demonstrated
+the power of instruction tuning for vision-language models. Parallel
+efforts in this space include ALBEF (2021, introduced the unified
+encoder-decoder design with image-text matching and contrastive
+objectives), OFA (2022, unified multimodal sequence-to-sequence
+learning), and mPLUG (2022-2023, modular cross-attention with skip
+connections). The BLIP line's distinguishing contribution was
+CapFilt-style bootstrapping, which has since become a standard technique
+across the VLM training pipeline.</p>
+<p>Flamingo <span class="citation"
+data-cites="alayrac_flamingo_2022">(Alayrac et al. 2022)</span>
+pioneered few-shot learning in VLMs through interleaved image-text
+inputs. LLaVA <span class="citation"
+data-cites="liu_visual_2023 liu_improved_2024 lee_llava-next_2024">(H.
+Liu et al. 2023, 2024; Y. J. Lee et al. 2024)</span> established simple
+yet effective approaches for visual instruction tuning. CogVLM <span class="citation"
+data-cites="wang_cogvlm_2024">(Weihan Wang et al. 2024)</span>
+introduced visual expert modules for deep vision-language fusion, while
+Qwen-VL <span class="citation" data-cites="bai_qwen-vl_2023">(Bai et al.
+2023)</span> demonstrated strong multilingual capabilities. Contemporary
+open-source VLMs that extend or compete with these lines include
+InternVL (2024, high-resolution scaling), IDEFICS (2023-2024, open
+Flamingo reproduction), MiniGPT-4/v2 (2023, early LLaVA-style open
+demonstrator), mPLUG-Owl (2023-2024, modular design with visual
+abstractor), and PaliGemma (2024, Google's open SigLIP + Gemma
+combination).</p>
+<p>Efficient VLMs for deployment include MobileVLM <span
+class="citation" data-cites="chu_mobilevlm_2023">(Chu et al.
+2023)</span>, TinyGPT-V <span class="citation"
+data-cites="yuan_tinygpt-v_2024">(Yuan et al. 2024)</span>, and
+LLaVA-Phi <span class="citation" data-cites="zhu_llava-phi_2024">(Zhu et
+al. 2024)</span>; see Efficient
+Vision-Language Models. Frontier systems like GPT-4V <span
+class="citation" data-cites="noauthor_gpt-4vision_2023">(OpenAI
+2023)</span> and Gemini <span class="citation"
+data-cites="team_gemini_2025 team_gemini_2024">(Team et al. 2023,
+2024)</span> represent the state of the art in multimodal understanding. Additional closed
+frontier systems include Claude 3.5 Sonnet (Anthropic), GPT-4o (OpenAI,
+successor to GPT-4V with stronger multimodal integration), and
+Grok-Vision (xAI). <u>The closed-vs-open gap has narrowed
+substantially</u>: as of late 2024, the best open models (Qwen2-VL-72B,
+InternVL-2-76B) match or exceed GPT-4V on most academic benchmarks,
+though closed models retain a lead in qualitative usability, reasoning
+depth, and safety behavior.</p>
+<p>Recent systematic surveys include Zhang et al.'s "Vision-Language
+Models for Vision Tasks: A Survey" <span class="citation"
+data-cites="li_object-centric_2025">(G. Li et al. 2025)</span> and the
+MMLMs survey by Yin et al., which provide broader coverage complementing
+the focus here. Reading pathways: for contrastive pre-training, start
+with CLIP and follow forward through SigLIP; for generative VLMs, follow BLIP -&gt; BLIP-2
+-&gt; LLaVA -&gt; LLaVA-NeXT; for frontier systems, read Gemini and GPT-4V
+system cards alongside technical reports.</p>
+<h3 id="sota-leaderboard">SoTA Leaderboard</h3>
+<div class="blog-table"><table id="tab:vlm-sota">
+<caption>Selected vision-language milestones from CLIP (2021) to
+frontier multimodal assistants (2024). "Type" labels three families:
+contrastive (C), generative/captioning (G), and instruction-tuned
+multimodal (I). Vision-encoder column lists the image tower (ViT sizes
+follow the standard B/L/H/g/G/E convention; "/14" = patch 14). LLM
+column gives the language tower for VLMs that wire one in (contrastive
+models leave it blank). "Train data" reports the headline pre-training
+pair count. "IN 0-shot" is ImageNet-1k zero-shot top-1 (where
+applicable; instruction VLMs are not designed for this task and read –).
+"COCO R@1" is image-to-text retrieval on MS-COCO 5K (zero-shot for
+contrastive models; – where the model targets generation only). "VQAv2"
+is test-dev accuracy (zero-shot reported where the paper exposed it;
+otherwise fine-tuned). "GQA" is the test-dev split. Citations point to
+the canonical paper for each model. Numbers reflect the largest
+configuration each paper released; smaller siblings (e.g., LLaVA-1.5-7B
+vs 13B) pick the larger to keep rows comparable.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>Year</th>
+<th>Type</th>
+<th>Vision enc.</th>
+<th>LLM</th>
+<th>Train data</th>
+<th>IN 0-shot</th>
+<th>VQAv2</th>
+<th>COCO R@1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CLIP ViT-L/14-336 <span class="citation"
+data-cites="radford_learning_2021">(Radford et al. 2021)</span></td>
+<td>2021</td>
+<td>C</td>
+<td>ViT-L/14</td>
+<td>–</td>
+<td>WIT 400M</td>
+<td>76.2</td>
+<td>–</td>
+<td>58.4</td>
+</tr>
+<tr>
+<td>ALIGN <span class="citation" data-cites="jia_scaling_2021">(Jia et
+al. 2021)</span></td>
+<td>2021</td>
+<td>C</td>
+<td>EfficientNet-L</td>
+<td>BERT-Large</td>
+<td>ALIGN 1.8B</td>
+<td>76.4</td>
+<td>–</td>
+<td>58.6</td>
+</tr>
+<tr>
+<td>FLIP ViT-L/14 <span class="citation"
+data-cites="radford_learning_2021">(Radford et al. 2021)</span></td>
+<td>2023</td>
+<td>C</td>
+<td>ViT-L/14</td>
+<td>–</td>
+<td>LAION-400M</td>
+<td>74.6</td>
+<td>–</td>
+<td>54.8</td>
+</tr>
+<tr>
+<td>OpenCLIP ViT-G/14 <span class="citation"
+data-cites="radford_learning_2021">(Radford et al. 2021)</span></td>
+<td>2022</td>
+<td>C</td>
+<td>ViT-G/14</td>
+<td>–</td>
+<td>LAION-2B</td>
+<td>80.1</td>
+<td>–</td>
+<td>67.3</td>
+</tr>
+<tr>
+<td>EVA-CLIP-E/14+ <span class="citation"
+data-cites="radford_learning_2021">(Radford et al. 2021)</span></td>
+<td>2023</td>
+<td>C</td>
+<td>ViT-E/14</td>
+<td>–</td>
+<td>LAION-2B+</td>
+<td>82.0</td>
+<td>–</td>
+<td>71.1</td>
+</tr>
+<tr>
+<td>SigLIP SoViT-400m <span class="citation"
+data-cites="zhai_sigmoid_2023">(Zhai et al. 2023)</span></td>
+<td>2023</td>
+<td>C</td>
+<td>SoViT-400m/14</td>
+<td>–</td>
+<td>WebLI 10B</td>
+<td>83.0</td>
+<td>–</td>
+<td>70.6</td>
+</tr>
+<tr>
+<td>Chinese-CLIP ViT-H <span class="citation"
+data-cites="yang_chinese_2023">(Yang et al. 2023)</span></td>
+<td>2022</td>
+<td>C</td>
+<td>ViT-H/14</td>
+<td>RoBERTa-wwm</td>
+<td>LAION+Wukong</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>BLIP ViT-L <span class="citation" data-cites="li_blip_2022">(J. Li
+et al. 2022)</span></td>
+<td>2022</td>
+<td>G</td>
+<td>ViT-L/16</td>
+<td>BERT-Large</td>
+<td>129M</td>
+<td>–</td>
+<td>78.2</td>
+<td>65.1</td>
+</tr>
+<tr>
+<td>CoCa-2.1B <span class="citation"
+data-cites="radford_learning_2021">(Radford et al. 2021)</span></td>
+<td>2022</td>
+<td>C+G</td>
+<td>ViT-g</td>
+<td>dec. 1.1B</td>
+<td>ALIGN+JFT-3B</td>
+<td>86.3</td>
+<td>82.3</td>
+<td>66.3</td>
+</tr>
+<tr>
+<td>BLIP-2 (FlanT5-XXL) <span class="citation"
+data-cites="li_blip-2_2023">(J. Li et al. 2023)</span></td>
+<td>2023</td>
+<td>G</td>
+<td>EVA-ViT-g</td>
+<td>FlanT5-XXL 11B</td>
+<td>129M</td>
+<td>–</td>
+<td>65.0</td>
+<td>–</td>
+</tr>
+<tr>
+<td>BEiT-3 <span class="citation"
+data-cites="radford_learning_2021">(Radford et al. 2021)</span></td>
+<td>2022</td>
+<td>G</td>
+<td>ViT-g (BEiT-3)</td>
+<td>BEiT-3 dec.</td>
+<td>35M</td>
+<td>–</td>
+<td>84.0</td>
+<td>76.0</td>
+</tr>
+<tr>
+<td>Flamingo-80B <span class="citation"
+data-cites="alayrac_flamingo_2022">(Alayrac et al. 2022)</span></td>
+<td>2022</td>
+<td>G+I</td>
+<td>NFNet-F6</td>
+<td>Chinchilla 70B</td>
+<td>M3W 43M+</td>
+<td>–</td>
+<td>82.0</td>
+<td>–</td>
+</tr>
+<tr>
+<td>IDEFICS-80B <span class="citation"
+data-cites="alayrac_flamingo_2022">(Alayrac et al. 2022)</span></td>
+<td>2023</td>
+<td>G+I</td>
+<td>OpenCLIP H/14</td>
+<td>LLaMA-65B</td>
+<td>OBELICS 141M</td>
+<td>–</td>
+<td>60.0</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Florence-2-Large <span class="citation"
+data-cites="radford_learning_2021">(Radford et al. 2021)</span></td>
+<td>2023</td>
+<td>G</td>
+<td>DaViT-Large</td>
+<td>BART-base dec.</td>
+<td>FLD-5B</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>MiniGPT-4 <span class="citation" data-cites="liu_visual_2023">(H.
+Liu et al. 2023)</span></td>
+<td>2023</td>
+<td>I</td>
+<td>EVA-ViT-g</td>
+<td>Vicuna-13B</td>
+<td>LAION+CC+SBU</td>
+<td>–</td>
+<td>48.5</td>
+<td>–</td>
+</tr>
+<tr>
+<td>LLaVA-1.5-13B <span class="citation"
+data-cites="liu_improved_2024">(H. Liu et al. 2024)</span></td>
+<td>2023</td>
+<td>I</td>
+<td>CLIP ViT-L-336</td>
+<td>Vicuna-13B</td>
+<td>1.2M</td>
+<td>–</td>
+<td>80.0</td>
+<td>–</td>
+</tr>
+<tr>
+<td>InstructBLIP-13B <span class="citation"
+data-cites="dai_instructblip_2023">(Dai et al. 2023)</span></td>
+<td>2023</td>
+<td>I</td>
+<td>EVA-ViT-g</td>
+<td>Vicuna-13B</td>
+<td>26 datasets</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Qwen-VL-Chat <span class="citation"
+data-cites="bai_qwen-vl_2023">(Bai et al. 2023)</span></td>
+<td>2023</td>
+<td>I</td>
+<td>ViT-bigG</td>
+<td>Qwen-7B</td>
+<td>1.4B+7M+350K</td>
+<td>–</td>
+<td>78.2</td>
+<td>–</td>
+</tr>
+<tr>
+<td>CogVLM-17B <span class="citation"
+data-cites="wang_cogvlm_2024">(Weihan Wang et al. 2024)</span></td>
+<td>2023</td>
+<td>I</td>
+<td>EVA2-CLIP-E</td>
+<td>Vicuna-7B</td>
+<td>1.5B</td>
+<td>–</td>
+<td>82.3</td>
+<td>–</td>
+</tr>
+<tr>
+<td>LLaVA-NeXT-34B <span class="citation"
+data-cites="lee_llava-next_2024">(Y. J. Lee et al. 2024)</span></td>
+<td>2024</td>
+<td>I</td>
+<td>CLIP ViT-L-336</td>
+<td>Nous-Hermes-Yi-34B</td>
+<td>1.3M</td>
+<td>–</td>
+<td>83.7</td>
+<td>–</td>
+</tr>
+<tr>
+<td>GPT-4V <span class="citation"
+data-cites="noauthor_gpt-4vision_2023">(OpenAI 2023)</span></td>
+<td>2023</td>
+<td>I</td>
+<td>undisclosed</td>
+<td>GPT-4</td>
+<td>undisclosed</td>
+<td>–</td>
+<td>77.2</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Gemini-1.5 Pro <span class="citation"
+data-cites="team_gemini_2024">(Team et al. 2024)</span></td>
+<td>2024</td>
+<td>I</td>
+<td>undisclosed</td>
+<td>Gemini Pro</td>
+<td>undisclosed</td>
+<td>–</td>
+<td>73.2</td>
+<td>–</td>
+</tr>
+</tbody>
+</table></div>
+<p>GQA was dropped to keep the table within 14 cm; instruction-tuned VLM
+GQA scores cluster between 49 and 67 (InstructBLIP-13B 49.5,
+Qwen-VL-Chat 57.5, LLaVA-1.5-13B 63.3, CogVLM 65.2, LLaVA-NeXT-34B 67.1)
+and are visited per-model in the chapter sections below. The "–" entries
+are not failures: contrastive dual-encoders cannot answer free-form VQA
+questions without a generative head; instruction VLMs are not optimized
+for ImageNet zero-shot prompting; closed frontier systems (GPT-4V,
+Gemini) do not publish architectural
+details.[fn:s3-problem-vlm-comparability]</p>
+<p>The contrastive era (rows 1–7) opens with CLIP, whose ViT-L/14-336
+set the 76.2% ImageNet zero-shot bar that anchored the field for two
+years. ALIGN matched it the same year using 1.8B noisy web pairs,
+validating that curation could be replaced by scale. FLIP introduced
+patch-level masking to halve training compute at modest accuracy cost.
+OpenCLIP reproduced the recipe openly on LAION-2B, climbing to 80.1%
+with the ViT-G/14 model and giving the academic community its first
+matched-spec CLIP variant. EVA-CLIP layered MIM-pretrained vision
+backbones onto LAION to push to 82.0%, while SigLIP swapped softmax
+InfoNCE for sigmoid loss and reached 83.0% on WebLI-10B; the SigLIP
+recipe has since become the default vision tower for downstream VLMs
+(PaliGemma, LLaVA-NeXT-Sigmoid). Chinese-CLIP (row 7) extended the
+pattern to non-English, with bilingual retrieval scores no
+English-trained CLIP can match.</p>
+<p>The generative and bootstrapping era (rows 8–14) introduced unified
+objectives for retrieval, captioning, and VQA simultaneously. BLIP's
+CapFilt cleaned web captions and reached 78.2 VQAv2 with only 129M
+training pairs. CoCa fused contrastive and captioning losses in one
+decoder, hitting 86.3 ImageNet zero-shot (the contrastive ceiling at the
+time) and 82.3 fine-tuned VQAv2. BLIP-2's Q-Former showed that
+frozen-encoder/frozen-LLM bridging trains for a fraction of
+full-finetune cost and still reaches 65.0 zero-shot VQAv2 with
+FlanT5-XXL. BEiT-3 unified vision and language as a single Multiway
+Transformer, taking 84.0 fine-tuned VQAv2 with only 35M training pairs
+by reusing the same backbone for image, text, and image-text inputs.
+Flamingo and its open clone IDEFICS-80B introduced gated cross-attention
+and Perceiver resamplers to enable few-shot multimodal in-context
+learning, while Florence-2 went the opposite direction (dense prediction
+unification with DaViT and a BART-style decoder).</p>
+<p>The instruction era (rows 15–22) replaced fine-tuning with visual
+instruction tuning. MiniGPT-4 showed the basic recipe, LLaVA-1.5 cleaned
+it up with a 2-layer MLP projector and 336px CLIP, reaching 80.0 VQAv2
+on a 1.2M-sample budget. InstructBLIP turned 26 datasets into
+instruction format atop the BLIP-2 Q-Former. Qwen-VL added bounding-box
+supervision and bilingual training. CogVLM introduced "visual expert"
+parallel layers (separate QKV/FFN per Transformer block) for deeper
+fusion, reaching 82.3 VQAv2 without forgetting language ability.
+LLaVA-NeXT scaled to dynamic resolution and 34B LLM backbones (83.7
+VQAv2). The closed frontier (GPT-4V, Gemini-1.5 Pro) reports lower
+academic VQAv2 (77.2 / 73.2) than the best open-source models on the
+same benchmark, but holds qualitative leads on long-context, document,
+and reasoning evaluations not tabulated here; the closed-vs-open gap
+that mattered most in 2023 has been substantially closed by late 2024 on
+extractive benchmarks while remaining wide on holistic ones.</p>
 <h2 class="blog-refs-title">References</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
+<div id="ref-alayrac_flamingo_2022" class="csl-entry" role="listitem">
+Alayrac, Jean-Baptiste, Jeff Donahue, Pauline Luc, Antoine Miech, Iain
+Barr, Yana Hasson, Karel Lenc, et al. 2022. <span>“Flamingo: A
+<span>Visual</span> <span>Language</span> <span>Model</span> for
+<span>Few</span>-<span>Shot</span> <span>Learning</span>.”</span> arXiv.
+<a
+href="https://doi.org/10.48550/arXiv.2204.14198">https://doi.org/10.48550/arXiv.2204.14198</a>.
+</div>
+<div id="ref-bahdanau_neural_2015" class="csl-entry" role="listitem">
+Bahdanau, Dzmitry, Kyunghyun Cho, and Yoshua Bengio. 2015. <span>“Neural
+Machine Translation by Jointly Learning to Align and Translate.”</span>
+In <em>International Conference on Learning Representations (ICLR)</em>.
+<a
+href="https://arxiv.org/abs/1409.0473">https://arxiv.org/abs/1409.0473</a>.
+</div>
+<div id="ref-bai_qwen-vl_2023" class="csl-entry" role="listitem">
+Bai, Jinze, Shuai Bai, Shusheng Yang, Shijie Wang, Sinan Tan, Peng Wang,
+Junyang Lin, Chang Zhou, and Jingren Zhou. 2023.
+<span>“Qwen-<span>VL</span>: <span>A</span> <span>Versatile</span>
+<span>Vision</span>-<span>Language</span> <span>Model</span> for
+<span>Understanding</span>, <span>Localization</span>, <span>Text</span>
+<span>Reading</span>, and <span>Beyond</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2308.12966">https://doi.org/10.48550/arXiv.2308.12966</a>.
+</div>
 <div id="ref-balaji_ediff-i_2023" class="csl-entry" role="listitem">
 Balaji, Yogesh, Seungjun Nah, Xun Huang, Arash Vahdat, Jiaming Song,
 Qinsheng Zhang, Karsten Kreis, et al. 2023. <span>“<span
@@ -565,6 +1329,23 @@ Burda, Yuri, Roger Grosse, and Ruslan Salakhutdinov. 2016.
 Learning Representations</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1509.00519">https://doi.org/10.48550/arXiv.1509.00519</a>.
 </div>
+<div id="ref-chang_muse_2023" class="csl-entry" role="listitem">
+Chang, Huiwen, Han Zhang, Jarred Barber, A. J. Maschinot, Jose Lezama,
+Lu Jiang, Ming-Hsuan Yang, et al. 2023. <span>“Muse:
+<span>Text</span>-<span>To</span>-<span>Image</span>
+<span>Generation</span> via <span>Masked</span> <span>Generative</span>
+<span>Transformers</span>.”</span> In <em>International Conference on
+Machine Learning (ICML)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2301.00704">https://doi.org/10.48550/arXiv.2301.00704</a>.
+</div>
+<div id="ref-chang_maskgit_2022" class="csl-entry" role="listitem">
+Chang, Huiwen, Han Zhang, Lu Jiang, Ce Liu, and William T. Freeman.
+2022. <span>“<span>MaskGIT</span>: <span>Masked</span>
+<span>Generative</span> <span>Image</span>
+<span>Transformer</span>.”</span> In <em>IEEE/CVF Conference on Computer
+Vision and Pattern Recognition (CVPR)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2202.04200">https://doi.org/10.48550/arXiv.2202.04200</a>.
+</div>
 <div id="ref-chen_pixart-_2023" class="csl-entry" role="listitem">
 Chen, Junsong, Jincheng Yu, Chongjian Ge, Lewei Yao, Enze Xie, Yue Wu,
 Zhongdao Wang, et al. 2023. <span>“<span>PixArt</span>-$α$:
@@ -573,6 +1354,32 @@ Zhongdao Wang, et al. 2023. <span>“<span>PixArt</span>-$α$:
 <span>Text</span>-to-<span>Image</span> <span>Synthesis</span>.”</span>
 arXiv. <a
 href="https://doi.org/10.48550/arXiv.2310.00426">https://doi.org/10.48550/arXiv.2310.00426</a>.
+</div>
+<div id="ref-chen_generative_2020" class="csl-entry" role="listitem">
+Chen, Mark, Alec Radford, Rewon Child, Jeffrey Wu, Heewoo Jun, David
+Luan, and Ilya Sutskever. 2020. <span>“Generative
+<span>Pretraining</span> <span>From</span> <span>Pixels</span>.”</span>
+In <em>Proceedings of the 37th <span>International</span>
+<span>Conference</span> on <span>Machine</span>
+<span>Learning</span></em>, 1691–1703. PMLR. <a
+href="https://proceedings.mlr.press/v119/chen20s.html">https://proceedings.mlr.press/v119/chen20s.html</a>.
+</div>
+<div id="ref-chu_mobilevlm_2023" class="csl-entry" role="listitem">
+Chu, Xiangxiang, Limeng Qiao, Xinyang Lin, Shuang Xu, Yang Yang, Yiming
+Hu, Fei Wei, et al. 2023. <span>“<span>MobileVLM</span> : <span>A</span>
+<span>Fast</span>, <span>Strong</span> and <span>Open</span>
+<span>Vision</span> <span>Language</span> <span>Assistant</span> for
+<span>Mobile</span> <span>Devices</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2312.16886">https://doi.org/10.48550/arXiv.2312.16886</a>.
+</div>
+<div id="ref-dai_instructblip_2023" class="csl-entry" role="listitem">
+Dai, Wenliang, Junnan Li, Dongxu Li, Anthony Meng Huat Tiong, Junqi
+Zhao, Weisheng Wang, Boyang Li, Pascale Fung, and Steven Hoi. 2023.
+<span>“<span>InstructBLIP</span>: <span>Towards</span>
+<span>General</span>-Purpose <span>Vision</span>-<span>Language</span>
+<span>Models</span> with <span>Instruction</span>
+<span>Tuning</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2305.06500">https://doi.org/10.48550/arXiv.2305.06500</a>.
 </div>
 <div id="ref-debortoli_diffusion_2021" class="csl-entry"
 role="listitem">
@@ -609,6 +1416,24 @@ Müller, Harry Saini, Yam Levi, et al. 2024. <span>“Scaling
 <span>Synthesis</span>.”</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2403.03206">https://doi.org/10.48550/arXiv.2403.03206</a>.
 </div>
+<div id="ref-gafni_make--scene_2022" class="csl-entry" role="listitem">
+Gafni, Oran, Adam Polyak, Oron Ashual, Shelly Sheynin, Devi Parikh, and
+Yaniv Taigman. 2022. <span>“Make-<span>A</span>-<span>Scene</span>:
+<span>Scene</span>-<span>Based</span>
+<span>Text</span>-to-<span>Image</span> <span>Generation</span> with
+<span>Human</span> <span>Priors</span>.”</span> In <em>European
+Conference on Computer Vision (ECCV)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2203.13131">https://doi.org/10.48550/arXiv.2203.13131</a>.
+</div>
+<div id="ref-ge_long_2022" class="csl-entry" role="listitem">
+Ge, Songwei, Thomas Hayes, Harry Yang, Xi Yin, Guan Pang, David Jacobs,
+Jia-Bin Huang, and Devi Parikh. 2022. <span>“Long <span>Video</span>
+<span>Generation</span> with <span>Time</span>-<span>Agnostic</span>
+<span>VQGAN</span> and <span>Time</span>-<span>Sensitive</span>
+<span>Transformer</span>.”</span> In <em>European Conference on Computer
+Vision (ECCV)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2204.03638">https://doi.org/10.48550/arXiv.2204.03638</a>.
+</div>
 <div id="ref-goodfellow_generative_2014" class="csl-entry"
 role="listitem">
 Goodfellow, Ian J., Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David
@@ -633,6 +1458,21 @@ Qiao, Maneesh Agrawala, Dahua Lin, and Bo Dai. 2024.
 <span>Diffusion</span> <span>Models</span> Without <span>Specific</span>
 <span>Tuning</span>.”</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2307.04725">https://doi.org/10.48550/arXiv.2307.04725</a>.
+</div>
+<div id="ref-han_infinity_2025" class="csl-entry" role="listitem">
+Han, Jian, Jinlai Liu, Yi Jiang, Bin Yan, Yuqi Zhang, Zehuan Yuan,
+Bingyue Peng, and Xiaobing Liu. 2025. <span>“Infinity:
+<span>Scaling</span> <span>Bitwise</span> <span>AutoRegressive</span>
+<span>Modeling</span> for <span>High</span>-<span>Resolution</span>
+<span>Image</span> <span>Synthesis</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2412.04431">https://doi.org/10.48550/arXiv.2412.04431</a>.
+</div>
+<div id="ref-henighan_scaling_2020" class="csl-entry" role="listitem">
+Henighan, Tom, Jared Kaplan, Mor Katz, Mark Chen, Christopher Hesse,
+Jacob Jackson, Heewoo Jun, et al. 2020. <span>“Scaling <span>Laws</span>
+for <span>Autoregressive</span> <span>Generative</span>
+<span>Modeling</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2010.14701">https://doi.org/10.48550/arXiv.2010.14701</a>.
 </div>
 <div id="ref-hertz_prompt--prompt_2022" class="csl-entry"
 role="listitem">
@@ -677,11 +1517,33 @@ Norouzi, and David J. Fleet. 2022. <span>“Video <span>Diffusion</span>
 <span>Models</span>.”</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2204.03458">https://doi.org/10.48550/arXiv.2204.03458</a>.
 </div>
+<div id="ref-hoogeboom_autoregressive_2022" class="csl-entry"
+role="listitem">
+Hoogeboom, Emiel, Alexey A. Gritsenko, Jasmijn Bastings, Ben Poole,
+Rianne van den Berg, and Tim Salimans. 2022. <span>“Autoregressive
+<span>Diffusion</span> <span>Models</span>.”</span> In <em>International
+Conference on Learning Representations</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2110.02037">https://doi.org/10.48550/arXiv.2110.02037</a>.
+</div>
+<div id="ref-hooker_hardware_2020" class="csl-entry" role="listitem">
+Hooker, Sara. 2020. <span>“The <span>Hardware</span>
+<span>Lottery</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2009.06489">https://doi.org/10.48550/arXiv.2009.06489</a>.
+</div>
 <div id="ref-hyvarinen_estimation_2005" class="csl-entry"
 role="listitem">
 Hyvärinen, Aapo. 2005. <span>“Estimation of Non-Normalized Statistical
 Models by Score Matching.”</span> <em>Journal of Machine Learning
 Research (<span>JMLR</span>)</em> 6: 695–709.
+</div>
+<div id="ref-jia_scaling_2021" class="csl-entry" role="listitem">
+Jia, Chao, Yinfei Yang, Ye Xia, Yi-Ting Chen, Zarana Parekh, Hieu Pham,
+Quoc V. Le, Yunhsuan Sung, Zhen Li, and Tom Duerig. 2021. <span>“Scaling
+<span>Up</span> <span>Visual</span> and
+<span>Vision</span>-<span>Language</span> <span>Representation</span>
+<span>Learning</span> <span>With</span> <span>Noisy</span>
+<span>Text</span> <span>Supervision</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2102.05918">https://doi.org/10.48550/arXiv.2102.05918</a>.
 </div>
 <div id="ref-jordan_introduction_1999" class="csl-entry"
 role="listitem">
@@ -727,11 +1589,88 @@ Kingma, Diederik P., and Max Welling. 2014.
 Representations</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1312.6114">https://doi.org/10.48550/arXiv.1312.6114</a>.
 </div>
+<div id="ref-kulkarni_babytalk_2011" class="csl-entry" role="listitem">
+Kulkarni, Girish, Visruth Premraj, Sagnik Dhar, Siming Li, Yejin Choi,
+Alexander C. Berg, and Tamara L. Berg. 2011. <span>“Baby Talk:
+Understanding and Generating Image Descriptions.”</span> In <em>IEEE
+Conference on Computer Vision and Pattern Recognition (CVPR)</em>. <a
+href="https://doi.org/10.1109/CVPR.2011.5995466">https://doi.org/10.1109/CVPR.2011.5995466</a>.
+</div>
+<div id="ref-lee_autoregressive_2022" class="csl-entry" role="listitem">
+Lee, Doyup, Chiheon Kim, Saehoon Kim, Minsu Cho, and Wook-Shin Han.
+2022. <span>“Autoregressive <span>Image</span> <span>Generation</span>
+Using <span>Residual</span> <span>Quantization</span>.”</span> In
+<em>IEEE/CVF Conference on Computer Vision and Pattern Recognition
+(CVPR)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2203.01941">https://doi.org/10.48550/arXiv.2203.01941</a>.
+</div>
+<div id="ref-lee_llava-next_2024" class="csl-entry" role="listitem">
+Lee, Yong Jae, Chunyuan Li, Yuheng Li, Bo Li, Yuanhan Zhang, Sheng Shen,
+and Haotian Liu. 2024. <span>“<span>LLaVA</span>-<span>NeXT</span>:
+<span>Improved</span> Reasoning, <span>OCR</span>, and World
+Knowledge.”</span> <em>LLaVA</em>. <a
+href="https://llava-vl.github.io/blog/2024-01-30-llava-next/">https://llava-vl.github.io/blog/2024-01-30-llava-next/</a>.
+</div>
+<div id="ref-li_object-centric_2025" class="csl-entry" role="listitem">
+Li, Guangyuan, Rongzhen Zhao, Jinhong Deng, Yanbo Wang, and Joni
+Pajarinen. 2025. <span>“Object-<span>Centric</span> <span>Vision</span>
+<span>Token</span> <span>Pruning</span> for <span>Vision</span>
+<span>Language</span> <span>Models</span>.”</span> <a
+href="https://doi.org/10.48550/arXiv.2511.20439">https://doi.org/10.48550/arXiv.2511.20439</a>.
+</div>
+<div id="ref-li_blip-2_2023" class="csl-entry" role="listitem">
+Li, Junnan, Dongxu Li, Silvio Savarese, and Steven Hoi. 2023.
+<span>“<span>BLIP</span>-2: <span>Bootstrapping</span>
+<span>Language</span>-<span>Image</span> <span>Pre</span>-Training with
+<span>Frozen</span> <span>Image</span> <span>Encoders</span> and
+<span>Large</span> <span>Language</span> <span>Models</span>.”</span>
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2301.12597">https://doi.org/10.48550/arXiv.2301.12597</a>.
+</div>
+<div id="ref-li_blip_2022" class="csl-entry" role="listitem">
+Li, Junnan, Dongxu Li, Caiming Xiong, and Steven Hoi. 2022.
+<span>“<span>BLIP</span>: <span>Bootstrapping</span>
+<span>Language</span>-<span>Image</span> <span>Pre</span>-Training for
+<span>Unified</span> <span>Vision</span>-<span>Language</span>
+<span>Understanding</span> and <span>Generation</span>.”</span> arXiv.
+<a
+href="https://doi.org/10.48550/arXiv.2201.12086">https://doi.org/10.48550/arXiv.2201.12086</a>.
+</div>
+<div id="ref-li_mage_2023" class="csl-entry" role="listitem">
+Li, Tianhong, Huiwen Chang, Shlok Kumar Mishra, Han Zhang, Dina Katabi,
+and Dilip Krishnan. 2023. <span>“<span>MAGE</span>: <span>MAsked</span>
+<span>Generative</span> <span>Encoder</span> to <span>Unify</span>
+<span>Representation</span> <span>Learning</span> and <span>Image</span>
+<span>Synthesis</span>.”</span> In <em>IEEE/CVF Conference on Computer
+Vision and Pattern Recognition (CVPR)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2211.09117">https://doi.org/10.48550/arXiv.2211.09117</a>.
+</div>
 <div id="ref-lipman_flow_2023" class="csl-entry" role="listitem">
 Lipman, Yaron, Ricky T. Q. Chen, Heli Ben-Hamu, Maximilian Nickel, and
 Matt Le. 2023. <span>“Flow <span>Matching</span> for
 <span>Generative</span> <span>Modeling</span>.”</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2210.02747">https://doi.org/10.48550/arXiv.2210.02747</a>.
+</div>
+<div id="ref-liu_improved_2024" class="csl-entry" role="listitem">
+Liu, Haotian, Chunyuan Li, Yuheng Li, and Yong Jae Lee. 2024.
+<span>“Improved <span>Baselines</span> with <span>Visual</span>
+<span>Instruction</span> <span>Tuning</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2310.03744">https://doi.org/10.48550/arXiv.2310.03744</a>.
+</div>
+<div id="ref-liu_visual_2023" class="csl-entry" role="listitem">
+Liu, Haotian, Chunyuan Li, Qingyang Wu, and Yong Jae Lee. 2023.
+<span>“Visual <span>Instruction</span> <span>Tuning</span>.”</span>
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2304.08485">https://doi.org/10.48550/arXiv.2304.08485</a>.
+</div>
+<div id="ref-liu_infinitystar_2025" class="csl-entry" role="listitem">
+Liu, Jinlai, Jian Han, Bin Yan, Hui Wu, Fengda Zhu, Xing Wang, Yi Jiang,
+Bingyue Peng, and Zehuan Yuan. 2025. <span>“<span>InfinityStar</span>:
+<span>Unified</span> <span>Spacetime</span> <span>AutoRegressive</span>
+<span>Modeling</span> for <span>Visual</span>
+<span>Generation</span>.”</span> In <em>Advances in Neural Information
+Processing Systems</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2511.04675">https://doi.org/10.48550/arXiv.2511.04675</a>.
 </div>
 <div id="ref-lu_dpm-solver_2022" class="csl-entry" role="listitem">
 Lu, Cheng, Yuhao Zhou, Fan Bao, Jianfei Chen, Chongxuan Li, and Jun Zhu.
@@ -741,6 +1680,14 @@ Lu, Cheng, Yuhao Zhou, Fan Bao, Jianfei Chen, Chongxuan Li, and Jun Zhu.
 <span>Models</span>.”</span> <em>Machine Intelligence Research</em> 22
 (4): 730–51. <a
 href="https://doi.org/10.1007/s11633-025-1562-4">https://doi.org/10.1007/s11633-025-1562-4</a>.
+</div>
+<div id="ref-mikolov_distributed_2013" class="csl-entry"
+role="listitem">
+Mikolov, Tomas, Ilya Sutskever, Kai Chen, Greg Corrado, and Jeffrey
+Dean. 2013. <span>“Distributed Representations of Words and Phrases and
+Their Compositionality.”</span> In <em>Advances in Neural Information
+Processing Systems (NeurIPS)</em>. <a
+href="https://papers.nips.cc/paper_files/paper/2013/hash/9aa42b31882ec039965f3c4923ce901b-Abstract.html">https://papers.nips.cc/paper_files/paper/2013/hash/9aa42b31882ec039965f3c4923ce901b-Abstract.html</a>.
 </div>
 <div id="ref-nichol_improved_2021" class="csl-entry" role="listitem">
 Nichol, Alex, and Prafulla Dhariwal. 2021. <span>“Improved
@@ -757,6 +1704,28 @@ and <span>Editing</span> with <span>Text</span>-<span>Guided</span>
 <span>Diffusion</span> <span>Models</span>.”</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2112.10741">https://doi.org/10.48550/arXiv.2112.10741</a>.
 </div>
+<div id="ref-oord_pixel_2016" class="csl-entry" role="listitem">
+Oord, Aaron van den, Nal Kalchbrenner, and Koray Kavukcuoglu. 2016a.
+<span>“Pixel <span>Recurrent</span> <span>Neural</span>
+<span>Networks</span>.”</span> In <em>International Conference on
+Machine Learning (ICML)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1601.06759">https://doi.org/10.48550/arXiv.1601.06759</a>.
+</div>
+<div id="ref-oord_conditional_2016" class="csl-entry" role="listitem">
+Oord, Aaron van den, Nal Kalchbrenner, Oriol Vinyals, Lasse Espeholt,
+Alex Graves, and Koray Kavukcuoglu. 2016. <span>“Conditional
+<span>Image</span> <span>Generation</span> with <span>PixelCNN</span>
+<span>Decoders</span>.”</span> In <em>Advances in Neural Information
+Processing Systems</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1606.05328">https://doi.org/10.48550/arXiv.1606.05328</a>.
+</div>
+<div id="ref-oord_neural_2018" class="csl-entry" role="listitem">
+Oord, Aaron van den, Oriol Vinyals, and Koray Kavukcuoglu. 2017.
+<span>“Neural <span>Discrete</span> <span>Representation</span>
+<span>Learning</span>.”</span> In <em>Advances in Neural Information
+Processing Systems</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1711.00937">https://doi.org/10.48550/arXiv.1711.00937</a>.
+</div>
 <div id="ref-van_den_oord_wavenet_2016" class="csl-entry"
 role="listitem">
 Oord, Aäron van den, Sander Dieleman, Heiga Zen, Karen Simonyan, Oriol
@@ -766,7 +1735,7 @@ Raw Audio.”</span> <a
 href="https://arxiv.org/abs/1609.03499">https://arxiv.org/abs/1609.03499</a>.
 </div>
 <div id="ref-van_den_oord_pixel_2016" class="csl-entry" role="listitem">
-Oord, Aäron van den, Nal Kalchbrenner, and Koray Kavukcuoglu. 2016.
+Oord, Aäron van den, Nal Kalchbrenner, and Koray Kavukcuoglu. 2016b.
 <span>“Pixel Recurrent Neural Networks.”</span> In <em>International
 Conference on Machine Learning (<span>ICML</span>)</em>. <a
 href="https://arxiv.org/abs/1601.06759">https://arxiv.org/abs/1601.06759</a>.
@@ -778,6 +1747,21 @@ Alex Graves, and Koray Kavukcuoglu. 2016. <span>“Conditional Image
 Generation with <span>PixelCNN</span> Decoders.”</span> In <em>Advances
 in Neural Information Processing Systems (<span>NeurIPS</span>)</em>. <a
 href="https://arxiv.org/abs/1606.05328">https://arxiv.org/abs/1606.05328</a>.
+</div>
+<div id="ref-noauthor_gpt-4vision_2023" class="csl-entry"
+role="listitem">
+OpenAI. 2023. <span>“<span>GPT</span>-<span>4V</span>(ision)
+<span>System</span> <span>Card</span>.”</span> OpenAI Technical Report.
+<a
+href="https://cdn.openai.com/papers/GPTV_System_Card.pdf">https://cdn.openai.com/papers/GPTV_System_Card.pdf</a>.
+</div>
+<div id="ref-oquab_dinov2_2024" class="csl-entry" role="listitem">
+Oquab, Maxime, Timothée Darcet, Théo Moutakanni, Huy Vo, Marc
+Szafraniec, Vasil Khalidov, Pierre Fernandez, et al. 2024.
+<span>“<span>DINOv2</span>: <span>Learning</span> <span>Robust</span>
+<span>Visual</span> <span>Features</span> Without
+<span>Supervision</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2304.07193">https://doi.org/10.48550/arXiv.2304.07193</a>.
 </div>
 <div id="ref-papamakarios_masked_2018" class="csl-entry"
 role="listitem">
@@ -801,6 +1785,14 @@ Dockhorn, Jonas Müller, Joe Penna, and Robin Rombach. 2023.
 <span>Synthesis</span>.”</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2307.01952">https://doi.org/10.48550/arXiv.2307.01952</a>.
 </div>
+<div id="ref-radford_learning_2021" class="csl-entry" role="listitem">
+Radford, Alec, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh,
+Sandhini Agarwal, Girish Sastry, et al. 2021. <span>“Learning
+<span>Transferable</span> <span>Visual</span> <span>Models</span>
+<span>From</span> <span>Natural</span> <span>Language</span>
+<span>Supervision</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2103.00020">https://doi.org/10.48550/arXiv.2103.00020</a>.
+</div>
 <div id="ref-radford_language_2019" class="csl-entry" role="listitem">
 Radford, Alec, Jeffrey Wu, Rewon Child, David Luan, Dario Amodei, and
 Ilya Sutskever. 2019. <span>“Language Models Are Unsupervised Multitask
@@ -814,6 +1806,22 @@ Chen. 2022. <span>“Hierarchical
 <span>Generation</span> with <span>CLIP</span>
 <span>Latents</span>.”</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2204.06125">https://doi.org/10.48550/arXiv.2204.06125</a>.
+</div>
+<div id="ref-ramesh_zero-shot_2021" class="csl-entry" role="listitem">
+Ramesh, Aditya, Mikhail Pavlov, Gabriel Goh, Scott Gray, Chelsea Voss,
+Alec Radford, Mark Chen, and Ilya Sutskever. 2021.
+<span>“Zero-<span>Shot</span> <span>Text</span>-to-<span>Image</span>
+<span>Generation</span>.”</span> In <em>International Conference on
+Machine Learning (ICML)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2102.12092">https://doi.org/10.48550/arXiv.2102.12092</a>.
+</div>
+<div id="ref-razavi_generating_2019" class="csl-entry" role="listitem">
+Razavi, Ali, Aaron van den Oord, and Oriol Vinyals. 2019.
+<span>“Generating <span>Diverse</span>
+<span>High</span>-<span>Fidelity</span> <span>Images</span> with
+<span>VQ</span>-<span>VAE</span>-2.”</span> In <em>Advances in Neural
+Information Processing Systems</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1906.00446">https://doi.org/10.48550/arXiv.1906.00446</a>.
 </div>
 <div id="ref-reynolds_gaussian_2009" class="csl-entry" role="listitem">
 Reynolds, Douglas A. 2009. <span>“<span>Gaussian</span> Mixture
@@ -844,6 +1852,15 @@ Emily Denton, Seyed Kamyar Seyed Ghasemipour, et al. 2022.
 <span>Diffusion</span> <span>Models</span> with <span>Deep</span>
 <span>Language</span> <span>Understanding</span>.”</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2205.11487">https://doi.org/10.48550/arXiv.2205.11487</a>.
+</div>
+<div id="ref-salimans_pixelcnn_2017" class="csl-entry" role="listitem">
+Salimans, Tim, Andrej Karpathy, Xi Chen, and Diederik P. Kingma. 2017.
+<span>“<span>PixelCNN</span>++: <span>Improving</span> the
+<span>PixelCNN</span> with <span>Discretized</span>
+<span>Logistic</span> <span>Mixture</span> <span>Likelihood</span> and
+<span>Other</span> <span>Modifications</span>.”</span> In
+<em>International Conference on Learning Representations</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1701.05517">https://doi.org/10.48550/arXiv.1701.05517</a>.
 </div>
 <div id="ref-song_denoising_2022" class="csl-entry" role="listitem">
 Song, Jiaming, Chenlin Meng, and Stefano Ermon. 2021. <span>“Denoising
@@ -877,6 +1894,43 @@ href="https://doi.org/10.48550/arXiv.2011.13456">https://doi.org/10.48550/arXiv.
 Simulators.”</span> 2024. <a
 href="https://openai.com/index/video-generation-models-as-world-simulators/">https://openai.com/index/video-generation-models-as-world-simulators/</a>.
 </div>
+<div id="ref-sun_autoregressive_2024" class="csl-entry" role="listitem">
+Sun, Peize, Yi Jiang, Shoufa Chen, Shilong Zhang, Bingyue Peng, Ping
+Luo, and Zehuan Yuan. 2024. <span>“Autoregressive <span>Model</span>
+<span>Beats</span> <span>Diffusion</span>: <span>Llama</span> for
+<span>Scalable</span> <span>Image</span>
+<span>Generation</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2406.06525">https://doi.org/10.48550/arXiv.2406.06525</a>.
+</div>
+<div id="ref-sutskever_sequence_2014" class="csl-entry" role="listitem">
+Sutskever, Ilya, Oriol Vinyals, and Quoc V. Le. 2014. <span>“Sequence to
+Sequence Learning with Neural Networks.”</span> In <em>Advances in
+Neural Information Processing Systems (NeurIPS)</em>. <a
+href="https://arxiv.org/abs/1409.3215">https://arxiv.org/abs/1409.3215</a>.
+</div>
+<div id="ref-team_gemini_2025" class="csl-entry" role="listitem">
+Team, Gemini, Rohan Anil, Sebastian Borgeaud, Jean-Baptiste Alayrac,
+Jiahui Yu, Radu Soricut, Johan Schalkwyk, et al. 2023. <span>“Gemini:
+<span>A</span> <span>Family</span> of <span>Highly</span>
+<span>Capable</span> <span>Multimodal</span>
+<span>Models</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2312.11805">https://doi.org/10.48550/arXiv.2312.11805</a>.
+</div>
+<div id="ref-team_gemini_2024" class="csl-entry" role="listitem">
+Team, Gemini, Petko Georgiev, Ving Ian Lei, Ryan Burnell, Libin Bai,
+Anmol Gulati, Garrett Tanzer, et al. 2024. <span>“Gemini 1.5:
+<span>Unlocking</span> Multimodal Understanding Across Millions of
+Tokens of Context.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2403.05530">https://doi.org/10.48550/arXiv.2403.05530</a>.
+</div>
+<div id="ref-tian_visual_2024" class="csl-entry" role="listitem">
+Tian, Keyu, Yi Jiang, Zehuan Yuan, Bingyue Peng, and Liwei Wang. 2024.
+<span>“Visual <span>Autoregressive</span> <span>Modeling</span>:
+<span>Scalable</span> <span>Image</span> <span>Generation</span> via
+<span>Next</span>-<span>Scale</span> <span>Prediction</span>.”</span> In
+<em>Advances in Neural Information Processing Systems</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2404.02905">https://doi.org/10.48550/arXiv.2404.02905</a>.
+</div>
 <div id="ref-vahdat_nvae_2021" class="csl-entry" role="listitem">
 Vahdat, Arash, and Jan Kautz. 2020. <span>“<span>NVAE</span>:
 <span>A</span> <span>Deep</span> <span>Hierarchical</span>
@@ -884,11 +1938,97 @@ Vahdat, Arash, and Jan Kautz. 2020. <span>“<span>NVAE</span>:
 <em>Advances in Neural Information Processing Systems</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.2007.03898">https://doi.org/10.48550/arXiv.2007.03898</a>.
 </div>
+<div id="ref-villegas_phenaki_2022" class="csl-entry" role="listitem">
+Villegas, Ruben, Mohammad Babaeizadeh, Pieter-Jan Kindermans, Hernan
+Moraldo, Han Zhang, Mohammad Taghi Saffar, Santiago Castro, Julius
+Kunze, and Dumitru Erhan. 2023. <span>“Phenaki: <span>Variable</span>
+<span>Length</span> <span>Video</span> <span>Generation</span>
+<span>From</span> <span>Open</span> <span>Domain</span>
+<span>Textual</span> <span>Description</span>.”</span> In
+<em>International Conference on Learning Representations</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2210.02399">https://doi.org/10.48550/arXiv.2210.02399</a>.
+</div>
 <div id="ref-vincent_extracting_2008" class="csl-entry" role="listitem">
 Vincent, Pascal, Hugo Larochelle, Yoshua Bengio, and Pierre-Antoine
 Manzagol. 2008. <span>“Extracting and Composing Robust Features with
 Denoising Autoencoders.”</span> In <em>International Conference on
 Machine Learning (<span>ICML</span>)</em>.
+</div>
+<div id="ref-voleti_mcvd_2022" class="csl-entry" role="listitem">
+Voleti, Vikram, Alexia Jolicoeur-Martineau, and Christopher Pal. 2022.
+<span>“<span>MCVD</span>: <span>Masked</span> <span>Conditional</span>
+<span>Video</span> <span>Diffusion</span> for <span>Prediction</span>,
+<span>Generation</span>, and <span>Interpolation</span>.”</span> In
+<em>Advances in Neural Information Processing Systems</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2205.09853">https://doi.org/10.48550/arXiv.2205.09853</a>.
+</div>
+<div id="ref-wang_cogvlm_2024" class="csl-entry" role="listitem">
+Wang, Weihan, Qingsong Lv, Wenmeng Yu, Wenyi Hong, Ji Qi, Yan Wang,
+Junhui Ji, et al. 2024. <span>“<span>CogVLM</span>: <span>Visual</span>
+<span>Expert</span> for <span>Pretrained</span> <span>Language</span>
+<span>Models</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2311.03079">https://doi.org/10.48550/arXiv.2311.03079</a>.
+</div>
+<div id="ref-zhou_semantic_2025" class="csl-entry" role="listitem">
+Wang, Weilun, Jianmin Bao, Wengang Zhou, Dongdong Chen, Dong Chen, Lu
+Yuan, and Houqiang Li. 2023. <span>“Semantic <span>Image</span>
+<span>Synthesis</span> via <span>Diffusion</span>
+<span>Models</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2207.00050">https://doi.org/10.48550/arXiv.2207.00050</a>.
+</div>
+<div id="ref-xue_xgen-mm_2025" class="csl-entry" role="listitem">
+Xue, Le, Manli Shu, Anas Awadalla, Jun Wang, An Yan, Senthil
+Purushwalkam, Honglu Zhou, et al. 2024. <span>“<span
+class="nocase">xGen</span>-<span>MM</span> (<span>BLIP</span>-3):
+<span>A</span> <span>Family</span> of <span>Open</span>
+<span>Large</span> <span>Multimodal</span> <span>Models</span>.”</span>
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2408.08872">https://doi.org/10.48550/arXiv.2408.08872</a>.
+</div>
+<div id="ref-yan_videogpt_2021" class="csl-entry" role="listitem">
+Yan, Wilson, Yunzhi Zhang, Pieter Abbeel, and Aravind Srinivas. 2021.
+<span>“<span>VideoGPT</span>: <span>Video</span> <span>Generation</span>
+Using <span>VQ</span>-<span>VAE</span> and
+<span>Transformers</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2104.10157">https://doi.org/10.48550/arXiv.2104.10157</a>.
+</div>
+<div id="ref-yang_chinese_2023" class="csl-entry" role="listitem">
+Yang, An, Junshu Pan, Junyang Lin, Rui Men, Yichang Zhang, Jingren Zhou,
+and Chang Zhou. 2023. <span>“Chinese <span>CLIP</span>:
+<span>Contrastive</span> <span>Vision</span>-<span>Language</span>
+<span>Pretraining</span> in <span>Chinese</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2211.01335">https://doi.org/10.48550/arXiv.2211.01335</a>.
+</div>
+<div id="ref-yu_scaling_2022" class="csl-entry" role="listitem">
+Yu, Jiahui, Yuanzhong Xu, Jing Yu Koh, Thang Luong, Gunjan Baid, Zirui
+Wang, Vijay Vasudevan, et al. 2022. <span>“Scaling
+<span>Autoregressive</span> <span>Models</span> for
+<span>Content</span>-<span>Rich</span>
+<span>Text</span>-to-<span>Image</span> <span>Generation</span>.”</span>
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2206.10789">https://doi.org/10.48550/arXiv.2206.10789</a>.
+</div>
+<div id="ref-yuan_tinygpt-v_2024" class="csl-entry" role="listitem">
+Yuan, Zhengqing, Zhaoxu Li, Weiran Huang, Yanfang Ye, and Lichao Sun.
+2024. <span>“<span>TinyGPT</span>-<span>V</span>: <span>Efficient</span>
+<span>Multimodal</span> <span>Large</span> <span>Language</span>
+<span>Model</span> via <span>Small</span>
+<span>Backbones</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2312.16862">https://doi.org/10.48550/arXiv.2312.16862</a>.
+</div>
+<div id="ref-zhai_scaling_2022" class="csl-entry" role="listitem">
+Zhai, Xiaohua, Alexander Kolesnikov, Neil Houlsby, and Lucas Beyer.
+2022. <span>“Scaling <span>Vision</span>
+<span>Transformers</span>.”</span> In <em>IEEE/CVF Conference on
+Computer Vision and Pattern Recognition (CVPR)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2106.04560">https://doi.org/10.48550/arXiv.2106.04560</a>.
+</div>
+<div id="ref-zhai_sigmoid_2023" class="csl-entry" role="listitem">
+Zhai, Xiaohua, Basil Mustafa, Alexander Kolesnikov, and Lucas Beyer.
+2023. <span>“Sigmoid <span>Loss</span> for <span>Language</span>
+<span>Image</span> <span>Pre</span>-<span>Training</span>.”</span>
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2303.15343">https://doi.org/10.48550/arXiv.2303.15343</a>.
 </div>
 <div id="ref-zhang_adding_2023" class="csl-entry" role="listitem">
 Zhang, Lvmin, Anyi Rao, and Maneesh Agrawala. 2023. <span>“Adding
@@ -896,6 +2036,23 @@ Zhang, Lvmin, Anyi Rao, and Maneesh Agrawala. 2023. <span>“Adding
 <span>Text</span>-to-<span>Image</span> <span>Diffusion</span>
 <span>Models</span>.”</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2302.05543">https://doi.org/10.48550/arXiv.2302.05543</a>.
+</div>
+<div id="ref-zhu_llava-phi_2024" class="csl-entry" role="listitem">
+Zhu, Yichen, Minjie Zhu, Ning Liu, Zhicai Ou, Xiaofeng Mou, and Jian
+Tang. 2024. <span>“<span>LLaVA</span>-<span>Phi</span>:
+<span>Efficient</span> <span>Multi</span>-<span>Modal</span>
+<span>Assistant</span> with <span>Small</span> <span>Language</span>
+<span>Model</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2401.02330">https://doi.org/10.48550/arXiv.2401.02330</a>.
+</div>
+<div id="ref-zhuang_vargpt_2025" class="csl-entry" role="listitem">
+Zhuang, Xianwei, Yuxin Xie, Yufan Deng, Liming Liang, Jinghan Ru, Yuguo
+Yin, and Yuexian Zou. 2025. <span>“<span>VARGPT</span>:
+<span>Unified</span> <span>Understanding</span> and
+<span>Generation</span> in a <span>Visual</span>
+<span>Autoregressive</span> <span>Multimodal</span> <span>Large</span>
+<span>Language</span> <span>Model</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2501.12327">https://doi.org/10.48550/arXiv.2501.12327</a>.
 </div>
 </div>
 
