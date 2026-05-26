@@ -1,0 +1,96 @@
+"""Generate self-hosted project landing pages for publications and repos.
+
+Called by the main build (`python -m builder`) — depends only on in-repo YAML.
+One blog-styled page per selected publication and per open-source work, written
+to projects/<slug>/index.html; titles on the About page link here. Optional
+`abstract:` (papers) / `body:` (works) fields are rendered as page content.
+"""
+
+from .build_config import BASE_DIR
+from .build_utils import esc, highlight_author, slugify
+
+PROJECT_SHELL = """<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="{description}" />
+        <title>{title} - Adnan Harun Dogan</title>
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+        <link rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    </head>
+    <body>
+        <div class="blog-page project-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>{title}</h1>
+            <div class="blog-meta">{meta}</div>
+            {image}
+            <div class="blog-body">{body}</div>
+            {links}
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>
+"""
+
+
+def _links_html(links):
+    items = "".join(
+        f'<a href="{esc(l["url"])}" class="pub-link" target="_blank" '
+        f'rel="noopener noreferrer">{esc(l["name"])}</a>'
+        for l in (links or []) if l.get("url")
+    )
+    return f'<div class="publication-links">{items}</div>' if items else ""
+
+
+def _write(slug, *, title, meta, description, image="", body="", links=None):
+    out = BASE_DIR / "projects" / slug
+    out.mkdir(parents=True, exist_ok=True)
+    page = PROJECT_SHELL.format(
+        title=esc(title), meta=meta, description=esc(description),
+        image=image, body=body, links=_links_html(links),
+    )
+    (out / "index.html").write_text(page)
+
+
+def generate_project_pages(data):
+    """Write a project page for each selected publication and each work."""
+    count = 0
+
+    for p in (data.get("publications") or {}).get("papers", []):
+        if not p.get("selected"):
+            continue
+        meta = " &middot; ".join(x for x in [
+            highlight_author(esc(p.get("authors", ""))),
+            esc(p.get("venue", "")),
+            esc(str(p.get("date", ""))),
+        ] if x)
+        image = (
+            f'<img class="project-image" src="../../{esc(p["image"])}" '
+            f'alt="{esc(p["title"])}" />' if p.get("image") else ""
+        )
+        body = f'<p>{esc(p["abstract"])}</p>' if p.get("abstract") else ""
+        _write(slugify(p["title"]), title=p["title"], meta=meta,
+               description=p.get("abstract") or p.get("venue", ""),
+               image=image, body=body, links=p.get("links"))
+        count += 1
+
+    for w in (data.get("works") or {}).get("works", []):
+        tags = "".join(f'<span class="work-tag">{esc(t)}</span>' for t in w.get("tags", []))
+        meta = f'<div class="work-tags">{tags}</div>' if tags else ""
+        body = f'<p>{esc(w["description"])}</p>' if (w.get("body") is None and w.get("description")) else ""
+        if w.get("body"):
+            body = w["body"]
+        links = [{"name": "GitHub", "url": w["url"]}] if w.get("url") else []
+        _write(slugify(w["title"]), title=w["title"], meta=meta,
+               description=w.get("description", ""), body=body, links=links)
+        count += 1
+
+    print(f"Built {count} project pages")

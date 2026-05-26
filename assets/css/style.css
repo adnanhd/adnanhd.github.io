@@ -1576,3 +1576,30 @@ footer {
         grid-template-columns: 1fr;
     }
 }
+
+/* ---- Clickable project titles + project pages ---- */
+.project-link {
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.work-name {
+    text-decoration: none;
+}
+
+.project-link:hover,
+.work-name:hover {
+    color: var(--accent-color);
+}
+
+.project-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 8px 0 24px;
+    display: block;
+}
+
+.project-page .publication-links {
+    margin-top: 22px;
+}

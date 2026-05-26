@@ -30,6 +30,7 @@ from .build_html import (
     render_timeline,
     render_works,
 )
+from .build_projects import generate_project_pages
 from .build_resume import build_resume_pdf
 from .build_utils import esc, file_hash, load_data
 
@@ -84,6 +85,9 @@ def main():
 
     OUTPUT_PATH.write_text(output)
     print(f"Built {OUTPUT_PATH} ({len(output):,} bytes)")
+
+    # Project landing pages (publications + works)
+    generate_project_pages(data)
 
     # Sitemap
     sitemap_path = BASE_DIR / "sitemap.xml"

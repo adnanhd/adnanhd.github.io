@@ -30,6 +30,12 @@ def esc(s):
     return escape(str(s))
 
 
+def slugify(text):
+    """URL slug from a title: 'Bucketed Ranking Loss' -> 'bucketed-ranking-loss'."""
+    s = re.sub(r"[^\w\s-]", "", str(text).lower())
+    return re.sub(r"[\s_-]+", "-", s).strip("-")
+
+
 def highlight_author(text):
     """Bold the author's name in a text string. Input should already be escaped."""
     pattern = re.escape(esc(AUTHOR_NAME)) + "|" + re.escape(esc(AUTHOR_NAME_ALT))

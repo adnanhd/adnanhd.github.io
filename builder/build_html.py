@@ -14,7 +14,7 @@ from .build_config import (
     SECONDARY_CATEGORIES,
     URL_TEMPLATES,
 )
-from .build_utils import esc, highlight_author, highlight_author_span, parse_date
+from .build_utils import esc, highlight_author, highlight_author_span, parse_date, slugify
 
 
 # ---------------------------------------------------------------------------
@@ -143,7 +143,11 @@ def render_publication_card(paper):
 
     # Right: title, authors, venue, links
     parts.append('<div class="publication-content">')
-    parts.append(f'<div class="publication-title">{esc(paper["title"])}</div>')
+    slug = slugify(paper["title"])
+    parts.append(
+        f'<div class="publication-title">'
+        f'<a href="projects/{slug}/index.html" class="project-link">{esc(paper["title"])}</a></div>'
+    )
     parts.append(f'<div class="publication-authors">{highlight_author_span(esc(paper.get("authors", "")))}</div>')
 
     venue_full = paper.get("venue", "")
@@ -567,13 +571,16 @@ def render_works(works_data):
                 chips.append(f'<span class="work-tag">{dot}{esc(tag)}</span>')
             tags = f'<div class="work-tags">{"".join(chips)}</div>'
 
+        slug = slugify(work["title"])
+        links = _render_pub_links([{"name": "GitHub", "url": work["url"]}]) if work.get("url") else ""
         parts.append(
-            f'<a href="{esc(work["url"])}" target="_blank" rel="noopener noreferrer" class="work-item">'
+            f'<div class="work-item">'
             f'<div class="work-head">'
             f'<i class="fab fa-github work-icon" aria-hidden="true"></i>'
-            f'<span class="work-titles"><span class="work-name">{esc(work["title"])}</span>{repo_html}</span>'
-            f'<i class="fas fa-arrow-up-right-from-square work-ext" aria-hidden="true"></i>'
-            f'</div>{desc}{tags}</a>'
+            f'<span class="work-titles">'
+            f'<a href="projects/{slug}/index.html" class="work-name">{esc(work["title"])}</a>'
+            f'{repo_html}</span></div>'
+            f'{desc}{tags}{links}</div>'
         )
     return "\n".join(parts)
 
