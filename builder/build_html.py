@@ -7,14 +7,14 @@ Each function takes data (dicts loaded from YAML) and returns an HTML string.
 import json
 import re
 
-from build_config import (
+from .build_config import (
     LINK_ICONS,
     LINK_NAMES,
     PRIMARY_LINKS,
     SECONDARY_CATEGORIES,
     URL_TEMPLATES,
 )
-from build_utils import esc, highlight_author, highlight_author_span, parse_date
+from .build_utils import esc, highlight_author, highlight_author_span, parse_date
 
 
 # ---------------------------------------------------------------------------

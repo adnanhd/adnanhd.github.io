@@ -93,7 +93,7 @@ You have two options for publications:
 
 3. Run the fetch script:
    ```bash
-   python fetch_publications.py
+   python builder/fetch_publications.py
    ```
 
 The script will automatically fetch all your publications from Google Scholar and update `data/publications.yaml`. You can run this periodically to keep your publications up to date.
@@ -154,10 +154,17 @@ python -m http.server 8000
 ## File Structure
 
 ```
-├── index.html              # Main HTML structure
+├── index.html              # Generated site (built by `python -m builder`)
 ├── style.css               # All styling
-├── data.js                 # JavaScript to load YAML and populate page
-├── fetch_publications.py   # Script to fetch from Google Scholar
+├── data.js                 # Client-side JS (page navigation, etc.)
+├── builder/                # Static site builder (run: python -m builder)
+│   ├── __main__.py         # Entry point
+│   ├── build.py            # Orchestrates the build
+│   ├── build_config.py     # Paths, author identity, link templates
+│   ├── build_html.py       # HTML section renderers
+│   ├── build_resume.py     # LaTeX → resume.pdf
+│   ├── build_utils.py      # Shared helpers + YAML loading
+│   └── fetch_publications.py  # Fetch from Google Scholar
 ├── requirements.txt        # Python dependencies
 ├── profile.jpeg            # Your profile picture
 ├── cv.pdf                  # (Optional) Your CV PDF

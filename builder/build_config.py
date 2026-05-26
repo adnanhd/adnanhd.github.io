@@ -4,8 +4,8 @@ Shared configuration: paths, author info, and social link definitions.
 
 from pathlib import Path
 
-# Paths
-BASE_DIR = Path(__file__).parent
+# Paths — build_config.py lives in builder/, so repo root is two levels up
+BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 TEMPLATE_PATH = BASE_DIR / "template.html"
 OUTPUT_PATH = BASE_DIR / "index.html"

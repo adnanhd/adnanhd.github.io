@@ -8,11 +8,11 @@ Reads YAML data files and template.html, produces:
   - resume.pdf    (LaTeX-generated resume)
 
 Usage:
-    python build.py
+    python -m builder
 """
 
-from build_config import BASE_DIR, OUTPUT_PATH, TEMPLATE_PATH
-from build_html import (
+from .build_config import BASE_DIR, OUTPUT_PATH, TEMPLATE_PATH
+from .build_html import (
     generate_sitemap,
     render_bio,
     render_blogs,
@@ -29,8 +29,8 @@ from build_html import (
     render_timeline,
     render_works,
 )
-from build_resume import build_resume_pdf
-from build_utils import esc, file_hash, load_data
+from .build_resume import build_resume_pdf
+from .build_utils import esc, file_hash, load_data
 
 
 def main():

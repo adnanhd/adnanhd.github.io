@@ -11,7 +11,7 @@ from pathlib import Path
 
 import yaml
 
-from build_config import AUTHOR_DISPLAY_NAME, AUTHOR_NAME, AUTHOR_NAME_ALT, DATA_DIR
+from .build_config import AUTHOR_DISPLAY_NAME, AUTHOR_NAME, AUTHOR_NAME_ALT, DATA_DIR
 
 
 # ---------------------------------------------------------------------------

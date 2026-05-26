@@ -10,7 +10,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from build_config import (
+from .build_config import (
     AUTHOR_NAME,
     AUTHOR_NAME_ALT,
     BASE_DIR,
