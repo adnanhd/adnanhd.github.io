@@ -22,55 +22,137 @@ Place your profile image as `profile.jpeg` (or `profile.jpg`) in the root direct
 
 All content is stored in the `data/` directory. Edit these files:
 
-#### `data/bio.yaml`
+Dates use ISO format with partial precision: `YYYY`, `YYYY-MM`, or
+`YYYY-MM-DD` (plus the literal `Present`). They render human-readable at build
+time, e.g. `2025-03` shows as "March 2025". The examples below use generic
+placeholders.
+
+#### `data/bio.yaml` - identity, bio text, social links
 ```yaml
-social:
-  email: "your.email@example.com"
-  github: "adnanhd"
-  linkedin: "yourprofile"
-  google_scholar: "QGaRpqYAAAAJ"  # Your Google Scholar ID
-  twitter: ""  # Optional
-  orcid: ""    # Optional
+name: "Jane Doe"
+title: "PhD Student"
+affiliation: "Example University"
+profile_image: "assets/img/profile-sm.jpeg"
+site_url: "https://janedoe.github.io"
+short_bio: "One or two sentences for the sidebar."
+bio: |
+  Full bio (HTML allowed); blank lines separate paragraphs.
+social:              # give IDs/usernames only - full URLs are generated
+  email: "jane@example.com"
+  github: "janedoe"
+  linkedin: "jane-doe"
+  google_scholar: "XXXXXXXX"
+  orcid: "0000-0000-0000-0000"
+custom_links:        # extra sidebar links
+  - name: "Resume"
+    url: "resume.pdf"
+```
+Supported social platforms: `email`, `github`, `linkedin`, `google_scholar`,
+`acm`, `ieee`, `dblp`, `semantic_scholar`, `twitter`, `orcid`.
+
+#### `data/education.yaml` - degrees
+```yaml
+education:
+  - degree: "PhD in Computer Science"
+    institution: "Example University"
+    location: "City, Country"
+    start_date: "2023"
+    end_date: "Present"
+    logo: "assets/img/logos/example.png"   # optional
+    timelined: true                        # also show on the Timeline page
 ```
 
-Just provide the IDs/usernames - full URLs are generated automatically!
-
-Supported platforms:
-- **email**: your email address
-- **github**: GitHub username
-- **linkedin**: LinkedIn username (from profile URL)
-- **google_scholar**: Google Scholar ID (from your profile URL)
-- **acm**: ACM Digital Library profile ID
-- **ieee**: IEEE Xplore author ID
-- **dblp**: DBLP author ID (e.g., "301/3453")
-- **semantic_scholar**: Semantic Scholar author ID
-- **twitter**: Twitter/X handle
-- **orcid**: ORCID ID
-
-You can also add custom links:
+#### `data/experience.yaml` - work / internships
 ```yaml
-custom_links:
-  - name: "CV"
-    url: "cv.pdf"
-  - name: "Blog"
-    url: "https://yourblog.com"
+experience:
+  - position: "Research Intern"
+    company: "Example Lab"
+    location: "City, Country"
+    start_date: "2024-06"
+    end_date: "2024-09"
+    advisor: "Prof. A. Adviser"        # optional
+    commitment: "Full-time, 3 months"  # optional
+    logo: "assets/img/logos/example.png"
+    timelined: true
+    bullets:
+      - "What you did, one line each."
 ```
 
-#### CV section files (one file per section)
-- `data/education.yaml` - degrees, institutions, dates (set `timelined: true` to show in the timeline)
-- `data/experience.yaml` - work/internship entries (set `timelined: true` for the timeline)
-- `data/research.yaml` - research positions
-- `data/teaching.yaml` - teaching/TA entries
-- `data/extracurricular.yaml` - honors and skills
+#### `data/research.yaml` and `data/teaching.yaml`
+Same shape as `experience.yaml` (`position`, `company`, dates, `bullets`,
+`logo`, `timelined`): `research` holds research positions, `teaching` holds
+TA/teaching entries.
 
-#### `data/news.yaml`
-- News items with dates
-- Optional links for news items
+#### `data/extracurricular.yaml` - honors and skills
+```yaml
+honors:
+  - title: "Best Paper Award"
+    organization: "Some Conference"
+    date: "2024"
+    logo: "assets/img/logos/example.png"   # optional
+skills:
+  - "Python"
+  - "PyTorch"
+```
 
-#### `data/publications.yaml`
-- Publication entries with title, authors, venue, description
-- Links (paper, code, project page, etc.)
-- These appear in the right timeline column
+#### `data/publications.yaml` - papers
+```yaml
+papers:
+  - title: "A Paper Title"
+    authors: "Doe, J., Coauthor, A."
+    venue: "Conference on Examples"
+    venue_short: "CoE 2025"               # colored tag
+    venue_link: "https://example.org"     # optional, makes the tag clickable
+    date: "2025"
+    image: "assets/img/publications/paper.png"  # thumbnail (selected works)
+    selected: true   # show on the About page with image
+    resume: true     # list on the CV page
+    timelined: true  # show on the Timeline page
+    abstract: |      # optional; rendered on the paper's project page
+      ## Problem
+      Markdown with '## ' sections, '|' tables, and MathJax math such as
+      \(a^2 + b^2 = c^2\) inline or \[ E = mc^2 \] as a display equation.
+    links:
+      - name: "Paper"
+        url: "https://arxiv.org/abs/0000.00000"
+      - name: "GitHub"
+        url: "https://github.com/user/repo"
+```
+
+#### `data/news.yaml` - news feed
+```yaml
+items:
+  - date: "2025-03"
+    content: "Something happened."
+    tags: ["publication"]   # publication | degree | internship | award
+    link: "https://example.org"   # optional
+```
+
+#### `data/blogs.yaml` - blog listings + tag tree
+```yaml
+tag_tree:              # child tags inherit ancestors when filtering
+  machine-learning:
+    - reinforcement-learning
+blogs:
+  - title: "A Blog Post"
+    date: "2025-01"
+    description: "One-line summary."
+    path: "blogs/my-post/index.html"
+    selected: true     # feature on the About page
+    tags: [reinforcement-learning]
+```
+
+#### `data/works.yaml` - open-source projects
+```yaml
+works:
+  - title: "my-project"
+    description: "One line for the card."
+    url: "https://github.com/user/my-project"
+    tags: ["Python", "PyTorch"]   # known tech (Python, PyTorch, Docker,
+                                  # Apptainer, CUDA, ...) render as badges
+    body: |        # optional; rendered on the project page (markdown + tables)
+      What it does, in a paragraph or two.
+```
 
 ### 3. (Optional) Fetch Publications from Google Scholar
 
@@ -118,20 +200,42 @@ papers:
 ### 4. (Optional) Add Your CV PDF
 Add a PDF of your CV as `assets/img/cv.pdf` if you want the CV link to work.
 
+## Building
+
+The site is generated from `template.html` + the `data/*.yaml` files by the
+builder package:
+
+```bash
+python -m builder        # writes index.html, sitemap.xml, resume.pdf, projects/
+```
+
+A tracked pre-commit hook rebuilds these artifacts automatically when a build
+source changes. Enable it once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Blog pages are generated separately from org notes (not part of the main build):
+
+```bash
+python -m builder.build_blogs
+```
+
 ## Customization
 
 ### Colors
-The main accent color (`#3498db` - blue) is defined in `style.css`. Search and replace to change:
-```css
-/* Find: #3498db */
-/* Replace with your preferred color (e.g., #e74c3c for red) */
-```
+The accent color is the `--accent-color` CSS variable (default `#0066cc`) in
+`assets/css/style.css`, which also holds the light/dark theme values near the
+top of the file.
 
 ### Layout
-The site is fully responsive. Edit `style.css` to adjust spacing, fonts, or layout as needed.
+The site is fully responsive; edit `assets/css/style.css` to adjust spacing,
+fonts, or layout.
 
 ### Adding/Removing Sections
-Edit `index.html` to add or remove sections. The JavaScript in `data.js` automatically populates content from YAML files.
+`index.html` is generated - edit the placeholders in `template.html` and the
+renderers in `builder/build_html.py`, then rebuild.
 
 ## Local Testing
 
