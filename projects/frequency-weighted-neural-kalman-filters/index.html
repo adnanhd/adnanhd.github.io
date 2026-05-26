@@ -3,37 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="description" content="## Problem
-The Kalman filter is optimal only when sensor noise is white and Gaussian.
-In practice much sensor noise is frequency-localized (colored) -
-concentrated in particular frequency bands - and under such noise the
-classical filter and even recent neural Kalman variants degrade.
-
-## Method
-FW-NKF augments the Kalman recursion with a learnable IIR filter applied
-causally to the innovation (the residual between the observed and the
-predicted measurement), parameterized by learnable coefficients. It is
-trained with &quot;spectral supervision&quot;: the observation model maps both the
-ground-truth and the estimated state back to measurement space, and a
-frequency-domain loss term (weighted by a hyperparameter lambda) guides the
-filter to reconstruct noise-free sensor signals - frequency-selective
-denoising of the innovations rather than the uniform gain of a classical
-filter.
-
-## Experiments
-FW-NKF is evaluated on synthetic systems (the Lorenz attractor and a
-nonlinear pendulum) and on real-world tracking - EuRoC MAV IMU odometry and
-UWB-IMU human pose estimation - against the classical KF, KalmanNet and its
-Bayesian/recursive variants, the Recurrent Kalman Network, and an
-autoregressive KF, reporting MSE, NRMSE and R^2 over multiple seeds. It
-consistently outperforms these baselines: e.g. on Lorenz it reaches about
-0.276 MSE / 0.999 R^2 (versus roughly 19.5 MSE for KalmanNet), and on EuRoC
-MAV about 0.035 MSE / 0.989 R^2.
-
-## Context
-Work carried out with ETH Zürich&#x27;s Sensing, Interaction &amp; Perception Lab;
-accepted at IEEE ICRA 2026.
-" />
+        <meta name="description" content="International Conference on Robotics and Automation (IEEE ICRA)" />
         <title>Frequency-Weighted Neural Kalman Filters - Adnan Harun Dogan</title>
         <link rel="stylesheet" href="../../assets/css/style.css" />
         <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
@@ -41,6 +11,7 @@ accepted at IEEE ICRA 2026.
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
         <link rel="stylesheet"
             href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.16.0/devicon.min.css" />
+        <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
     </head>
     <body>
         <div class="blog-page project-page">
@@ -48,7 +19,7 @@ accepted at IEEE ICRA 2026.
             <h1>Frequency-Weighted Neural Kalman Filters</h1>
             <div class="blog-meta"><strong>Dogan, A. H.</strong>, Demirel, B. U., Holz, C. &middot; International Conference on Robotics and Automation (IEEE ICRA) &middot; 2026</div>
             <img class="project-image" src="../../assets/img/publications/icra2026.png" alt="Frequency-Weighted Neural Kalman Filters" />
-            <div class="blog-body"><h3>Problem</h3><p>The Kalman filter is optimal only when sensor noise is white and Gaussian. In practice much sensor noise is frequency-localized (colored) - concentrated in particular frequency bands - and under such noise the classical filter and even recent neural Kalman variants degrade.</p><h3>Method</h3><p>FW-NKF augments the Kalman recursion with a learnable IIR filter applied causally to the innovation (the residual between the observed and the predicted measurement), parameterized by learnable coefficients. It is trained with &quot;spectral supervision&quot;: the observation model maps both the ground-truth and the estimated state back to measurement space, and a frequency-domain loss term (weighted by a hyperparameter lambda) guides the filter to reconstruct noise-free sensor signals - frequency-selective denoising of the innovations rather than the uniform gain of a classical filter.</p><h3>Experiments</h3><p>FW-NKF is evaluated on synthetic systems (the Lorenz attractor and a nonlinear pendulum) and on real-world tracking - EuRoC MAV IMU odometry and UWB-IMU human pose estimation - against the classical KF, KalmanNet and its Bayesian/recursive variants, the Recurrent Kalman Network, and an autoregressive KF, reporting MSE, NRMSE and R^2 over multiple seeds. It consistently outperforms these baselines: e.g. on Lorenz it reaches about 0.276 MSE / 0.999 R^2 (versus roughly 19.5 MSE for KalmanNet), and on EuRoC MAV about 0.035 MSE / 0.989 R^2.</p><h3>Context</h3><p>Work carried out with ETH Zürich&#x27;s Sensing, Interaction &amp; Perception Lab; accepted at IEEE ICRA 2026.</p></div>
+            <div class="blog-body"><h3>Setup: the Kalman filter</h3><p>For a state-space system with state \(x_k\) and measurement \(z_k\), \[ x_k = F x_{k-1} + w_k, \qquad z_k = H x_k + v_k, \] the Kalman filter predicts \(\hat{x}_{k|k-1} = F\hat{x}_{k-1}\) and corrects it with the innovation (measurement residual) \[ r_k = z_k - H\hat{x}_{k|k-1}, \qquad \hat{x}_k = \hat{x}_{k|k-1} + K_k r_k. \] The gain \(K_k\) is statistically optimal only when the measurement noise \(v_k\) is white. When the noise is colored, i.e. concentrated in a frequency band, that assumption breaks and the estimate degrades; learned filters such as KalmanNet help but still treat the innovation as broadband.</p><h3>Method</h3><p>FW-NKF keeps the recursion but passes the innovation through a learnable IIR filter before the correction: \[ \tilde{r}_k = \sum_{m=0}^{M} b_m\, r_{k-m} \;-\; \sum_{n=1}^{N} a_n\, \tilde{r}_{k-n}, \qquad \hat{x}_k = \hat{x}_{k|k-1} + K_k \tilde{r}_k. \] An IIR response (rather than FIR) is sharp with few learnable coefficients \(\{a_n, b_m\}\), so the filter can attenuate the noisy band of the innovation while keeping the informative one.</p><h3>Spectral supervision</h3><p>Training uses more than state error: the observation model maps both the true and the estimated state back to measurement space, and a frequency-domain term pulls the filtered signal toward the clean spectrum, \[ \mathcal{L} = \mathcal{L}_{\text{state}} + \lambda\, \mathcal{L}_{\text{spec}}, \qquad \mathcal{L}_{\text{spec}} = \big\lVert\, |\mathcal{F}(H\hat{x})| - |\mathcal{F}(Hx)|\, \big\rVert, \] where \(\mathcal{F}\) is the DFT and \(\lambda\) weights the spectral loss.</p><h3>Experiments</h3><p>FW-NKF is tested on synthetic systems (the Lorenz attractor, a nonlinear pendulum) and on real tracking (EuRoC MAV IMU odometry, UWB-IMU human pose), against the classical KF, KalmanNet and its Bayesian/recursive variants, the Recurrent Kalman Network, and an autoregressive KF, over MSE / NRMSE / \(R^2\) across several seeds. It is consistently the strongest:</p><div class="blog-table"><table><thead><tr><th>System</th><th>FW-NKF MSE</th><th>FW-NKF R^2</th><th>KalmanNet MSE</th></tr></thead><tbody><tr><td>Lorenz (3-state)</td><td>0.276</td><td>0.999</td><td>19.53</td></tr><tr><td>Pendulum (2-state)</td><td>0.278</td><td>0.947</td><td>0.767</td></tr><tr><td>EuRoC MAV (10-state)</td><td>0.035</td><td>0.989</td><td>-</td></tr></tbody></table></div><p>The spectral term is the active ingredient: sweeping its weight \(\lambda\) from \(0\) (a plain neural Kalman filter) upward improves accuracy, with the best setting near \(\lambda \approx 0.01\)-\(0.1\) depending on the system, confirming that frequency-selective denoising of the innovation - not just added capacity - drives the gain.</p><h3>Context</h3><p>Work with ETH Zürich&#x27;s Sensing, Interaction &amp; Perception Lab; accepted at IEEE ICRA 2026.</p></div>
             <div class="publication-links"><a href="https://github.com/eth-siplab/Frequency-weighted-neural-Kalman-filters/" class="pub-link" target="_blank" rel="noopener noreferrer">GitHub</a></div>
         </div>
         <script>
