@@ -362,81 +362,78 @@ def render_news(data):
 # Timeline
 # ---------------------------------------------------------------------------
 
+def _timeline_exp_event(item):
+    """Build a timeline event dict from an education/experience/research item."""
+    return {
+        "date": item.get("start_date"), "end_date": item.get("end_date"),
+        "type": "experience",
+        "title": item.get("degree") or item.get("position", ""),
+        "subtitle": item.get("institution") or item.get("company", ""),
+        "logo": item.get("logo"),
+    }
+
+
 def render_timeline(data):
-    """Render the unified timeline from education, experience, research, and publications."""
+    """Single-rail timeline: timelined experiences/education/research + all publications."""
     events = []
 
-    # Collect timelined events from each source
     for edu in (data.get("education") or {}).get("education", []):
         if edu.get("timelined"):
-            events.append({
-                "date": edu["start_date"], "type": "experience",
-                "title": edu["degree"], "organization": edu["institution"],
-                "end_date": edu.get("end_date"),
-            })
-
+            events.append(_timeline_exp_event(edu))
     for exp in (data.get("experience") or {}).get("experience", []):
         if exp.get("timelined"):
-            events.append({
-                "date": exp["start_date"], "type": "experience",
-                "title": exp["position"], "organization": exp["company"],
-                "end_date": exp.get("end_date"),
-            })
-
+            events.append(_timeline_exp_event(exp))
     for res in (data.get("research") or {}).get("research", []):
         if res.get("timelined"):
-            events.append({
-                "date": res["start_date"], "type": "experience",
-                "title": res["position"], "organization": res["company"],
-                "end_date": res.get("end_date"),
-            })
+            events.append(_timeline_exp_event(res))
 
+    # Publications are inherently chronological — include all of them.
     for paper in (data.get("publications") or {}).get("papers", []):
-        if paper.get("timelined"):
-            events.append({
-                "date": paper["date"], "type": "publication",
-                "title": paper["title"],
-                "authors": paper.get("authors", ""),
-                "venue": paper.get("venue_short") or paper.get("venue", ""),
-                "links": paper.get("links"),
-            })
+        events.append({
+            "date": paper.get("date"), "type": "publication",
+            "title": paper.get("title", ""),
+            "authors": paper.get("authors", ""),
+            "subtitle": paper.get("venue_short") or paper.get("venue", ""),
+            "links": paper.get("links"),
+        })
 
+    events = [e for e in events if e.get("date")]
     events.sort(key=lambda e: parse_date(e["date"]), reverse=True)
     if not events:
         return ""
 
-    parts = ['<div class="unified-timeline">']
-    for event in events:
-        parts.append(f'<div class="timeline-row timeline-{event["type"]}">')
+    parts = ['<div class="timeline">']
+    for e in events:
+        parts.append(f'<div class="timeline-item timeline-{e["type"]}">')
 
-        # Date column
-        date_html = esc(str(event["date"]))
-        if event.get("end_date"):
-            date_html += f"<br>{esc(str(event['end_date']))}"
-        parts.append(f'<div class="timeline-left"><div class="timeline-date">{date_html}</div></div>')
+        date = esc(str(e["date"]))
+        if e.get("end_date"):
+            date += f' <span class="timeline-dash">–</span> {esc(str(e["end_date"]))}'
+        parts.append(f'<span class="timeline-date">{date}</span>')
 
-        # Marker
-        parts.append('<div class="timeline-center"><div class="timeline-marker"></div></div>')
+        logo = e.get("logo")
+        logo_html = (
+            f'<img class="timeline-logo" src="{esc(logo)}" alt="" loading="lazy" '
+            f'width="22" height="22" />' if logo else ""
+        )
+        parts.append(f'<h4 class="timeline-title">{logo_html}<span>{esc(e["title"])}</span></h4>')
 
-        # Content
-        parts.append('<div class="timeline-right"><div class="timeline-content-box">')
-        parts.append(f"<h4>{esc(event['title'])}</h4>")
-
-        if event["type"] == "experience":
-            parts.append(f'<div class="timeline-org">{esc(event.get("organization", ""))}</div>')
-        else:
-            parts.append(f'<div class="timeline-authors">{highlight_author(esc(event.get("authors", "")))}</div>')
-            parts.append(f'<div class="timeline-venue"><em>{esc(event.get("venue", ""))}</em></div>')
-            if event.get("links"):
-                link_html = "\n".join(
+        if e["type"] == "publication":
+            parts.append(f'<div class="timeline-authors">{highlight_author(esc(e.get("authors", "")))}</div>')
+            if e.get("subtitle"):
+                parts.append(f'<div class="timeline-venue"><em>{esc(e["subtitle"])}</em></div>')
+            links = [l for l in (e.get("links") or []) if l.get("url")]
+            if links:
+                link_html = "".join(
                     f'<a href="{esc(l["url"])}" target="_blank" rel="noopener noreferrer" '
                     f'class="timeline-link">{esc(l["name"])}</a>'
-                    for l in event["links"]
+                    for l in links
                 )
                 parts.append(f'<div class="timeline-links">{link_html}</div>')
+        elif e.get("subtitle"):
+            parts.append(f'<div class="timeline-org">{esc(e["subtitle"])}</div>')
 
-        parts.append("</div></div></div>")
-
+        parts.append("</div>")
     parts.append("</div>")
     return "\n".join(parts)
 
