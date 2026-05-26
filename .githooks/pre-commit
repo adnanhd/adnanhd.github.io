@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+#
+# pre-commit: rebuild generated artifacts (index.html, sitemap.xml, resume.pdf,
+# project pages) from data/ + templates and stage them, so they ride along in
+# the same commit.
+#
+# Tracked hook — enable once per clone with:  git config core.hooksPath .githooks
+# Only runs when the commit touches a build source; aborts the commit if the
+# build fails. To skip:  git commit --no-verify
+#
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+# --- only rebuild when a build source is part of this commit -----------------
+SOURCE_REGEX='^(data/|builder/|assets/|template\.html$|resume_template\.tex$)'
+
+if ! git diff --cached --name-only --diff-filter=ACMR | grep -Eq "$SOURCE_REGEX"; then
+    exit 0
+fi
+
+# --- pick a python that can import yaml ---------------------------------------
+PY=""
+for cand in "$REPO_ROOT/.venv/bin/python" python3 python; do
+    if command -v "$cand" >/dev/null 2>&1 && "$cand" -c "import yaml" >/dev/null 2>&1; then
+        PY="$cand"
+        break
+    fi
+done
+if [ -z "$PY" ]; then
+    echo "pre-commit: no python with PyYAML found; cannot build. (use --no-verify to skip)" >&2
+    exit 1
+fi
+
+echo "pre-commit: rebuilding artifacts with $PY ..."
+if ! "$PY" -m builder; then
+    echo "pre-commit: build failed; commit aborted. (use --no-verify to skip)" >&2
+    exit 1
+fi
+
+# --- stage regenerated artifacts ---------------------------------------------
+git add index.html sitemap.xml resume.pdf 2>/dev/null || true
+git add projects 2>/dev/null || true
+
+exit 0
