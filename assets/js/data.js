@@ -119,12 +119,49 @@ function initLinkableHeaders() {
   });
 }
 
+function initBlogFilter() {
+  const search = document.getElementById("blog-search");
+  const filters = document.querySelectorAll(".blog-filter");
+  const items = document.querySelectorAll("#blog-posts .blog-item");
+  if (!items.length) return;
+  let activeTag = "";
+
+  function apply() {
+    const q = ((search && search.value) || "").trim().toLowerCase();
+    items.forEach((item) => {
+      const tags = " " + (item.getAttribute("data-tags") || "") + " ";
+      const hay = item.getAttribute("data-search") || "";
+      const matchTag = !activeTag || tags.indexOf(" " + activeTag + " ") !== -1;
+      const matchText = !q || hay.indexOf(q) !== -1;
+      item.style.display = matchTag && matchText ? "" : "none";
+    });
+  }
+
+  function setTag(tag) {
+    activeTag = tag || "";
+    filters.forEach((b) =>
+      b.classList.toggle("active", (b.getAttribute("data-tag") || "") === activeTag),
+    );
+    apply();
+  }
+
+  if (search) search.addEventListener("input", apply);
+  filters.forEach((btn) =>
+    btn.addEventListener("click", () => setTag(btn.getAttribute("data-tag") || "")),
+  );
+  // Clicking a tag chip on a card activates that filter.
+  document.querySelectorAll("#blog-posts .blog-tag").forEach((chip) =>
+    chip.addEventListener("click", () => setTag(chip.getAttribute("data-tag") || "")),
+  );
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   handleHash();
   initCategoryToggles();
   initImageLightbox();
   initLinkableHeaders();
+  initBlogFilter();
 });
 
 window.addEventListener("hashchange", handleHash);

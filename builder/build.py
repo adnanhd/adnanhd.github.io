@@ -15,6 +15,7 @@ from .build_config import BASE_DIR, OUTPUT_PATH, TEMPLATE_PATH
 from .build_html import (
     generate_sitemap,
     render_bio,
+    render_blog_controls,
     render_blogs,
     render_compact_publication,
     render_education,
@@ -66,6 +67,7 @@ def main():
         "{{RESUME_PAPERS}}": resume_html,
         "{{SELECTED_BLOGS}}": render_blogs(data["blogs"], selected_only=True),
         "{{ALL_BLOGS}}": render_blogs(data["blogs"], selected_only=False),
+        "{{BLOG_CONTROLS}}": render_blog_controls(data["blogs"]),
         "{{WORKS}}": render_works(data["works"]),
         "{{EDUCATION}}": render_education(data),
         "{{EXPERIENCE}}": render_experience(data),

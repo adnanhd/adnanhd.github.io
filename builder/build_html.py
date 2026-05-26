@@ -442,9 +442,63 @@ def render_timeline(data):
 # Blogs and Works
 # ---------------------------------------------------------------------------
 
+def _pretty_tag(tag):
+    """Human-readable label for a slug tag: 'policy-gradient' -> 'Policy Gradient'."""
+    return str(tag).replace("-", " ").title()
+
+
+def _tag_parent_map(tag_tree):
+    """Invert a parent->children tree into child->{parents} for ancestor lookup."""
+    parents = {}
+    for parent, children in (tag_tree or {}).items():
+        for child in children or []:
+            parents.setdefault(child, set()).add(parent)
+    return parents
+
+
+def _effective_tags(tags, parent_map):
+    """Expand tags with all inherited (ancestor) tags from the tag tree."""
+    result, stack = set(), list(tags or [])
+    while stack:
+        tag = stack.pop()
+        if tag in result:
+            continue
+        result.add(tag)
+        stack.extend(parent_map.get(tag, ()))
+    return result
+
+
+def render_blog_controls(blogs_data):
+    """Render the blog search box + tag filter chips (tag-inheritance aware)."""
+    bd = blogs_data or {}
+    blogs = bd.get("blogs", [])
+    if not blogs:
+        return ""
+    parent_map = _tag_parent_map(bd.get("tag_tree"))
+    all_tags = set()
+    for blog in blogs:
+        all_tags |= _effective_tags(blog.get("tags") or [], parent_map)
+
+    chips = ['<button class="blog-filter active" data-tag="">All</button>']
+    for tag in sorted(all_tags):
+        chips.append(
+            f'<button class="blog-filter" data-tag="{esc(tag)}">{esc(_pretty_tag(tag))}</button>'
+        )
+    filters = f'<div class="blog-filters">{"".join(chips)}</div>' if all_tags else ""
+    return (
+        '<div class="blog-controls">'
+        '<input type="search" id="blog-search" class="blog-search" '
+        'placeholder="Search posts…" aria-label="Search blog posts" />'
+        f'{filters}'
+        '</div>'
+    )
+
+
 def render_blogs(blogs_data, selected_only=False):
-    """Render blog post listings."""
-    blogs = (blogs_data or {}).get("blogs", [])
+    """Render blog post listings with inherited tags + search/filter metadata."""
+    bd = blogs_data or {}
+    blogs = bd.get("blogs", [])
+    parent_map = _tag_parent_map(bd.get("tag_tree"))
     if selected_only:
         blogs = [b for b in blogs if b.get("selected")]
 
@@ -454,12 +508,23 @@ def render_blogs(blogs_data, selected_only=False):
 
     parts = []
     for blog in blogs:
+        own_tags = sorted(blog.get("tags") or [])
+        eff_tags = sorted(_effective_tags(own_tags, parent_map))
+        data_tags = " ".join(eff_tags)
+        search = " ".join([blog.get("title", ""), blog.get("description", "")] + eff_tags).lower()
+
+        chips = "".join(
+            f'<span class="blog-tag" data-tag="{esc(t)}">{esc(_pretty_tag(t))}</span>'
+            for t in own_tags
+        )
+        chips_html = f'<div class="blog-tags">{chips}</div>' if chips else ""
         desc = f"<p>{esc(blog['description'])}</p>" if blog.get("description") else ""
         parts.append(
-            f'<div class="blog-item"><a href="{esc(blog["path"])}" class="blog-link">'
+            f'<div class="blog-item" data-tags="{esc(data_tags)}" data-search="{esc(search)}">'
+            f'<a href="{esc(blog["path"])}" class="blog-link">'
             f'<h3>{esc(blog["title"])}</h3>'
             f'<span class="blog-date">{esc(blog.get("date", ""))}</span>'
-            f'{desc}</a></div>'
+            f'{desc}</a>{chips_html}</div>'
         )
     return "\n".join(parts)
 
