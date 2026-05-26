@@ -1,0 +1,1103 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="A survey of reinforcement learning models: policy gradients, trust-region and actor-critic methods, distributed training, model-based RL, and offline / preference-based learning." />
+        <title>Reinforcement Learning - Adnan Harun Dogan</title>
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Reinforcement Learning</h1>
+            <div class="blog-meta">A survey of 30+ RL models — from REINFORCE to MuZero and DPO</div>
+            <article class="blog-body">
+<p><u>Policy optimization directly parameterizes and optimizes the
+policy function, contrasting with value-based methods that derive
+policies indirectly from learned value functions.</u> The foundational
+policy gradient theorem <span
+class="citation" data-cites="sutton_policy_1999">(Richard S. Sutton et
+al. 1999)</span> established that gradients of expected return can be
+estimated from trajectories without differentiating through environment
+dynamics, enabling optimization of stochastic policies with arbitrary
+function approximators. <strong>REINFORCE</strong> <span
+class="citation" data-cites="williams_simple_1992">(Williams
+1992)</span> is the Monte-Carlo special case and remains the canonical
+illustration of the <strong>high-variance gradient estimator</strong><a
+href="#fn1" class="footnote-ref" id="fnref1"
+role="doc-noteref"><sup>1</sup></a> that every successor mitigates. The
+development of actor-critic methods then combined policy gradients
+(actor) with value-function estimation (critic) to reduce variance while
+maintaining unbiased gradient estimates, at the cost of <strong>credit
+assignment</strong><a href="#fn2" class="footnote-ref" id="fnref2"
+role="doc-noteref"><sup>2</sup></a> difficulties that long-horizon tasks
+aggravate.</p>
+<p><u>The value-based lineage that DQN modernised begins a decade
+earlier and runs in parallel to the policy-gradient programme above.</u>
+Sutton's temporal-difference learning <span class="citation"
+data-cites="sutton_learning_1988">(Richard S. Sutton 1988)</span>
+introduced the bootstrap update
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mi>t</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>←</mo><mi>V</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mi>t</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mi>α</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>r</mi><mi>t</mi></msub><mo>+</mo><mi>γ</mi><mi>V</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>V</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mi>t</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">V(s_t) \gets V(s_t) + \alpha (r_t + \gamma V(s_{t+1}) - V(s_t))</annotation></semantics></math>
+that learns from incomplete sequences rather than waiting for episode
+termination as Monte Carlo methods do; Watkins's Q-learning <span
+class="citation" data-cites="watkins_q-learning_1992">(Watkins and Dayan
+1992)</span> is the off-policy variant that learns the optimal
+action-value function under any sufficiently-exploratory behaviour
+policy, with a tabular convergence proof that became the textbook
+foundation. The first scaled empirical demonstration was Tesauro's
+TD-Gammon <span class="citation"
+data-cites="tesauro_temporal_1995">(Tesauro 1995)</span>, a
+backgammon-playing neural network trained from self-play TD updates that
+reached world-championship strength with a single hidden-layer MLP and
+roughly 1.5M training games. <u>TD-Gammon is the historical anchor for
+the entire deep-RL programme: it proved that bootstrap targets plus
+self-generated experience could exceed engineered evaluation
+functions</u>, predating AlphaGo's same-template victory by two decades.
+Rainbow <span class="citation" data-cites="hessel_rainbow_2018">(Hessel
+et al. 2018)</span> combined six independent DQN extensions (Double DQN,
+Prioritised Replay, Dueling networks, Multi-step returns, Distributional
+Q-learning, NoisyNets) and showed that the combination beats each
+individual component on Atari-57 median HNS, with ablation revealing
+Prioritised Replay and Multi-step returns as the two highest-impact
+additions; <u>Rainbow's ablation methodology became the template for
+later combinatorial agent design (R2D2, Agent57), and the field's quiet
+observation is that the six-component bundle has not been displaced by
+any single subsequent value-based innovation</u>, which is why the 2018
+Atari-57 baseline still ships as a reference in 2024 benchmarks.</p>
+<p>Early work on natural policy
+gradients <span class="citation"
+data-cites="kakade_natural_2001">(Kakade 2001)</span> showed that
+<u>following the steepest descent in distribution space rather than
+parameter space yields more stable optimization.</u> The Natural Actor-Critic <span
+class="citation" data-cites="peters_natural_2008">(Peters and Schaal
+2008)</span> combined natural gradients with temporal-difference
+learning, achieving parameter-independent updates suited for robotics.
+Trust Region Policy Optimization (TRPO) <span
+class="citation" data-cites="schulman_trust_2017">(Schulman et al.
+2015)</span> formalized this intuition with KL-divergence constraints
+guaranteeing monotonic improvement; Proximal Policy
+Optimization (PPO) <span class="citation"
+data-cites="schulman_proximal_2017">(Schulman et al. 2017)</span>
+<u>simplified TRPO with a clipped surrogate objective that became the de
+facto on-policy default.</u> Both inherit the <strong>on-policy sample
+inefficiency</strong><a href="#fn3" class="footnote-ref" id="fnref3"
+role="doc-noteref"><sup>3</sup></a> cost of discarding data each
+update.</p>
+<p>For continuous control, deterministic policy gradients <span
+class="citation" data-cites="silver_deterministic_2014">(Silver et al.
+2014)</span> enabled efficient off-policy learning by eliminating
+integration over the action space. Deep Deterministic
+Policy Gradient (DDPG) <span class="citation"
+data-cites="lillicrap_continuous_2019">(Lillicrap et al. 2019)</span>
+extended this to deep networks using experience replay and target
+networks from DQN <span class="citation"
+data-cites="mnih_human_2015">(Mnih et al. 2015)</span>. Twin Delayed DDPG (TD3) <span class="citation"
+data-cites="fujimoto_addressing_2018">(Fujimoto, Hoof, and Meger
+2018)</span> addressed overestimation bias via clipped double
+Q-learning, delayed policy updates, and target smoothing. Soft Actor-Critic (SAC) <span class="citation"
+data-cites="haarnoja_soft_2018">(Haarnoja et al. 2018)</span> <span
+class="citation" data-cites="haarnoja_soft_2019">(Haarnoja et al.
+2019)</span> introduced maximum-entropy RL, encouraging principled
+<strong>exploration</strong><a href="#fn4" class="footnote-ref"
+id="fnref4" role="doc-noteref"><sup>4</sup></a> through entropy
+regularization while remaining off-policy. Off-policy variants pay an
+<strong>off-policy correction</strong><a href="#fn5"
+class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a>
+cost: importance ratios explode under policy mismatch and require either
+V-trace, Retrace, or implicit conservatism.</p>
+<p><u>Sparse-reward tasks pose a distinct problem that the off-policy
+continuous-control methods above do not solve</u>: when the reward
+signal is nonzero only at goal achievement, the replay buffer is
+dominated by failed trajectories from which no value learning occurs.
+Hindsight Experience Replay <span class="citation"
+data-cites="andrychowicz_hindsight_2017">(Andrychowicz et al.
+2017)</span> addresses this by <em>relabelling</em> failed trajectories
+with an achieved state as if it had been the goal: every trajectory
+becomes a successful demonstration of reaching <em>some</em> goal, even
+if not the intended one, and the mechanism is straightforward (sample
+additional
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>s</mi><mo>,</mo><mi>a</mi><mo>,</mo><mi>s</mi><mi>′</mi><mo>,</mo><mi>r</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(s, a, s&#39;, r&#39;)</annotation></semantics></math>
+tuples with the goal replaced by a future state along the same
+trajectory). HER enables DDPG to solve manipulation tasks (robotic
+pushing, sliding, and pick-and-place with binary completion rewards)
+that fail entirely without it; a separate didactic bit-flipping
+environment demonstrates learning curves in the paper but is not the
+main claim. <u>The skeptical reading is that HER is essentially a
+curriculum trick that exploits the goal-conditioned-MDP structure rather
+than a general-purpose algorithm</u>: tasks without goal conditioning
+(Atari, locomotion) cannot use HER directly, and even within
+goal-conditioned regimes HER amplifies the data's nearest-state coverage
+bias rather than expanding it; the recipe nevertheless propagated to
+GoalGAN, RIG, and the broader sparse-reward goal-conditioned RL family
+without significant modification.</p>
+<p><u>Distributed training scaled policy optimization to massive
+compute.</u> A3C <span class="citation"
+data-cites="mnih_asynchronous_2016">(Mnih et al. 2016)</span> used
+asynchronous parallel actors for stable on-policy learning without
+replay buffers; IMPALA <span class="citation"
+data-cites="espeholt_impala_2018">(Espeholt et al. 2018)</span>
+decoupled acting and learning with V-trace off-policy correction,
+scaling to thousands of machines; R2D2 <span class="citation"
+data-cites="kapturowski_recurrent_2018">(Kapturowski et al. 2018)</span>
+added recurrent state and prioritized replay; Agent57 <span
+class="citation" data-cites="badia_agent57_2020">(Badia et al.
+2020)</span> became the first agent to exceed human-level on all 57
+Atari games via adaptive exploration-exploitation balancing. The
+model-based line (AlphaGo <span class="citation"
+data-cites="silver_mastering_2016">(Silver et al. 2016)</span>,
+AlphaZero <span class="citation"
+data-cites="silver_mastering_2017">(Silver et al. 2017)</span>, MuZero
+<span class="citation"
+data-cites="schrittwieser_mastering_2020">(Schrittwieser et al.
+2020)</span>, DreamerV2/V3 <span class="citation"
+data-cites="hafner_mastering_2022 hafner_mastering_2023">(Hafner et al.
+2022, 2023)</span>) folds <strong>world-model</strong> learning into
+policy optimization, trading sample efficiency for
+<strong>hyperparameter brittleness</strong><a href="#fn6"
+class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> and
+the <strong>sim-to-real gap</strong><a href="#fn7" class="footnote-ref"
+id="fnref7" role="doc-noteref"><sup>7</sup></a> when transferring to
+physical hardware. Long training runs additionally surface
+<strong>plasticity loss</strong><a href="#fn8" class="footnote-ref"
+id="fnref8" role="doc-noteref"><sup>8</sup></a>, where late-stage
+networks can no longer absorb new tasks.</p>
+<p><u>Recent work extends policy optimization to offline and
+language-model settings.</u> Conservative Q-Learning (CQL) <span
+class="citation" data-cites="kumar_conservative_2020">(Kumar et al.
+2020)</span> learns conservative value functions that lower-bound true
+values; Implicit Q-Learning (IQL) <span class="citation"
+data-cites="kostrikov_offline_2022">(Kostrikov, Nair, and Levine
+2022)</span> avoids out-of-distribution actions via expectile
+regression; Decision Transformer <span class="citation"
+data-cites="chen_decision_2021">(Chen et al. 2021)</span> recasts RL as
+sequence modeling. All three confront <strong>offline RL distribution
+shift</strong><a href="#fn9" class="footnote-ref" id="fnref9"
+role="doc-noteref"><sup>9</sup></a>: behaviour-policy mismatch with the
+target. Direct Preference Optimization (DPO) <span class="citation"
+data-cites="rafailov_direct_2024">(Rafailov et al. 2023)</span>
+simplifies RLHF for language models by deriving a closed-form policy
+from an implicit reward model, eliminating <strong>reward
+shaping</strong><a href="#fn10" class="footnote-ref" id="fnref10"
+role="doc-noteref"><sup>10</sup></a> fragility that explicit reward
+models inherit.</p>
+<p>The field has converged on: (1) trust-region or proximal methods for
+stable on-policy learning (PPO, GRPO), (2) maximum-entropy off-policy
+methods for sample-efficient continuous control (SAC, TD3), (3)
+distributed architectures for scale (IMPALA, R2D2, Agent57), (4)
+world-model methods for sample efficiency (MuZero, DreamerV3), and (5)
+conservative methods for offline learning (CQL, IQL, DPO).
+<u>Implementation details often matter as much as algorithmic
+innovations</u> <span class="citation"
+data-cites="engstrom_implementation_2020">(Engstrom et al. 2020)</span>,
+and the same applies to the evaluation protocol: <span class="citation"
+data-cites="agarwal_precipice_2021">(Agarwal et al. 2021)</span>
+(NeurIPS 2021 Outstanding) showed that a typical 3-seed Atari/DMC
+benchmark sweep cannot statistically distinguish methods that differ by
+less than 10% in median return, recommended the <strong>interquartile
+mean (IQM)</strong> and <strong>optimality gap</strong> as primary
+metrics over mean/median, and provides stratified-bootstrap confidence
+intervals; their re-evaluation of canonical RL papers re-orders several
+method rankings, and the IQM+stratified-bootstrap protocol is now the de
+facto standard for any new deep-RL comparison.</p>
+<div class="blog-table"><table id="tbl:rl-sota">
+<caption>RL SoTA leaderboard across the four-chapter book. Algo class =
+on/off-policy + model-free/-based + offline. Loss/Update gives headline
+hyperparameters:
+clip-PPO(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>)
+= clipped surrogate,
+KL-TRPO(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>)
+= trust region radius,
+entropy(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>)
+= max-entropy temperature,
+Bellman-Q(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>)
+= discount, MCTS(N) = simulations per move. Atari HNS = median
+human-normalized score on Atari-57. HalfCheetah-v2 = MuJoCo reward at 1M
+env steps. DMControl avg = average score across the 28-task DMControl
+suite at 1M steps. Sample efficiency = environment frames or steps to a
+benchmark threshold. Wall-clock = canonical reported training time.
+Dashes mark unreported settings; * marks numbers from third-party
+reproductions rather than the original paper.</caption>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Atari</td>
+<td>Continuous Control</td>
+<td></td>
+<td>Other</td>
+<td></td>
+</tr>
+<tr>
+<td>Method</td>
+<td>Year</td>
+<td>Algo class</td>
+<td>Loss/Update</td>
+<td>Domain</td>
+<td>HNS</td>
+<td>HalfCheetah-v2</td>
+<td>DMControl avg</td>
+<td>Sample eff.</td>
+<td>Wall-clock</td>
+</tr>
+<tr>
+<td>REINFORCE <span class="citation"
+data-cites="williams_simple_1992">(Williams 1992)</span></td>
+<td>1992</td>
+<td>on-policy MF</td>
+<td>log-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi><mo>⋅</mo><msub><mi>G</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">\pi \cdot G_t</annotation></semantics></math>
+(MC, no baseline)</td>
+<td>Cart-pole</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>PG theorem <span
+class="citation" data-cites="sutton_policy_1999">(Richard S. Sutton et
+al. 1999)</span></td>
+<td>1999</td>
+<td>on-policy MF</td>
+<td>log-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi><mo>⋅</mo><msup><mi>Q</mi><mi>π</mi></msup></mrow><annotation encoding="application/x-tex">\pi \cdot Q^\pi</annotation></semantics></math>
+(compatible)</td>
+<td>Theoretical</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Natural PG <span
+class="citation" data-cites="kakade_natural_2001">(Kakade
+2001)</span></td>
+<td>2001</td>
+<td>on-policy MF</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mi>∇</mi><mi>J</mi></mrow><annotation encoding="application/x-tex">F^{-1} \nabla J</annotation></semantics></math>,
+Tetris linear</td>
+<td>Tetris</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>~6000 lines</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Deterministic PG <span class="citation"
+data-cites="silver_deterministic_2014">(Silver et al. 2014)</span></td>
+<td>2014</td>
+<td>off-policy MF</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>∇</mi><mi>a</mi></msub><mi>Q</mi><msub><mi>∇</mi><mi>θ</mi></msub><mi>μ</mi></mrow><annotation encoding="application/x-tex">\nabla_a Q \nabla_\theta \mu</annotation></semantics></math>
+(det.)</td>
+<td>Octopus arm</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Natural AC <span
+class="citation" data-cites="peters_natural_2008">(Peters and Schaal
+2008)</span></td>
+<td>2008</td>
+<td>on-policy MF</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mi>∇</mi><mi>J</mi></mrow><annotation encoding="application/x-tex">F^{-1} \nabla J</annotation></semantics></math>,
+LSTD-Q(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>)</td>
+<td>Robotics</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>~200 ep.</td>
+<td>–</td>
+</tr>
+<tr>
+<td>DQN <span class="citation" data-cites="mnih_human_2015">(Mnih et al.
+2015)</span></td>
+<td>2015</td>
+<td>off-policy MF</td>
+<td>Bellman-Q(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>=0.99),
+replay</td>
+<td>Atari</td>
+<td>79</td>
+<td>–</td>
+<td>–</td>
+<td>200M frames</td>
+<td>8 days GPU</td>
+</tr>
+<tr>
+<td>GAE+TRPO <span class="citation"
+data-cites="schulman_high-dimensional_2018">(Schulman et al.
+2018)</span></td>
+<td>2016</td>
+<td>on-policy MF</td>
+<td>KL-TRPO(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>=0.01)
++
+GAE(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>=0.96)</td>
+<td>MuJoCo</td>
+<td>–</td>
+<td>~4800</td>
+<td>–</td>
+<td>1M steps</td>
+<td>~1 day</td>
+</tr>
+<tr>
+<td>TRPO <span class="citation"
+data-cites="schulman_trust_2017">(Schulman et al. 2015)</span></td>
+<td>2015</td>
+<td>on-policy MF</td>
+<td>KL-TRPO(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>=0.01)
+CG+line-search</td>
+<td>MuJoCo</td>
+<td>–</td>
+<td>~4500</td>
+<td>–</td>
+<td>1M steps</td>
+<td>~1 day</td>
+</tr>
+<tr>
+<td>A3C <span class="citation"
+data-cites="mnih_asynchronous_2016">(Mnih et al. 2016)</span></td>
+<td>2016</td>
+<td>on-policy MF</td>
+<td>log-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi><mo>⋅</mo><mi>A</mi></mrow><annotation encoding="application/x-tex">\pi \cdot A</annotation></semantics></math>
++ V-MSE, async</td>
+<td>Atari</td>
+<td>344</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>4 days CPU</td>
+</tr>
+<tr>
+<td>ACER <span class="citation" data-cites="wang_sample_2017">(Wang et
+al. 2017)</span></td>
+<td>2017</td>
+<td>off-policy MF</td>
+<td>trunc.IS + bias-correct, replay</td>
+<td>Atari</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>ACKTR <span class="citation" data-cites="wu_scalable_2017">(Wu et
+al. 2017)</span></td>
+<td>2017</td>
+<td>on-policy MF</td>
+<td>K-FAC
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>F</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">F^{-1}</annotation></semantics></math>,
+KL(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>=10<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mrow><mi>−</mi><mn>3</mn></mrow></msup><annotation encoding="application/x-tex">^{-3}</annotation></semantics></math>)</td>
+<td>MuJoCo</td>
+<td>–</td>
+<td>~4900</td>
+<td>–</td>
+<td>1M steps</td>
+<td>–</td>
+</tr>
+<tr>
+<td>PPO <span class="citation"
+data-cites="schulman_proximal_2017">(Schulman et al. 2017)</span></td>
+<td>2017</td>
+<td>on-policy MF</td>
+<td>clip-PPO(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>=0.2),
+GAE(0.95)</td>
+<td>MuJoCo+Atari</td>
+<td>250*</td>
+<td>~5800</td>
+<td>–</td>
+<td>1M steps</td>
+<td>~hours GPU</td>
+</tr>
+<tr>
+<td>DDPG <span class="citation"
+data-cites="lillicrap_continuous_2019">(Lillicrap et al.
+2019)</span></td>
+<td>2015</td>
+<td>off-policy MF</td>
+<td>Bellman-Q(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>=0.99),
+OU-noise</td>
+<td>MuJoCo</td>
+<td>–</td>
+<td>~3300</td>
+<td>–</td>
+<td>1M steps</td>
+<td>–</td>
+</tr>
+<tr>
+<td>TD3 <span class="citation"
+data-cites="fujimoto_addressing_2018">(Fujimoto, Hoof, and Meger
+2018)</span></td>
+<td>2018</td>
+<td>off-policy MF</td>
+<td>clipped 2Q + delay(d=2) + target-smooth</td>
+<td>MuJoCo</td>
+<td>–</td>
+<td>~9500</td>
+<td>–</td>
+<td>1M steps</td>
+<td>–</td>
+</tr>
+<tr>
+<td>SAC <span class="citation"
+data-cites="haarnoja_soft_2019">(Haarnoja et al. 2019)</span></td>
+<td>2018</td>
+<td>off-policy MF</td>
+<td>Bellman-Q +
+entropy(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>=auto)</td>
+<td>MuJoCo+DMC</td>
+<td>–</td>
+<td>~11000</td>
+<td>~770</td>
+<td>1M steps</td>
+<td>–</td>
+</tr>
+<tr>
+<td>IMPALA <span class="citation"
+data-cites="espeholt_impala_2018">(Espeholt et al. 2018)</span></td>
+<td>2018</td>
+<td>off-policy MF</td>
+<td>V-trace(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>ρ</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar\rho</annotation></semantics></math>=1,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>c</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar c</annotation></semantics></math>=1)</td>
+<td>DMLab+Atari</td>
+<td>191.8</td>
+<td>–</td>
+<td>–</td>
+<td>10B frames</td>
+<td>hours, 1k CPUs</td>
+</tr>
+<tr>
+<td>R2D2 <span class="citation"
+data-cites="kapturowski_recurrent_2018">(Kapturowski et al.
+2018)</span></td>
+<td>2019</td>
+<td>off-policy MF</td>
+<td>n-step Bellman + LSTM, prioritised replay</td>
+<td>Atari</td>
+<td>1920</td>
+<td>–</td>
+<td>–</td>
+<td>10B frames</td>
+<td>5 days, 256 actors</td>
+</tr>
+<tr>
+<td>Agent57 <span class="citation"
+data-cites="badia_agent57_2020">(Badia et al. 2020)</span></td>
+<td>2020</td>
+<td>off-policy MF</td>
+<td>NGU intrinsic + meta-controller</td>
+<td>Atari</td>
+<td>superhuman 57/57</td>
+<td>–</td>
+<td>–</td>
+<td>80B frames</td>
+<td>weeks, distrib.</td>
+</tr>
+<tr>
+<td>AlphaGo Zero <span class="citation"
+data-cites="silver_mastering_2017">(Silver et al. 2017)</span></td>
+<td>2017</td>
+<td>model-based</td>
+<td>MCTS(N=1600) + self-play CE</td>
+<td>Go</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>4.9M games</td>
+<td>40 days, 64 GPU</td>
+</tr>
+<tr>
+<td>MuZero <span class="citation"
+data-cites="schrittwieser_mastering_2020">(Schrittwieser et al.
+2020)</span></td>
+<td>2020</td>
+<td>model-based</td>
+<td>MCTS(N=50) + learned dynamics</td>
+<td>Atari+Go</td>
+<td>731 (mean)</td>
+<td>–</td>
+<td>–</td>
+<td>20B frames</td>
+<td>12 hours TPU</td>
+</tr>
+<tr>
+<td>DreamerV3 <span class="citation"
+data-cites="hafner_mastering_2023">(Hafner et al. 2023)</span></td>
+<td>2023</td>
+<td>model-based</td>
+<td>RSSM world model + actor-critic in latent</td>
+<td>Atari+DMC</td>
+<td>112*</td>
+<td>~9000</td>
+<td>~822</td>
+<td>100M frames</td>
+<td>1 day GPU</td>
+</tr>
+<tr>
+<td>CQL <span class="citation"
+data-cites="kumar_conservative_2020">(Kumar et al. 2020)</span></td>
+<td>2020</td>
+<td>offline</td>
+<td>CQL(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>=1)
+lower-bound + Bellman-Q</td>
+<td>D4RL+Adroit</td>
+<td>–</td>
+<td>41.1 (medium)*</td>
+<td>–</td>
+<td>offline</td>
+<td>–</td>
+</tr>
+<tr>
+<td>IQL <span class="citation"
+data-cites="kostrikov_offline_2022">(Kostrikov, Nair, and Levine
+2022)</span></td>
+<td>2021</td>
+<td>offline</td>
+<td>expectile(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>=0.7)
++ AWR</td>
+<td>D4RL</td>
+<td>–</td>
+<td>47.4 (medium)*</td>
+<td>–</td>
+<td>offline</td>
+<td>–</td>
+</tr>
+<tr>
+<td>Decision Transformer <span
+class="citation" data-cites="chen_decision_2021">(Chen et al.
+2021)</span></td>
+<td>2021</td>
+<td>offline</td>
+<td>seq-CE return-conditioned</td>
+<td>D4RL+Atari</td>
+<td>–</td>
+<td>42.6 (medium)*</td>
+<td>–</td>
+<td>offline</td>
+<td>–</td>
+</tr>
+<tr>
+<td>GRPO <span class="citation"
+data-cites="shao_deepseekmath_2024">(Shao et al. 2024)</span></td>
+<td>2024</td>
+<td>on-policy</td>
+<td>clip-PPO + KL + group-rel. baseline</td>
+<td>LLM math</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+</tr>
+<tr>
+<td>DPO <span class="citation"
+data-cites="rafailov_direct_2024">(Rafailov et al. 2023)</span></td>
+<td>2024</td>
+<td>offline</td>
+<td>Bradley-Terry implicit
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>=0.1)</td>
+<td>LLM align.</td>
+<td>–</td>
+<td>–</td>
+<td>–</td>
+<td>offline</td>
+<td>–</td>
+</tr>
+</tbody>
+</table></div>
+<p>The table groups the literature into five families, walked through
+chronologically below. Early <strong>foundations</strong> (REINFORCE, PG
+theorem, Natural PG, NAC) established the score-function gradient and
+natural-gradient geometry on tabular or linear policies, with
+high-variance MC estimators<a href="#fn11" class="footnote-ref"
+id="fnref11" role="doc-noteref"><sup>11</sup></a> as the structural
+bottleneck their successors aim to fix. <u>The trust-region / proximal
+family (TRPO, PPO, ACKTR, GRPO) is unusually persistent</u>: nearly
+every major LLM-RL pipeline since 2017 uses some clipped or KL-penalized
+variant of PPO, including the GRPO that powers DeepSeek-R1. All are
+<strong>on-policy</strong> and pay the sample-inefficiency tax<a
+href="#fn12" class="footnote-ref" id="fnref12"
+role="doc-noteref"><sup>12</sup></a> of discarding data each update,
+traded for monotonic-improvement guarantees and stability under
+hyperparameter changes.</p>
+<p><u>The off-policy actor-critic family (DDPG, TD3, SAC) stratifies
+cleanly by overestimation control</u>: DDPG is unstable from a single
+Q-network, TD3 fixes overestimation with clipped double-Q + delayed
+policy updates + target smoothing, and SAC adds maximum-entropy
+<strong>exploration</strong><a href="#fn13" class="footnote-ref"
+id="fnref13" role="doc-noteref"><sup>13</sup></a> under an automatically
+tuned temperature. All three rely on experience replay and an
+<strong>off-policy correction</strong><a href="#fn14"
+class="footnote-ref" id="fnref14" role="doc-noteref"><sup>14</sup></a>
+that DDPG/TD3 sidestep via deterministic policies and SAC handles via
+the soft Bellman backup. <u>Continuous-control gains are dramatic</u>:
+HalfCheetah-v2 reward at 1M steps climbs from DDPG's ~3,300 to TD3's
+~9,500 to SAC's ~11,000.</p>
+<p><u>The distributed line (A3C, IMPALA, R2D2, Agent57) chases
+throughput</u>: A3C ran asynchronously on 16 CPU cores in 4 days; IMPALA
+scaled to 1k+ CPUs with V-trace correction<a href="#fn15"
+class="footnote-ref" id="fnref15" role="doc-noteref"><sup>15</sup></a>
+decoupling actors from learners; R2D2 added recurrent state and
+prioritized replay to push Atari median HNS to 1,920%; Agent57 became
+the first agent superhuman on all 57 Atari games via adaptive
+Never-Give-Up intrinsic motivation. The <strong>plasticity
+loss</strong><a href="#fn16" class="footnote-ref" id="fnref16"
+role="doc-noteref"><sup>16</sup></a> hazard is most acute here:
+80-billion-frame training runs routinely degrade learning capacity in
+late epochs.</p>
+<figure id="fig:rl-method-timeline">
+<img src="figures/rl-method-timeline.svg" />
+<figcaption>RL method evolution from 1992 REINFORCE foundations to 2024
+LLM-alignment offline methods. Marker shape and colour encode algorithm
+class; the dotted line marks the HNS=100% human baseline on Atari-57.
+Three observations match the table reading. (i) Foundations and
+continuous-control methods (greyed at the bottom) sit at 0 HNS because
+Atari is not their canonical benchmark; their progress shows up in the
+HalfCheetah-v2 column instead. (ii) Atari median HNS climbs from DQN
+(79%) through A3C (344%) and PPO (250%) to R2D2 (1,920%) and Agent57
+(~4,763%, superhuman on all 57 games), a 60x range that reflects raw
+scale (frames + actors) more than any single algorithmic insight. (iii)
+Model-based methods (MuZero, DreamerV3) are sample-efficient on the same
+axis, achieving comparable or better Atari HNS at one to two orders of
+magnitude fewer frames.</figcaption>
+</figure>
+<p><u>The model-based and world-model line (AlphaGo, AlphaZero, MuZero,
+DreamerV2/V3) shifts the bottleneck from data to compute</u>: MuZero
+wins Go, chess, shogi, and Atari with the <strong>same</strong>
+MCTS-on-learned-dynamics recipe; DreamerV3 reaches comparable Atari HNS
+on roughly two orders of magnitude fewer environment frames by training
+a Recurrent State-Space Model and rolling out actor-critic
+<strong>inside</strong> the latent imagination. The cost is
+<strong>hyperparameter brittleness</strong><a href="#fn17"
+class="footnote-ref" id="fnref17" role="doc-noteref"><sup>17</sup></a>
+across domain types and a <strong>sim-to-real gap</strong><a
+href="#fn18" class="footnote-ref" id="fnref18"
+role="doc-noteref"><sup>18</sup></a> that the world-model regularly
+fails to close on physical hardware.</p>
+<p><u>The offline frontier (CQL, IQL, Decision Transformer, GRPO, DPO)
+shares a common abandonment of the on-policy data assumption</u>; the
+methods diverge on how to address <strong>offline RL distribution
+shift</strong><a href="#fn19" class="footnote-ref" id="fnref19"
+role="doc-noteref"><sup>19</sup></a>: CQL learns a conservative value
+function that lower-bounds the true
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Q</mi><annotation encoding="application/x-tex">Q</annotation></semantics></math>,
+IQL avoids querying out-of-distribution actions via expectile regression
+and advantage-weighted regression, Decision Transformer
+return-conditions a sequence model, and DPO derives an implicit
+Bradley-Terry preference reward sidestepping <strong>reward shaping
+fragility</strong><a href="#fn20" class="footnote-ref" id="fnref20"
+role="doc-noteref"><sup>20</sup></a> altogether. GRPO sits between
+on-policy and offline: the rollouts come from the current policy but are
+pooled across a group of completions, eliminating the per-prompt
+critic.</p>
+<p>The table separates five eras: foundations (1992-2008), trust-region
+/ proximal (2015-2024), off-policy continuous control (2014-2018),
+distributed Atari (2016-2020), and offline + model-based (2020-2024).
+Three readings. <u>First, the trust-region and proximal family is the
+most algorithmically conservative line in modern RL</u>: the same
+clipping idea from PPO 2017 anchors GRPO 2024 and the RLHF training of
+every major instruction-tuned LLM. Second, the off-policy actor-critic
+family monotonically improves on the same HalfCheetah-v2 axis from DDPG
+(~3,300) to SAC (~11,000), a 3.3x gain over three years driven entirely
+by overestimation control and entropy regularization. Third, the
+model-based and offline lines compress the
+<strong>credit-assignment</strong><a href="#fn21" class="footnote-ref"
+id="fnref21" role="doc-noteref"><sup>21</sup></a> horizon by either
+learning a world model or by treating RL as supervised sequence
+modeling; both substantially reduce environment interaction at the cost
+of new failure modes (model exploitation, conservatism penalty,
+reward-model overfitting).</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-agarwal_precipice_2021" class="csl-entry" role="listitem">
+Agarwal, Rishabh, Max Schwarzer, Pablo Samuel Castro, Aaron Courville,
+and Marc G. Bellemare. 2021. <span>“Deep Reinforcement Learning at the
+Edge of the Statistical Precipice.”</span> In <em>Advances in Neural
+Information Processing Systems (NeurIPS)</em>. <a
+href="https://arxiv.org/abs/2108.13264">https://arxiv.org/abs/2108.13264</a>.
+</div>
+<div id="ref-andrychowicz_hindsight_2017" class="csl-entry"
+role="listitem">
+Andrychowicz, Marcin, Filip Wolski, Alex Ray, Jonas Schneider, Rachel
+Fong, Peter Welinder, Bob McGrew, Josh Tobin, Pieter Abbeel, and
+Wojciech Zaremba. 2017. <span>“Hindsight Experience Replay.”</span> In
+<em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a
+href="https://arxiv.org/abs/1707.01495">https://arxiv.org/abs/1707.01495</a>.
+</div>
+<div id="ref-badia_agent57_2020" class="csl-entry" role="listitem">
+Badia, Adrià Puigdomènech, Bilal Piot, Steven Kapturowski, Pablo
+Sprechmann, Alex Vitvitskyi, Daniel Guo, and Charles Blundell. 2020.
+<span>“Agent57: <span>Outperforming</span> the <span>Atari</span>
+<span>Human</span> <span>Benchmark</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2003.13350">https://doi.org/10.48550/arXiv.2003.13350</a>.
+</div>
+<div id="ref-chen_decision_2021" class="csl-entry" role="listitem">
+Chen, Lili, Kevin Lu, Aravind Rajeswaran, Kimin Lee, Aditya Grover,
+Michael Laskin, Pieter Abbeel, Aravind Srinivas, and Igor Mordatch.
+2021. <span>“Decision <span>Transformer</span>:
+<span>Reinforcement</span> <span>Learning</span> via
+<span>Sequence</span> <span>Modeling</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2106.01345">https://doi.org/10.48550/arXiv.2106.01345</a>.
+</div>
+<div id="ref-engstrom_implementation_2020" class="csl-entry"
+role="listitem">
+Engstrom, Logan, Andrew Ilyas, Shibani Santurkar, Dimitris Tsipras,
+Firdaus Janoos, Larry Rudolph, and Aleksander Madry. 2020.
+<span>“Implementation <span>Matters</span> in <span>Deep</span>
+<span>Policy</span> <span>Gradients</span>: <span>A</span>
+<span>Case</span> <span>Study</span> on <span>PPO</span> and
+<span>TRPO</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2005.12729">https://doi.org/10.48550/arXiv.2005.12729</a>.
+</div>
+<div id="ref-espeholt_impala_2018" class="csl-entry" role="listitem">
+Espeholt, Lasse, Hubert Soyer, Remi Munos, Karen Simonyan, Volodymir
+Mnih, Tom Ward, Yotam Doron, et al. 2018. <span>“<span>IMPALA</span>:
+<span>Scalable</span> <span>Distributed</span>
+<span>Deep</span>-<span>RL</span> with <span>Importance</span>
+<span>Weighted</span> <span>Actor</span>-<span>Learner</span>
+<span>Architectures</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.1802.01561">https://doi.org/10.48550/arXiv.1802.01561</a>.
+</div>
+<div id="ref-fujimoto_addressing_2018" class="csl-entry"
+role="listitem">
+Fujimoto, Scott, Herke van Hoof, and David Meger. 2018.
+<span>“Addressing <span>Function</span> <span>Approximation</span>
+<span>Error</span> in <span>Actor</span>-<span>Critic</span>
+<span>Methods</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.1802.09477">https://doi.org/10.48550/arXiv.1802.09477</a>.
+</div>
+<div id="ref-haarnoja_soft_2018" class="csl-entry" role="listitem">
+Haarnoja, Tuomas, Aurick Zhou, Pieter Abbeel, and Sergey Levine. 2018.
+<span>“Soft <span>Actor</span>-<span>Critic</span>:
+<span>Off</span>-<span>Policy</span> <span>Maximum</span>
+<span>Entropy</span> <span>Deep</span> <span>Reinforcement</span>
+<span>Learning</span> with a <span>Stochastic</span>
+<span>Actor</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.1801.01290">https://doi.org/10.48550/arXiv.1801.01290</a>.
+</div>
+<div id="ref-haarnoja_soft_2019" class="csl-entry" role="listitem">
+Haarnoja, Tuomas, Aurick Zhou, Kristian Hartikainen, George Tucker,
+Sehoon Ha, Jie Tan, Vikash Kumar, et al. 2019. <span>“Soft
+<span>Actor</span>-<span>Critic</span> <span>Algorithms</span> and
+<span>Applications</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.1812.05905">https://doi.org/10.48550/arXiv.1812.05905</a>.
+</div>
+<div id="ref-hafner_mastering_2022" class="csl-entry" role="listitem">
+Hafner, Danijar, Timothy Lillicrap, Mohammad Norouzi, and Jimmy Ba.
+2022. <span>“Mastering <span>Atari</span> with <span>Discrete</span>
+<span>World</span> <span>Models</span>.”</span> arXiv. <a
+href="http://arxiv.org/abs/2010.02193">http://arxiv.org/abs/2010.02193</a>.
+</div>
+<div id="ref-hafner_mastering_2023" class="csl-entry" role="listitem">
+Hafner, Danijar, Jurgis Pasukonis, Jimmy Ba, and Timothy Lillicrap.
+2023. <span>“Mastering <span>Diverse</span> <span>Domains</span> Through
+<span>World</span> <span>Models</span>.”</span> arXiv. <a
+href="http://arxiv.org/abs/2301.04104">http://arxiv.org/abs/2301.04104</a>.
+</div>
+<div id="ref-hessel_rainbow_2018" class="csl-entry" role="listitem">
+Hessel, Matteo, Joseph Modayil, Hado van Hasselt, Tom Schaul, Georg
+Ostrovski, Will Dabney, Dan Horgan, Bilal Piot, Mohammad Gheshlaghi
+Azar, and David Silver. 2018. <span>“Rainbow: Combining Improvements in
+Deep Reinforcement Learning.”</span> In <em>Proceedings of the AAAI
+Conference on Artificial Intelligence</em>. <a
+href="https://arxiv.org/abs/1710.02298">https://arxiv.org/abs/1710.02298</a>.
+</div>
+<div id="ref-kakade_natural_2001" class="csl-entry" role="listitem">
+Kakade, Sham M. 2001. <span>“A <span>Natural</span> <span>Policy</span>
+<span>Gradient</span>.”</span>
+</div>
+<div id="ref-kapturowski_recurrent_2018" class="csl-entry"
+role="listitem">
+Kapturowski, Steven, Georg Ostrovski, John Quan, Remi Munos, and Will
+Dabney. 2018. <span>“Recurrent <span>Experience</span>
+<span>Replay</span> in <span>Distributed</span>
+<span>Reinforcement</span> <span>Learning</span>.”</span> In. <a
+href="https://openreview.net/forum?id=r1lyTjAqYX">https://openreview.net/forum?id=r1lyTjAqYX</a>.
+</div>
+<div id="ref-kostrikov_offline_2022" class="csl-entry" role="listitem">
+Kostrikov, Ilya, Ashvin Nair, and Sergey Levine. 2022. <span>“Offline
+<span>Reinforcement</span> <span>Learning</span> with
+<span>Implicit</span> <span>Q</span>-<span>Learning</span>.”</span> In
+<em>International Conference on Learning Representations</em>. <a
+href="http://arxiv.org/abs/2110.06169">http://arxiv.org/abs/2110.06169</a>.
+</div>
+<div id="ref-kumar_conservative_2020" class="csl-entry" role="listitem">
+Kumar, Aviral, Aurick Zhou, George Tucker, and Sergey Levine. 2020.
+<span>“Conservative <span>Q</span>-<span>Learning</span> for
+<span>Offline</span> <span>Reinforcement</span>
+<span>Learning</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.2006.04779">https://doi.org/10.48550/arXiv.2006.04779</a>.
+</div>
+<div id="ref-lillicrap_continuous_2019" class="csl-entry"
+role="listitem">
+Lillicrap, Timothy P., Jonathan J. Hunt, Alexander Pritzel, Nicolas
+Heess, Tom Erez, Yuval Tassa, David Silver, and Daan Wierstra. 2019.
+<span>“Continuous Control with Deep Reinforcement Learning.”</span>
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.1509.02971">https://doi.org/10.48550/arXiv.1509.02971</a>.
+</div>
+<div id="ref-mnih_asynchronous_2016" class="csl-entry" role="listitem">
+Mnih, Volodymyr, Adrià Puigdomènech Badia, Mehdi Mirza, Alex Graves,
+Timothy P. Lillicrap, Tim Harley, David Silver, and Koray Kavukcuoglu.
+2016. <span>“Asynchronous <span>Methods</span> for <span>Deep</span>
+<span>Reinforcement</span> <span>Learning</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.1602.01783">https://doi.org/10.48550/arXiv.1602.01783</a>.
+</div>
+<div id="ref-mnih_human_2015" class="csl-entry" role="listitem">
+Mnih, Volodymyr, Koray Kavukcuoglu, David Silver, Andrei A. Rusu, Joel
+Veness, Marc G. Bellemare, Alex Graves, et al. 2015. <span>“Human-Level
+Control Through Deep Reinforcement Learning.”</span> <em>Nature</em>. <a
+href="https://doi.org/10.1038/nature14236">https://doi.org/10.1038/nature14236</a>.
+</div>
+<div id="ref-peters_natural_2008" class="csl-entry" role="listitem">
+Peters, Jan, and Stefan Schaal. 2008. <span>“Natural
+<span>Actor</span>-<span>Critic</span>.”</span> <em>Neurocomputing</em>,
+Progress in <span>Modeling</span>, <span>Theory</span>, and
+<span>Application</span> of <span>Computational</span>
+<span>Intelligenc</span>, 71 (7): 1180–90. <a
+href="https://doi.org/10.1016/j.neucom.2007.11.026">https://doi.org/10.1016/j.neucom.2007.11.026</a>.
+</div>
+<div id="ref-rafailov_direct_2024" class="csl-entry" role="listitem">
+Rafailov, Rafael, Archit Sharma, Eric Mitchell, Stefano Ermon,
+Christopher D. Manning, and Chelsea Finn. 2023. <span>“Direct
+<span>Preference</span> <span>Optimization</span>: <span>Your</span>
+<span>Language</span> <span>Model</span> Is <span>Secretly</span> a
+<span>Reward</span> <span>Model</span>.”</span> In <em>Advances in
+Neural Information Processing Systems (NeurIPS)</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2305.18290">https://doi.org/10.48550/arXiv.2305.18290</a>.
+</div>
+<div id="ref-schrittwieser_mastering_2020" class="csl-entry"
+role="listitem">
+Schrittwieser, Julian, Ioannis Antonoglou, Thomas Hubert, Karen
+Simonyan, Laurent Sifre, Simon Schmitt, Arthur Guez, et al. 2020.
+<span>“Mastering <span>Atari</span>, <span>Go</span>, <span>Chess</span>
+and <span>Shogi</span> by <span>Planning</span> with a
+<span>Learned</span> <span>Model</span>.”</span> <em>Nature</em> 588
+(7839): 604–9. <a
+href="https://doi.org/10.1038/s41586-020-03051-4">https://doi.org/10.1038/s41586-020-03051-4</a>.
+</div>
+<div id="ref-schulman_trust_2017" class="csl-entry" role="listitem">
+Schulman, John, Sergey Levine, Philipp Moritz, Michael I. Jordan, and
+Pieter Abbeel. 2015. <span>“Trust <span>Region</span>
+<span>Policy</span> <span>Optimization</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.1502.05477">https://doi.org/10.48550/arXiv.1502.05477</a>.
+</div>
+<div id="ref-schulman_high-dimensional_2018" class="csl-entry"
+role="listitem">
+Schulman, John, Philipp Moritz, Sergey Levine, Michael Jordan, and
+Pieter Abbeel. 2018. <span>“High-<span>Dimensional</span>
+<span>Continuous</span> <span>Control</span> <span>Using</span>
+<span>Generalized</span> <span>Advantage</span>
+<span>Estimation</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.1506.02438">https://doi.org/10.48550/arXiv.1506.02438</a>.
+</div>
+<div id="ref-schulman_proximal_2017" class="csl-entry" role="listitem">
+Schulman, John, Filip Wolski, Prafulla Dhariwal, Alec Radford, and Oleg
+Klimov. 2017. <span>“Proximal <span>Policy</span>
+<span>Optimization</span> <span>Algorithms</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.1707.06347">https://doi.org/10.48550/arXiv.1707.06347</a>.
+</div>
+<div id="ref-shao_deepseekmath_2024" class="csl-entry" role="listitem">
+Shao, Zhihong, Peiyi Wang, Qihao Zhu, Runxin Xu, Junxiao Song, Mingchuan
+Zhang, Y. K. Li, Y. Wu, and Daya Guo. 2024.
+<span>“<span>DeepSeekMath</span>: <span>Pushing</span> the
+<span>Limits</span> of <span>Mathematical</span> <span>Reasoning</span>
+in <span>Open</span> <span>Language</span> <span>Models</span>.”</span>
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2402.03300">https://doi.org/10.48550/arXiv.2402.03300</a>.
+</div>
+<div id="ref-silver_mastering_2016" class="csl-entry" role="listitem">
+Silver, David, Aja Huang, Chris J. Maddison, Arthur Guez, Laurent Sifre,
+George van den Driessche, Julian Schrittwieser, et al. 2016.
+<span>“Mastering the Game of <span>Go</span> with Deep Neural Networks
+and Tree Search.”</span> <em>Nature</em> 529 (7587): 484–89. <a
+href="https://doi.org/10.1038/nature16961">https://doi.org/10.1038/nature16961</a>.
+</div>
+<div id="ref-silver_deterministic_2014" class="csl-entry"
+role="listitem">
+Silver, David, Guy Lever, Nicolas Heess, Thomas Degris, Daan Wierstra,
+and Martin Riedmiller. 2014. <span>“Deterministic <span>Policy</span>
+<span>Gradient</span> <span>Algorithms</span>.”</span>
+</div>
+<div id="ref-silver_mastering_2017" class="csl-entry" role="listitem">
+Silver, David, Julian Schrittwieser, Karen Simonyan, Ioannis Antonoglou,
+Aja Huang, Arthur Guez, Thomas Hubert, et al. 2017. <span>“Mastering the
+Game of <span>Go</span> Without Human Knowledge.”</span> <em>Nature</em>
+550 (7676): 354–59. <a
+href="https://doi.org/10.1038/nature24270">https://doi.org/10.1038/nature24270</a>.
+</div>
+<div id="ref-sutton_learning_1988" class="csl-entry" role="listitem">
+Sutton, Richard S. 1988. <span>“Learning to Predict by the Methods of
+Temporal Differences.”</span> <em>Machine Learning</em> 3 (1): 9–44. <a
+href="https://doi.org/10.1007/BF00115009">https://doi.org/10.1007/BF00115009</a>.
+</div>
+<div id="ref-sutton_policy_1999" class="csl-entry" role="listitem">
+Sutton, Richard S, David McAllester, Satinder Singh, and Yishay Mansour.
+1999. <span>“Policy <span>Gradient</span> <span>Methods</span> for
+<span>Reinforcement</span> <span>Learning</span> with
+<span>Function</span> <span>Approximation</span>.”</span> In
+<em>Advances in <span>Neural</span> <span>Information</span>
+<span>Processing</span> <span>Systems</span></em>. Vol. 12. MIT Press.
+<a
+href="https://papers.nips.cc/paper_files/paper/1999/hash/464d828b85b0bed98e80ade0a5c43b0f-Abstract.html">https://papers.nips.cc/paper_files/paper/1999/hash/464d828b85b0bed98e80ade0a5c43b0f-Abstract.html</a>.
+</div>
+<div id="ref-tesauro_temporal_1995" class="csl-entry" role="listitem">
+Tesauro, Gerald. 1995. <span>“Temporal Difference Learning and
+<span>TD-Gammon</span>.”</span> <em>Communications of the ACM</em> 38
+(3): 58–68. <a
+href="https://doi.org/10.1145/203330.203343">https://doi.org/10.1145/203330.203343</a>.
+</div>
+<div id="ref-wang_sample_2017" class="csl-entry" role="listitem">
+Wang, Ziyu, Victor Bapst, Nicolas Heess, Volodymyr Mnih, Remi Munos,
+Koray Kavukcuoglu, and Nando de Freitas. 2017. <span>“Sample
+<span>Efficient</span> <span>Actor</span>-<span>Critic</span> with
+<span>Experience</span> <span>Replay</span>.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.1611.01224">https://doi.org/10.48550/arXiv.1611.01224</a>.
+</div>
+<div id="ref-watkins_q-learning_1992" class="csl-entry" role="listitem">
+Watkins, Christopher J. C. H., and Peter Dayan. 1992.
+<span>“Q-Learning.”</span> <em>Machine Learning</em> 8 (3–4): 279–92. <a
+href="https://doi.org/10.1007/BF00992698">https://doi.org/10.1007/BF00992698</a>.
+</div>
+<div id="ref-williams_simple_1992" class="csl-entry" role="listitem">
+Williams, Ronald J. 1992. <span>“Simple Statistical Gradient-Following
+Algorithms for Connectionist Reinforcement Learning.”</span> <em>Machine
+Learning</em> 8 (3-4): 229–56. <a
+href="https://doi.org/10.1007/BF00992696">https://doi.org/10.1007/BF00992696</a>.
+</div>
+<div id="ref-wu_scalable_2017" class="csl-entry" role="listitem">
+Wu, Yuhuai, Elman Mansimov, Shun Liao, Roger Grosse, and Jimmy Ba. 2017.
+<span>“Scalable Trust-Region Method for Deep Reinforcement Learning
+Using <span>Kronecker</span>-Factored Approximation.”</span> arXiv. <a
+href="https://doi.org/10.48550/arXiv.1708.05144">https://doi.org/10.48550/arXiv.1708.05144</a>.
+</div>
+</div>
+<section id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p><em>High-variance gradient estimator</em>: REINFORCE
+Monte-Carlo gradient suffers extreme variance, scaling roughly linearly
+with horizon length and dominated by rare high-reward trajectories.<a
+href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><em>Credit assignment</em>: long-horizon trajectories
+make per-step responsibility opaque; advantage estimation, eligibility
+traces, and bootstrapping only partially resolve which action caused
+which delayed reward.<a href="#fnref2" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p><em>On-policy sample inefficiency</em>: TRPO and PPO
+discard data after each update because the surrogate objective requires
+the data-collection policy to match the optimization policy within a
+small trust region.<a href="#fnref3" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p><em>Exploration vs exploitation</em>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>-greedy,
+entropy bonus, intrinsic curiosity, and NGU's never-give-up mixture each
+address coverage of the state space, but no method is principled across
+reward sparsity regimes.<a href="#fnref4" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p><em>Off-policy correction</em>: importance ratios
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mi>θ</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo>∣</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mi>μ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo>∣</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\pi_\theta(a \mid s) / \mu(a \mid s)</annotation></semantics></math>
+explode when target and behaviour policies diverge; V-trace, Retrace,
+and clipping each trade variance for bias.<a href="#fnref5"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p><em>Hyperparameter brittleness</em>: the same algorithm
+in a different domain often requires re-tuning learning rate, entropy
+coefficient, batch size, and target-network update rate; transferable
+defaults are scarce.<a href="#fnref6" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p><em>Sim-to-real gap</em>: a policy that excels in
+simulation often degrades on real hardware due to actuator noise,
+contact dynamics, latency, and partial observability missing from the
+simulator.<a href="#fnref7" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p><em>Plasticity loss</em>: late-stage RL networks
+empirically lose the capacity to learn new tasks; weight magnitudes
+saturate, dead ReLUs accumulate, and effective rank collapses.<a
+href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn9"><p><em>Offline RL distribution shift</em>: when the
+dataset's behaviour policy differs from the target policy,
+value-function bootstrapping queries actions outside the data support,
+producing arbitrarily large overestimation.<a href="#fnref9"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn10"><p><em>Reward shaping fragility</em>: small reward changes
+can flip optimal policies; potential-based shaping is invariant by
+construction but rare in practice, and most production reward functions
+are hand-engineered and brittle.<a href="#fnref10" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn11"><p><em>High-variance gradient estimator</em>: REINFORCE
+Monte-Carlo gradient suffers extreme variance, scaling roughly linearly
+with horizon length and dominated by rare high-reward trajectories.<a
+href="#fnref11" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn12"><p><em>On-policy sample inefficiency</em>: TRPO and PPO
+discard data after each update because the surrogate objective requires
+the data-collection policy to match the optimization policy within a
+small trust region.<a href="#fnref12" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn13"><p><em>Exploration vs exploitation</em>:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>-greedy,
+entropy bonus, intrinsic curiosity, and NGU's never-give-up mixture each
+address coverage of the state space, but no method is principled across
+reward sparsity regimes.<a href="#fnref13" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn14"><p><em>Off-policy correction</em>: importance ratios
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mi>θ</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo>∣</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mi>μ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo>∣</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\pi_\theta(a \mid s) / \mu(a \mid s)</annotation></semantics></math>
+explode when target and behaviour policies diverge; V-trace, Retrace,
+and clipping each trade variance for bias.<a href="#fnref14"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn15"><p><em>Off-policy correction</em>: importance ratios
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mi>θ</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo>∣</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mi>μ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo>∣</mo><mi>s</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\pi_\theta(a \mid s) / \mu(a \mid s)</annotation></semantics></math>
+explode when target and behaviour policies diverge; V-trace, Retrace,
+and clipping each trade variance for bias.<a href="#fnref15"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn16"><p><em>Plasticity loss</em>: late-stage RL networks
+empirically lose the capacity to learn new tasks; weight magnitudes
+saturate, dead ReLUs accumulate, and effective rank collapses.<a
+href="#fnref16" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn17"><p><em>Hyperparameter brittleness</em>: the same algorithm
+in a different domain often requires re-tuning learning rate, entropy
+coefficient, batch size, and target-network update rate; transferable
+defaults are scarce.<a href="#fnref17" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn18"><p><em>Sim-to-real gap</em>: a policy that excels in
+simulation often degrades on real hardware due to actuator noise,
+contact dynamics, latency, and partial observability missing from the
+simulator.<a href="#fnref18" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn19"><p><em>Offline RL distribution shift</em>: when the
+dataset's behaviour policy differs from the target policy,
+value-function bootstrapping queries actions outside the data support,
+producing arbitrarily large overestimation.<a href="#fnref19"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn20"><p><em>Reward shaping fragility</em>: small reward changes
+can flip optimal policies; potential-based shaping is invariant by
+construction but rare in practice, and most production reward functions
+are hand-engineered and brittle.<a href="#fnref20" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn21"><p><em>Credit assignment</em>: long-horizon trajectories
+make per-step responsibility opaque; advantage estimation, eligibility
+traces, and bootstrapping only partially resolve which action caused
+which delayed reward.<a href="#fnref21" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

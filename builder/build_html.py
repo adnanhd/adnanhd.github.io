@@ -442,9 +442,12 @@ def render_timeline(data):
 # Blogs and Works
 # ---------------------------------------------------------------------------
 
+_TAG_ACRONYMS = {"rl": "RL", "ml": "ML", "ai": "AI", "cv": "CV", "nlp": "NLP", "llm": "LLM"}
+
+
 def _pretty_tag(tag):
-    """Human-readable label for a slug tag: 'policy-gradient' -> 'Policy Gradient'."""
-    return str(tag).replace("-", " ").title()
+    """Human-readable label for a slug tag: 'model-based-rl' -> 'Model Based RL'."""
+    return " ".join(_TAG_ACRONYMS.get(w, w.title()) for w in str(tag).split("-"))
 
 
 def _tag_parent_map(tag_tree):
