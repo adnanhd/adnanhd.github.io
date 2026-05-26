@@ -532,23 +532,48 @@ def render_blogs(blogs_data, selected_only=False):
     return "\n".join(parts)
 
 
+_LANG_COLORS = {
+    "python": "#3572A5", "c++": "#f34b7d", "c": "#555555", "cuda": "#3a4e3a",
+    "javascript": "#f1e05a", "typescript": "#3178c6", "rust": "#dea584",
+    "go": "#00ADD8", "shell": "#89e051", "julia": "#a270ba",
+}
+
+
+def _repo_path(url):
+    """Return 'owner/repo' from a GitHub URL, else ''."""
+    m = re.match(r"https?://github\.com/([^/]+/[^/?#]+)", url or "")
+    return m.group(1) if m else ""
+
+
 def render_works(works_data):
-    """Render open source project listings."""
+    """Render open source projects as GitHub cards."""
     works = (works_data or {}).get("works", [])
     if not works:
         return '<p style="color: var(--text-secondary);">No selected works yet.</p>'
 
     parts = []
     for work in works:
+        repo = _repo_path(work.get("url", ""))
+        repo_html = f'<span class="work-repo">{esc(repo)}</span>' if repo else ""
         desc = f"<p>{esc(work['description'])}</p>" if work.get("description") else ""
+
         tags = ""
         if work.get("tags"):
-            tag_spans = "".join(f'<span class="work-tag">{esc(t)}</span>' for t in work["tags"])
-            tags = f'<div class="work-tags">{tag_spans}</div>'
+            chips = []
+            for i, tag in enumerate(work["tags"]):
+                dot = ""
+                if i == 0 and tag.lower() in _LANG_COLORS:
+                    dot = f'<span class="lang-dot" style="background:{_LANG_COLORS[tag.lower()]}"></span>'
+                chips.append(f'<span class="work-tag">{dot}{esc(tag)}</span>')
+            tags = f'<div class="work-tags">{"".join(chips)}</div>'
+
         parts.append(
-            f'<div class="work-item">'
-            f'<a href="{esc(work["url"])}" target="_blank" rel="noopener noreferrer" class="work-link">'
-            f'<h3>{esc(work["title"])}</h3>{desc}{tags}</a></div>'
+            f'<a href="{esc(work["url"])}" target="_blank" rel="noopener noreferrer" class="work-item">'
+            f'<div class="work-head">'
+            f'<i class="fab fa-github work-icon" aria-hidden="true"></i>'
+            f'<span class="work-titles"><span class="work-name">{esc(work["title"])}</span>{repo_html}</span>'
+            f'<i class="fas fa-arrow-up-right-from-square work-ext" aria-hidden="true"></i>'
+            f'</div>{desc}{tags}</a>'
         )
     return "\n".join(parts)
 

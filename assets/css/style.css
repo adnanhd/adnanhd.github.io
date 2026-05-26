@@ -1486,3 +1486,93 @@ footer {
     border: none;
     border-top: 1px solid var(--border-color);
 }
+
+/* ---- Open Source project cards ---- */
+.repos-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.work-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-decoration: none;
+    color: inherit;
+    background: var(--bg-secondary);
+}
+
+.work-item:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent-color);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.work-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.work-icon {
+    font-size: 1.25em;
+    color: var(--text-primary);
+    flex-shrink: 0;
+}
+
+.work-titles {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
+.work-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 1.05em;
+    line-height: 1.2;
+}
+
+.work-repo {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.72em;
+    color: var(--text-muted);
+}
+
+.work-ext {
+    color: var(--text-muted);
+    font-size: 0.8em;
+    flex-shrink: 0;
+    transition: color 0.2s ease;
+}
+
+.work-item:hover .work-ext {
+    color: var(--accent-color);
+}
+
+.work-item p {
+    margin: 0;
+    font-size: 0.9em;
+    color: var(--text-secondary);
+}
+
+.work-tag {
+    display: inline-flex;
+    align-items: center;
+}
+
+.lang-dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+@media (max-width: 768px) {
+    .repos-list {
+        grid-template-columns: 1fr;
+    }
+}
