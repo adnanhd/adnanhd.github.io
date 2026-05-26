@@ -24,8 +24,12 @@
 queue = MessageQueue()
 executor = Executor(mode=ExecutionMode.THREAD)
 
-@task(queue=queue, topic=&quot;process.data&quot;, executor=executor,
-      on_success=lambda ctx: print(ctx.result))
+@task(
+    queue=queue,
+    topic=&quot;process.data&quot;,
+    executor=executor,
+    on_success=lambda ctx: print(ctx.result),
+)
 def process_data(data):
     return data.upper()
 
