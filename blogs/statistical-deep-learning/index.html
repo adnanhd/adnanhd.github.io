@@ -34,7 +34,7 @@ be analyzed inside the framework (SVM, AdaBoost, kernel ridge
 regression). <u>The later Parts of the book will show how each of these
 components either breaks or bends when the hypothesis class becomes a
 deep neural network trained by SGD.</u></p>
-<h2 id="one-sentence-summaries">One-sentence summaries</h2>
+<h3 id="one-sentence-summaries">One-sentence summaries</h3>
 <ul>
 <li><span class="citation" data-cites="vapnik_nature_1995">(Vapnik
 1995)</span> states the Structural Risk Minimization programme and
@@ -111,8 +111,8 @@ et al. 1998)</span> proves a test-error bound in terms of the <em>margin
 distribution</em>, not the number of rounds, explaining why AdaBoost
 keeps generalizing after training error hits zero; covered in Boosting.</li>
 </ul>
-<h2 id="sota-table-classical-benchmarks">SoTA table: classical
-benchmarks</h2>
+<h3 id="sota-table-classical-benchmarks">SoTA table: classical
+benchmarks</h3>
 <p><u>Classical learning theory crystallized around a handful of
 algorithm families on a stable benchmark suite (MNIST digits, USPS, UCI
 Letter, UCI Pima/Spambase).</u> Each family carries a <em>signature
@@ -1165,8 +1165,8 @@ data-cites="geiger_disentangling_2020">(Geiger et al. 2020)</span> and
 data-cites="woodworth_kernel_rich_2020">(Woodworth et al. 2020)</span>
 provide empirical and mathematical evidence that real networks are not
 purely in the NTK regime.</p>
-<h2 id="part-iiis-place-in-the-statistical-dl-story">Part III's place in
-the statistical-DL story</h2>
+<h3 id="part-iiis-place-in-the-statistical-dl-story">Part III's place in
+the statistical-DL story</h3>
 <p>Part III sits in a specific position relative to the other parts of
 the book. Part I established classical capacity-based generalization
 theory and its failure on over-parameterized networks. Part II
@@ -1198,8 +1198,8 @@ establishing the kernel-regression baseline (Part III), (iii)
 characterizing the gap between this baseline and practice (Parts III,
 IV, V). No single part delivers a complete theory; together they outline
 the shape one would take.</p>
-<h2 id="intellectual-lineages-beyond-part-iii">Intellectual lineages
-beyond Part III</h2>
+<h3 id="intellectual-lineages-beyond-part-iii">Intellectual lineages
+beyond Part III</h3>
 <p><u>A useful orienting frame is to place Part III's papers in the
 broader intellectual genealogy of the theory of neural networks.</u></p>
 <p>Kernel methods (Aronszajn 1950; <span class="citation"
@@ -1248,8 +1248,8 @@ linear networks) without necessarily taking width to infinity. The NTK
 provides the <em>infinite-width limit point</em> of this line; the
 finite-width analyses give convergence rates for specific architectures
 that the NTK subsumes asymptotically.</p>
-<h2 id="cross-references-into-other-parts">Cross-references into other
-parts</h2>
+<h3 id="cross-references-into-other-parts">Cross-references into other
+parts</h3>
 <ul>
 <li>Part I (classical
 foundations): VC/Rademacher bounds are replaced by RKHS
@@ -1278,7 +1278,7 @@ in Prob DL): NNGP is the infinite-width endpoint of the DGP
 hierarchy; variational DGP approximations recover finite-width
 corrections in a different expansion.</li>
 </ul>
-<h2 id="cross-paper-sota-positioning">Cross-paper SoTA positioning</h2>
+<h3 id="cross-paper-sota-positioning">Cross-paper SoTA positioning</h3>
 <p>How do the papers of Part III position against each other in the SoTA
 landscape? A few observations:</p>
 <p><span class="citation" data-cites="jacot_ntk_2018">(Jacot, Gabriel,
@@ -1327,8 +1327,8 @@ wide networks) through critique (empirical gap is real) to synthesis
 (finite-width corrections and feature-learning parameterizations
 together give a richer picture).</u> Each paper in Part III plays a
 specific role in this arc, and none is self-sufficient.</p>
-<h2 id="connecting-to-scaling-laws-part-v-preview">Connecting to scaling
-laws (Part V preview)</h2>
+<h3 id="connecting-to-scaling-laws-part-v-preview">Connecting to scaling
+laws (Part V preview)</h3>
 <p>Part V treats neural scaling laws as a distinct topic. A brief
 preview of the NTK connection is useful here. The observation that test
 error scales as a power law in compute, data, and parameters <span
@@ -1362,8 +1362,8 @@ with regime transitions; it has no mechanism for the <em>emergent
 abilities</em> reported in large language models. So the NTK gives a
 mathematical template for scaling-law derivation but does not account
 for the full empirical picture.</p>
-<h2 id="sota-table-across-ntk-vs-modern-architectures">SoTA table across
-NTK vs modern architectures</h2>
+<h3 id="sota-table-across-ntk-vs-modern-architectures">SoTA table across
+NTK vs modern architectures</h3>
 <div class="blog-table"><table>
 <caption>Leaderboard-style comparison: NTK-regression and modern
 architectures on CIFAR-10 and MNIST. Numbers compiled from <span
@@ -1458,8 +1458,8 @@ recipes that exploit feature learning, data augmentation, and transfer
 learning.</u> The NTK theory explains one regime (wide, lazily trained,
 from scratch) and does not explain the regime where modern accuracy
 lives.</p>
-<h2 id="cross-architecture-comparison-of-the-gap">Cross-architecture
-comparison of the gap</h2>
+<h3 id="cross-architecture-comparison-of-the-gap">Cross-architecture
+comparison of the gap</h3>
 <div class="blog-table"><table>
 <caption>Cross-architecture comparison of NTK-regression vs finite-width
 SGD-trained accuracy gap on CIFAR-10. Rows are architecture families.
@@ -1528,8 +1528,8 @@ efforts.</caption>
 Fully-connected networks have essentially no gap; basic CNNs have small
 gaps; modern architectures (ResNets, ViTs) have large gaps. This is the
 empirical shape of feature learning's contribution.</p>
-<h2 id="the-persistence-of-the-gap-across-training-recipes">The
-persistence of the gap across training recipes</h2>
+<h3 id="the-persistence-of-the-gap-across-training-recipes">The
+persistence of the gap across training recipes</h3>
 <p>A natural question is whether the NTK-to-SGD gap can be closed by
 adjusting training recipe. Several attempts have been made, with mixed
 results:</p>
@@ -1557,8 +1557,8 @@ better than kernel regression for sufficiently complex tasks, and no
 adjustment of training recipe can move them into the pure kernel regime
 without sacrificing the performance benefit.</u> The gap is a feature of
 practical training, not a bug in the NTK approximation.</p>
-<h2 id="gap-decomposition-by-architecture-family">Gap decomposition by
-architecture family</h2>
+<h3 id="gap-decomposition-by-architecture-family">Gap decomposition by
+architecture family</h3>
 <p>Different architecture families exhibit different NTK-to-SGD gaps. A
 rough taxonomy:</p>
 <p>Fully-connected networks. The NTK gap is small for FC networks at
@@ -1639,8 +1639,8 @@ architectures exhibit larger gaps.</u> This is consistent with the
 diagnosis that the NTK-vs-SGD gap tracks the degree to which training
 benefits from feature learning, which in turn tracks architectural
 sophistication.</p>
-<h2 id="ntks-contribution-to-the-theory-of-generalization">NTK's
-contribution to the theory of generalization</h2>
+<h3 id="ntks-contribution-to-the-theory-of-generalization">NTK's
+contribution to the theory of generalization</h3>
 <p>The NTK's principal contribution to generalization theory is to
 provide a computable baseline against which to measure. Before the NTK,
 generalization analyses of deep networks were either very loose (VC
@@ -1681,8 +1681,8 @@ wherever the NTK bound is loose, the slack is attributable to feature
 learning.</u> The NTK is therefore a tool for <em>diagnosing</em> when
 feature learning matters, by comparison of NTK-predicted-test-error to
 actual test error.</p>
-<h2 id="critiques-and-counter-evidence">Critiques and
-counter-evidence</h2>
+<h3 id="critiques-and-counter-evidence">Critiques and
+counter-evidence</h3>
 <p><u>Several authors have pushed back on the
 NTK-as-theory-of-deep-learning framing with evidence that finite
 networks behave in ways the NTK cannot predict.</u></p>
@@ -1731,8 +1731,8 @@ kernel regression is happening in practical deep-learning training. The
 NTK's residual value is as a null model: behaviors the NTK predicts are
 explicable without appeal to feature learning; behaviors it does not are
 evidence for feature-learning mechanisms.</p>
-<h2 id="the-role-of-scale-in-deep-learning-theory">The role of scale in
-deep-learning theory</h2>
+<h3 id="the-role-of-scale-in-deep-learning-theory">The role of scale in
+deep-learning theory</h3>
 <p>A recurring theme in Part III is that scale is not merely a practical
 scaling axis but a conceptual one: different scales correspond to
 different theoretical regimes. The NTK emerges as <em>width goes to

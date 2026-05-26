@@ -92,6 +92,8 @@ def _assemble(spec):
             continue
         section = _namespace_footnotes(section, f"s{i}")
         if multi:
+            # demote the file's inner headings one level so they nest under its H2
+            section = re.sub(r"^(\*+)(\s)", r"*\1\2", section, flags=re.M)
             parts.append(f"** {_title_of(raw)}\n\n{section}")
         else:
             parts.append(section)
