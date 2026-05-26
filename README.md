@@ -116,7 +116,7 @@ papers:
 ```
 
 ### 4. (Optional) Add Your CV PDF
-Add a PDF of your CV as `cv.pdf` in the root directory if you want the CV link to work.
+Add a PDF of your CV as `assets/img/cv.pdf` if you want the CV link to work.
 
 ## Customization
 
@@ -155,8 +155,7 @@ python -m http.server 8000
 
 ```
 ├── index.html              # Generated site (built by `python -m builder`)
-├── style.css               # All styling
-├── data.js                 # Client-side JS (page navigation, etc.)
+├── resume.pdf              # Generated résumé (kept at root)
 ├── builder/                # Static site builder (run: python -m builder)
 │   ├── __main__.py         # Entry point
 │   ├── build.py            # Orchestrates the build
@@ -166,8 +165,10 @@ python -m http.server 8000
 │   ├── build_utils.py      # Shared helpers + YAML loading
 │   └── fetch_publications.py  # Fetch from Google Scholar
 ├── requirements.txt        # Python dependencies
-├── profile.jpeg            # Your profile picture
-├── cv.pdf                  # (Optional) Your CV PDF
+├── assets/                 # Static assets
+│   ├── css/style.css       # All styling
+│   ├── js/data.js          # Client-side JS (page navigation, etc.)
+│   └── img/                # profile*.jpeg, cv.pdf, logos/, publications/
 ├── data/                   # git-crypt encrypted
 │   ├── bio.yaml            # Bio information with social IDs
 │   ├── education.yaml      # Education entries

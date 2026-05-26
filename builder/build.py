@@ -52,12 +52,12 @@ def main():
 
     # Template replacements
     replacements = {
-        "{{CSS_HASH}}": file_hash(BASE_DIR / "style.css"),
-        "{{JS_HASH}}": file_hash(BASE_DIR / "data.js"),
+        "{{CSS_HASH}}": file_hash(BASE_DIR / "assets" / "css" / "style.css"),
+        "{{JS_HASH}}": file_hash(BASE_DIR / "assets" / "js" / "data.js"),
         "{{SITE_URL}}": esc(bio.get("site_url", "")),
         "{{NAME}}": esc(bio["name"]),
         "{{META_DESCRIPTION}}": esc(meta_desc),
-        "{{PROFILE_IMAGE}}": esc(bio.get("profile_image", "profile.jpeg")),
+        "{{PROFILE_IMAGE}}": esc(bio.get("profile_image", "assets/img/profile.jpeg")),
         "{{TWITTER_HANDLE}}": esc(f"@{twitter_id}" if twitter_id else ""),
         "{{JSON_LD}}": render_json_ld(bio),
         "{{SIDEBAR}}": render_sidebar(bio),
