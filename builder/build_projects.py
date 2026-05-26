@@ -1,6 +1,6 @@
 """Generate self-hosted project landing pages for publications and repos.
 
-Called by the main build (`python -m builder`) — depends only on in-repo YAML.
+Called by the main build (`python -m builder`) - depends only on in-repo YAML.
 One blog-styled page per selected publication and per open-source work, written
 to projects/<slug>/index.html; titles on the About page link here. Optional
 `abstract:` (papers) / `body:` (works) fields are rendered as page content.
@@ -8,7 +8,7 @@ to projects/<slug>/index.html; titles on the About page link here. Optional
 
 from .build_config import BASE_DIR
 from .build_html import render_tags
-from .build_utils import esc, highlight_author, slugify
+from .build_utils import esc, format_date, highlight_author, slugify
 
 PROJECT_SHELL = """<!doctype html>
 <html lang="en">
@@ -48,7 +48,7 @@ def _render_summary(text):
     """Render a stored summary (static text) with a tiny markdown subset:
     '## ' -> <h3>, '- ' -> <ul><li>, blank-line-separated blocks -> <p>.
     Consecutive non-blank lines join into one paragraph. Everything is escaped;
-    no fetching or generation happens here — only formatting of stored text.
+    no fetching or generation happens here - only formatting of stored text.
     """
     if not text:
         return ""
@@ -110,7 +110,7 @@ def generate_project_pages(data):
         meta = " &middot; ".join(x for x in [
             highlight_author(esc(p.get("authors", ""))),
             esc(p.get("venue", "")),
-            esc(str(p.get("date", ""))),
+            esc(format_date(p.get("date", ""))),
         ] if x)
         image = (
             f'<img class="project-image" src="../../{esc(p["image"])}" '

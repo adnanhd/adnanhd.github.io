@@ -57,11 +57,11 @@ custom_links:
 ```
 
 #### CV section files (one file per section)
-- `data/education.yaml` — degrees, institutions, dates (set `timelined: true` to show in the timeline)
-- `data/experience.yaml` — work/internship entries (set `timelined: true` for the timeline)
-- `data/research.yaml` — research positions
-- `data/teaching.yaml` — teaching/TA entries
-- `data/extracurricular.yaml` — honors and skills
+- `data/education.yaml` - degrees, institutions, dates (set `timelined: true` to show in the timeline)
+- `data/experience.yaml` - work/internship entries (set `timelined: true` for the timeline)
+- `data/research.yaml` - research positions
+- `data/teaching.yaml` - teaching/TA entries
+- `data/extracurricular.yaml` - honors and skills
 
 #### `data/news.yaml`
 - News items with dates

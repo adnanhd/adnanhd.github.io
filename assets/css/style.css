@@ -1638,3 +1638,13 @@ footer {
 .blog-body li {
     margin-bottom: 0.4em;
 }
+
+/* dates: tabular figures for a clean, aligned look */
+.date,
+.timeline-date,
+.blog-date,
+.news-date,
+.publication-venue {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+}

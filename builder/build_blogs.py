@@ -63,7 +63,7 @@ def _extract_section(text, prefix):
 
 
 def _strip_noise(org_text):
-    """Drop babel src blocks and property drawers — not wanted in prose blogs."""
+    """Drop babel src blocks and property drawers - not wanted in prose blogs."""
     org_text = re.sub(r"^#\+begin_src.*?^#\+end_src\s*$", "", org_text,
                       flags=re.S | re.M | re.I)
     org_text = re.sub(r"^\s*:PROPERTIES:.*?^\s*:END:\s*$", "", org_text,
@@ -198,7 +198,7 @@ BLOGS = [
     BlogSpec(
         slug="reinforcement-learning",
         title="Reinforcement Learning",
-        meta="A survey of 30+ RL models — from REINFORCE to MuZero and DPO",
+        meta="A survey of 30+ RL models - from REINFORCE to MuZero and DPO",
         description="A survey of reinforcement learning models: policy gradients, "
                     "trust-region and actor-critic methods, distributed training, "
                     "model-based RL, and offline / preference-based learning.",

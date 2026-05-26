@@ -4,7 +4,7 @@ Shared configuration: paths, author info, and social link definitions.
 
 from pathlib import Path
 
-# Paths — build_config.py lives in builder/, so repo root is two levels up
+# Paths - build_config.py lives in builder/, so repo root is two levels up
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 TEMPLATE_PATH = BASE_DIR / "template.html"
@@ -17,7 +17,7 @@ AUTHOR_NAME = "Dogan, A. H."
 AUTHOR_NAME_ALT = "Doğan, A. H."
 AUTHOR_DISPLAY_NAME = "Adnan Harun Dogan"
 
-# Social platform URL templates — {id} is replaced with the user's ID
+# Social platform URL templates - {id} is replaced with the user's ID
 URL_TEMPLATES = {
     "email": "mailto:{id}",
     "github": "https://github.com/{id}",

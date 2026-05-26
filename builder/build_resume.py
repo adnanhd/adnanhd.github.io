@@ -17,6 +17,7 @@ from .build_config import (
     RESUME_OUTPUT_PATH,
     RESUME_TEMPLATE_PATH,
 )
+from .build_utils import format_date
 
 
 # ---------------------------------------------------------------------------
@@ -71,7 +72,7 @@ def render_education(data):
         parts.append(
             f"    \\resumeSubheading"
             f"{{{tex_escape(edu.get('degree', ''))}}}"
-            f"{{{tex_escape(str(edu.get('start_date', '')))} -- {tex_escape(str(edu.get('end_date', '')))}}}"
+            f"{{{tex_escape(format_date(edu.get('start_date', '')))} -- {tex_escape(format_date(edu.get('end_date', '')))}}}"
             f"{{{tex_escape(edu.get('institution', ''))}}}"
             f"{{{tex_escape(edu.get('location', ''))}}}"
             f"{{{logo}}}"
@@ -87,7 +88,7 @@ def render_experience(data):
         parts.append(
             f"    \\resumeSubheading"
             f"{{{tex_escape(exp.get('position', ''))}}}"
-            f"{{{tex_escape(str(exp.get('start_date', '')))} -- {tex_escape(str(exp.get('end_date', '')))}}}"
+            f"{{{tex_escape(format_date(exp.get('start_date', '')))} -- {tex_escape(format_date(exp.get('end_date', '')))}}}"
             f"{{{tex_escape(exp.get('company', ''))}}}"
             f"{{{tex_escape(exp.get('location', ''))}}}"
             f"{{{logo}}}"
@@ -111,7 +112,7 @@ def render_publications(data):
         authors = tex_bold_author(tex_escape(paper.get("authors", "")))
         title = tex_escape(paper.get("title", ""))
         venue = tex_escape(paper.get("venue_short") or paper.get("venue", ""))
-        year = tex_escape(str(paper.get("date", "")))
+        year = tex_escape(format_date(paper.get("date", "")))
         # APA format: Author, A. B. (Year). Title. *Venue*. [links]
         ref = f"{authors} ({year}). {title}."
         if venue:
@@ -133,7 +134,7 @@ def render_honors(data):
         parts.append(
             f"    \\resumeSubheading"
             f"{{{tex_escape(h.get('title', ''))}}}"
-            f"{{{tex_escape(str(h.get('date', '')))}}}"
+            f"{{{tex_escape(format_date(h.get('date', '')))}}}"
             f"{{{tex_escape(h.get('organization', ''))}}}"
             f"{{}}"
             f"{{{logo}}}"

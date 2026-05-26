@@ -14,7 +14,7 @@ from .build_config import (
     SECONDARY_CATEGORIES,
     URL_TEMPLATES,
 )
-from .build_utils import esc, highlight_author, highlight_author_span, parse_date, slugify
+from .build_utils import esc, format_date, highlight_author, highlight_author_span, parse_date, slugify
 
 
 # ---------------------------------------------------------------------------
@@ -119,7 +119,7 @@ def _render_pub_links(links):
 
 
 def render_publication_card(paper):
-    """Render a fancy publication card (About page — selected works)."""
+    """Render a fancy publication card (About page - selected works)."""
     parts = ['<div class="publication-item">']
 
     # Left: venue tag + image
@@ -152,7 +152,7 @@ def render_publication_card(paper):
 
     venue_full = paper.get("venue", "")
     if paper.get("date"):
-        venue_full += f', {paper["date"]}'
+        venue_full += f', {format_date(paper["date"])}'
     parts.append(f'<div class="publication-venue">{esc(venue_full)}</div>')
     parts.append(_render_pub_links(paper.get("links")))
     parts.append("</div></div>")
@@ -166,7 +166,7 @@ def render_compact_publication(paper):
     authors_html = highlight_author(esc(paper.get("authors", "")))
     citation = authors_html
     if paper.get("date"):
-        citation += f" ({esc(str(paper['date']))})."
+        citation += f" ({esc(format_date(paper['date']))})."
     citation += f" {esc(paper['title'])}."
     if paper.get("venue_link") and paper.get("venue_short"):
         citation += (
@@ -268,7 +268,11 @@ def _render_section(items, title_key, subtitle_key, date_fn):
 
 
 def _date_range(item):
-    return f'{item.get("start_date", "")} - {item.get("end_date", "")}'
+    start = format_date(item.get("start_date", ""))
+    end = format_date(item.get("end_date", ""))
+    if start and end:
+        return f"{start} - {end}"
+    return start or end
 
 
 def render_education(data):
@@ -293,7 +297,7 @@ def render_teaching(data):
 
 def render_honors(data):
     items = (data.get("extracurricular") or {}).get("honors", [])
-    return _render_section(items, "title", "organization", lambda e: e.get("date", ""))
+    return _render_section(items, "title", "organization", lambda e: format_date(e.get("date", "")))
 
 
 # ---------------------------------------------------------------------------
@@ -335,7 +339,7 @@ def render_news(data):
         opacity = _year_opacity(year, min_year, max_year)
         date = (
             f'<span class="news-date" style="opacity: {opacity:.2f}">'
-            f'{esc(item["date"])}</span> '
+            f'{esc(format_date(item["date"]))}</span> '
         )
 
         content = f'<span class="news-content">{esc(item["content"])}</span>'
@@ -391,7 +395,7 @@ def render_timeline(data):
         if res.get("timelined"):
             events.append(_timeline_exp_event(res))
 
-    # Publications are inherently chronological — include all of them.
+    # Publications are inherently chronological - include all of them.
     for paper in (data.get("publications") or {}).get("papers", []):
         events.append({
             "date": paper.get("date"), "type": "publication",
@@ -410,9 +414,9 @@ def render_timeline(data):
     for e in events:
         parts.append(f'<div class="timeline-item timeline-{e["type"]}">')
 
-        date = esc(str(e["date"]))
+        date = esc(format_date(e["date"]))
         if e.get("end_date"):
-            date += f' <span class="timeline-dash">–</span> {esc(str(e["end_date"]))}'
+            date += f' <span class="timeline-dash">-</span> {esc(format_date(e["end_date"]))}'
         parts.append(f'<span class="timeline-date">{date}</span>')
 
         logo = e.get("logo")
@@ -495,7 +499,7 @@ def render_blog_controls(blogs_data):
     return (
         '<div class="blog-controls">'
         '<input type="search" id="blog-search" class="blog-search" '
-        'placeholder="Search posts…" aria-label="Search blog posts" />'
+        'placeholder="Search posts..." aria-label="Search blog posts" />'
         f'{filters}'
         '</div>'
     )
@@ -530,7 +534,7 @@ def render_blogs(blogs_data, selected_only=False):
             f'<div class="blog-item" data-tags="{esc(data_tags)}" data-search="{esc(search)}">'
             f'<a href="{esc(blog["path"])}" class="blog-link">'
             f'<h3>{esc(blog["title"])}</h3>'
-            f'<span class="blog-date">{esc(blog.get("date", ""))}</span>'
+            f'<span class="blog-date">{esc(format_date(blog.get("date", "")))}</span>'
             f'{desc}</a>{chips_html}</div>'
         )
     return "\n".join(parts)

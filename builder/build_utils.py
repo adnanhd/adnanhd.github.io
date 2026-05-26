@@ -61,6 +61,36 @@ MONTHS = {
     "Spring": 3, "Fall": 9,
 }
 
+MONTH_NAMES = [
+    "", "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+]
+
+
+def format_date(value):
+    """Render an ISO (full or partial) date as human-readable text.
+
+    2025-03-05 -> 'March 5, 2025'; 2025-03 -> 'March 2025'; 2025 -> '2025'.
+    'Present' is normalized; anything unrecognized (e.g. 'Spring 2019') passes
+    through unchanged.
+    """
+    if value is None:
+        return ""
+    s = str(value).strip()
+    if not s:
+        return ""
+    if s.lower() == "present":
+        return "Present"
+    m = re.match(r"^(\d{4})-(\d{2})-(\d{2})$", s)
+    if m and 1 <= int(m.group(2)) <= 12:
+        return f"{MONTH_NAMES[int(m.group(2))]} {int(m.group(3))}, {m.group(1)}"
+    m = re.match(r"^(\d{4})-(\d{2})$", s)
+    if m and 1 <= int(m.group(2)) <= 12:
+        return f"{MONTH_NAMES[int(m.group(2))]} {m.group(1)}"
+    if re.match(r"^\d{4}$", s):
+        return s
+    return s
+
 
 def parse_date(date_str):
     """Parse a date string into a datetime for sorting."""
@@ -69,6 +99,11 @@ def parse_date(date_str):
     s = str(date_str).strip()
     if s.lower() == "present":
         return datetime.now()
+
+    # ISO "YYYY-MM-DD" / "YYYY-MM"
+    m = re.match(r"^(\d{4})-(\d{2})(?:-(\d{2}))?$", s)
+    if m:
+        return datetime(int(m.group(1)), int(m.group(2)), int(m.group(3) or 1))
 
     # "Mon YYYY"
     m = re.match(r"^([A-Za-z]+)\s+(\d{4})$", s)
