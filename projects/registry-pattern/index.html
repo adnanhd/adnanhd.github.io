@@ -19,7 +19,7 @@
             <h1>registry-pattern</h1>
             <div class="blog-meta"><div class="work-tags"><span class="tech-badge" style="background:#3776AB"><i class="devicon-python-plain" aria-hidden="true"></i>Python</span><span class="work-tag">Design Patterns</span></div></div>
             
-            <div class="blog-body"><p>registry-pattern provides name-based registries for classes and functions plus a recursive factory that builds object graphs from JSON-friendly <code>{type, repo, data, meta}</code> envelopes.</p><h3>Example</h3><pre><code>from registry import TypeRegistry, build, serialize
+            <div class="blog-body"><p>registry-pattern provides name-based registries for classes and functions plus a recursive factory that builds object graphs from JSON-friendly <code>{type, repo, data, meta}</code> envelopes.</p><h3>Example</h3><pre><code class="language-python">from registry import TypeRegistry, build, serialize
 import torch.nn as nn
 
 class ModelRegistry(TypeRegistry[nn.Module]):
@@ -41,5 +41,7 @@ env = serialize(model)                                   # -&gt; {type, data, me
             else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
                 document.documentElement.setAttribute("data-theme", "dark");
         </script>
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+        <script>if (window.hljs) hljs.highlightAll();</script>
     </body>
 </html>

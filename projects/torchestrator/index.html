@@ -19,7 +19,7 @@
             <h1>torchestrator</h1>
             <div class="blog-meta"><div class="work-tags"><span class="tech-badge" style="background:#3776AB"><i class="devicon-python-plain" aria-hidden="true"></i>Python</span><span class="tech-badge" style="background:#EE4C2C"><i class="devicon-pytorch-original" aria-hidden="true"></i>PyTorch</span></div></div>
             
-            <div class="blog-body"><p>torchestrator is a Dockerfile-like declarative experiment runner for PyTorch. One experiment is a &quot;torchfile&quot;: a config that names the model, dataset, optimizer, loss, metrics and training loop in named blocks (<code>MODEL</code>, <code>DATA</code>, <code>TRAIN</code>, <code>EVAL</code>, <code>ENV</code>, <code>LOGGING</code>, <code>METERS</code>), resolved to a typed config and built by a dependency-injection engine over a name-based registry. Components talk through named slots via <code>call</code> / <code>outs</code> mappings, and shapes, dtypes and parameter counts are verified at build time before any training starts.</p><h3>A torchfile</h3><pre><code>MODEL:
+            <div class="blog-body"><p>torchestrator is a Dockerfile-like declarative experiment runner for PyTorch. One experiment is a &quot;torchfile&quot;: a config that names the model, dataset, optimizer, loss, metrics and training loop in named blocks (<code>MODEL</code>, <code>DATA</code>, <code>TRAIN</code>, <code>EVAL</code>, <code>ENV</code>, <code>LOGGING</code>, <code>METERS</code>), resolved to a typed config and built by a dependency-injection engine over a name-based registry. Components talk through named slots via <code>call</code> / <code>outs</code> mappings, and shapes, dtypes and parameter counts are verified at build time before any training starts.</p><h3>A torchfile</h3><pre><code class="language-yaml">MODEL:
   type: Sequential
   call: { input: image }
   outs: [logits]
@@ -56,5 +56,7 @@ EVAL:
             else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
                 document.documentElement.setAttribute("data-theme", "dark");
         </script>
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+        <script>if (window.hljs) hljs.highlightAll();</script>
     </body>
 </html>

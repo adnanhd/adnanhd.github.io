@@ -19,7 +19,7 @@
             <h1>observer-pattern</h1>
             <div class="blog-meta"><div class="work-tags"><span class="tech-badge" style="background:#3776AB"><i class="devicon-python-plain" aria-hidden="true"></i>Python</span><span class="work-tag">Design Patterns</span></div></div>
             
-            <div class="blog-body"><p>observer-pattern (published as <code>eventforge</code>) is a message-driven execution and event library.</p><h3>Example</h3><pre><code>from eventforge import task, MessageQueue, Executor, ExecutionMode
+            <div class="blog-body"><p>observer-pattern (published as <code>eventforge</code>) is a message-driven execution and event library.</p><h3>Example</h3><pre><code class="language-python">from eventforge import task, MessageQueue, Executor, ExecutionMode
 
 queue = MessageQueue()
 executor = Executor(mode=ExecutionMode.THREAD)
@@ -39,5 +39,7 @@ queue.publish(&quot;process.data&quot;, &quot;world&quot;)   # same path, async 
             else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
                 document.documentElement.setAttribute("data-theme", "dark");
         </script>
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+        <script>if (window.hljs) hljs.highlightAll();</script>
     </body>
 </html>

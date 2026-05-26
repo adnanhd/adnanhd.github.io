@@ -42,6 +42,8 @@ PROJECT_SHELL = """<!doctype html>
             else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
                 document.documentElement.setAttribute("data-theme", "dark");
         </script>
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+        <script>if (window.hljs) hljs.highlightAll();</script>
     </body>
 </html>
 """
@@ -113,15 +115,20 @@ def _render_summary(text):
     def flush_all():
         flush_para(); flush_bullets(); flush_table()
 
-    code, in_code = [], False
+    def emit_code(lang, lines):
+        cls = f' class="language-{esc(lang)}"' if lang else ""
+        html.append(f"<pre><code{cls}>{esc(chr(10).join(lines))}</code></pre>")
+
+    code, in_code, code_lang = [], False, ""
     for line in str(text).split("\n"):
         s = line.strip()
         if s.startswith("```"):
             if in_code:
-                html.append(f"<pre><code>{esc(chr(10).join(code))}</code></pre>")
-                code, in_code = [], False
+                emit_code(code_lang, code)
+                code, in_code, code_lang = [], False, ""
             else:
                 flush_all(); in_code = True
+                code_lang = re.sub(r"[^\w+-]", "", s[3:].strip())
             continue
         if in_code:
             code.append(line)
@@ -141,7 +148,7 @@ def _render_summary(text):
             flush_bullets(); flush_table()
             para.append(s)
     if in_code:
-        html.append(f"<pre><code>{esc(chr(10).join(code))}</code></pre>")
+        emit_code(code_lang, code)
     flush_all()
     return "".join(html)
 
