@@ -349,7 +349,7 @@ def render_news(data):
             tag_spans = "".join(
                 '<span class="news-tag" style="background-color: '
                 f'{_NEWS_TAG_COLORS.get(tag, "var(--text-muted)")}">'
-                f'#{esc(tag)}</span>'
+                f'{esc(tag)}</span>'
                 for tag in tags
             )
             tag_html = f'<span class="news-tags">{tag_spans}</span>'
