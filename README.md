@@ -56,10 +56,12 @@ custom_links:
     url: "https://yourblog.com"
 ```
 
-#### `data/cv.yaml`
-- Education entries
-- Work experience entries
-- Timeline entries for the left column (education & internships)
+#### CV section files (one file per section)
+- `data/education.yaml` — degrees, institutions, dates (set `timelined: true` to show in the timeline)
+- `data/experience.yaml` — work/internship entries (set `timelined: true` for the timeline)
+- `data/research.yaml` — research positions
+- `data/teaching.yaml` — teaching/TA entries
+- `data/extracurricular.yaml` — honors and skills
 
 #### `data/news.yaml`
 - News items with dates
@@ -159,11 +161,17 @@ python -m http.server 8000
 ├── requirements.txt        # Python dependencies
 ├── profile.jpeg            # Your profile picture
 ├── cv.pdf                  # (Optional) Your CV PDF
-├── data/
+├── data/                   # git-crypt encrypted
 │   ├── bio.yaml            # Bio information with social IDs
-│   ├── cv.yaml             # Education & experience
+│   ├── education.yaml      # Education entries
+│   ├── experience.yaml     # Work / internship entries
+│   ├── research.yaml       # Research positions
+│   ├── teaching.yaml       # Teaching / TA entries
+│   ├── extracurricular.yaml# Honors & skills
 │   ├── news.yaml           # News items
-│   └── publications.yaml   # Publications/papers
+│   ├── publications.yaml   # Publications / papers
+│   ├── blogs.yaml          # Blog post listings
+│   └── works.yaml          # Open-source projects
 └── README.md               # This file
 ```
 
