@@ -339,26 +339,86 @@ def render_honors(data):
 
 
 # ---------------------------------------------------------------------------
-# News - auto-derived chronological feed (filtered by news_visible)
+# News - manually curated one-liners, each clickable through to Timeline
 # ---------------------------------------------------------------------------
 
-# Event type -> (dot colour, tag-chip label, tag-chip colour).
-_NEWS_TYPE_META = {
-    "publication": ("#10b981", "publication", "#10b981"),
-    "degree":      ("#0066cc", "degree",      "#6c71c4"),
-    "internship":  ("#0066cc", "internship",  "#2aa198"),
-    "award":       ("#b58900", "award",       "#b58900"),
+_NEWS_TAG_COLORS = {
+    "publication": "#10b981",   # green
+    "degree":      "#6c71c4",   # purple
+    "internship":  "#2aa198",   # teal
+    "award":       "#b58900",   # gold
+    "life-event":  "#8b5cf6",   # purple
 }
 
 
-def _news_exp_event(item, source):
-    """Build a news event dict from an education/experience/research item.
-    `source` is 'education' (-> degree tag) or 'experience'/'research'
-    (-> internship tag).
-    """
+def _normalize_tags(raw):
+    if raw is None:
+        return []
+    if isinstance(raw, str):
+        return [raw]
+    return list(raw)
+
+
+def render_news(data):
+    """One-line news entries with optional [link] and tag chips. The whole
+    row hyperlinks to the matching Timeline anchor (timeline_ref slug)."""
+    items = (data.get("news") or {}).get("items", [])
+    if not items:
+        return ""
+
+    parts = []
+    for item in items:
+        tags = _normalize_tags(item.get("tags"))
+        date_html = f'<span class="news-date">{esc(format_date(item["date"]))}</span>'
+
+        body = esc(item["content"])
+        if item.get("link"):
+            body += (
+                f' <a href="{esc(item["link"])}" class="news-link" '
+                f'target="_blank" rel="noopener noreferrer">[link]</a>'
+            )
+        content_html = f'<span class="news-content">{body}</span>'
+
+        chips = "".join(
+            f'<span class="news-tag" style="background-color: '
+            f'{_NEWS_TAG_COLORS.get(t, "var(--text-muted)")}">{esc(t)}</span>'
+            for t in tags
+        )
+        tag_html = f'<span class="news-tags">{chips}</span>' if chips else ""
+
+        ref = item.get("timeline_ref")
+        if ref:
+            inner = (
+                f'<a class="news-row" href="#timeline:tl-{esc(ref)}">'
+                f'{date_html}{content_html}{tag_html}</a>'
+            )
+        else:
+            inner = f'<span class="news-row">{date_html}{content_html}{tag_html}</span>'
+
+        parts.append(f'<li>{inner}</li>')
+    return "\n".join(parts)
+
+
+# ---------------------------------------------------------------------------
+# Timeline - two-sided chronology, no nav entry (reached via News clicks)
+# ---------------------------------------------------------------------------
+
+# Type -> (side, dot/border colour). Publications on the left, everything
+# institutional (degree/experience/research/award) on the right.
+_TIMELINE_TYPE_META = {
+    "publication": ("left",  "#10b981"),
+    "degree":      ("right", "#6c71c4"),
+    "experience":  ("right", "#2aa198"),
+    "research":    ("right", "#2aa198"),
+    "award":       ("right", "#b58900"),
+}
+
+
+def _timeline_exp_event(item, ev_type):
+    """Build a timeline event from an education/experience/research record."""
     return {
         "date": item.get("start_date"), "end_date": item.get("end_date"),
-        "type": "degree" if source == "education" else "internship",
+        "type": ev_type,
         "title": item.get("degree") or item.get("position", ""),
         "subtitle": item.get("institution") or item.get("company", ""),
         "logo": item.get("logo"),
@@ -366,31 +426,22 @@ def _news_exp_event(item, source):
     }
 
 
-def render_news(data):
-    """Old Timeline content rendered as a .news-list with rail + hollow dots.
-
-    Each entry is opt-in via news_visible: true on the source record:
-      publications.yaml -> 1 event per paper        (green dot, publication)
-      education.yaml    -> 1 event per degree       (blue dot, degree)
-      experience.yaml   -> 1 event per role         (blue dot, internship)
-      research.yaml     -> 1 event per project      (blue dot, internship)
-      extracurricular.yaml.honors -> 1 event per honour (gold dot, award)
-    """
+def render_timeline(data):
+    """Two-sided rail timeline: pubs on the left, institutional on the right."""
     events = []
 
     for edu in (data.get("education") or {}).get("education", []):
-        if edu.get("news_visible"):
-            events.append(_news_exp_event(edu, "education"))
+        if edu.get("timelined"):
+            events.append(_timeline_exp_event(edu, "degree"))
     for exp in (data.get("experience") or {}).get("experience", []):
-        if exp.get("news_visible"):
-            events.append(_news_exp_event(exp, "experience"))
+        if exp.get("timelined"):
+            events.append(_timeline_exp_event(exp, "experience"))
     for res in (data.get("research") or {}).get("research", []):
-        if res.get("news_visible"):
-            events.append(_news_exp_event(res, "research"))
+        if res.get("timelined"):
+            events.append(_timeline_exp_event(res, "research"))
 
+    # Publications are inherently chronological - include all of them.
     for paper in (data.get("publications") or {}).get("papers", []):
-        if not paper.get("news_visible"):
-            continue
         events.append({
             "date": paper.get("date"), "type": "publication",
             "title": paper.get("title", ""),
@@ -400,7 +451,7 @@ def render_news(data):
         })
 
     for h in (data.get("extracurricular") or {}).get("honors", []):
-        if not h.get("news_visible"):
+        if not h.get("timelined"):
             continue
         events.append({
             "date": h.get("date"), "type": "award",
@@ -415,36 +466,25 @@ def render_news(data):
     if not events:
         return ""
 
-    parts = []
+    parts = ['<div class="timeline">']
     for e in events:
-        dot, tag_label, tag_color = _NEWS_TYPE_META.get(
-            e["type"], ("var(--accent-color)", e["type"], "var(--text-muted)")
-        )
+        side, color = _TIMELINE_TYPE_META.get(e["type"], ("right", "var(--accent-color)"))
+        anchor = f"tl-{slugify(e['title'])}"
 
         date = esc(format_date(e["date"]))
         if e.get("end_date"):
             date += f' <span class="timeline-dash">-</span> {esc(format_date(e["end_date"]))}'
-
-        tag_chip = (
-            f'<span class="news-tag" style="background-color: {tag_color}">'
-            f'{esc(tag_label)}</span>'
-        )
-        head = (
-            f'<div class="news-head">'
-            f'<span class="timeline-date">{date}</span>'
-            f'<span class="news-tags">{tag_chip}</span>'
-            f'</div>'
-        )
-        body = [head]
 
         logo = e.get("logo")
         logo_html = (
             f'<img class="timeline-logo" src="{esc(logo)}" alt="" loading="lazy" '
             f'width="22" height="22" />' if logo else ""
         )
-        body.append(
-            f'<h4 class="timeline-title">{logo_html}<span>{esc(e["title"])}</span></h4>'
-        )
+
+        body = [
+            f'<span class="timeline-date">{date}</span>',
+            f'<h4 class="timeline-title">{logo_html}<span>{esc(e["title"])}</span></h4>',
+        ]
 
         if e["type"] == "publication":
             body.append(
@@ -452,9 +492,7 @@ def render_news(data):
                 f'{highlight_author(esc(e.get("authors", "")))}</div>'
             )
             if e.get("subtitle"):
-                body.append(
-                    f'<div class="timeline-venue"><em>{esc(e["subtitle"])}</em></div>'
-                )
+                body.append(f'<div class="timeline-venue"><em>{esc(e["subtitle"])}</em></div>')
             links = [l for l in (e.get("links") or []) if l.get("url")]
             if links:
                 link_html = "".join(
@@ -475,9 +513,10 @@ def render_news(data):
                 )
 
         parts.append(
-            f'<li style="--dot-color: {dot}" class="news-{e["type"]}">'
-            f'{"".join(body)}</li>'
+            f'<div id="{anchor}" class="timeline-item timeline-{e["type"]} timeline-{side}" '
+            f'style="--dot-color: {color}">{"".join(body)}</div>'
         )
+    parts.append("</div>")
     return "\n".join(parts)
 
 

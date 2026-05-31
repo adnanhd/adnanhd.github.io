@@ -27,6 +27,7 @@ from .build_html import (
     render_research,
     render_sidebar,
     render_teaching,
+    render_timeline,
     render_works,
 )
 from .build_projects import generate_project_pages
@@ -75,6 +76,7 @@ def main():
         "{{TEACHING}}": render_teaching(data),
         "{{HONORS}}": render_honors(data),
         "{{NEWS}}": render_news(data),
+        "{{TIMELINE}}": render_timeline(data),
     }
 
     output = template

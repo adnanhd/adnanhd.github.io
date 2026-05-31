@@ -1,7 +1,7 @@
 // Theme management and page navigation
 // Content is pre-rendered by build.py — this file only handles interactive behavior.
 
-const VALID_PAGES = ["about", "cv", "blogs"];
+const VALID_PAGES = ["about", "cv", "blogs", "timeline"];
 
 function showPage(pageId, scrollTo) {
   if (!VALID_PAGES.includes(pageId)) return;

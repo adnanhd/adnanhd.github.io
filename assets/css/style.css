@@ -547,74 +547,72 @@ a:hover {
     line-height: 1.3;
 }
 
-/* News Section - styled like the old single-rail Timeline:
-   small uppercase muted date on top, content below, vertical stack;
-   continuous left rail with a per-event hollow dot that fills on hover. */
+/* News - simple one-liner per entry; whole row jumps to a Timeline anchor. */
 .news-list {
     list-style: none;
-    position: relative;
-    max-width: 760px;
-    margin: 0;
 }
 
 .news-list li {
-    position: relative;
-    padding: 0 0 22px 28px;
-    line-height: 1.5;
+    margin-bottom: 8px;
+    line-height: 1.55;
     font-size: 1em;
 }
 
-.news-list li::before { /* continuous rail */
-    content: "";
-    position: absolute;
-    left: 5px;
-    top: 12px;
-    bottom: -4px;
-    width: 2px;
-    background: var(--border-color);
-}
-
-.news-list li:last-child::before {
-    display: none;
-}
-
-.news-list li::after { /* hollow dot - colour set per-item via --dot-color */
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 8px;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: var(--bg-primary);
-    border: 2px solid var(--dot-color, var(--accent-color));
-    box-sizing: border-box;
-    transition: background-color 0.2s ease;
-}
-
-.news-list li:hover::after {
-    background: var(--dot-color, var(--accent-color));
-}
-
-/* date row: small uppercase date on the left, tag chip on the right */
-.news-list .news-head {
+.news-row {
     display: flex;
-    justify-content: space-between;
     align-items: baseline;
-    gap: 12px;
-    margin-bottom: 4px;
+    gap: 10px;
+    flex-wrap: wrap;
+    color: inherit;
+    text-decoration: none;
+    padding: 4px 6px;
+    border-radius: 4px;
+    transition: background-color 0.15s ease;
+}
+
+a.news-row:hover {
+    background-color: var(--hover-bg);
+}
+
+.news-date {
+    font-weight: 700;
+    color: var(--text-tertiary);
+    font-size: 0.85em;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+    min-width: 96px;
+}
+
+.news-content {
+    color: var(--text-secondary);
+    flex: 1;
+    min-width: 220px;
+}
+
+.news-link {
+    font-size: 0.88em;
+    font-weight: 600;
+    color: var(--accent-color);
+    text-decoration: none;
+    margin-left: 4px;
+}
+
+.news-link:hover {
+    text-decoration: underline;
 }
 
 .news-tags {
     display: inline-flex;
     gap: 5px;
+    margin-left: auto;
     flex-shrink: 0;
 }
 
 .news-tag {
     display: inline-block;
     color: #fff;
-    font-size: 0.7em;
+    font-size: 0.68em;
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 3px;
@@ -623,57 +621,109 @@ a:hover {
     opacity: 0.9;
 }
 
-/* Timeline — single left rail, compact */
+/* Timeline — two-sided: rail down the middle, publications on the left,
+   institutional (degree / internship / award) on the right. */
 .timeline {
     position: relative;
-    max-width: 720px;
-    margin: 32px auto;
+    max-width: 980px;
+    margin: 8px auto 32px;
+    padding: 24px 0;
+}
+
+.timeline::before { /* central rail */
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 2px;
+    background: var(--border-color);
+    transform: translateX(-1px);
 }
 
 .timeline-item {
     position: relative;
-    padding: 0 0 20px 28px;
+    width: calc(50% - 32px);
+    padding: 12px 16px;
+    margin-bottom: 18px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.timeline-item::before { /* continuous rail */
+.timeline-item:target {
+    border-color: var(--dot-color, var(--accent-color));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--dot-color, var(--accent-color)) 25%, transparent);
+}
+
+.timeline-left { /* publications */
+    margin-left: 0;
+    margin-right: auto;
+}
+
+.timeline-right { /* degree / experience / research / award */
+    margin-left: auto;
+    margin-right: 0;
+}
+
+/* hollow dot pinned to the central rail */
+.timeline-item::after {
     content: "";
     position: absolute;
-    left: 5px;
-    top: 6px;
-    bottom: -2px;
-    width: 2px;
+    top: 18px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--bg-primary);
+    border: 2px solid var(--dot-color, var(--accent-color));
+    box-sizing: border-box;
+    transition: background-color 0.2s ease;
+}
+
+.timeline-left::after  { right: -39px; }
+.timeline-right::after { left: -39px;  }
+
+.timeline-item:hover::after {
+    background: var(--dot-color, var(--accent-color));
+}
+
+/* small horizontal arm from the card edge to the dot */
+.timeline-item::before {
+    content: "";
+    position: absolute;
+    top: 24px;
+    height: 2px;
+    width: 24px;
     background: var(--border-color);
 }
 
-.timeline-item:last-child::before {
-    bottom: auto;
-    height: 0;
-}
+.timeline-left::before  { right: -24px; }
+.timeline-right::before { left: -24px;  }
 
-.timeline-item::after { /* node */
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 5px;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: var(--bg-primary);
-    border: 2px solid var(--accent-color);
-    box-sizing: border-box;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-
-.timeline-item.timeline-publication::after {
-    border-color: #10b981;
-}
-
-.timeline-item:hover::after {
-    background: var(--accent-color);
-}
-
-.timeline-item.timeline-publication:hover::after {
-    background: #10b981;
+@media (max-width: 720px) {
+    .timeline::before {
+        left: 8px;
+        transform: none;
+    }
+    .timeline-item,
+    .timeline-left,
+    .timeline-right {
+        width: auto;
+        margin-left: 32px;
+        margin-right: 0;
+    }
+    .timeline-left::after,
+    .timeline-right::after {
+        left: -32px;
+        right: auto;
+    }
+    .timeline-left::before,
+    .timeline-right::before {
+        left: -18px;
+        right: auto;
+        width: 18px;
+    }
 }
 
 .timeline-date {
