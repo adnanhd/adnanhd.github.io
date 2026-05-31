@@ -339,54 +339,75 @@ def render_honors(data):
 
 
 # ---------------------------------------------------------------------------
-# News - auto-derived chronological feed, rendered in the old Timeline style
+# News - auto-derived chronological feed (filtered by news_visible)
 # ---------------------------------------------------------------------------
 
-# Event type -> dot colour. Publication=green, experience/edu/research=blue.
-_NEWS_TYPE_COLORS = {
-    "publication": "#10b981",
-    "experience":  "#0066cc",
+# Event type -> (dot colour, tag-chip label, tag-chip colour).
+_NEWS_TYPE_META = {
+    "publication": ("#10b981", "publication", "#10b981"),
+    "degree":      ("#0066cc", "degree",      "#6c71c4"),
+    "internship":  ("#0066cc", "internship",  "#2aa198"),
+    "award":       ("#b58900", "award",       "#b58900"),
 }
 
 
-def _news_exp_event(item):
-    """Build a news event dict from an education/experience/research item."""
+def _news_exp_event(item, source):
+    """Build a news event dict from an education/experience/research item.
+    `source` is 'education' (-> degree tag) or 'experience'/'research'
+    (-> internship tag).
+    """
     return {
         "date": item.get("start_date"), "end_date": item.get("end_date"),
-        "type": "experience",
+        "type": "degree" if source == "education" else "internship",
         "title": item.get("degree") or item.get("position", ""),
         "subtitle": item.get("institution") or item.get("company", ""),
         "logo": item.get("logo"),
+        "link": item.get("link"),
     }
 
 
 def render_news(data):
-    """Old Timeline content rendered as an .news-list with rail + hollow dots.
+    """Old Timeline content rendered as a .news-list with rail + hollow dots.
 
-    Publications (all) + timelined education/experience/research starts.
-    Each event renders date(-range) on top, then title (with optional logo),
-    then authors+venue+link buttons for publications, or institution/company
-    for experiences. Dot colour: green for publications, blue otherwise.
+    Each entry is opt-in via news_visible: true on the source record:
+      publications.yaml -> 1 event per paper        (green dot, publication)
+      education.yaml    -> 1 event per degree       (blue dot, degree)
+      experience.yaml   -> 1 event per role         (blue dot, internship)
+      research.yaml     -> 1 event per project      (blue dot, internship)
+      extracurricular.yaml.honors -> 1 event per honour (gold dot, award)
     """
     events = []
 
     for edu in (data.get("education") or {}).get("education", []):
-        if edu.get("timelined"):
-            events.append(_news_exp_event(edu))
+        if edu.get("news_visible"):
+            events.append(_news_exp_event(edu, "education"))
     for exp in (data.get("experience") or {}).get("experience", []):
-        if exp.get("timelined"):
-            events.append(_news_exp_event(exp))
+        if exp.get("news_visible"):
+            events.append(_news_exp_event(exp, "experience"))
     for res in (data.get("research") or {}).get("research", []):
-        if res.get("timelined"):
-            events.append(_news_exp_event(res))
+        if res.get("news_visible"):
+            events.append(_news_exp_event(res, "research"))
 
     for paper in (data.get("publications") or {}).get("papers", []):
+        if not paper.get("news_visible"):
+            continue
         events.append({
             "date": paper.get("date"), "type": "publication",
             "title": paper.get("title", ""),
             "authors": paper.get("authors", ""),
             "subtitle": paper.get("venue_short") or paper.get("venue", ""),
             "links": paper.get("links"),
+        })
+
+    for h in (data.get("extracurricular") or {}).get("honors", []):
+        if not h.get("news_visible"):
+            continue
+        events.append({
+            "date": h.get("date"), "type": "award",
+            "title": h.get("title", ""),
+            "subtitle": h.get("organization", ""),
+            "logo": h.get("logo"),
+            "link": h.get("link"),
         })
 
     events = [e for e in events if e.get("date")]
@@ -396,12 +417,25 @@ def render_news(data):
 
     parts = []
     for e in events:
-        dot = _NEWS_TYPE_COLORS.get(e["type"], "var(--accent-color)")
+        dot, tag_label, tag_color = _NEWS_TYPE_META.get(
+            e["type"], ("var(--accent-color)", e["type"], "var(--text-muted)")
+        )
 
         date = esc(format_date(e["date"]))
         if e.get("end_date"):
             date += f' <span class="timeline-dash">-</span> {esc(format_date(e["end_date"]))}'
-        body = [f'<span class="timeline-date">{date}</span>']
+
+        tag_chip = (
+            f'<span class="news-tag" style="background-color: {tag_color}">'
+            f'{esc(tag_label)}</span>'
+        )
+        head = (
+            f'<div class="news-head">'
+            f'<span class="timeline-date">{date}</span>'
+            f'<span class="news-tags">{tag_chip}</span>'
+            f'</div>'
+        )
+        body = [head]
 
         logo = e.get("logo")
         logo_html = (
@@ -418,7 +452,9 @@ def render_news(data):
                 f'{highlight_author(esc(e.get("authors", "")))}</div>'
             )
             if e.get("subtitle"):
-                body.append(f'<div class="timeline-venue"><em>{esc(e["subtitle"])}</em></div>')
+                body.append(
+                    f'<div class="timeline-venue"><em>{esc(e["subtitle"])}</em></div>'
+                )
             links = [l for l in (e.get("links") or []) if l.get("url")]
             if links:
                 link_html = "".join(
@@ -427,8 +463,16 @@ def render_news(data):
                     for l in links
                 )
                 body.append(f'<div class="timeline-links">{link_html}</div>')
-        elif e.get("subtitle"):
-            body.append(f'<div class="timeline-org">{esc(e["subtitle"])}</div>')
+        else:
+            if e.get("subtitle"):
+                body.append(f'<div class="timeline-org">{esc(e["subtitle"])}</div>')
+            if e.get("link"):
+                body.append(
+                    f'<div class="timeline-links">'
+                    f'<a href="{esc(e["link"])}" target="_blank" '
+                    f'rel="noopener noreferrer" class="timeline-link">Link</a>'
+                    f'</div>'
+                )
 
         parts.append(
             f'<li style="--dot-color: {dot}" class="news-{e["type"]}">'
