@@ -642,11 +642,30 @@ a:hover {
     position: relative;
     max-width: 1140px;
     margin: 8px auto 48px;
-    --rail-x: 42%;
     --rail-gap: 36px;
     --lane-gap: 8px;
-    --left-side-w: calc(var(--rail-x) - var(--rail-gap));
-    --right-side-w: calc(100% - var(--rail-x) - var(--rail-gap));
+    /* --n-left, --n-right, --n-total, --total-recip are set inline by
+       the build (from the greedy-lane assignment). All lanes - LEFT
+       and RIGHT alike - share ONE uniform --lane-w, so an M.Sc. card
+       on the right has the same width as an internship card on the
+       left. The rail's x-coordinate is then derived from how many
+       lanes sit to the left of it. Defaults below cover the no-data
+       case (1 lane each side). */
+    --n-left: 1;
+    --n-right: 1;
+    --n-total: 2;
+    --total-recip: 0.5;
+    --lane-w: calc(
+        (100% - 2 * var(--rail-gap) - (var(--n-total) - 2) * var(--lane-gap))
+        * var(--total-recip)
+    );
+    --left-side-w: calc(
+        var(--n-left) * var(--lane-w) + (var(--n-left) - 1) * var(--lane-gap)
+    );
+    --right-side-w: calc(
+        var(--n-right) * var(--lane-w) + (var(--n-right) - 1) * var(--lane-gap)
+    );
+    --rail-x: calc(var(--left-side-w) + var(--rail-gap));
 }
 
 .timeline::before {
@@ -1131,6 +1150,77 @@ a:hover {
 /* Slim timeline cards: match the card's reduced scale. */
 .timeline-slim .entry-awards { margin-top: 4px; }
 .timeline-slim .entry-award { font-size: 0.78em; }
+
+/* Nested publication = 2-line chip inside a parent timeline card.
+     line 1: [venue] title  ............................. (date)
+     line 2: authors (single line, ellipsised)
+   Each line stays on one row via white-space:nowrap + ellipsis, so the
+   chip's footprint is predictable (~36-44px). Coloured left border
+   picks up the parent's dot colour. */
+.nested-pub {
+    margin-top: 8px;
+    padding: 6px 8px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--dot-color, var(--accent-color));
+    border-radius: 5px;
+    line-height: 1.25;
+    box-sizing: border-box;
+}
+.nested-pub-line-1 {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+.nested-pub-line-1 .nested-pub-title {
+    font-size: 0.86em;
+    font-weight: 600;
+    color: var(--text-primary);
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+.nested-pub-venue-tag {
+    flex: 0 0 auto;
+    font-size: 0.65em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--text-tertiary);
+    background: var(--bg-primary);
+    padding: 1px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--border-color);
+}
+.nested-pub-line-1 .nested-pub-date {
+    flex: 0 0 auto;
+    font-size: 0.65em;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+.nested-pub-line-2 {
+    font-size: 0.72em;
+    color: var(--text-secondary);
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.nested-pub .timeline-links {
+    margin-top: 4px;
+    gap: 3px;
+}
+.nested-pub .timeline-link {
+    font-size: 0.62em;
+    padding: 0 5px;
+}
+.nested-pub .entry-awards { margin-top: 3px; }
+.nested-pub .entry-award { font-size: 0.72em; }
 
 .pub-link {
     padding: 8px 16px;

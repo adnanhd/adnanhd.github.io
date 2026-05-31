@@ -6,6 +6,7 @@ Each function takes data (dicts loaded from YAML) and returns an HTML string.
 
 import json
 import re
+import sys
 
 from .build_config import (
     LINK_ICONS,
@@ -479,20 +480,29 @@ def render_news(data):
 # research positions) go on the RIGHT. The right side is intentionally
 # given more width since those titles + org names run long.
 _TIMELINE_TYPE_META = {
-    "publication": ("left",  "#10b981"),
-    "award":       ("left",  "#b58900"),
-    "degree":      ("right", "#6c71c4"),
-    "experience":  ("right", "#2aa198"),
-    "research":    ("right", "#2aa198"),
+    "publication": ("left",  "#10b981"),  # only when a pub has no `source:`
+    "award":       ("left",  "#b58900"),  # orphan honors (no parent entry)
+    "degree":      ("right", "#6c71c4"),  # formal credentials -> right side
+    "experience":  ("left",  "#2aa198"),  # internships / positions -> left
+    "research":    ("left",  "#2aa198"),  # research projects -> left
 }
 
 
 def _timeline_exp_event(item, ev_type):
-    """Build a timeline event from an education/experience/research record."""
+    """Build a timeline event from an education/experience/research record.
+    The `id` field is the slug used to match a publication's `source:`
+    field, so a paper can be embedded inside the position card it came
+    out of. The id is `item.id` if explicitly set in YAML, otherwise
+    `slugify(title)` -- explicit ids are needed when several entries
+    share the same position title (e.g. multiple 'Undergraduate Research
+    Project' rows in research.yaml)."""
+    title = item.get("degree") or item.get("position", "")
+    item_id = item.get("id") or slugify(title)
     return {
         "date": item.get("start_date"), "end_date": item.get("end_date"),
         "type": ev_type,
-        "title": item.get("degree") or item.get("position", ""),
+        "title": title,
+        "id": item_id,
         "subtitle": item.get("institution") or item.get("company", ""),
         "logo": item.get("logo"),
         "link": item.get("link"),
@@ -500,12 +510,48 @@ def _timeline_exp_event(item, ev_type):
     }
 
 
+def _render_nested_pub(paper):
+    """Two-line chip inside the parent card:
+      line 1 -> [venue] title
+      line 2 -> short authors (highlighted self)
+    Awards (Best Paper etc) and external links sit just under, with the
+    same coloured left border picking up the parent's dot colour."""
+    title = esc(paper.get("title", ""))
+    authors = highlight_author(esc(paper.get("authors", "")))
+    venue = esc(paper.get("venue_short") or paper.get("venue", ""))
+    date = esc(format_date(paper.get("date"), short=True))
+    venue_tag = (
+        f'<span class="nested-pub-venue-tag">{venue}</span>' if venue else ""
+    )
+    links = [l for l in (paper.get("links") or []) if l.get("url")]
+    links_html = ""
+    if links:
+        items = "".join(
+            f'<a href="{esc(l["url"])}" target="_blank" rel="noopener noreferrer" '
+            f'class="timeline-link">{esc(l["name"])}</a>'
+            for l in links
+        )
+        links_html = f'<div class="timeline-links">{items}</div>'
+    return (
+        f'<div class="nested-pub" title="{title}">'
+        f'<div class="nested-pub-line-1">'
+        f'{venue_tag}'
+        f'<span class="nested-pub-title">{title}</span>'
+        f'<span class="nested-pub-date">{date}</span>'
+        f'</div>'
+        f'<div class="nested-pub-line-2">{authors}</div>'
+        f'{_render_awards(paper.get("awards"))}'
+        f'{links_html}'
+        f'</div>'
+    )
+
+
 # Pixels per year of timeline height (true-cartesian: B.Sc. spanning
 # 2018->2022 becomes ~4 x this tall). Used as the minimum date->Y
 # mapping; cards may push subsequent siblings further apart when their
 # rendered content exceeds the natural year-derived spacing.
 _TIMELINE_YEAR_PX = 120
-_TIMELINE_GAP_PX = 14  # min vertical gap between consecutive cards
+_TIMELINE_GAP_PX = 24  # min vertical gap between consecutive cards
 
 
 def _estimate_card_height(e, slim=False):
@@ -527,8 +573,13 @@ def _estimate_card_height(e, slim=False):
         title_lh = 24
         text_lh = 22
         links_h = 28
-        title_cpl = 28
-        text_cpl = 38
+        # Multi-lane left side -> a 3-lane layout gives each card ~250px
+        # of width, ~225px of inner text width. Bold 1em title fits ~22
+        # chars per line; 0.9em text fits ~28. Anything bigger here
+        # undercounts wraps and the per-lane post-pass leaves siblings
+        # overlapping.
+        title_cpl = 22
+        text_cpl = 28
     h = pad + date_h + 4
     title = e.get("title", "") or ""
     h += max(1, -(-len(title) // title_cpl)) * title_lh
@@ -539,6 +590,24 @@ def _estimate_card_height(e, slim=False):
     has_links = (e.get("links") and any(l.get("url") for l in e["links"])) or e.get("link")
     if has_links:
         h += links_h
+    # Entry's own attached awards (TUBITAK badge on CONTSEC, Best Paper
+    # on the IDS pub, ...). Each award badge takes one line + a tiny
+    # margin.
+    for _ in e.get("awards") or []:
+        h += 26
+    # Nested publications attached to this entry (via pub.source ==
+    # entry.id). Tuned to match the rendered 2-line chip:
+    #   ~6 px top margin + 10 px padding + 18 px line-1 (font 0.86em
+    #   line-h 1.25 + venue-tag border) + 14 px line-2 = ~48 px base.
+    # Round up a touch (50) so the layout estimator leans toward "a
+    # little too much space" instead of "a little overlap".
+    for child in e.get("child_pubs") or []:
+        child_h = 50
+        if child.get("links"):
+            child_h += 18
+        if child.get("awards"):
+            child_h += 22
+        h += child_h
     return h
 
 
@@ -615,6 +684,8 @@ def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False
                 f'<a href="{esc(e["link"])}" target="_blank" '
                 f'rel="noopener noreferrer" class="timeline-link">Link</a></div>'
             )
+        for child_pub in e.get("child_pubs") or []:
+            body.append(_render_nested_pub(child_pub))
 
     # Card positioning still uses var(--right-side-w) / var(--left-side-w),
     # but ONLY for `left:` / `right:` / `width:` on the card itself - those
@@ -668,7 +739,27 @@ def render_timeline(data):
         if res.get("timelined"):
             events.append(_timeline_exp_event(res, "research"))
 
+    # Index parents by id so each publication's `source:` field can
+    # look up its parent card directly.
+    parent_index = {e["id"]: e for e in events if e.get("id")}
+
     for paper in (data.get("publications") or {}).get("papers", []):
+        source = paper.get("source")
+        if source:
+            parent = parent_index.get(source)
+            if parent is None:
+                # Data-integrity warning: surface at build time so
+                # typos / renamed positions don't silently drop a paper.
+                print(
+                    f"Warning: publication '{paper.get('title','')[:60]}' "
+                    f"has source='{source}' but no timelined position "
+                    f"with that slug exists. Available: "
+                    f"{sorted(parent_index)}",
+                    file=sys.stderr,
+                )
+            else:
+                parent.setdefault("child_pubs", []).append(paper)
+                continue  # don't render as a standalone event
         events.append({
             "date": paper.get("date"), "type": "publication",
             "title": paper.get("title", ""),
@@ -711,7 +802,10 @@ def render_timeline(data):
         side, _ = _TIMELINE_TYPE_META.get(e["type"], ("right", ""))
         (left if side == "left" else right).append(e)
 
-    # ---- RIGHT lane assignment (greedy interval colouring) ----
+    # ---- Lane assignment for both sides (greedy interval colouring).
+    # Range events that overlap in time get parallel lanes so they don't
+    # collide horizontally. Point events get a tiny `pad` so even
+    # same-date pubs don't share a lane.
     def assign_lanes(group, pad=0.1):
         sorted_g = sorted(group, key=lambda e: e["_start"])
         lane_ends = []
@@ -727,6 +821,7 @@ def render_timeline(data):
                 lane_ends.append(en)
         return max(len(lane_ends), 1)
 
+    n_left = assign_lanes(left)
     n_right = assign_lanes(right)
 
     # ---- VARIABLE-BAND LAYOUT: every year gets its own band whose
@@ -739,54 +834,103 @@ def render_timeline(data):
     # for: no wasted whitespace, year labels stay locked to their events.
     from collections import defaultdict as _dd
     GAP = _TIMELINE_GAP_PX
-    MIN_BAND = 36     # empty year still takes a visible slice of rail
-    MIN_GAP_BELOW_YEAR = 8  # tiny gap between a year label and the next card
+    # MIN_BAND = baseline year-band height. Years with no events still
+    # take a visible slice of rail at this size.
+    # BAND_CAP  = ceiling per year. A short-span dense card (e.g. SIPLab:
+    # 2 pubs in 3 months -> would demand ~1100 px / year if uncapped)
+    # would otherwise blow the canvas up. Past the cap, the extra
+    # content is absorbed by per-lane stacking instead of by year
+    # inflation: the card extends downward, the post-pass bumps its
+    # in-lane neighbour clear of the bottom.
+    MIN_BAND = 90
+    BAND_CAP = 300
+    MIN_GAP_BELOW_YEAR = 8
 
+    # Group both sides by lane. Each lane within a side acts as an
+    # independent column for the variable-band content-fit calc.
+    left_lane_groups = _dd(list)
+    for e in left:
+        left_lane_groups[e.get("_lane", 0)].append(e)
     right_lane_groups = _dd(list)
     for e in right:
         right_lane_groups[e.get("_lane", 0)].append(e)
 
-    columns = [(left, True)] + [(g, False) for g in right_lane_groups.values()]
+    # `slim` flag controls the typography/padding of point cards. Range
+    # cards never use slim. Only standalone publications (rare now that
+    # most pubs nest into a parent via `source:`) get slim treatment.
+    def _is_slim(e):
+        return e["type"] == "publication"
+
+    columns = (
+        [(g, False) for g in left_lane_groups.values()]
+        + [(g, False) for g in right_lane_groups.values()]
+    )
 
     # Step 1: required band height per year from point events.
     # band[y] is the px height of the band representing year y (i.e. the
     # vertical slab between the year (y+1) label at top and year y label
     # at bottom). Point events with int(end) == y sit in this band.
     band = {y: MIN_BAND for y in range(bot_year, top_year + 1)}
-    for col, slim in columns:
+    for col, _ in columns:
         per_year_points = _dd(list)
         for e in col:
             is_range = e.get("end_date") and e["_end"] - e["_start"] > 0.05
             if is_range:
                 continue
-            per_year_points[int(e["_end"])].append((e, slim))
+            per_year_points[int(e["_end"])].append(e)
         for y, evs in per_year_points.items():
-            h = sum(_estimate_card_height(e, slim=s) for e, s in evs)
+            h = sum(_estimate_card_height(e, slim=_is_slim(e)) for e in evs)
             h += GAP * max(0, len(evs) - 1)
             h += MIN_GAP_BELOW_YEAR
             band[y] = max(band.get(y, MIN_BAND), h)
 
-    # Step 2: range events. Distribute any unmet content height evenly
-    # across the years they span so the range card fits inside its own
-    # date span without overflowing into a year band it doesn't touch.
+    # Step 2: range events. Grow each year band so the range card's
+    # content fits within its date span - i.e. "make the rail longer
+    # for that year". A short-span card with lots of nested content
+    # (CONTSEC: 3 pubs in 9 months, SIPLab: 2 pubs in 3 months) demands
+    # a tall band on the year(s) it spans; sparse years collapse to
+    # MIN_BAND. Year labels then end up exactly at the natural date
+    # positions of every event - no drift, no overlap.
     range_events = [
         e for e in events
         if e.get("end_date") and e["_end"] - e["_start"] > 0.05
     ]
-    for _ in range(8):  # converges fast; cap on iterations as a safety
+
+    def _band_weights(e):
+        s, en = e["_start"], e["_end"]
+        s_y, e_y = int(s), int(en)
+        s_frac, e_frac = s - s_y, en - e_y
+        weights = {}
+        if s_y == e_y:
+            weights[s_y] = max(0.05, e_frac - s_frac)
+        else:
+            weights[s_y] = max(0.05, 1 - s_frac)
+            for y in range(s_y + 1, e_y):
+                weights[y] = 1.0
+            weights[e_y] = max(0.05, e_frac)
+        return weights
+
+    for _ in range(30):
         changed = False
         for e in range_events:
-            content_h = _estimate_card_height(e, slim=False)
-            s_year_i = int(e["_start"])
-            e_year_i = int(e["_end"])
-            spanned = list(range(s_year_i, e_year_i + 1))
-            total = sum(band.get(y, MIN_BAND) for y in spanned)
-            if total < content_h + MIN_GAP_BELOW_YEAR:
-                deficit = (content_h + MIN_GAP_BELOW_YEAR) - total
-                per_y = deficit / len(spanned)
-                for y in spanned:
-                    band[y] = band.get(y, MIN_BAND) + per_y
-                changed = True
+            need = _estimate_card_height(e, slim=False) + MIN_GAP_BELOW_YEAR
+            weights = _band_weights(e)
+            actual = sum(band.get(y, MIN_BAND) * w for y, w in weights.items())
+            if actual + 0.5 < need:
+                deficit = need - actual
+                total_w = sum(weights.values())
+                if total_w > 1e-6:
+                    grow = deficit / total_w
+                    any_grew = False
+                    for y in weights:
+                        new_val = min(BAND_CAP, band.get(y, MIN_BAND) + grow)
+                        if new_val > band.get(y, MIN_BAND) + 0.5:
+                            band[y] = new_val
+                            any_grew = True
+                        else:
+                            band[y] = new_val
+                    if any_grew:
+                        changed = True
         if not changed:
             break
 
@@ -807,34 +951,60 @@ def render_timeline(data):
         return top_y + (1 - frac) * (bot_y - top_y)
 
     # Step 4: place cards.
-    # Point cards: stack within their year band, newest first, starting
-    # just below the year (y+1) label.
-    # Range cards: top = y at end date, bottom = y at start date.
-    for col, slim in columns:
-        # Order by date desc so the newest card lands at the top of the band
+    # Range cards: top = y at end date; height = max(span_h, content_h).
+    # Point cards: stack within their year band, newest first.
+    # Then a per-lane post-pass walks the lane top-down (newest first)
+    # and pushes each card down whenever the previous newer card's
+    # bottom would overlap. This is what guarantees no within-lane
+    # vertical collision when a short-span range card has more nested
+    # content than its date span can hold.
+    for col, _ in columns:
         col.sort(key=lambda e: e["_end"], reverse=True)
-        # Track per-year cursor within this column
         col_cursor = {}
         for e in col:
             is_range = e.get("end_date") and e["_end"] - e["_start"] > 0.05
             if is_range:
                 top_px = _y_at_date(e["_end"])
                 bot_px = _y_at_date(e["_start"])
+                content_h = _estimate_card_height(e, slim=False)
                 e["_top_px"] = top_px
-                e["_est_h"] = max(bot_px - top_px, _estimate_card_height(e, slim=False))
+                e["_est_h"] = max(bot_px - top_px, content_h)
                 continue
             y = int(e["_end"])
             band_top = year_label_y.get(y + 1, 0.0)
             cursor = col_cursor.get(y, band_top + MIN_GAP_BELOW_YEAR)
-            h = _estimate_card_height(e, slim=slim)
+            h = _estimate_card_height(e, slim=_is_slim(e))
             e["_top_px"] = cursor
             e["_est_h"] = h
             col_cursor[y] = cursor + h + GAP
 
+        # Per-lane vertical collision fix: walk newest-first and push
+        # each card down so its top is at least prev_bot + GAP.
+        prev_bot = -1e9
+        for e in col:
+            if e["_top_px"] < prev_bot + GAP:
+                e["_top_px"] = prev_bot + GAP
+            prev_bot = e["_top_px"] + e["_est_h"]
+
+    # Recompute total height: cards may have been pushed past the
+    # natural canvas bottom by the per-lane shift.
+    if events:
+        canvas_max = max(e["_top_px"] + e["_est_h"] for e in events if "_top_px" in e)
+        total_h = max(total_h, int(canvas_max + 40))
+
     # Render newest end first so DOM order matches visual stacking
     events.sort(key=lambda e: e["_end"] or 0, reverse=True)
 
-    parts = [f'<div class="timeline" style="height: {total_h:.0f}px;">']
+    # Emit the per-build lane counts so the CSS computes one uniform
+    # --lane-w across all sub-columns (no left-vs-right width asymmetry).
+    n_total = n_left + n_right
+    total_recip = 1.0 / max(1, n_total)
+    timeline_style = (
+        f"height: {total_h:.0f}px; "
+        f"--n-left: {n_left}; --n-right: {n_right}; "
+        f"--n-total: {n_total}; --total-recip: {total_recip:.6f};"
+    )
+    parts = [f'<div class="timeline" style="{timeline_style}">']
     # Month ticks on the rail (small dashes between consecutive year
     # labels). The band per year is variable, so each tick is placed at
     # the m/12 fraction of its year's band height.
@@ -856,19 +1026,19 @@ def render_timeline(data):
     for e in events:
         side, _ = _TIMELINE_TYPE_META.get(e["type"], ("right", ""))
         top_px = e["_top_px"]
-        if side == "left":
-            parts.append(_render_timeline_card(
-                e, top_px, height_px=None, lane=0, lanes=1, slim=True,
-            ))
-        else:
-            # Use the packed height so range events keep visibly spanning
-            # their years; point events fall through to natural content.
-            est_h = e.get("_est_h", 0)
-            content_h = _estimate_card_height(e, slim=False)
-            height_px = est_h if est_h > content_h + 1 else None
-            parts.append(_render_timeline_card(
-                e, top_px, height_px, lane=e.get("_lane", 0), lanes=n_right,
-            ))
+        n_lanes = n_left if side == "left" else n_right
+        slim = _is_slim(e)
+        # Always enforce the packed est_h as min-height: it's what the
+        # per-lane post-pass used to space siblings, and if the actual
+        # rendered content turns out larger than the estimate, the card
+        # still grows past min-height - but never SHRINKS below it, so
+        # the next-in-lane card never collides.
+        est_h = e.get("_est_h", 0)
+        height_px = est_h if est_h > 1 else None
+        parts.append(_render_timeline_card(
+            e, top_px, height_px, lane=e.get("_lane", 0), lanes=n_lanes,
+            slim=slim,
+        ))
 
     parts.append('</div>')
     return "\n".join(parts)
