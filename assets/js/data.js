@@ -22,11 +22,16 @@ function showPage(pageId, scrollTo) {
   // Update hash without triggering hashchange
   history.replaceState(null, "", `#${pageId}`);
 
-  // Scroll to a specific element within the page if requested
+  // Scroll to a specific element within the page if requested.
+  // Double rAF lets the layout settle (section just toggled display).
   if (scrollTo) {
     var target = document.getElementById(scrollTo);
     if (target) {
-      target.scrollIntoView({ behavior: "smooth" });
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() =>
+          target.scrollIntoView({ behavior: "smooth", block: "center" })
+        )
+      );
       return;
     }
   }
@@ -155,6 +160,30 @@ function initBlogFilter() {
   );
 }
 
+function initNewsRows() {
+  // News rows aren't <a> (would nest inside the internal news-link); the
+  // row is a <div data-href="#timeline:tl-..."> that we wire by hand.
+  document.querySelectorAll(".news-row[data-href]").forEach((row) => {
+    function go() {
+      const href = row.getAttribute("data-href");
+      if (!href) return;
+      if (window.location.hash === href) handleHash();
+      else window.location.hash = href;
+    }
+    row.addEventListener("click", (e) => {
+      // Let inner anchors (the [link] to external sources) own their click.
+      if (e.target.closest("a")) return;
+      go();
+    });
+    row.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        go();
+      }
+    });
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   handleHash();
@@ -162,6 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initImageLightbox();
   initLinkableHeaders();
   initBlogFilter();
+  initNewsRows();
 });
 
 window.addEventListener("hashchange", handleHash);

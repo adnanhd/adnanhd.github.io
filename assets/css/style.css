@@ -570,8 +570,14 @@ a:hover {
     transition: background-color 0.15s ease;
 }
 
-a.news-row:hover {
+.news-row[data-href] {
+    cursor: pointer;
+}
+
+.news-row[data-href]:hover,
+.news-row[data-href]:focus-visible {
     background-color: var(--hover-bg);
+    outline: none;
 }
 
 .news-date {
@@ -634,9 +640,13 @@ a.news-row:hover {
    width on the RIGHT. Container height is set inline by the builder. */
 .timeline {
     position: relative;
-    max-width: 1100px;
+    max-width: 1140px;
     margin: 8px auto 48px;
     --rail-x: 42%;
+    --rail-gap: 36px;
+    --lane-gap: 8px;
+    --left-side-w: calc(var(--rail-x) - var(--rail-gap));
+    --right-side-w: calc(100% - var(--rail-x) - var(--rail-gap));
 }
 
 .timeline::before {
@@ -688,14 +698,26 @@ a.news-row:hover {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--dot-color, var(--accent-color)) 25%, transparent);
 }
 
+/* Multi-lane positioning: each item exposes --lane (its index) and
+   --lanes (the side's total lane count). Cards shrink to fit a lane's
+   share of the side width, and shift away from the rail as lane grows. */
+.timeline-item {
+    --lane: 0;
+    --lanes: 1;
+}
+
 .timeline-left {
-    left: 0;
-    width: calc(var(--rail-x) - 36px);
+    --card-w: calc((var(--left-side-w) - (var(--lanes) - 1) * var(--lane-gap)) / var(--lanes));
+    width: var(--card-w);
+    right: calc(100% - var(--rail-x) + var(--rail-gap) + var(--lane) * (var(--card-w) + var(--lane-gap)));
+    left: auto;
 }
 
 .timeline-right {
-    left: calc(var(--rail-x) + 36px);
-    right: 0;
+    --card-w: calc((var(--right-side-w) - (var(--lanes) - 1) * var(--lane-gap)) / var(--lanes));
+    width: var(--card-w);
+    left: calc(var(--rail-x) + var(--rail-gap) + var(--lane) * (var(--card-w) + var(--lane-gap)));
+    right: auto;
 }
 
 .timeline-item::after {
@@ -1469,7 +1491,10 @@ footer {
         display: none !important;
     }
 
-    /* Only print the section the visitor is actually on. */
+    /* Only print the section the visitor is actually on. Note: no
+       break-inside: avoid here - we WANT long sections (Publications,
+       Experience) to break naturally across pages instead of being
+       pushed entirely to the next page. */
     .page-section {
         display: none !important;
         padding: 0;
@@ -1484,11 +1509,12 @@ footer {
         background: #fff;
     }
 
-    /* Section headings */
+    /* Section headings - let sections flow across pages so an h2 only
+       starts a new page when content genuinely won't fit, not because
+       break-inside: avoid was forcing the whole section forward. */
     .content-section {
         padding: 8pt 0;
         border-bottom: none;
-        break-inside: avoid;
     }
     .content-section h2 {
         font-size: 13pt;
@@ -1498,6 +1524,7 @@ footer {
         border-bottom: 0.75pt solid #000;
         letter-spacing: 0;
         color: #000;
+        break-after: avoid;
     }
 
     /* Plain underlined text links instead of styled buttons */

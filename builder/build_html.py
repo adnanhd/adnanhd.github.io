@@ -359,12 +359,22 @@ def _normalize_tags(raw):
     return list(raw)
 
 
+_NEWS_MAX_ITEMS = 15  # cap on About; rest live on Timeline ("see all news ->")
+
+
 def render_news(data):
-    """One-line news entries with optional [link] and tag chips. The whole
-    row hyperlinks to the matching Timeline anchor (timeline_ref slug)."""
+    """One-line news entries with optional [link] and tag chips.
+    Row is a <div data-href=...> (not <a>) because the content already
+    contains an external <a class=news-link>[link]</a>, and nested <a>
+    is invalid HTML - the browser silently closes the outer anchor and
+    the row loses its grid layout. JS handles row-clicks instead.
+    """
     items = (data.get("news") or {}).get("items", [])
     if not items:
         return ""
+
+    items = sorted(items, key=lambda i: parse_date(i.get("date", "")), reverse=True)
+    items = items[:_NEWS_MAX_ITEMS]
 
     parts = []
     for item in items:
@@ -387,15 +397,11 @@ def render_news(data):
         tag_html = f'<span class="news-tags">{chips}</span>' if chips else ""
 
         ref = item.get("timeline_ref")
-        if ref:
-            inner = (
-                f'<a class="news-row" href="#timeline:tl-{esc(ref)}">'
-                f'{date_html}{content_html}{tag_html}</a>'
-            )
-        else:
-            inner = f'<span class="news-row">{date_html}{content_html}{tag_html}</span>'
-
-        parts.append(f'<li>{inner}</li>')
+        attrs = f' data-href="#timeline:tl-{esc(ref)}" role="link" tabindex="0"' if ref else ""
+        parts.append(
+            f'<li><div class="news-row"{attrs}>'
+            f'{date_html}{content_html}{tag_html}</div></li>'
+        )
     return "\n".join(parts)
 
 
@@ -459,8 +465,8 @@ def _date_frac(date_str):
     return None
 
 
-def _render_timeline_card(e, top_px, height_px=None):
-    """Render a single timeline card with absolute positioning."""
+def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1):
+    """Render a single timeline card with absolute positioning + lane info."""
     side, color = _TIMELINE_TYPE_META.get(e["type"], ("right", "var(--accent-color)"))
     anchor = f"tl-{slugify(e['title'])}"
 
@@ -504,7 +510,10 @@ def _render_timeline_card(e, top_px, height_px=None):
                 f'rel="noopener noreferrer" class="timeline-link">Link</a></div>'
             )
 
-    style = f"top: {top_px:.1f}px; --dot-color: {color};"
+    style = (
+        f"top: {top_px:.1f}px; --dot-color: {color}; "
+        f"--lane: {lane}; --lanes: {lanes};"
+    )
     if height_px is not None:
         style += f" min-height: {height_px:.1f}px;"
     return (
@@ -563,12 +572,37 @@ def render_timeline(data):
     bot_year = int(min(fracs))
     total_h = (top_year - bot_year) * _TIMELINE_YEAR_PX
 
-    # Order: latest end date first (so cards near top of DOM are visually on top)
+    # Sub-column lane assignment per side - greedy interval colouring so
+    # overlapping events (e.g. M.Sc. + GRA + SIPLab on the right) don't
+    # collide. Point events get a small temporal padding so identical
+    # year-only dates can still be packed into separate lanes.
+    left, right = [], []
+    for e in events:
+        side, _ = _TIMELINE_TYPE_META.get(e["type"], ("right", ""))
+        (left if side == "left" else right).append(e)
+
+    def assign_lanes(group, pad=0.1):
+        sorted_g = sorted(group, key=lambda e: e["_start"])
+        lane_ends = []
+        for e in sorted_g:
+            s, en = e["_start"], max(e["_end"], e["_start"] + pad)
+            for i in range(len(lane_ends)):
+                if lane_ends[i] <= s:
+                    lane_ends[i] = en
+                    e["_lane"] = i
+                    break
+            else:
+                e["_lane"] = len(lane_ends)
+                lane_ends.append(en)
+        return max(len(lane_ends), 1)
+
+    n_left  = assign_lanes(left)
+    n_right = assign_lanes(right)
+
+    # Render newest end first so DOM order matches visual stacking
     events.sort(key=lambda e: e["_end"] or 0, reverse=True)
 
     parts = [f'<div class="timeline" style="height: {total_h}px;">']
-
-    # Year labels on the rail at every integer year in range.
     for y in range(top_year, bot_year - 1, -1):
         y_pos = (top_year - y) * _TIMELINE_YEAR_PX
         parts.append(
@@ -582,7 +616,11 @@ def render_timeline(data):
         height_px = None
         if e.get("end_date") and start is not None and end - start > 0.1:
             height_px = (end - start) * _TIMELINE_YEAR_PX
-        parts.append(_render_timeline_card(e, top_px, height_px))
+        side, _ = _TIMELINE_TYPE_META.get(e["type"], ("right", ""))
+        lanes = n_left if side == "left" else n_right
+        parts.append(_render_timeline_card(
+            e, top_px, height_px, lane=e.get("_lane", 0), lanes=lanes,
+        ))
 
     parts.append('</div>')
     return "\n".join(parts)
