@@ -1,33 +1,72 @@
 # Adnan Harun Dogan - Personal Website
 
-A clean, simple single-page personal website for GitHub Pages with data-driven content using YAML files.
+Single-page personal site, deployed at
+[adnanhd.github.io](https://adnanhd.github.io). All content lives in
+`data/*.yaml`; a Python builder renders the site into static
+`index.html` + per-paper / per-project pages, ready to publish on GitHub
+Pages.
 
 ## Features
 
-- **Data-Driven**: All content stored in easy-to-edit YAML files
-- **Smart Link Generation**: Just provide IDs (e.g., GitHub username) instead of full URLs
-- **Auto-fetch Publications**: Fetch from Google Scholar automatically using the scholarly library
-- **Bio Section**: Short bio with profile image and social links
-- **Resume**: Web-based resume with education and experience
-- **News**: Latest updates and announcements
-- **Timeline**: Dual timeline showing internships/education on one side and papers/projects on the other
-- **Responsive Design**: Works beautifully on desktop and mobile
+- **Data-driven**: every list (education, experience, research,
+  publications, awards, news, blogs, open-source) lives in a YAML file;
+  `python -m builder` regenerates the site.
+- **About / CV / Blogs** pages share a sidebar identity card. Navigation
+  is client-side (hash routes) so the static `index.html` keeps every
+  section.
+- **Cartesian Timeline** with internships / research on the left
+  (multi-lane greedy interval colouring) and degrees on the right.
+  Year bands have variable heights (sized to the densest column for
+  that year), with a per-year cap so a short-span dense card extends
+  downward instead of inflating the year. Month ticks decorate the
+  rail.
+- **Source-nested publications**: each paper carries an optional
+  `source:` slug pointing at the experience / research / education
+  entry that produced it. Attached papers render as compact 2-line
+  chips inside the parent's timeline card (venue tag + title on line
+  1, authors on line 2) instead of as a separate slim card.
+- **Attached awards**: any publication / education / experience /
+  research entry can carry an `awards:` array. Awards surface as a
+  small badge on the parent entry AND get aggregated into the CV
+  Honors section (deduplicated by their parent, sorted newest first).
+- **Open Source cards** (About page): the title links to the GitHub
+  repository, the rest of the card surface navigates to the
+  per-project detail page; the standalone `[GitHub]` pill is dropped
+  on the card (it still appears on the project page itself).
+- **Auto-derived News → Timeline jump**: each news row carries a
+  `timeline_ref:` slug; clicking the row scrolls the Timeline page to
+  the corresponding card.
+- **Per-paper / per-project pages**: every selected publication and
+  open-source work gets a generated page under `projects/<slug>/`,
+  rendered from a markdown-ish `abstract:` / `body:` block with
+  MathJax + a small subset of headings, lists and pipe-tables.
+- **Print-friendly CV**: `Ctrl+P` on the CV page yields a clean
+  multi-page PDF (the timeline / nav chrome is stripped, awards
+  collapse to text, icon fonts are preserved).
+- **Light / dark theme**: persisted to `localStorage`, matches the
+  system preference on first load to avoid a flash.
+- **Static `resume.pdf`**: built from the same data via a LaTeX
+  template (`builder/build_resume.py` → `resume.tex`).
 
 ## Quick Start
 
-### 1. Add Your Profile Picture
-Place your profile image as `profile.jpeg` (or `profile.jpg`) in the root directory (200x200px recommended, square aspect ratio)
+### 1. Profile picture
 
-### 2. Update YAML Data Files
+Drop a square image as `assets/img/profile.jpeg` (and a 160×160 crop as
+`assets/img/profile-sm.jpeg` for the sidebar).
 
-All content is stored in the `data/` directory. Edit these files:
+### 2. Edit the YAML data
 
-Dates use ISO format with partial precision: `YYYY`, `YYYY-MM`, or
-`YYYY-MM-DD` (plus the literal `Present`). They render human-readable at build
-time, e.g. `2025-03` shows as "March 2025". The examples below use generic
-placeholders.
+All content lives under `data/`. Dates use ISO precision: `YYYY`,
+`YYYY-MM`, `YYYY-MM-DD`, or the literal `Present`. They render
+human-readable at build time (`2025-03` → "March 2025").
 
-#### `data/bio.yaml` - identity, bio text, social links
+> **Note**: in this clone, `data/*.yaml` is git-crypt encrypted with the
+> key at `~/.config/git-crypt/github-page-key`. Adapt to your own
+> private clone as needed.
+
+#### `data/bio.yaml`
+
 ```yaml
 name: "Jane Doe"
 title: "PhD Student"
@@ -37,32 +76,51 @@ site_url: "https://janedoe.github.io"
 short_bio: "One or two sentences for the sidebar."
 bio: |
   Full bio (HTML allowed); blank lines separate paragraphs.
-social:              # give IDs/usernames only - full URLs are generated
+social:                           # IDs only - full URLs are generated
   email: "jane@example.com"
   github: "janedoe"
   linkedin: "jane-doe"
   google_scholar: "XXXXXXXX"
   orcid: "0000-0000-0000-0000"
-custom_links:        # extra sidebar links
+custom_links:
   - name: "Resume"
     url: "resume.pdf"
 ```
-Supported social platforms: `email`, `github`, `linkedin`, `google_scholar`,
-`acm`, `ieee`, `dblp`, `semantic_scholar`, `twitter`, `orcid`.
 
-#### `data/education.yaml` - degrees
+Supported social platforms: `email`, `github`, `linkedin`,
+`google_scholar`, `acm`, `ieee`, `dblp`, `semantic_scholar`, `twitter`,
+`orcid`.
+
+#### `data/education.yaml`
+
 ```yaml
 education:
   - degree: "PhD in Computer Science"
     institution: "Example University"
     location: "City, Country"
-    start_date: "2023"
+    start_date: "2023-09"
     end_date: "Present"
-    logo: "assets/img/logos/example.png"   # optional
-    timelined: true                        # also show on the Timeline page
+    advisor: "Prof. A. Adviser"
+    logo: "assets/img/logos/example.png"
+    timelined: true                # show on the Timeline page
+    id: "phd"                      # optional; defaults to slugify(degree).
+                                   # Needed only when several entries share
+                                   # the same degree title.
+    awards:                        # optional; aggregated into CV Honors
+      - name: "Departmental Fellowship"
+        organization: "Example University"
+        date: "2023"
+        description: "..."         # shown on the Honors page
+        link: "https://..."
+        logo: "assets/img/logos/example.png"
 ```
 
-#### `data/experience.yaml` - work / internships
+#### `data/experience.yaml` and `data/research.yaml`
+
+Both use the same shape (`position`, `company`, dates, `bullets`,
+`logo`, `timelined`, `id`, `awards`). `experience.yaml` is internships
+and salaried positions; `research.yaml` is unpaid research projects.
+
 ```yaml
 experience:
   - position: "Research Intern"
@@ -70,48 +128,48 @@ experience:
     location: "City, Country"
     start_date: "2024-06"
     end_date: "2024-09"
-    advisor: "Prof. A. Adviser"        # optional
-    commitment: "Full-time, 3 months"  # optional
+    advisor: "Prof. A. Adviser"
+    commitment: "Full-time, 3 months"
     logo: "assets/img/logos/example.png"
     timelined: true
+    id: "lab-intern-2024"          # optional explicit id (see below)
     bullets:
       - "What you did, one line each."
+    awards:
+      - name: "Intern of the Year"
+        organization: "Example Lab"
+        date: "2024"
 ```
 
-#### `data/research.yaml` and `data/teaching.yaml`
-Same shape as `experience.yaml` (`position`, `company`, dates, `bullets`,
-`logo`, `timelined`): `research` holds research positions, `teaching` holds
-TA/teaching entries.
+#### `data/publications.yaml`
 
-#### `data/extracurricular.yaml` - honors and skills
-```yaml
-honors:
-  - title: "Best Paper Award"
-    organization: "Some Conference"
-    date: "2024"
-    logo: "assets/img/logos/example.png"   # optional
-skills:
-  - "Python"
-  - "PyTorch"
-```
-
-#### `data/publications.yaml` - papers
 ```yaml
 papers:
   - title: "A Paper Title"
     authors: "Doe, J., Coauthor, A."
     venue: "Conference on Examples"
-    venue_short: "CoE 2025"               # colored tag
-    venue_link: "https://example.org"     # optional, makes the tag clickable
-    date: "2025"
-    image: "assets/img/publications/paper.png"  # thumbnail (selected works)
-    selected: true   # show on the About page with image
-    resume: true     # list on the CV page
-    timelined: true  # show on the Timeline page
-    abstract: |      # optional; rendered on the paper's project page
+    venue_short: "CoE 2025"            # coloured tag on the About card
+    venue_link: "https://example.org"  # optional; makes the tag clickable
+    date: "2025-04"
+    image: "assets/img/publications/paper.png"
+    selected: true                     # show on About > Selected Publications
+    resume:   true                     # show on CV > Publications
+    source:   "lab-intern-2024"        # OPTIONAL: nest this paper inside its
+                                       # parent timeline entry. Value is the
+                                       # parent's id (or slugify(title) if no
+                                       # explicit id). Validated at build
+                                       # time; a build warning fires if the
+                                       # slug doesn't resolve.
+    abstract: |
       ## Problem
       Markdown with '## ' sections, '|' tables, and MathJax math such as
       \(a^2 + b^2 = c^2\) inline or \[ E = mc^2 \] as a display equation.
+    awards:                            # optional; renders as a badge under
+                                       # the paper AND on CV Honors
+      - name: "Best Paper Award"
+        organization: "CoE 2025"
+        link: "https://doi.org/..."
+        description: "..."
     links:
       - name: "Paper"
         url: "https://arxiv.org/abs/0000.00000"
@@ -119,18 +177,49 @@ papers:
         url: "https://github.com/user/repo"
 ```
 
-#### `data/news.yaml` - news feed
+`source:` is the key to the nested-pub view. A paper with a valid
+`source:` is removed from the standalone left-column timeline and
+rendered as a 2-line chip inside its parent's card. A paper without
+`source:` is rendered standalone (slim card on the left).
+
+#### `data/teaching.yaml` and `data/extracurricular.yaml`
+
+Same shape as `experience.yaml`. `extracurricular.yaml` also holds
+orphan honors — awards that don't naturally attach to a publication or
+position (general scholarships, fellowships):
+
+```yaml
+honors:
+  - title: "Some Open Award"
+    organization: "Some Foundation"
+    date: "2024"
+    logo: "..."
+    description: "..."
+    timelined: true               # show as its own row on the Timeline
+                                  # (set false if it should only appear
+                                  # in the CV Honors aggregate)
+skills:
+  - "Python"
+  - "PyTorch"
+```
+
+#### `data/news.yaml`
+
 ```yaml
 items:
   - date: "2025-03"
     content: "Something happened."
-    tags: ["publication"]   # publication | degree | internship | award
-    link: "https://example.org"   # optional
+    link: "https://example.org"              # optional [link] anchor
+    timeline_ref: "research-intern"          # optional; clicking the row
+                                             # jumps to that Timeline card
+    tags: [publication]                      # publication | degree |
+                                             # internship | award | life-event
 ```
 
-#### `data/blogs.yaml` - blog listings + tag tree
+#### `data/blogs.yaml`
+
 ```yaml
-tag_tree:              # child tags inherit ancestors when filtering
+tag_tree:
   machine-learning:
     - reinforcement-learning
 blogs:
@@ -138,179 +227,151 @@ blogs:
     date: "2025-01"
     description: "One-line summary."
     path: "blogs/my-post/index.html"
-    selected: true     # feature on the About page
+    selected: true
     tags: [reinforcement-learning]
 ```
 
-#### `data/works.yaml` - open-source projects
+#### `data/works.yaml`
+
 ```yaml
 works:
   - title: "my-project"
     description: "One line for the card."
-    url: "https://github.com/user/my-project"
-    tags: ["Python", "PyTorch"]   # known tech (Python, PyTorch, Docker,
-                                  # Apptainer, CUDA, ...) render as badges
-    body: |        # optional; rendered on the project page (markdown + tables)
-      What it does, in a paragraph or two.
+    url: "https://github.com/user/my-project"   # title link target on About
+    tags: ["Python", "PyTorch"]
+    body: |
+      Markdown body for the per-project page.
 ```
 
-### 3. (Optional) Fetch Publications from Google Scholar
+About > Open Source card title links to `url` (GitHub repo); the rest
+of the card body navigates to the generated `projects/<slug>/` page.
 
-You have two options for publications:
+### 3. (Optional) Auto-fetch publications from Google Scholar
 
-**Option A: Automatic (Recommended)**
-
-1. Install Python dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. Set your Google Scholar ID in `data/publications.yaml`:
-   ```yaml
-   google_scholar_id: "QGaRpqYAAAAJ"
-   ```
-   
-   Find your ID in your Google Scholar profile URL:
-   `https://scholar.google.com/citations?user=YOUR_ID_HERE`
-
-3. Run the fetch script:
-   ```bash
-   python builder/fetch_publications.py
-   ```
-
-The script will automatically fetch all your publications from Google Scholar and update `data/publications.yaml`. You can run this periodically to keep your publications up to date.
-
-**Option B: Manual Entry**
-
-Just edit `data/publications.yaml` directly:
-```yaml
-papers:
-  - date: "2025"
-    title: "Your Paper Title"
-    authors: "Author 1, Author 2, Your Name"
-    venue: "Conference Name 2025"
-    description: "Brief description"
-    links:
-      - name: "Paper"
-        url: "https://arxiv.org/abs/xxxx.xxxxx"
-      - name: "Code"
-        url: "https://github.com/user/project"
+```bash
+pip install -r requirements.txt
+# add `google_scholar_id: "XXXXXXXX"` to data/publications.yaml, then:
+python builder/fetch_publications.py
 ```
 
-### 4. (Optional) Add Your CV PDF
-Add a PDF of your CV as `assets/img/cv.pdf` if you want the CV link to work.
+Pulls every paper from your Scholar profile into
+`data/publications.yaml` (you can still hand-edit afterwards).
 
 ## Building
 
-The site is generated from `template.html` + the `data/*.yaml` files by the
-builder package:
-
 ```bash
-python -m builder        # writes index.html, sitemap.xml, resume.pdf, projects/
+python -m builder
 ```
 
-A tracked pre-commit hook rebuilds these artifacts automatically when a build
-source changes. Enable it once per clone:
+Writes `index.html`, `sitemap.xml`, `resume.pdf`, and per-paper /
+per-work pages under `projects/`. A tracked pre-commit hook re-runs
+the build and stages the regenerated artifacts automatically — enable
+it once per clone:
 
 ```bash
 git config core.hooksPath .githooks
 ```
 
-Blog pages are generated separately from org notes (not part of the main build):
+Blog pages are built separately (they shell out to `pandoc`):
 
 ```bash
 python -m builder.build_blogs
 ```
 
-## Customization
+## Local testing
 
-### Colors
-The accent color is the `--accent-color` CSS variable (default `#0066cc`) in
-`assets/css/style.css`, which also holds the light/dark theme values near the
-top of the file.
-
-### Layout
-The site is fully responsive; edit `assets/css/style.css` to adjust spacing,
-fonts, or layout.
-
-### Adding/Removing Sections
-`index.html` is generated - edit the placeholders in `template.html` and the
-renderers in `builder/build_html.py`, then rebuild.
-
-## Local Testing
-
-**Important**: YAML loading requires a web server (can't just open the HTML file due to CORS).
+`index.html` is fully static — open it directly in a browser, or serve
+the tree:
 
 ```bash
-# Python 3
 python -m http.server 8000
-
-# Then visit: http://localhost:8000
+# http://localhost:8000
 ```
 
-## Deployment to GitHub Pages
+## Deployment
 
-1. Push your changes to GitHub
-2. Go to your repository Settings → Pages
-3. Under "Source", select your branch (usually `main` or `master`)
-4. Your site will be available at `https://yourusername.github.io`
+GitHub Pages: push to `main` (or whichever branch your Pages config
+points to). The build runs in the pre-commit hook, so the committed
+`index.html` is always up-to-date with the YAML.
 
-## File Structure
+The same artifacts also publish to a separate host via plain `rsync`:
+
+```bash
+rsync -av --delete \
+  index.html 404.html sitemap.xml robots.txt resume.pdf \
+  assets projects blogs \
+  user@host:public_html/
+```
+
+`--delete` only applies inside the synced subtrees (`assets/`,
+`projects/`, `blogs/`), so unrelated top-level files on the host are
+preserved.
+
+## File structure
 
 ```
-├── index.html              # Generated site (built by `python -m builder`)
-├── resume.pdf              # Generated résumé (kept at root)
-├── builder/                # Static site builder (run: python -m builder)
-│   ├── __main__.py         # Entry point
-│   ├── build.py            # Orchestrates the build
+├── index.html              # Generated (python -m builder)
+├── resume.pdf              # Generated from data via LaTeX
+├── template.html           # HTML template with {{PLACEHOLDER}} slots
+├── builder/                # Static site builder
+│   ├── __main__.py         # python -m builder entry point
+│   ├── build.py            # Orchestrates: load YAML -> render -> write
 │   ├── build_config.py     # Paths, author identity, link templates
-│   ├── build_html.py       # HTML section renderers
-│   ├── build_resume.py     # LaTeX → resume.pdf
-│   ├── build_utils.py      # Shared helpers + YAML loading
-│   └── fetch_publications.py  # Fetch from Google Scholar
-├── requirements.txt        # Python dependencies
-├── assets/                 # Static assets
-│   ├── css/style.css       # All styling
-│   ├── js/data.js          # Client-side JS (page navigation, etc.)
-│   └── img/                # profile*.jpeg, cv.pdf, logos/, publications/
-├── data/                   # git-crypt encrypted
-│   ├── bio.yaml            # Bio information with social IDs
-│   ├── education.yaml      # Education entries
-│   ├── experience.yaml     # Work / internship entries
-│   ├── research.yaml       # Research positions
-│   ├── teaching.yaml       # Teaching / TA entries
-│   ├── extracurricular.yaml# Honors & skills
-│   ├── news.yaml           # News items
-│   ├── publications.yaml   # Publications / papers
-│   ├── blogs.yaml          # Blog post listings
-│   └── works.yaml          # Open-source projects
-└── README.md               # This file
+│   ├── build_html.py       # Section renderers (incl. timeline,
+│   │                       #   render_works, render_honors,
+│   │                       #   _render_nested_pub, etc.)
+│   ├── build_projects.py   # Per-paper / per-work project pages
+│   ├── build_blogs.py      # Blog pages from org notes (pandoc)
+│   ├── build_resume.py     # Renders resume.tex -> resume.pdf
+│   ├── build_utils.py      # esc, format_date, slugify, highlight_author
+│   └── fetch_publications.py
+├── data/                   # YAML inputs (git-crypt encrypted in author's
+│   │                       #   clone; plain text for forks)
+│   ├── bio.yaml
+│   ├── education.yaml
+│   ├── experience.yaml
+│   ├── research.yaml
+│   ├── teaching.yaml
+│   ├── extracurricular.yaml
+│   ├── publications.yaml
+│   ├── news.yaml
+│   ├── blogs.yaml
+│   └── works.yaml
+├── assets/
+│   ├── css/style.css       # All styling (light/dark themes near the top,
+│   │                       #   @media print near the bottom)
+│   ├── js/data.js          # Client-side only: theme toggle, hash routing,
+│   │                       #   blog tag filtering, news-row / open-source
+│   │                       #   card click handler, image lightbox.
+│   │                       #   Does NOT load YAML at runtime.
+│   └── img/                # profile*.jpeg, logos/, publications/
+├── projects/               # Generated per-paper / per-work pages
+├── blogs/                  # Generated blog pages
+└── README.md
 ```
 
-## How It Works
+## How it works
 
-1. When the page loads, `data.js` fetches all YAML files from the `data/` directory
-2. The js-yaml library parses the YAML into JavaScript objects
-3. Social links are automatically constructed from IDs using URL templates
-4. The page content is dynamically populated using the data
-5. All content updates are made by editing YAML files - no need to touch HTML!
+1. `python -m builder` loads every `data/*.yaml`, hydrates the in-
+   memory event objects (timelined entries get an `id`; sourced
+   publications attach to their parent's `child_pubs`).
+2. `build_html.py` renders each named section (bio, news, selected
+   publications, CV, timeline, open source, ...) and substitutes the
+   results into the `{{...}}` placeholders in `template.html`.
+3. `build_projects.py` walks every `selected:` paper and every entry
+   in `works.yaml`, rendering a per-item page under
+   `projects/<slug>/index.html`.
+4. Static asset cache-busting: the build hashes the contents of
+   `style.css` / `data.js` and appends `?v=<hash>` to their
+   references, so hard-refresh is the only step needed after a
+   deploy.
 
-## Google Scholar Integration Details
-
-The `fetch_publications.py` script uses the free **scholarly** library to fetch publications:
-
-- **Free**: No API keys or costs
-- **Automatic**: Fetches all your publications from Google Scholar
-- **Flexible**: You can still manually edit the YAML after fetching
-- **Rate-limited**: Google Scholar may rate-limit, so the script includes delays
-
-### Troubleshooting Google Scholar Fetch
-
-If you encounter rate-limiting issues:
-1. Wait a few hours and try again
-2. Use a VPN to change your IP address
-3. Manually add publications to `data/publications.yaml`
+`data.js` is intentionally small: theme switching, hash-based page
+routing, blog tag filter, image lightbox, and a generic click handler
+for `data-href` boxes (news rows + open-source cards). All content
+rendering is done at build time on the server / developer machine, not
+in the browser.
 
 ## License
 
-See LICENSE.md for details.
+MIT — see `LICENSE.md`.
