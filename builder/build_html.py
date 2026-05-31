@@ -339,149 +339,174 @@ def render_honors(data):
 
 
 # ---------------------------------------------------------------------------
-# News
+# News - auto-derived chronological feed
 # ---------------------------------------------------------------------------
 
-_NEWS_TAG_COLORS = {
-    "publication": "#839496",
-    "degree": "#6c71c4",
-    "internship": "#2aa198",
-    "award": "#b58900",
+# Event type -> date-pill colour. The "institution" type covers degrees,
+# positions, internships - anything tied to joining/leaving an organisation.
+_NEWS_TYPE_COLORS = {
+    "publication": "#10b981",  # green (matches timeline-publication node)
+    "institution": "#0066cc",  # accent blue
+    "award":       "#b58900",  # gold
+    "life-event":  "#8b5cf6",  # purple
 }
 
+_DEGREE_SHORT = [
+    ("Doctor of Philosophy",  "Ph.D."),
+    ("Master of Science",     "M.Sc."),
+    ("Bachelor of Science",   "B.Sc."),
+    ("Doctor of Engineering", "D.Eng."),
+]
 
-def _year_from_date(date_str):
-    """Extract the 4-digit year from a date string."""
-    m = re.search(r"\d{4}", str(date_str))
-    return int(m.group()) if m else 0
+
+def _short_org(name):
+    """Collapse the first 'Long Name (Acronym)' span into just the acronym.
+
+    'Middle East Technical University (METU)'                       -> 'METU'
+    'Image Processing ... Laboratory (ImageLab), METU'              -> 'ImageLab, METU'
+    'Sensing, Interaction, & Perception Laboratory (SIPLab), ETH Z' -> 'SIPLab, ETH Z'
+    'Cyber-Physical Systems Laboratory, University of California'   -> unchanged
+    """
+    if not name:
+        return ""
+    s = str(name).strip()
+    m = re.match(r"^(.*?)\s*\(([A-Za-zÀ-ÿ][\w\-+./]{1,20})\)", s)
+    if not m:
+        return s
+    return (m.group(2) + s[m.end():]).strip()
 
 
-def _year_opacity(year, min_year, max_year):
-    """Map a year to an opacity value (newer = more opaque)."""
-    if max_year == min_year:
-        return 1.0
-    return 0.45 + 0.55 * (year - min_year) / (max_year - min_year)
+def _short_degree(degree):
+    """'Master of Science in Computer Engineering' -> 'M.Sc. in Computer Engineering'."""
+    if not degree:
+        return ""
+    s = str(degree).strip()
+    for long, short in _DEGREE_SHORT:
+        if s.startswith(long):
+            return short + s[len(long):]
+    return s
+
+
+def _best_paper_link(paper):
+    """First link with name in (PDF, Paper, Arxiv, DOI) - else any link."""
+    priority = {"pdf": 0, "paper": 1, "arxiv": 2, "doi": 3}
+    best = None
+    for link in paper.get("links") or []:
+        url = link.get("url")
+        if not url:
+            continue
+        rank = priority.get(str(link.get("name", "")).lower(), 99)
+        if best is None or rank < best[0]:
+            best = (rank, url)
+    return best[1] if best else None
+
+
+def _derive_news_events(data):
+    """Build a chronological event list from all YAML data sources.
+
+    Sources:
+      - publications.yaml: every paper unless news_visible: false
+      - education.yaml:    timelined entries -> Started + Earned events
+      - experience.yaml:   timelined entries -> Started events
+      - research.yaml:     timelined entries -> Started events
+      - extracurricular.yaml: every honour unless news_visible: false
+      - news.yaml life_events: free-form, manually added items
+
+    Each event: {date, type, content, link}. Sorted newest first.
+    """
+    events = []
+
+    # Publications
+    for p in (data.get("publications") or {}).get("papers", []):
+        if p.get("news_visible") is False:
+            continue
+        venue = p.get("venue_short") or p.get("venue", "")
+        title = p.get("title", "")
+        content = f'"{title}" at {venue}' if venue else f'"{title}"'
+        events.append({
+            "date": p.get("date"), "type": "publication",
+            "content": content, "link": _best_paper_link(p),
+        })
+
+    # Education (start + earned-on-end)
+    for e in (data.get("education") or {}).get("education", []):
+        if not e.get("timelined"):
+            continue
+        deg = _short_degree(e.get("degree", ""))
+        inst = _short_org(e.get("institution", ""))
+        link = e.get("link") or e.get("logo_link")
+        if e.get("start_date"):
+            events.append({
+                "date": e["start_date"], "type": "institution",
+                "content": f"Started {deg} at {inst}", "link": link,
+            })
+        end = e.get("end_date")
+        if end and str(end).strip().lower() != "present":
+            events.append({
+                "date": end, "type": "institution",
+                "content": f"Earned {deg} at {inst}", "link": link,
+            })
+
+    # Experience + research starts
+    for source in ("experience", "research"):
+        for entry in (data.get(source) or {}).get(source, []):
+            if not entry.get("timelined"):
+                continue
+            pos = entry.get("position", "")
+            comp = _short_org(entry.get("company", ""))
+            link = entry.get("link") or entry.get("logo_link")
+            if entry.get("start_date"):
+                events.append({
+                    "date": entry["start_date"], "type": "institution",
+                    "content": f"Started {pos} at {comp}", "link": link,
+                })
+
+    # Honors / awards
+    for h in (data.get("extracurricular") or {}).get("honors", []):
+        if h.get("news_visible") is False:
+            continue
+        title = h.get("title", "")
+        org_short = _short_org(h.get("organization", ""))
+        events.append({
+            "date": h.get("date"), "type": "award",
+            "content": f"{title} ({org_short})" if org_short else title,
+            "link": h.get("link"),
+        })
+
+    # Free-form life events
+    for item in (data.get("news") or {}).get("life_events", []):
+        events.append({
+            "date": item.get("date"),
+            "type": item.get("type") or "life-event",
+            "content": item.get("content", ""),
+            "link": item.get("link"),
+        })
+
+    events = [e for e in events if e.get("date") and e.get("content")]
+    events.sort(key=lambda e: parse_date(e["date"]), reverse=True)
+    return events
 
 
 def render_news(data):
-    """Render news items as one-line list items with tags and year shading."""
-    items = (data.get("news") or {}).get("items", [])
-    if not items:
-        return ""
-
-    years = [_year_from_date(item["date"]) for item in items]
-    min_year, max_year = min(years), max(years)
-
-    parts = []
-    for item, year in zip(items, years):
-        opacity = _year_opacity(year, min_year, max_year)
-        date = (
-            f'<span class="news-date" style="opacity: {opacity:.2f}">'
-            f'{esc(format_date(item["date"]))}</span> '
-        )
-
-        link_html = ""
-        if item.get("link"):
-            link_html = (
-                f' <a href="{esc(item["link"])}" class="news-link" '
-                f'target="_blank" rel="noopener noreferrer">[link]</a>'
-            )
-        content = f'<span class="news-content">{esc(item["content"])}{link_html}</span>'
-
-        tag_html = ""
-        tags = item.get("tags") or []
-        if isinstance(tags, str):
-            tags = [tags]
-        if tags:
-            tag_spans = "".join(
-                '<span class="news-tag" style="background-color: '
-                f'{_NEWS_TAG_COLORS.get(tag, "var(--text-muted)")}">'
-                f'{esc(tag)}</span>'
-                for tag in tags
-            )
-            tag_html = f'<span class="news-tags">{tag_spans}</span>'
-
-        parts.append(f"<li>{date}{content}{tag_html}</li>")
-    return "\n".join(parts)
-
-
-# ---------------------------------------------------------------------------
-# Timeline
-# ---------------------------------------------------------------------------
-
-def _timeline_exp_event(item):
-    """Build a timeline event dict from an education/experience/research item."""
-    return {
-        "date": item.get("start_date"), "end_date": item.get("end_date"),
-        "type": "experience",
-        "title": item.get("degree") or item.get("position", ""),
-        "subtitle": item.get("institution") or item.get("company", ""),
-        "logo": item.get("logo"),
-    }
-
-
-def render_timeline(data):
-    """Single-rail timeline: timelined experiences/education/research + all publications."""
-    events = []
-
-    for edu in (data.get("education") or {}).get("education", []):
-        if edu.get("timelined"):
-            events.append(_timeline_exp_event(edu))
-    for exp in (data.get("experience") or {}).get("experience", []):
-        if exp.get("timelined"):
-            events.append(_timeline_exp_event(exp))
-    for res in (data.get("research") or {}).get("research", []):
-        if res.get("timelined"):
-            events.append(_timeline_exp_event(res))
-
-    # Publications are inherently chronological - include all of them.
-    for paper in (data.get("publications") or {}).get("papers", []):
-        events.append({
-            "date": paper.get("date"), "type": "publication",
-            "title": paper.get("title", ""),
-            "authors": paper.get("authors", ""),
-            "subtitle": paper.get("venue_short") or paper.get("venue", ""),
-            "links": paper.get("links"),
-        })
-
-    events = [e for e in events if e.get("date")]
-    events.sort(key=lambda e: parse_date(e["date"]), reverse=True)
+    """Render the auto-derived chronological news feed."""
+    events = _derive_news_events(data)
     if not events:
         return ""
-
-    parts = ['<div class="timeline">']
+    parts = []
     for e in events:
-        parts.append(f'<div class="timeline-item timeline-{e["type"]}">')
-
-        date = esc(format_date(e["date"]))
-        if e.get("end_date"):
-            date += f' <span class="timeline-dash">-</span> {esc(format_date(e["end_date"]))}'
-        parts.append(f'<span class="timeline-date">{date}</span>')
-
-        logo = e.get("logo")
-        logo_html = (
-            f'<img class="timeline-logo" src="{esc(logo)}" alt="" loading="lazy" '
-            f'width="22" height="22" />' if logo else ""
+        color = _NEWS_TYPE_COLORS.get(e["type"], "var(--accent-color)")
+        date_html = (
+            f'<span class="news-date news-{esc(e["type"])}" '
+            f'style="background-color: {color}">'
+            f'{esc(format_date(e["date"]))}</span>'
         )
-        parts.append(f'<h4 class="timeline-title">{logo_html}<span>{esc(e["title"])}</span></h4>')
-
-        if e["type"] == "publication":
-            parts.append(f'<div class="timeline-authors">{highlight_author(esc(e.get("authors", "")))}</div>')
-            if e.get("subtitle"):
-                parts.append(f'<div class="timeline-venue"><em>{esc(e["subtitle"])}</em></div>')
-            links = [l for l in (e.get("links") or []) if l.get("url")]
-            if links:
-                link_html = "".join(
-                    f'<a href="{esc(l["url"])}" target="_blank" rel="noopener noreferrer" '
-                    f'class="timeline-link">{esc(l["name"])}</a>'
-                    for l in links
-                )
-                parts.append(f'<div class="timeline-links">{link_html}</div>')
-        elif e.get("subtitle"):
-            parts.append(f'<div class="timeline-org">{esc(e["subtitle"])}</div>')
-
-        parts.append("</div>")
-    parts.append("</div>")
+        body = esc(e["content"])
+        if e.get("link"):
+            body += (
+                f' <a href="{esc(e["link"])}" class="news-link" '
+                f'target="_blank" rel="noopener noreferrer">[link]</a>'
+            )
+        parts.append(f'<li>{date_html}<span class="news-content">{body}</span></li>')
     return "\n".join(parts)
 
 
@@ -680,7 +705,6 @@ def generate_sitemap(bio, blogs_data):
         (f"{site_url}/", today, "1.0"),
         (f"{site_url}/#cv", today, "0.9"),
         (f"{site_url}/#blogs", today, "0.8"),
-        (f"{site_url}/#timeline", today, "0.7"),
     ]
     for blog in (blogs_data or {}).get("blogs", []):
         if blog.get("path"):

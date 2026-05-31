@@ -105,6 +105,11 @@ def parse_date(date_str):
     if m:
         return datetime(int(m.group(1)), int(m.group(2)), int(m.group(3) or 1))
 
+    # Academic-year range "YYYY-YYYY" -> sort by the end year (when awarded)
+    m = re.match(r"^(\d{4})-(\d{4})$", s)
+    if m:
+        return datetime(int(m.group(2)), 1, 1)
+
     # "Mon YYYY"
     m = re.match(r"^([A-Za-z]+)\s+(\d{4})$", s)
     if m:
