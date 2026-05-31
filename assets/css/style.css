@@ -1303,42 +1303,127 @@ footer {
     }
 }
 
-/* Print Stylesheet */
+/* Print Stylesheet
+   Goals: (a) Ctrl+P on whichever section is visible prints only that
+   section (no About+CV+Blogs+Timeline mash); (b) UI chrome (nav, theme
+   toggle, search, filters, badges) is stripped; (c) buttons / pills /
+   badges flatten to inline text so links look like links, not widgets. */
 @media print {
-    .page-layout {
-        display: block;
+    @page {
+        margin: 1.4cm 1.6cm;
     }
+
+    body {
+        background: #fff;
+        color: #000;
+        font-size: 10pt;
+        line-height: 1.4;
+    }
+
+    /* One column. Sidebar becomes a compact header. */
+    .page-layout { display: block; }
 
     .sidebar {
         position: static;
         width: 100%;
         height: auto;
-        border-right: none;
-        border-bottom: 1px solid #000;
+        background: #fff;
+        border: none;
+        border-bottom: 1pt solid #000;
+        margin-bottom: 12pt;
     }
-
     .sidebar-content {
         flex-direction: row;
         flex-wrap: wrap;
-        justify-content: center;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 14pt;
+        padding: 0 0 10pt;
     }
+    .bio-image img { width: 70px; height: 70px; margin: 0; }
+    .sidebar-name {
+        font-size: 16pt;
+        font-weight: 700;
+        margin: 0;
+        text-align: left;
+        color: #000;
+    }
+    .sidebar-title,
+    .sidebar-affiliation {
+        font-size: 9.5pt;
+        margin: 0;
+        text-align: left;
+        color: #333;
+    }
+    .bio-short { display: none; }
+    .links {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 4pt 10pt;
+        font-size: 8.5pt;
+        margin-left: auto;
+    }
+    .links a,
+    .social-link {
+        color: #000 !important;
+        padding: 0 !important;
+        background: none !important;
+        font-size: 8.5pt !important;
+        font-weight: 400 !important;
+    }
+    .links-category-toggle { display: none; }
+    .links-category-items { display: flex !important; flex-direction: row; gap: 4pt 10pt; }
+    .social-link i { color: #000; }
 
+    /* Hide on-screen chrome */
     .main-nav,
     .theme-toggle,
-    .skip-link {
+    .skip-link,
+    footer,
+    .blog-controls,
+    .see-all-link,
+    .blog-tags,
+    .news-tags,
+    .work-tags,
+    .publication-image,
+    .project-image,
+    .timeline-logo,
+    .resume-logo {
         display: none !important;
     }
 
+    /* Only print the section the visitor is actually on. */
     .page-section {
-        display: block !important;
-        padding: 20px 0;
-        break-inside: avoid;
+        display: none !important;
+        padding: 0;
     }
-
+    .page-section.active {
+        display: block !important;
+        padding: 0;
+    }
     .main-content {
         max-width: 100%;
+        padding: 0;
+        background: #fff;
     }
 
+    /* Section headings */
+    .content-section {
+        padding: 8pt 0;
+        border-bottom: none;
+        break-inside: avoid;
+    }
+    .content-section h2 {
+        font-size: 13pt;
+        font-weight: 700;
+        margin: 0 0 6pt;
+        padding-bottom: 2pt;
+        border-bottom: 0.75pt solid #000;
+        letter-spacing: 0;
+        color: #000;
+    }
+
+    /* Plain underlined text links instead of styled buttons */
     a {
         color: #000;
         text-decoration: underline;
@@ -1346,13 +1431,147 @@ footer {
 
     .pub-link,
     .timeline-link {
-        border: 1px solid #999;
+        display: inline !important;
+        border: none !important;
+        background: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        margin: 0 4pt 0 0 !important;
+        font-size: 9pt !important;
+        font-weight: 400 !important;
+        font-family: inherit !important;
+        color: #000 !important;
+        text-decoration: underline !important;
+        text-transform: none !important;
+        letter-spacing: 0 !important;
+        box-shadow: none !important;
+        transform: none !important;
+    }
+    .pub-link::before { content: "["; text-decoration: none; }
+    .pub-link::after  { content: "]"; text-decoration: none; }
+
+    .publication-links {
+        display: inline !important;
+        gap: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
-    footer {
-        border-top: 1px solid #000;
-        margin-top: 20px;
+    /* Strip pill / badge backgrounds */
+    .news-date,
+    .news-tag,
+    .news-link,
+    .blog-tag,
+    .blog-filter,
+    .blog-date,
+    .tech-badge,
+    .work-tag,
+    .publication-venue-tag,
+    .timeline-date {
+        background: none !important;
+        color: #000 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        font-weight: 700 !important;
+        font-size: inherit !important;
+        opacity: 1 !important;
+        box-shadow: none !important;
+        letter-spacing: 0 !important;
     }
+    .tech-badge i { display: none; }
+
+    /* News: keep readable two-column rhythm */
+    .news-list li {
+        display: grid;
+        grid-template-columns: 95pt 1fr;
+        gap: 8pt;
+        margin-bottom: 4pt;
+        line-height: 1.35;
+    }
+    .news-content { color: #000; }
+
+    /* Resume items */
+    .resume-item {
+        display: block;
+        margin-bottom: 6pt;
+        break-inside: avoid;
+    }
+    .resume-details { flex: none; }
+    .resume-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+    }
+    .resume-header strong { font-size: 10.5pt; color: #000; }
+    .date { color: #000; font-size: 9pt; }
+    .resume-subheader,
+    .resume-advisor { color: #222; font-size: 9.5pt; }
+    .resume-bullets li { font-size: 9pt; line-height: 1.3; }
+
+    /* Publication cards: collapse to citation row */
+    .publication-item {
+        display: block;
+        padding: 4pt 0;
+        border-bottom: 0.25pt solid #ccc;
+        break-inside: avoid;
+    }
+    .publication-left {
+        width: auto;
+        display: inline;
+        margin-right: 4pt;
+    }
+    .publication-venue-tag {
+        display: inline;
+        width: auto;
+        margin: 0;
+    }
+    .publication-venue-tag::before { content: "["; }
+    .publication-venue-tag::after  { content: "] "; }
+    .publication-content { display: inline; }
+    .publication-title,
+    .publication-authors,
+    .publication-venue {
+        display: inline;
+        font-size: 9.5pt;
+    }
+    .publication-title { font-weight: 700; }
+    .publication-title::after  { content: ". "; }
+    .publication-authors::after { content: ". "; }
+    .publication-venue { font-style: italic; }
+    .publication-venue::after { content: ". "; }
+
+    /* Compact APA citations on CV (most common case for printed CV) */
+    .publication-item-compact {
+        display: block;
+        margin-bottom: 4pt;
+        font-size: 9.5pt;
+        break-inside: avoid;
+    }
+    .pub-compact-reference {
+        padding-left: 18pt;
+        text-indent: -18pt;
+    }
+
+    /* Timeline: keep linear, drop the rail */
+    .timeline-item {
+        padding: 0 0 6pt 0;
+        break-inside: avoid;
+    }
+    .timeline-item::before,
+    .timeline-item::after { display: none !important; }
+    .timeline-title { font-size: 10.5pt; }
+    .timeline-org,
+    .timeline-authors,
+    .timeline-venue { font-size: 9.5pt; color: #222; }
+
+    /* Blog list: drop card chrome */
+    .blog-item {
+        border: none;
+        padding: 4pt 0;
+        break-inside: avoid;
+    }
+    .blog-item h3 { font-size: 10.5pt; }
 }
 
 /* ---- Blog pages (generated from org notes by builder.build_blogs) ---- */
