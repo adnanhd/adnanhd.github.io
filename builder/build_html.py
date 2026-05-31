@@ -106,6 +106,42 @@ def render_bio(bio):
 # Publications
 # ---------------------------------------------------------------------------
 
+# venue token -> brand colour for the publication-venue-tag pill.
+# Key is the first non-prefix token of `venue_short` uppercased
+# (e.g. "IEEE/TVCG 2025" -> "TVCG", "Book Chapter 2024" -> "BOOK").
+_VENUE_COLORS = {
+    "ICRA":     "#00629b",   # IEEE robotics blue
+    "TVCG":     "#7b3f8f",   # graphics purple
+    "ECCV":     "#017a8e",   # ECCV teal
+    "CVPR":     "#1b4f72",   # CVPR navy
+    "ICCV":     "#7b1d36",   # ICCV maroon
+    "NEURIPS":  "#6c71c4",
+    "NIPS":     "#6c71c4",
+    "ICML":     "#d36d2e",
+    "ICLR":     "#cf2e2e",
+    "AAAI":     "#0e4d92",
+    "AINA":     "#5b7eb0",
+    "BOOK":     "#8b5e34",
+    "ITU":      "#7a1a35",
+    "SRMC":     "#1e7a3d",
+    "CINC":     "#c0392b",   # cardiology red
+    "DAWAK":    "#6c71c4",
+    "SIGGRAPH": "#cf2e7a",
+    "ACL":      "#2e7d32",
+    "EMNLP":    "#00695c",
+    "ICASSP":   "#0a64a4",
+}
+
+
+def _venue_color(venue_short):
+    """Pick a brand colour from `venue_short`; None falls back to --accent-color."""
+    if not venue_short:
+        return None
+    s = re.sub(r"^(IEEE|ACM)/", "", str(venue_short).strip().upper())
+    token = s.split()[0] if s else ""
+    return _VENUE_COLORS.get(token)
+
+
 def _render_pub_links(links):
     """Render publication link buttons (PAPER, CODE, DEMO, etc.)."""
     if not links:
@@ -125,14 +161,16 @@ def render_publication_card(paper):
     # Left: venue tag + image
     parts.append('<div class="publication-left">')
     venue_text = paper.get("venue_short") or paper.get("venue", "Publication")
+    color = _venue_color(venue_text)
+    style = f' style="background-color: {color}"' if color else ""
     if paper.get("venue_link"):
         parts.append(
-            f'<div class="publication-venue-tag">'
-            f'<a href="{esc(paper["venue_link"])}" target="_blank" rel="noopener noreferrer" '
-            f'style="color: inherit; text-decoration: none;">{esc(venue_text)}</a></div>'
+            f'<div class="publication-venue-tag"{style}>'
+            f'<a href="{esc(paper["venue_link"])}" target="_blank" rel="noopener noreferrer">'
+            f'{esc(venue_text)}</a></div>'
         )
     else:
-        parts.append(f'<div class="publication-venue-tag">{esc(venue_text)}</div>')
+        parts.append(f'<div class="publication-venue-tag"{style}>{esc(venue_text)}</div>')
 
     if paper.get("image"):
         parts.append(
