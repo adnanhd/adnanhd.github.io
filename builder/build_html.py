@@ -379,7 +379,7 @@ def render_news(data):
     parts = []
     for item in items:
         tags = _normalize_tags(item.get("tags"))
-        date_html = f'<span class="news-date">{esc(format_date(item["date"]))}</span>'
+        date_html = f'<span class="news-date">{esc(format_date(item["date"], short=True))}</span>'
 
         body = esc(item["content"])
         if item.get("link"):
@@ -465,10 +465,11 @@ def _date_frac(date_str):
     return None
 
 
-def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1):
+def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False):
     """Render a single timeline card with absolute positioning + lane info."""
     side, color = _TIMELINE_TYPE_META.get(e["type"], ("right", "var(--accent-color)"))
     anchor = f"tl-{slugify(e['title'])}"
+    slim_cls = " timeline-slim" if slim else ""
 
     date = esc(format_date(e["date"]))
     if e.get("end_date"):
@@ -517,7 +518,7 @@ def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1):
     if height_px is not None:
         style += f" min-height: {height_px:.1f}px;"
     return (
-        f'<div id="{anchor}" class="timeline-item timeline-{e["type"]} timeline-{side}" '
+        f'<div id="{anchor}" class="timeline-item timeline-{e["type"]} timeline-{side}{slim_cls}" '
         f'style="{style}">{"".join(body)}</div>'
     )
 
@@ -572,15 +573,26 @@ def render_timeline(data):
     bot_year = int(min(fracs))
     total_h = (top_year - bot_year) * _TIMELINE_YEAR_PX
 
-    # Sub-column lane assignment per side - greedy interval colouring so
-    # overlapping events (e.g. M.Sc. + GRA + SIPLab on the right) don't
-    # collide. Point events get a small temporal padding so identical
-    # year-only dates can still be packed into separate lanes.
+    # Split events by side: paper-side (left) uses slim-row stacking
+    # (point events that would collide get pushed down vertically so each
+    # card keeps its full width); institutional-side (right) uses
+    # greedy-lane packing for overlapping ranges.
     left, right = [], []
     for e in events:
         side, _ = _TIMELINE_TYPE_META.get(e["type"], ("right", ""))
         (left if side == "left" else right).append(e)
 
+    # ---- LEFT (slim rows) ----
+    SLIM_OFFSET = 80  # min vertical gap between slim-row cards
+    left.sort(key=lambda e: e["_end"], reverse=True)
+    last_top = -1e9
+    for e in left:
+        natural = (top_year - e["_end"]) * _TIMELINE_YEAR_PX
+        top_px = max(natural, last_top + SLIM_OFFSET)
+        e["_top_px"] = top_px
+        last_top = top_px
+
+    # ---- RIGHT (greedy lanes) ----
     def assign_lanes(group, pad=0.1):
         sorted_g = sorted(group, key=lambda e: e["_start"])
         lane_ends = []
@@ -596,8 +608,12 @@ def render_timeline(data):
                 lane_ends.append(en)
         return max(len(lane_ends), 1)
 
-    n_left  = assign_lanes(left)
     n_right = assign_lanes(right)
+
+    # Extend canvas so the lowest slim card still fits
+    if left:
+        canvas_min = max(e["_top_px"] for e in left) + 100
+        total_h = max(total_h, int(canvas_min))
 
     # Render newest end first so DOM order matches visual stacking
     events.sort(key=lambda e: e["_end"] or 0, reverse=True)
@@ -610,17 +626,22 @@ def render_timeline(data):
         )
 
     for e in events:
-        end = e["_end"]
-        start = e["_start"]
-        top_px = (top_year - end) * _TIMELINE_YEAR_PX
-        height_px = None
-        if e.get("end_date") and start is not None and end - start > 0.1:
-            height_px = (end - start) * _TIMELINE_YEAR_PX
         side, _ = _TIMELINE_TYPE_META.get(e["type"], ("right", ""))
-        lanes = n_left if side == "left" else n_right
-        parts.append(_render_timeline_card(
-            e, top_px, height_px, lane=e.get("_lane", 0), lanes=lanes,
-        ))
+        if side == "left":
+            top_px = e["_top_px"]
+            height_px = None
+            parts.append(_render_timeline_card(
+                e, top_px, height_px, lane=0, lanes=1, slim=True,
+            ))
+        else:
+            end, start = e["_end"], e["_start"]
+            top_px = (top_year - end) * _TIMELINE_YEAR_PX
+            height_px = None
+            if e.get("end_date") and start is not None and end - start > 0.1:
+                height_px = (end - start) * _TIMELINE_YEAR_PX
+            parts.append(_render_timeline_card(
+                e, top_px, height_px, lane=e.get("_lane", 0), lanes=n_right,
+            ))
 
     parts.append('</div>')
     return "\n".join(parts)

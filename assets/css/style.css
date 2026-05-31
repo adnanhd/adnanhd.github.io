@@ -720,6 +720,12 @@ a:hover {
     right: auto;
 }
 
+/* Dot lands EXACTLY on the rail; arm spans from card edge to the dot.
+   Geometry (rail-gap = 36, dot = 14):
+     card edge -> 36 px arm gap -> dot centred on rail.
+   Dot offset from card edge = 36 - 14/2 = 29 px to the inner edge,
+   so dot's outer edge sits 36 + 14/2 = 43 px past the card edge.
+   Arm starts at the card edge and ends at the dot's near edge (29 px). */
 .timeline-item::after {
     content: "";
     position: absolute;
@@ -733,8 +739,8 @@ a:hover {
     transition: background-color 0.2s ease;
     z-index: 2;
 }
-.timeline-left::after  { right: -35px; }
-.timeline-right::after { left: -35px;  }
+.timeline-left::after  { right: -43px; }
+.timeline-right::after { left: -43px;  }
 
 .timeline-item:hover::after {
     background: var(--dot-color, var(--accent-color));
@@ -745,11 +751,44 @@ a:hover {
     position: absolute;
     top: 24px;
     height: 2px;
-    width: 22px;
+    width: 29px;
     background: var(--border-color);
 }
-.timeline-left::before  { right: -22px; }
-.timeline-right::before { left: -22px;  }
+.timeline-left::before  { right: -29px; }
+.timeline-right::before { left: -29px;  }
+
+/* Slim rows for the left side: compact padding, tighter typography so
+   stacked point events (publications) don't dominate the rail. */
+.timeline-slim {
+    padding: 7px 12px;
+}
+.timeline-slim .timeline-date {
+    font-size: 0.7em;
+    margin-bottom: 1px;
+}
+.timeline-slim .timeline-title {
+    font-size: 0.95em;
+    margin: 1px 0;
+    line-height: 1.3;
+}
+.timeline-slim .timeline-authors,
+.timeline-slim .timeline-venue {
+    font-size: 0.8em;
+    line-height: 1.3;
+}
+.timeline-slim .timeline-venue {
+    margin-top: 1px;
+}
+.timeline-slim .timeline-links {
+    gap: 4px;
+    margin-top: 5px;
+}
+.timeline-slim .timeline-link {
+    font-size: 0.68em;
+    padding: 1px 7px;
+}
+.timeline-slim::after { top: 14px; }
+.timeline-slim::before { top: 20px; }
 
 @media (max-width: 760px) {
     .timeline { --rail-x: 24px; }
@@ -764,14 +803,14 @@ a:hover {
     }
     .timeline-left::after,
     .timeline-right::after {
-        left: -34px;
+        left: -43px;
         right: auto;
     }
     .timeline-left::before,
     .timeline-right::before {
-        left: -22px;
+        left: -29px;
         right: auto;
-        width: 22px;
+        width: 29px;
     }
 }
 
