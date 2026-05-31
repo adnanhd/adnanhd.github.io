@@ -428,14 +428,39 @@ def _timeline_exp_event(item, ev_type):
     }
 
 
-def _event_year(e):
-    """Extract the 4-digit year from an event's date string."""
-    m = re.search(r"\d{4}", str(e.get("date") or ""))
-    return int(m.group()) if m else 0
+# Pixels per year of timeline height (true-cartesian: B.Sc. spanning
+# 2018->2022 becomes ~4 x this tall).
+_TIMELINE_YEAR_PX = 120
 
 
-def _render_timeline_card(e):
-    """Render a single timeline card (used inside a year row)."""
+def _date_frac(date_str):
+    """Date string to fractional year. 2024 -> 2024.0, 2024-08 -> 2024.583."""
+    if not date_str:
+        return None
+    s = str(date_str).strip()
+    if s.lower() == "present":
+        from datetime import datetime
+        now = datetime.now()
+        return now.year + (now.month - 1) / 12
+    m = re.match(r"^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?$", s)
+    if m:
+        y = int(m.group(1))
+        mo = int(m.group(2) or 1)
+        d = int(m.group(3) or 1)
+        return y + (mo - 1) / 12 + (d - 1) / 365.0
+    m = re.match(r"^([A-Za-z]+)\s+(\d{4})$", s)
+    if m:
+        from .build_utils import MONTHS
+        mo = MONTHS.get(m.group(1), 1)
+        return int(m.group(2)) + (mo - 1) / 12
+    m = re.match(r"^(\d{4})-(\d{4})$", s)
+    if m:
+        return int(m.group(2))  # range -> end year
+    return None
+
+
+def _render_timeline_card(e, top_px, height_px=None):
+    """Render a single timeline card with absolute positioning."""
     side, color = _TIMELINE_TYPE_META.get(e["type"], ("right", "var(--accent-color)"))
     anchor = f"tl-{slugify(e['title'])}"
 
@@ -479,17 +504,20 @@ def _render_timeline_card(e):
                 f'rel="noopener noreferrer" class="timeline-link">Link</a></div>'
             )
 
+    style = f"top: {top_px:.1f}px; --dot-color: {color};"
+    if height_px is not None:
+        style += f" min-height: {height_px:.1f}px;"
     return (
         f'<div id="{anchor}" class="timeline-item timeline-{e["type"]} timeline-{side}" '
-        f'style="--dot-color: {color}">{"".join(body)}</div>'
+        f'style="{style}">{"".join(body)}</div>'
     )
 
 
 def render_timeline(data):
-    """Cartesian timeline: years stack newest-first, each year is a labelled
-    band on the central rail; publications go on the left, institutional /
-    award entries on the right. Empty years keep their slot to preserve the
-    chronological scale."""
+    """Cartesian timeline: vertical axis is time, absolute Y per event.
+    Range entries (B.Sc., M.Sc., experience positions) get min-height
+    proportional to their duration so they visibly span their years.
+    """
     events = []
 
     for edu in (data.get("education") or {}).get("education", []):
@@ -502,7 +530,6 @@ def render_timeline(data):
         if res.get("timelined"):
             events.append(_timeline_exp_event(res, "research"))
 
-    # Publications are inherently chronological - include all of them.
     for paper in (data.get("publications") or {}).get("papers", []):
         events.append({
             "date": paper.get("date"), "type": "publication",
@@ -523,40 +550,40 @@ def render_timeline(data):
             "link": h.get("link"),
         })
 
-    events = [e for e in events if e.get("date")]
-    events.sort(key=lambda e: parse_date(e["date"]), reverse=True)
+    # Annotate with fractional year positions; drop events with no date.
+    for e in events:
+        e["_start"] = _date_frac(e.get("date"))
+        e["_end"] = _date_frac(e.get("end_date")) if e.get("end_date") else e["_start"]
+    events = [e for e in events if e["_start"] is not None]
     if not events:
         return ""
 
-    by_year = {}
+    fracs = [e["_end"] for e in events] + [e["_start"] for e in events]
+    top_year = int(max(fracs)) + 1
+    bot_year = int(min(fracs))
+    total_h = (top_year - bot_year) * _TIMELINE_YEAR_PX
+
+    # Order: latest end date first (so cards near top of DOM are visually on top)
+    events.sort(key=lambda e: e["_end"] or 0, reverse=True)
+
+    parts = [f'<div class="timeline" style="height: {total_h}px;">']
+
+    # Year labels on the rail at every integer year in range.
+    for y in range(top_year, bot_year - 1, -1):
+        y_pos = (top_year - y) * _TIMELINE_YEAR_PX
+        parts.append(
+            f'<div class="timeline-year-label" style="top: {y_pos:.1f}px">{y}</div>'
+        )
+
     for e in events:
-        by_year.setdefault(_event_year(e), []).append(e)
+        end = e["_end"]
+        start = e["_start"]
+        top_px = (top_year - end) * _TIMELINE_YEAR_PX
+        height_px = None
+        if e.get("end_date") and start is not None and end - start > 0.1:
+            height_px = (end - start) * _TIMELINE_YEAR_PX
+        parts.append(_render_timeline_card(e, top_px, height_px))
 
-    years = [y for y in by_year.keys() if y]
-    if not years:
-        return ""
-    max_year, min_year = max(years), min(years)
-
-    parts = ['<div class="timeline">']
-    for y in range(max_year, min_year - 1, -1):
-        ev = by_year.get(y, [])
-        left  = [e for e in ev if _TIMELINE_TYPE_META.get(e["type"], ("right",))[0] == "left"]
-        right = [e for e in ev if _TIMELINE_TYPE_META.get(e["type"], ("right",))[0] == "right"]
-        empty_cls = " timeline-year-empty" if not ev else ""
-
-        parts.append(f'<div class="timeline-year{empty_cls}" data-year="{y}">')
-        parts.append(f'<span class="timeline-year-label">{y}</span>')
-        parts.append('<div class="timeline-year-row">')
-
-        parts.append('<div class="timeline-year-side timeline-year-leftside">')
-        parts.extend(_render_timeline_card(e) for e in left)
-        parts.append('</div>')
-
-        parts.append('<div class="timeline-year-side timeline-year-rightside">')
-        parts.extend(_render_timeline_card(e) for e in right)
-        parts.append('</div>')
-
-        parts.append('</div></div>')
     parts.append('</div>')
     return "\n".join(parts)
 

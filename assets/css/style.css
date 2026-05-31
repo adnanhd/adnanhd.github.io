@@ -626,15 +626,16 @@ a.news-row:hover {
     opacity: 0.9;
 }
 
-/* Timeline - cartesian-ish: each year is a labelled band on a central
-   vertical rail; paper-related events (publications + paper awards) go
-   on the LEFT and stay slim, institutional events (degree / internship /
-   research) go on the RIGHT and get extra width for long org names. */
+/* Timeline - true cartesian: Y axis is time. Every card sits at an
+   absolute top in px computed from its (month-fractional) end date;
+   range cards (B.Sc., M.Sc., positions) get min-height equal to the
+   year-span x _TIMELINE_YEAR_PX so they visibly cover their interval.
+   Paper-side stays slim on the LEFT, institutional side gets extra
+   width on the RIGHT. Container height is set inline by the builder. */
 .timeline {
     position: relative;
-    max-width: 1080px;
-    margin: 8px auto 32px;
-    padding: 8px 0;
+    max-width: 1100px;
+    margin: 8px auto 48px;
     --rail-x: 42%;
 }
 
@@ -647,67 +648,54 @@ a.news-row:hover {
     width: 2px;
     background: var(--border-color);
     transform: translateX(-1px);
-}
-
-.timeline-year {
-    position: relative;
-    min-height: 56px;
-    padding-top: 30px;
-    margin-bottom: 6px;
-}
-
-.timeline-year-empty {
-    min-height: 28px;
-    padding-top: 22px;
+    z-index: 0;
 }
 
 .timeline-year-label {
     position: absolute;
-    top: 0;
     left: var(--rail-x);
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
     background: var(--bg-secondary);
-    padding: 2px 12px;
+    padding: 2px 14px;
     font-size: 0.78em;
     font-weight: 700;
     color: var(--text-tertiary);
     border: 1px solid var(--border-color);
     border-radius: 999px;
-    z-index: 2;
+    z-index: 3;
     letter-spacing: 0.04em;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
-
-.timeline-year-row {
-    display: grid;
-    /* left = pubs (slim) | right = institutional (wider) */
-    grid-template-columns: minmax(0, 38fr) minmax(0, 58fr);
-    gap: 56px;
-}
-
-.timeline-year-side {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    min-width: 0;
-}
-
-.timeline-year-leftside  { align-items: flex-end; }
-.timeline-year-rightside { align-items: flex-start; }
 
 .timeline-item {
-    position: relative;
-    width: 100%;
+    position: absolute;
     padding: 12px 16px;
     background: var(--bg-primary);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    z-index: 1;
+}
+
+.timeline-item:target,
+.timeline-item:hover {
+    z-index: 2;
 }
 
 .timeline-item:target {
     border-color: var(--dot-color, var(--accent-color));
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--dot-color, var(--accent-color)) 25%, transparent);
+}
+
+.timeline-left {
+    left: 0;
+    width: calc(var(--rail-x) - 36px);
+}
+
+.timeline-right {
+    left: calc(var(--rail-x) + 36px);
+    right: 0;
 }
 
 .timeline-item::after {
@@ -721,7 +709,7 @@ a.news-row:hover {
     border: 2px solid var(--dot-color, var(--accent-color));
     box-sizing: border-box;
     transition: background-color 0.2s ease;
-    z-index: 1;
+    z-index: 2;
 }
 .timeline-left::after  { right: -35px; }
 .timeline-right::after { left: -35px;  }
@@ -742,22 +730,15 @@ a.news-row:hover {
 .timeline-right::before { left: -22px;  }
 
 @media (max-width: 760px) {
-    .timeline {
-        --rail-x: 14px;
-    }
+    .timeline { --rail-x: 24px; }
     .timeline-year-label {
-        transform: none;
-        left: 14px;
-        padding-left: 14px;
+        transform: translate(-50%, -50%);
     }
-    .timeline-year-row {
-        grid-template-columns: 1fr;
-        gap: 12px;
-        padding-left: 40px;
-    }
-    .timeline-year-leftside,
-    .timeline-year-rightside {
-        align-items: stretch;
+    .timeline-left,
+    .timeline-right {
+        left: 50px;
+        right: 0;
+        width: auto;
     }
     .timeline-left::after,
     .timeline-right::after {
@@ -766,9 +747,9 @@ a.news-row:hover {
     }
     .timeline-left::before,
     .timeline-right::before {
-        left: -20px;
+        left: -22px;
         right: auto;
-        width: 20px;
+        width: 22px;
     }
 }
 
