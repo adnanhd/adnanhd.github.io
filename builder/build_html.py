@@ -339,174 +339,68 @@ def render_honors(data):
 
 
 # ---------------------------------------------------------------------------
-# News - auto-derived chronological feed
+# News - manually curated items with timeline-rail rendering
 # ---------------------------------------------------------------------------
 
-# Event type -> date-pill colour. The "institution" type covers degrees,
-# positions, internships - anything tied to joining/leaving an organisation.
-_NEWS_TYPE_COLORS = {
-    "publication": "#10b981",  # green (matches timeline-publication node)
-    "institution": "#0066cc",  # accent blue
-    "award":       "#b58900",  # gold
-    "life-event":  "#8b5cf6",  # purple
+# Tag -> colour for the dot, tag-chip background, and date-pill background.
+# publication=green, degree/internship=blue ("institutions"), award=gold,
+# life-event=purple (reserved for off-calendar items like moves).
+_NEWS_TAG_COLORS = {
+    "publication": "#10b981",
+    "degree":      "#0066cc",
+    "internship":  "#0066cc",
+    "award":       "#b58900",
+    "life-event":  "#8b5cf6",
 }
 
-_DEGREE_SHORT = [
-    ("Doctor of Philosophy",  "Ph.D."),
-    ("Master of Science",     "M.Sc."),
-    ("Bachelor of Science",   "B.Sc."),
-    ("Doctor of Engineering", "D.Eng."),
-]
 
-
-def _short_org(name):
-    """Collapse the first 'Long Name (Acronym)' span into just the acronym.
-
-    'Middle East Technical University (METU)'                       -> 'METU'
-    'Image Processing ... Laboratory (ImageLab), METU'              -> 'ImageLab, METU'
-    'Sensing, Interaction, & Perception Laboratory (SIPLab), ETH Z' -> 'SIPLab, ETH Z'
-    'Cyber-Physical Systems Laboratory, University of California'   -> unchanged
-    """
-    if not name:
-        return ""
-    s = str(name).strip()
-    m = re.match(r"^(.*?)\s*\(([A-Za-zÀ-ÿ][\w\-+./]{1,20})\)", s)
-    if not m:
-        return s
-    return (m.group(2) + s[m.end():]).strip()
-
-
-def _short_degree(degree):
-    """'Master of Science in Computer Engineering' -> 'M.Sc. in Computer Engineering'."""
-    if not degree:
-        return ""
-    s = str(degree).strip()
-    for long, short in _DEGREE_SHORT:
-        if s.startswith(long):
-            return short + s[len(long):]
-    return s
-
-
-def _best_paper_link(paper):
-    """First link with name in (PDF, Paper, Arxiv, DOI) - else any link."""
-    priority = {"pdf": 0, "paper": 1, "arxiv": 2, "doi": 3}
-    best = None
-    for link in paper.get("links") or []:
-        url = link.get("url")
-        if not url:
-            continue
-        rank = priority.get(str(link.get("name", "")).lower(), 99)
-        if best is None or rank < best[0]:
-            best = (rank, url)
-    return best[1] if best else None
-
-
-def _derive_news_events(data):
-    """Build a chronological event list from all YAML data sources.
-
-    Sources:
-      - publications.yaml: every paper unless news_visible: false
-      - education.yaml:    timelined entries -> Started + Earned events
-      - experience.yaml:   timelined entries -> Started events
-      - research.yaml:     timelined entries -> Started events
-      - extracurricular.yaml: every honour unless news_visible: false
-      - news.yaml life_events: free-form, manually added items
-
-    Each event: {date, type, content, link}. Sorted newest first.
-    """
-    events = []
-
-    # Publications
-    for p in (data.get("publications") or {}).get("papers", []):
-        if p.get("news_visible") is False:
-            continue
-        venue = p.get("venue_short") or p.get("venue", "")
-        title = p.get("title", "")
-        content = f'"{title}" at {venue}' if venue else f'"{title}"'
-        events.append({
-            "date": p.get("date"), "type": "publication",
-            "content": content, "link": _best_paper_link(p),
-        })
-
-    # Education (start + earned-on-end)
-    for e in (data.get("education") or {}).get("education", []):
-        if not e.get("timelined"):
-            continue
-        deg = _short_degree(e.get("degree", ""))
-        inst = _short_org(e.get("institution", ""))
-        link = e.get("link") or e.get("logo_link")
-        if e.get("start_date"):
-            events.append({
-                "date": e["start_date"], "type": "institution",
-                "content": f"Started {deg} at {inst}", "link": link,
-            })
-        end = e.get("end_date")
-        if end and str(end).strip().lower() != "present":
-            events.append({
-                "date": end, "type": "institution",
-                "content": f"Earned {deg} at {inst}", "link": link,
-            })
-
-    # Experience + research starts
-    for source in ("experience", "research"):
-        for entry in (data.get(source) or {}).get(source, []):
-            if not entry.get("timelined"):
-                continue
-            pos = entry.get("position", "")
-            comp = _short_org(entry.get("company", ""))
-            link = entry.get("link") or entry.get("logo_link")
-            if entry.get("start_date"):
-                events.append({
-                    "date": entry["start_date"], "type": "institution",
-                    "content": f"Started {pos} at {comp}", "link": link,
-                })
-
-    # Honors / awards
-    for h in (data.get("extracurricular") or {}).get("honors", []):
-        if h.get("news_visible") is False:
-            continue
-        title = h.get("title", "")
-        org_short = _short_org(h.get("organization", ""))
-        events.append({
-            "date": h.get("date"), "type": "award",
-            "content": f"{title} ({org_short})" if org_short else title,
-            "link": h.get("link"),
-        })
-
-    # Free-form life events
-    for item in (data.get("news") or {}).get("life_events", []):
-        events.append({
-            "date": item.get("date"),
-            "type": item.get("type") or "life-event",
-            "content": item.get("content", ""),
-            "link": item.get("link"),
-        })
-
-    events = [e for e in events if e.get("date") and e.get("content")]
-    events.sort(key=lambda e: parse_date(e["date"]), reverse=True)
-    return events
+def _normalize_tags(raw):
+    """Always return a list of tag strings."""
+    if raw is None:
+        return []
+    if isinstance(raw, str):
+        return [raw]
+    return list(raw)
 
 
 def render_news(data):
-    """Render the auto-derived chronological news feed."""
-    events = _derive_news_events(data)
-    if not events:
+    """Render the manually curated news feed (timeline rail + colour-coded dots)."""
+    items = (data.get("news") or {}).get("items", [])
+    if not items:
         return ""
+
     parts = []
-    for e in events:
-        color = _NEWS_TYPE_COLORS.get(e["type"], "var(--accent-color)")
+    for item in items:
+        tags = _normalize_tags(item.get("tags"))
+        primary = tags[0] if tags else ""
+        dot = _NEWS_TAG_COLORS.get(primary, "var(--accent-color)")
+
         date_html = (
-            f'<span class="news-date news-{esc(e["type"])}" '
-            f'style="background-color: {color}">'
-            f'{esc(format_date(e["date"]))}</span>'
+            f'<span class="news-date" style="background-color: {dot}">'
+            f'{esc(format_date(item["date"]))}</span>'
         )
-        body = esc(e["content"])
-        if e.get("link"):
+
+        body = esc(item["content"])
+        if item.get("link"):
             body += (
-                f' <a href="{esc(e["link"])}" class="news-link" '
+                f' <a href="{esc(item["link"])}" class="news-link" '
                 f'target="_blank" rel="noopener noreferrer">[link]</a>'
             )
-        parts.append(f'<li>{date_html}<span class="news-content">{body}</span></li>')
+        content_html = f'<span class="news-content">{body}</span>'
+
+        tag_html = ""
+        if tags:
+            chips = "".join(
+                f'<span class="news-tag" style="background-color: '
+                f'{_NEWS_TAG_COLORS.get(t, "var(--text-muted)")}">{esc(t)}</span>'
+                for t in tags
+            )
+            tag_html = f'<span class="news-tags">{chips}</span>'
+
+        parts.append(
+            f'<li style="--dot-color: {dot}">'
+            f'{date_html}{content_html}{tag_html}</li>'
+        )
     return "\n".join(parts)
 
 
