@@ -403,14 +403,16 @@ def render_news(data):
 # Timeline - two-sided chronology, no nav entry (reached via News clicks)
 # ---------------------------------------------------------------------------
 
-# Type -> (side, dot/border colour). Publications on the left, everything
-# institutional (degree/experience/research/award) on the right.
+# Type -> (side, dot/border colour). Paper-related events (publications +
+# paper awards) go on the LEFT; institutional events (degree, experience,
+# research positions) go on the RIGHT. The right side is intentionally
+# given more width since those titles + org names run long.
 _TIMELINE_TYPE_META = {
     "publication": ("left",  "#10b981"),
+    "award":       ("left",  "#b58900"),
     "degree":      ("right", "#6c71c4"),
     "experience":  ("right", "#2aa198"),
     "research":    ("right", "#2aa198"),
-    "award":       ("right", "#b58900"),
 }
 
 
@@ -426,8 +428,68 @@ def _timeline_exp_event(item, ev_type):
     }
 
 
+def _event_year(e):
+    """Extract the 4-digit year from an event's date string."""
+    m = re.search(r"\d{4}", str(e.get("date") or ""))
+    return int(m.group()) if m else 0
+
+
+def _render_timeline_card(e):
+    """Render a single timeline card (used inside a year row)."""
+    side, color = _TIMELINE_TYPE_META.get(e["type"], ("right", "var(--accent-color)"))
+    anchor = f"tl-{slugify(e['title'])}"
+
+    date = esc(format_date(e["date"]))
+    if e.get("end_date"):
+        date += f' <span class="timeline-dash">-</span> {esc(format_date(e["end_date"]))}'
+
+    logo = e.get("logo")
+    logo_html = (
+        f'<img class="timeline-logo" src="{esc(logo)}" alt="" loading="lazy" '
+        f'width="22" height="22" />' if logo else ""
+    )
+
+    body = [
+        f'<span class="timeline-date">{date}</span>',
+        f'<h4 class="timeline-title">{logo_html}<span>{esc(e["title"])}</span></h4>',
+    ]
+
+    if e["type"] == "publication":
+        body.append(
+            f'<div class="timeline-authors">'
+            f'{highlight_author(esc(e.get("authors", "")))}</div>'
+        )
+        if e.get("subtitle"):
+            body.append(f'<div class="timeline-venue"><em>{esc(e["subtitle"])}</em></div>')
+        links = [l for l in (e.get("links") or []) if l.get("url")]
+        if links:
+            link_html = "".join(
+                f'<a href="{esc(l["url"])}" target="_blank" rel="noopener noreferrer" '
+                f'class="timeline-link">{esc(l["name"])}</a>'
+                for l in links
+            )
+            body.append(f'<div class="timeline-links">{link_html}</div>')
+    else:
+        if e.get("subtitle"):
+            body.append(f'<div class="timeline-org">{esc(e["subtitle"])}</div>')
+        if e.get("link"):
+            body.append(
+                f'<div class="timeline-links">'
+                f'<a href="{esc(e["link"])}" target="_blank" '
+                f'rel="noopener noreferrer" class="timeline-link">Link</a></div>'
+            )
+
+    return (
+        f'<div id="{anchor}" class="timeline-item timeline-{e["type"]} timeline-{side}" '
+        f'style="--dot-color: {color}">{"".join(body)}</div>'
+    )
+
+
 def render_timeline(data):
-    """Two-sided rail timeline: pubs on the left, institutional on the right."""
+    """Cartesian timeline: years stack newest-first, each year is a labelled
+    band on the central rail; publications go on the left, institutional /
+    award entries on the right. Empty years keep their slot to preserve the
+    chronological scale."""
     events = []
 
     for edu in (data.get("education") or {}).get("education", []):
@@ -466,57 +528,36 @@ def render_timeline(data):
     if not events:
         return ""
 
-    parts = ['<div class="timeline">']
+    by_year = {}
     for e in events:
-        side, color = _TIMELINE_TYPE_META.get(e["type"], ("right", "var(--accent-color)"))
-        anchor = f"tl-{slugify(e['title'])}"
+        by_year.setdefault(_event_year(e), []).append(e)
 
-        date = esc(format_date(e["date"]))
-        if e.get("end_date"):
-            date += f' <span class="timeline-dash">-</span> {esc(format_date(e["end_date"]))}'
+    years = [y for y in by_year.keys() if y]
+    if not years:
+        return ""
+    max_year, min_year = max(years), min(years)
 
-        logo = e.get("logo")
-        logo_html = (
-            f'<img class="timeline-logo" src="{esc(logo)}" alt="" loading="lazy" '
-            f'width="22" height="22" />' if logo else ""
-        )
+    parts = ['<div class="timeline">']
+    for y in range(max_year, min_year - 1, -1):
+        ev = by_year.get(y, [])
+        left  = [e for e in ev if _TIMELINE_TYPE_META.get(e["type"], ("right",))[0] == "left"]
+        right = [e for e in ev if _TIMELINE_TYPE_META.get(e["type"], ("right",))[0] == "right"]
+        empty_cls = " timeline-year-empty" if not ev else ""
 
-        body = [
-            f'<span class="timeline-date">{date}</span>',
-            f'<h4 class="timeline-title">{logo_html}<span>{esc(e["title"])}</span></h4>',
-        ]
+        parts.append(f'<div class="timeline-year{empty_cls}" data-year="{y}">')
+        parts.append(f'<span class="timeline-year-label">{y}</span>')
+        parts.append('<div class="timeline-year-row">')
 
-        if e["type"] == "publication":
-            body.append(
-                f'<div class="timeline-authors">'
-                f'{highlight_author(esc(e.get("authors", "")))}</div>'
-            )
-            if e.get("subtitle"):
-                body.append(f'<div class="timeline-venue"><em>{esc(e["subtitle"])}</em></div>')
-            links = [l for l in (e.get("links") or []) if l.get("url")]
-            if links:
-                link_html = "".join(
-                    f'<a href="{esc(l["url"])}" target="_blank" rel="noopener noreferrer" '
-                    f'class="timeline-link">{esc(l["name"])}</a>'
-                    for l in links
-                )
-                body.append(f'<div class="timeline-links">{link_html}</div>')
-        else:
-            if e.get("subtitle"):
-                body.append(f'<div class="timeline-org">{esc(e["subtitle"])}</div>')
-            if e.get("link"):
-                body.append(
-                    f'<div class="timeline-links">'
-                    f'<a href="{esc(e["link"])}" target="_blank" '
-                    f'rel="noopener noreferrer" class="timeline-link">Link</a>'
-                    f'</div>'
-                )
+        parts.append('<div class="timeline-year-side timeline-year-leftside">')
+        parts.extend(_render_timeline_card(e) for e in left)
+        parts.append('</div>')
 
-        parts.append(
-            f'<div id="{anchor}" class="timeline-item timeline-{e["type"]} timeline-{side}" '
-            f'style="--dot-color: {color}">{"".join(body)}</div>'
-        )
-    parts.append("</div>")
+        parts.append('<div class="timeline-year-side timeline-year-rightside">')
+        parts.extend(_render_timeline_card(e) for e in right)
+        parts.append('</div>')
+
+        parts.append('</div></div>')
+    parts.append('</div>')
     return "\n".join(parts)
 
 

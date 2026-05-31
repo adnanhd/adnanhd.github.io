@@ -626,31 +626,79 @@ a.news-row:hover {
     opacity: 0.9;
 }
 
-/* Timeline — two-sided: rail down the middle, publications on the left,
-   institutional (degree / internship / award) on the right. */
+/* Timeline - cartesian-ish: each year is a labelled band on a central
+   vertical rail; paper-related events (publications + paper awards) go
+   on the LEFT and stay slim, institutional events (degree / internship /
+   research) go on the RIGHT and get extra width for long org names. */
 .timeline {
     position: relative;
-    max-width: 980px;
+    max-width: 1080px;
     margin: 8px auto 32px;
-    padding: 24px 0;
+    padding: 8px 0;
+    --rail-x: 42%;
 }
 
-.timeline::before { /* central rail */
+.timeline::before {
     content: "";
     position: absolute;
     top: 0;
     bottom: 0;
-    left: 50%;
+    left: var(--rail-x);
     width: 2px;
     background: var(--border-color);
     transform: translateX(-1px);
 }
 
+.timeline-year {
+    position: relative;
+    min-height: 56px;
+    padding-top: 30px;
+    margin-bottom: 6px;
+}
+
+.timeline-year-empty {
+    min-height: 28px;
+    padding-top: 22px;
+}
+
+.timeline-year-label {
+    position: absolute;
+    top: 0;
+    left: var(--rail-x);
+    transform: translateX(-50%);
+    background: var(--bg-secondary);
+    padding: 2px 12px;
+    font-size: 0.78em;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    z-index: 2;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+}
+
+.timeline-year-row {
+    display: grid;
+    /* left = pubs (slim) | right = institutional (wider) */
+    grid-template-columns: minmax(0, 38fr) minmax(0, 58fr);
+    gap: 56px;
+}
+
+.timeline-year-side {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+}
+
+.timeline-year-leftside  { align-items: flex-end; }
+.timeline-year-rightside { align-items: flex-start; }
+
 .timeline-item {
     position: relative;
-    width: calc(50% - 32px);
+    width: 100%;
     padding: 12px 16px;
-    margin-bottom: 18px;
     background: var(--bg-primary);
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -662,17 +710,6 @@ a.news-row:hover {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--dot-color, var(--accent-color)) 25%, transparent);
 }
 
-.timeline-left { /* publications */
-    margin-left: 0;
-    margin-right: auto;
-}
-
-.timeline-right { /* degree / experience / research / award */
-    margin-left: auto;
-    margin-right: 0;
-}
-
-/* hollow dot pinned to the central rail */
 .timeline-item::after {
     content: "";
     position: absolute;
@@ -684,50 +721,54 @@ a.news-row:hover {
     border: 2px solid var(--dot-color, var(--accent-color));
     box-sizing: border-box;
     transition: background-color 0.2s ease;
+    z-index: 1;
 }
-
-.timeline-left::after  { right: -39px; }
-.timeline-right::after { left: -39px;  }
+.timeline-left::after  { right: -35px; }
+.timeline-right::after { left: -35px;  }
 
 .timeline-item:hover::after {
     background: var(--dot-color, var(--accent-color));
 }
 
-/* small horizontal arm from the card edge to the dot */
 .timeline-item::before {
     content: "";
     position: absolute;
     top: 24px;
     height: 2px;
-    width: 24px;
+    width: 22px;
     background: var(--border-color);
 }
+.timeline-left::before  { right: -22px; }
+.timeline-right::before { left: -22px;  }
 
-.timeline-left::before  { right: -24px; }
-.timeline-right::before { left: -24px;  }
-
-@media (max-width: 720px) {
-    .timeline::before {
-        left: 8px;
-        transform: none;
+@media (max-width: 760px) {
+    .timeline {
+        --rail-x: 14px;
     }
-    .timeline-item,
-    .timeline-left,
-    .timeline-right {
-        width: auto;
-        margin-left: 32px;
-        margin-right: 0;
+    .timeline-year-label {
+        transform: none;
+        left: 14px;
+        padding-left: 14px;
+    }
+    .timeline-year-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding-left: 40px;
+    }
+    .timeline-year-leftside,
+    .timeline-year-rightside {
+        align-items: stretch;
     }
     .timeline-left::after,
     .timeline-right::after {
-        left: -32px;
+        left: -34px;
         right: auto;
     }
     .timeline-left::before,
     .timeline-right::before {
-        left: -18px;
+        left: -20px;
         right: auto;
-        width: 18px;
+        width: 20px;
     }
 }
 
@@ -1536,15 +1577,27 @@ footer {
     }
     .tech-badge i { display: none; }
 
-    /* News: keep readable two-column rhythm */
+    /* News: single inline run per entry, no grid (grid eats wrap space) */
     .news-list li {
-        display: grid;
-        grid-template-columns: 95pt 1fr;
-        gap: 8pt;
-        margin-bottom: 4pt;
+        display: block;
+        margin-bottom: 3pt;
         line-height: 1.35;
     }
-    .news-content { color: #000; }
+    .news-row {
+        display: block !important;
+        padding: 0 !important;
+        background: none !important;
+        text-decoration: none;
+        color: #000 !important;
+    }
+    .news-date {
+        font-weight: 700;
+        font-size: 9pt;
+        color: #000;
+        margin-right: 6pt;
+    }
+    .news-content { color: #000; font-size: 9.5pt; }
+    .news-link { color: #000 !important; text-decoration: underline !important; }
 
     /* Resume items */
     .resume-item {
@@ -1620,12 +1673,29 @@ footer {
     .timeline-authors,
     .timeline-venue { font-size: 9.5pt; color: #222; }
 
-    /* Blog list: drop card chrome */
-    .blog-item {
-        border: none;
-        padding: 4pt 0;
+    /* Blog list + Open Source cards: drop card chrome (borders, padding,
+       backgrounds, shadows) so they print as flat text rows */
+    .blog-item,
+    .work-item {
+        border: none !important;
+        border-radius: 0 !important;
+        padding: 4pt 0 !important;
+        background: none !important;
+        box-shadow: none !important;
+        transform: none !important;
         break-inside: avoid;
     }
+    .repos-list {
+        display: block !important;
+        grid-template-columns: none !important;
+    }
+    .work-head {
+        gap: 6pt;
+    }
+    .work-icon,
+    .work-ext { display: none !important; }
+    .work-name { font-size: 10.5pt; font-weight: 700; color: #000; }
+    .work-repo { color: #000; }
     .blog-item h3 { font-size: 10.5pt; }
 }
 
