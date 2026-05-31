@@ -376,8 +376,7 @@ def render_news(data):
         dot = _NEWS_TAG_COLORS.get(primary, "var(--accent-color)")
 
         date_html = (
-            f'<span class="news-date" style="background-color: {dot}">'
-            f'{esc(format_date(item["date"]))}</span>'
+            f'<span class="news-date">{esc(format_date(item["date"]))}</span>'
         )
 
         body = esc(item["content"])
