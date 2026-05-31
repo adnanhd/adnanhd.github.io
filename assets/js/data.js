@@ -160,22 +160,32 @@ function initBlogFilter() {
   );
 }
 
-function initNewsRows() {
-  // News rows aren't <a> (would nest inside the internal news-link); the
-  // row is a <div data-href="#timeline:tl-..."> that we wire by hand.
-  document.querySelectorAll(".news-row[data-href]").forEach((row) => {
+function initLinkableBoxes() {
+  // Generic click-anywhere-on-the-box handler. Used for:
+  //   * news rows (data-href is "#timeline:tl-...", in-page hash nav)
+  //   * open-source work cards (data-href is "projects/.../index.html",
+  //     full navigation; the card's own title <a> goes to GitHub).
+  // Inner anchors are honoured first so the title link still takes the
+  // user to its own destination instead of being intercepted.
+  const boxes = document.querySelectorAll(
+    ".news-row[data-href], .work-item[data-href]",
+  );
+  boxes.forEach((box) => {
     function go() {
-      const href = row.getAttribute("data-href");
+      const href = box.getAttribute("data-href");
       if (!href) return;
-      if (window.location.hash === href) handleHash();
-      else window.location.hash = href;
+      if (href.startsWith("#")) {
+        if (window.location.hash === href) handleHash();
+        else window.location.hash = href;
+      } else {
+        window.location.href = href;
+      }
     }
-    row.addEventListener("click", (e) => {
-      // Let inner anchors (the [link] to external sources) own their click.
+    box.addEventListener("click", (e) => {
       if (e.target.closest("a")) return;
       go();
     });
-    row.addEventListener("keydown", (e) => {
+    box.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         go();
@@ -191,7 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initImageLightbox();
   initLinkableHeaders();
   initBlogFilter();
-  initNewsRows();
+  initLinkableBoxes();
 });
 
 window.addEventListener("hashchange", handleHash);

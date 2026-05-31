@@ -661,6 +661,20 @@ a:hover {
     z-index: 0;
 }
 
+/* Month ticks on the rail - small dashes between year labels, like a
+   ruler. Placement is per-band (variable year-band heights), computed
+   in Python as fractions of each band's height. */
+.timeline-month-tick {
+    position: absolute;
+    left: var(--rail-x);
+    width: 8px;
+    height: 1px;
+    background: var(--border-color);
+    transform: translateX(-50%);
+    opacity: 0.6;
+    z-index: 0;
+}
+
 .timeline-year-label {
     position: absolute;
     left: var(--rail-x);
@@ -706,30 +720,61 @@ a:hover {
     --lanes: 1;
 }
 
+/* card-w = (side-w - (lanes-1) * lane-gap) / lanes
+   lane-offset = lane * (card-w + lane-gap)
+   The CSS calc divisor must be a literal number, so we keep --lanes only
+   as the denominator of --card-w (where it's a unitless divisor) and
+   then build everything else as `lane * (card-w + lane-gap)`, a pure
+   number * length. The dot+arm offsets are inlined into ::before /
+   ::after directly so they don't depend on an extra --lane-offset
+   indirection that pseudo-elements may resolve inconsistently. */
+/* --lane-recip is set inline (1/lanes precomputed in Python) so we never
+   use a var() as the calc divisor. Browsers (notably Firefox) silently
+   discard `calc(... / var(...))` because the spec requires a literal
+   number on the right of /. Multiplying by --lane-recip is spec-clean
+   and works in every engine. */
 .timeline-left {
-    --card-w: calc((var(--left-side-w) - (var(--lanes) - 1) * var(--lane-gap)) / var(--lanes));
+    --card-w: calc((var(--left-side-w) - (var(--lanes) - 1) * var(--lane-gap)) * var(--lane-recip));
     width: var(--card-w);
     right: calc(100% - var(--rail-x) + var(--rail-gap) + var(--lane) * (var(--card-w) + var(--lane-gap)));
     left: auto;
 }
 
 .timeline-right {
-    --card-w: calc((var(--right-side-w) - (var(--lanes) - 1) * var(--lane-gap)) / var(--lanes));
+    --card-w: calc((var(--right-side-w) - (var(--lanes) - 1) * var(--lane-gap)) * var(--lane-recip));
     width: var(--card-w);
     left: calc(var(--rail-x) + var(--rail-gap) + var(--lane) * (var(--card-w) + var(--lane-gap)));
     right: auto;
 }
 
-/* Dot lands EXACTLY on the rail; arm spans from card edge to the dot.
-   Geometry (rail-gap = 36, dot = 14):
-     card edge -> 36 px arm gap -> dot centred on rail.
-   Dot offset from card edge = 36 - 14/2 = 29 px to the inner edge,
-   so dot's outer edge sits 36 + 14/2 = 43 px past the card edge.
-   Arm starts at the card edge and ends at the dot's near edge (29 px). */
-.timeline-item::after {
+/* Rail marker = dot + arm, a sibling of the card under .timeline. The
+   marker box must span the FULL timeline width (left:0; right:0) so
+   that percentages inside the arm's `width:` calc resolve against the
+   timeline, not against a narrow per-card box. The dot + arm are then
+   positioned absolutely INSIDE the marker, each at its own offset from
+   the rail.
+
+   --lane-ratio (set inline as lane / lanes) drives the arm length:
+       arm = (rail-gap - 7px) + ratio * (side-w + lane-gap)
+   = 29px for lane 0 (arm just bridges card edge to dot), growing by
+     one full sub-column's worth per additional lane index. */
+.rail-marker {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 0;
+    pointer-events: none;
+    /* Sit BELOW cards so the arm doesn't paint on top of any card it
+       passes through on the way from the rail to a higher-lane box. */
+    z-index: 0;
+}
+.rail-marker::after {
+    /* The dot itself, sat on the rail. */
     content: "";
     position: absolute;
     top: 18px;
+    left: var(--rail-x);
+    margin-left: -7px;
     width: 14px;
     height: 14px;
     border-radius: 50%;
@@ -737,25 +782,27 @@ a:hover {
     border: 2px solid var(--dot-color, var(--accent-color));
     box-sizing: border-box;
     transition: background-color 0.2s ease;
-    z-index: 2;
 }
-.timeline-left::after  { right: -43px; }
-.timeline-right::after { left: -43px;  }
-
-.timeline-item:hover::after {
-    background: var(--dot-color, var(--accent-color));
-}
-
-.timeline-item::before {
+.rail-marker::before {
+    /* The horizontal arm. */
     content: "";
     position: absolute;
     top: 24px;
     height: 2px;
-    width: 29px;
     background: var(--border-color);
 }
-.timeline-left::before  { right: -29px; }
-.timeline-right::before { left: -29px;  }
+.rail-marker-right::before {
+    left: calc(var(--rail-x) + 7px);
+    width: calc((var(--rail-gap) - 7px) + var(--lane-ratio) * (var(--right-side-w) + var(--lane-gap)));
+}
+.rail-marker-left::before {
+    right: calc(100% - var(--rail-x) + 7px);
+    width: calc((var(--rail-gap) - 7px) + var(--lane-ratio) * (var(--left-side-w) + var(--lane-gap)));
+}
+.timeline-item:hover + .rail-marker::after,
+.timeline-item:target + .rail-marker::after {
+    background: var(--dot-color, var(--accent-color));
+}
 
 /* Slim rows for the left side: compact padding, tighter typography so
    stacked point events (publications) don't dominate the rail. */
@@ -801,16 +848,13 @@ a:hover {
         right: 0;
         width: auto;
     }
-    .timeline-left::after,
-    .timeline-right::after {
-        left: -43px;
+    /* On mobile everything stacks in one column, so the arm is always
+       just a short hop from the rail to the card. */
+    .rail-marker-left::before,
+    .rail-marker-right::before {
+        left: 14px;
         right: auto;
-    }
-    .timeline-left::before,
-    .timeline-right::before {
-        left: -29px;
-        right: auto;
-        width: 29px;
+        width: 22px;
     }
 }
 
@@ -925,12 +969,27 @@ a:hover {
     gap: 10px;
 }
 
+/* Compact-body groups the citation line with its attached awards in a
+   single flex item so they stack vertically inside the row, while the
+   links pill row floats to the right. The award strip indents to the
+   hanging-indent continuation, so it aligns with the second line of
+   the reference rather than the first author. */
+.pub-compact-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
 .pub-compact-reference {
     color: var(--text-secondary);
     text-align: justify;
     padding-left: 30px;
     text-indent: -30px;
-    flex: 1;
+}
+.pub-compact-body > .entry-awards {
+    padding-left: 30px;
+    margin-top: 2px;
 }
 
 .pub-compact-reference strong {
@@ -1041,6 +1100,38 @@ a:hover {
     margin-top: 12px;
 }
 
+/* Inline awards: attached to publications, education entries, and
+   timeline cards. Renders as a subtle one-line-per-award strip with a
+   small trophy glyph; the organization tail is dimmed. No background
+   pill - we want this to feel like part of the entry, not a chip. */
+.entry-awards {
+    margin-top: 6px;
+    margin-bottom: 2px;
+}
+.entry-award {
+    font-size: 0.85em;
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+.entry-award .fa-award {
+    color: #b58900;
+    margin-right: 4px;
+    font-size: 0.95em;
+}
+.entry-award a {
+    color: inherit;
+    text-decoration: none;
+}
+.entry-award a:hover { color: var(--accent-color); }
+.entry-award .award-name { font-weight: 600; }
+.entry-award .award-org {
+    color: var(--text-tertiary);
+    font-weight: 400;
+}
+/* Slim timeline cards: match the card's reduced scale. */
+.timeline-slim .entry-awards { margin-top: 4px; }
+.timeline-slim .entry-award { font-size: 0.78em; }
+
 .pub-link {
     padding: 8px 16px;
     border: 2px solid var(--border-color);
@@ -1083,6 +1174,17 @@ a:hover {
 .work-item:hover {
     border-color: var(--accent-color);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* The Open Source card is itself a navigation target (-> project page).
+   The title inside is a separate link (-> GitHub). Cursor + focus ring
+   make the click affordance obvious. */
+.work-item[data-href] {
+    cursor: pointer;
+}
+.work-item[data-href]:focus {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
 }
 
 .blog-link,
@@ -1458,8 +1560,36 @@ footer {
         line-height: 1.4;
     }
 
-    /* One column. Sidebar becomes a compact header. */
-    .page-layout { display: block; }
+    /* Icon fonts (Font Awesome, academicons, devicons): force them to
+       render with their declared colour. The print-color-adjust opt-in
+       is scoped to icons only - applied globally it would also force
+       page backgrounds and shaded blocks to print, which is what made
+       the page look dark. */
+    .fa, .fas, .far, .fal, .fab, .fa-solid, .fa-regular, .fa-brands,
+    .ai, [class^="devicon-"], [class*=" devicon-"] {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color: #000 !important;
+        display: inline-block !important;
+        font-style: normal !important;
+        font-weight: 900 !important;
+        visibility: visible !important;
+    }
+    .fab, .fa-brands { font-weight: 400 !important; }
+    /* The attached-award glyph keeps its gold tint - it's a meaningful
+       semantic colour, not chrome. */
+    .entry-award .fa-award { color: #8a5a00 !important; }
+
+    /* One column. Sidebar becomes a compact header. The min-height:
+       100vh from screen styles must be killed - in print, vh resolves
+       to the page height, so leaving it on collapses the whole CV onto
+       a single squashed page. */
+    .page-layout {
+        display: block;
+        min-height: 0;
+        height: auto;
+    }
+    html, body { height: auto; min-height: 0; }
 
     .sidebar {
         position: static;
@@ -1525,10 +1655,26 @@ footer {
     .work-tags,
     .publication-image,
     .project-image,
-    .timeline-logo,
-    .resume-logo {
+    .timeline-logo {
         display: none !important;
     }
+    /* Keep resume logos in print but shrink to a tight square so they
+       sit next to the entry header without dominating it. */
+    .resume-logo {
+        display: block !important;
+        flex: 0 0 auto;
+    }
+    .resume-logo img {
+        width: 22pt !important;
+        height: 22pt !important;
+        object-fit: contain;
+    }
+    .resume-item {
+        display: flex !important;
+        gap: 6pt;
+        align-items: flex-start;
+    }
+    .resume-details { flex: 1 1 auto; min-width: 0; }
 
     /* Only print the section the visitor is actually on. Note: no
        break-inside: avoid here - we WANT long sections (Publications,
@@ -1696,6 +1842,15 @@ footer {
     .publication-venue { font-style: italic; }
     .publication-venue::after { content: ". "; }
 
+    /* Lists of publications: collapse flex/grid containers to plain
+       block so the browser can break pages between items. Flex/grid
+       containers in print often refuse to split, which is what makes
+       the next section (e.g. Experience) start on a fresh page. */
+    .publications-grid {
+        display: block !important;
+        gap: 0 !important;
+    }
+
     /* Compact APA citations on CV (most common case for printed CV) */
     .publication-item-compact {
         display: block;
@@ -1703,18 +1858,46 @@ footer {
         font-size: 9.5pt;
         break-inside: avoid;
     }
+    .pub-compact-body { display: block; }
     .pub-compact-reference {
         padding-left: 18pt;
         text-indent: -18pt;
     }
+    /* Attached awards: always render as a block on their own line,
+       indented to align with the citation hang. The icon stays inline
+       inside the line. */
+    .entry-awards {
+        display: block !important;
+        margin: 2pt 0 0 18pt !important;
+    }
+    .entry-award {
+        display: block !important;
+        color: #000 !important;
+        font-size: 9pt !important;
+    }
+    .entry-award .award-org { color: #333 !important; }
 
-    /* Timeline: keep linear, drop the rail */
+    /* Timeline: drop the rail and all box chrome. Cards are still
+       absolute-positioned (their top: NNNpx is inline), but with no
+       border, background, or rounded corners they read as flat text
+       rows on the page. */
     .timeline-item {
         padding: 0 0 6pt 0;
+        background: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
         break-inside: avoid;
     }
-    .timeline-item::before,
-    .timeline-item::after { display: none !important; }
+    .rail-marker,
+    .timeline-month-tick { display: none !important; }
+    .timeline::before { display: none !important; }
+    .timeline-year-label {
+        background: none !important;
+        border: none !important;
+        padding: 0 !important;
+        color: #000 !important;
+    }
     .timeline-title { font-size: 10.5pt; }
     .timeline-org,
     .timeline-authors,

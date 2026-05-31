@@ -154,6 +154,33 @@ def _render_pub_links(links):
     return f'<div class="publication-links">\n{items}\n</div>'
 
 
+def _render_awards(awards):
+    """Render an attached-awards line. Subtle: small trophy glyph +
+    plain text name, optionally a thin organization tail. One line per
+    award. Returns "" when there are no awards so callers can drop it
+    in unconditionally."""
+    awards = [a for a in (awards or []) if a and a.get("name")]
+    if not awards:
+        return ""
+    rows = []
+    for a in awards:
+        name = esc(a["name"])
+        org = a.get("organization")
+        link = a.get("link")
+        org_html = f' <span class="award-org">- {esc(org)}</span>' if org else ""
+        body = (
+            f'<i class="fa-solid fa-award" aria-hidden="true"></i> '
+            f'<span class="award-name">{name}</span>{org_html}'
+        )
+        if link:
+            body = (
+                f'<a href="{esc(link)}" target="_blank" rel="noopener noreferrer">'
+                f'{body}</a>'
+            )
+        rows.append(f'<div class="entry-award">{body}</div>')
+    return f'<div class="entry-awards">{"".join(rows)}</div>'
+
+
 def render_publication_card(paper):
     """Render a fancy publication card (About page - selected works)."""
     parts = ['<div class="publication-item">']
@@ -192,6 +219,7 @@ def render_publication_card(paper):
     if paper.get("date"):
         venue_full += f', {format_date(paper["date"])}'
     parts.append(f'<div class="publication-venue">{esc(venue_full)}</div>')
+    parts.append(_render_awards(paper.get("awards")))
     parts.append(_render_pub_links(paper.get("links")))
     parts.append("</div></div>")
     return "\n".join(parts)
@@ -215,7 +243,10 @@ def render_compact_publication(paper):
     elif paper.get("venue"):
         citation += f" <em>{esc(paper['venue'])}</em>."
 
+    parts.append('<div class="pub-compact-body">')
     parts.append(f'<div class="pub-compact-reference">{citation}</div>')
+    parts.append(_render_awards(paper.get("awards")))
+    parts.append('</div>')
 
     if paper.get("links"):
         parts.append('<div class="publication-links">')
@@ -236,7 +267,7 @@ def render_compact_publication(paper):
 
 def _render_resume_item(title, subtitle, date, description="", logo=None,
                         links=None, logo_link=None, commitment=None,
-                        advisor=None, bullets=None):
+                        advisor=None, bullets=None, awards=None):
     """Render a single resume entry with logo, header, bullets, and links."""
     parts = ['<div class="resume-item">']
 
@@ -281,6 +312,7 @@ def _render_resume_item(title, subtitle, date, description="", logo=None,
                 parts.append(f"<li>{esc(bullet)}</li>")
         parts.append("</ul>")
 
+    parts.append(_render_awards(awards))
     parts.append(_render_pub_links(links))
     parts.append("</div></div>")
     return "\n".join(parts)
@@ -300,6 +332,7 @@ def _render_section(items, title_key, subtitle_key, date_fn):
             commitment=item.get("commitment"),
             advisor=item.get("advisor"),
             bullets=item.get("bullets"),
+            awards=item.get("awards"),
         )
         for item in items
     )
@@ -334,7 +367,39 @@ def render_teaching(data):
 
 
 def render_honors(data):
-    items = (data.get("extracurricular") or {}).get("honors", [])
+    """Honors aggregates every award attached to a publication / degree /
+    research / experience entry, plus standalone honors listed in
+    extracurricular.yaml (scholarships, fellowships with no single
+    parent). Sorted newest first."""
+    items = list((data.get("extracurricular") or {}).get("honors", []))
+    sources = [
+        ("publications", "papers", "title", "venue_short", "date"),
+        ("education",    "education", "degree", "institution", "start_date"),
+        ("experience",   "experience", "position", "company", "start_date"),
+        ("research",     "research", "position", "company", "start_date"),
+    ]
+    for src_key, list_key, title_field, sub_field, date_field in sources:
+        for entry in (data.get(src_key) or {}).get(list_key, []):
+            for a in (entry.get("awards") or []):
+                if not a.get("name"):
+                    continue
+                parent_title = entry.get(title_field, "")
+                # The award's own description is canonical for the Honors
+                # section. Fall back to "For <parent>" so an award without
+                # a description still has SOME body text identifying its
+                # source.
+                desc = a.get("description")
+                if not desc and parent_title:
+                    desc = f'For "{parent_title}".'
+                items.append({
+                    "title": a["name"],
+                    "organization": a.get("organization") or entry.get(sub_field, ""),
+                    "date": a.get("date") or entry.get(date_field),
+                    "link": a.get("link"),
+                    "logo": a.get("logo") or entry.get("logo"),
+                    "description": desc or "",
+                })
+    items.sort(key=lambda h: parse_date(h.get("date")), reverse=True)
     return _render_section(items, "title", "organization", lambda e: format_date(e.get("date", "")))
 
 
@@ -431,12 +496,50 @@ def _timeline_exp_event(item, ev_type):
         "subtitle": item.get("institution") or item.get("company", ""),
         "logo": item.get("logo"),
         "link": item.get("link"),
+        "awards": item.get("awards"),
     }
 
 
 # Pixels per year of timeline height (true-cartesian: B.Sc. spanning
-# 2018->2022 becomes ~4 x this tall).
+# 2018->2022 becomes ~4 x this tall). Used as the minimum date->Y
+# mapping; cards may push subsequent siblings further apart when their
+# rendered content exceeds the natural year-derived spacing.
 _TIMELINE_YEAR_PX = 120
+_TIMELINE_GAP_PX = 14  # min vertical gap between consecutive cards
+
+
+def _estimate_card_height(e, slim=False):
+    """Rough px-height of a rendered timeline card. Used to push later
+    cards down when their natural date position would collide. Tuned to
+    over-estimate slightly (better to have a bit of breathing room than
+    to clip)."""
+    if slim:
+        pad = 14            # 7px * 2 vertical padding
+        date_h = 17
+        title_lh = 19
+        text_lh = 17
+        links_h = 22
+        title_cpl = 30      # chars per line; conservative for ~280px width
+        text_cpl = 40
+    else:
+        pad = 30
+        date_h = 21
+        title_lh = 24
+        text_lh = 22
+        links_h = 28
+        title_cpl = 28
+        text_cpl = 38
+    h = pad + date_h + 4
+    title = e.get("title", "") or ""
+    h += max(1, -(-len(title) // title_cpl)) * title_lh
+    if e["type"] == "publication" and e.get("authors"):
+        h += max(1, -(-len(e["authors"]) // text_cpl)) * text_lh
+    if e.get("subtitle"):
+        h += max(1, -(-len(e["subtitle"]) // text_cpl)) * text_lh
+    has_links = (e.get("links") and any(l.get("url") for l in e["links"])) or e.get("link")
+    if has_links:
+        h += links_h
+    return h
 
 
 def _date_frac(date_str):
@@ -493,6 +596,7 @@ def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False
         )
         if e.get("subtitle"):
             body.append(f'<div class="timeline-venue"><em>{esc(e["subtitle"])}</em></div>')
+        body.append(_render_awards(e.get("awards")))
         links = [l for l in (e.get("links") or []) if l.get("url")]
         if links:
             link_html = "".join(
@@ -504,6 +608,7 @@ def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False
     else:
         if e.get("subtitle"):
             body.append(f'<div class="timeline-org">{esc(e["subtitle"])}</div>')
+        body.append(_render_awards(e.get("awards")))
         if e.get("link"):
             body.append(
                 f'<div class="timeline-links">'
@@ -511,16 +616,39 @@ def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False
                 f'rel="noopener noreferrer" class="timeline-link">Link</a></div>'
             )
 
+    # Card positioning still uses var(--right-side-w) / var(--left-side-w),
+    # but ONLY for `left:` / `right:` / `width:` on the card itself - those
+    # properties resolve percentages against .timeline (the card's
+    # positioned ancestor), which is correct.
+    lane_recip = 1.0 / max(1, lanes)
     style = (
         f"top: {top_px:.1f}px; --dot-color: {color}; "
-        f"--lane: {lane}; --lanes: {lanes};"
+        f"--lane: {lane}; --lanes: {lanes}; --lane-recip: {lane_recip:.6f};"
     )
     if height_px is not None:
         style += f" min-height: {height_px:.1f}px;"
-    return (
+    card_html = (
         f'<div id="{anchor}" class="timeline-item timeline-{e["type"]} timeline-{side}{slim_cls}" '
         f'style="{style}">{"".join(body)}</div>'
     )
+
+    # The dot+arm are rendered as a SIBLING of the card (direct child of
+    # .timeline), not as the card's pseudo-element. This is essential
+    # because pseudo-element percentages resolve against the host (the
+    # narrow card), not the timeline - so `var(--right-side-w)` inside
+    # the card's ::before is wrong. As a sibling of the card, the
+    # rail-marker's containing block is .timeline, percentages resolve
+    # correctly, and the arm extends precisely to the rail for every
+    # lane.
+    lane_ratio = lane / max(1, lanes)
+    rail_marker = (
+        f'<div class="rail-marker rail-marker-{side}" aria-hidden="true" '
+        f'style="top: {top_px:.1f}px; --lane-ratio: {lane_ratio:.6f}; '
+        f'--dot-color: {color};"></div>'
+    )
+    # rail-marker is placed AFTER the card so the `.timeline-item:hover +
+    # .rail-marker` sibling combinator can light up the right dot.
+    return card_html + rail_marker
 
 
 def render_timeline(data):
@@ -547,8 +675,13 @@ def render_timeline(data):
             "authors": paper.get("authors", ""),
             "subtitle": paper.get("venue_short") or paper.get("venue", ""),
             "links": paper.get("links"),
+            "awards": paper.get("awards"),
         })
 
+    # Standalone (orphan) honors. Awards that belong to a specific paper
+    # or degree live as nested `awards` on that parent entry instead and
+    # are surfaced inline by _render_awards; only honors with no natural
+    # parent (scholarships, fellowships) opt in here via `timelined: true`.
     for h in (data.get("extracurricular") or {}).get("honors", []):
         if not h.get("timelined"):
             continue
@@ -571,28 +704,14 @@ def render_timeline(data):
     fracs = [e["_end"] for e in events] + [e["_start"] for e in events]
     top_year = int(max(fracs)) + 1
     bot_year = int(min(fracs))
-    total_h = (top_year - bot_year) * _TIMELINE_YEAR_PX
 
-    # Split events by side: paper-side (left) uses slim-row stacking
-    # (point events that would collide get pushed down vertically so each
-    # card keeps its full width); institutional-side (right) uses
-    # greedy-lane packing for overlapping ranges.
+    # Split events by side
     left, right = [], []
     for e in events:
         side, _ = _TIMELINE_TYPE_META.get(e["type"], ("right", ""))
         (left if side == "left" else right).append(e)
 
-    # ---- LEFT (slim rows) ----
-    SLIM_OFFSET = 80  # min vertical gap between slim-row cards
-    left.sort(key=lambda e: e["_end"], reverse=True)
-    last_top = -1e9
-    for e in left:
-        natural = (top_year - e["_end"]) * _TIMELINE_YEAR_PX
-        top_px = max(natural, last_top + SLIM_OFFSET)
-        e["_top_px"] = top_px
-        last_top = top_px
-
-    # ---- RIGHT (greedy lanes) ----
+    # ---- RIGHT lane assignment (greedy interval colouring) ----
     def assign_lanes(group, pad=0.1):
         sorted_g = sorted(group, key=lambda e: e["_start"])
         lane_ends = []
@@ -610,35 +729,143 @@ def render_timeline(data):
 
     n_right = assign_lanes(right)
 
-    # Extend canvas so the lowest slim card still fits
-    if left:
-        canvas_min = max(e["_top_px"] for e in left) + 100
-        total_h = max(total_h, int(canvas_min))
+    # ---- VARIABLE-BAND LAYOUT: every year gets its own band whose
+    # height is just enough to hold the densest column's content for
+    # that year. All columns share these band positions, so a 2024
+    # paper on the left and a 2024 internship on the right land in the
+    # same vertical region as the 2024 year label. Years with no events
+    # collapse to a small minimum band; years with three concurrent
+    # papers grow accordingly. This is the "auto-fit" the user asked
+    # for: no wasted whitespace, year labels stay locked to their events.
+    from collections import defaultdict as _dd
+    GAP = _TIMELINE_GAP_PX
+    MIN_BAND = 36     # empty year still takes a visible slice of rail
+    MIN_GAP_BELOW_YEAR = 8  # tiny gap between a year label and the next card
+
+    right_lane_groups = _dd(list)
+    for e in right:
+        right_lane_groups[e.get("_lane", 0)].append(e)
+
+    columns = [(left, True)] + [(g, False) for g in right_lane_groups.values()]
+
+    # Step 1: required band height per year from point events.
+    # band[y] is the px height of the band representing year y (i.e. the
+    # vertical slab between the year (y+1) label at top and year y label
+    # at bottom). Point events with int(end) == y sit in this band.
+    band = {y: MIN_BAND for y in range(bot_year, top_year + 1)}
+    for col, slim in columns:
+        per_year_points = _dd(list)
+        for e in col:
+            is_range = e.get("end_date") and e["_end"] - e["_start"] > 0.05
+            if is_range:
+                continue
+            per_year_points[int(e["_end"])].append((e, slim))
+        for y, evs in per_year_points.items():
+            h = sum(_estimate_card_height(e, slim=s) for e, s in evs)
+            h += GAP * max(0, len(evs) - 1)
+            h += MIN_GAP_BELOW_YEAR
+            band[y] = max(band.get(y, MIN_BAND), h)
+
+    # Step 2: range events. Distribute any unmet content height evenly
+    # across the years they span so the range card fits inside its own
+    # date span without overflowing into a year band it doesn't touch.
+    range_events = [
+        e for e in events
+        if e.get("end_date") and e["_end"] - e["_start"] > 0.05
+    ]
+    for _ in range(8):  # converges fast; cap on iterations as a safety
+        changed = False
+        for e in range_events:
+            content_h = _estimate_card_height(e, slim=False)
+            s_year_i = int(e["_start"])
+            e_year_i = int(e["_end"])
+            spanned = list(range(s_year_i, e_year_i + 1))
+            total = sum(band.get(y, MIN_BAND) for y in spanned)
+            if total < content_h + MIN_GAP_BELOW_YEAR:
+                deficit = (content_h + MIN_GAP_BELOW_YEAR) - total
+                per_y = deficit / len(spanned)
+                for y in spanned:
+                    band[y] = band.get(y, MIN_BAND) + per_y
+                changed = True
+        if not changed:
+            break
+
+    # Step 3: year-label positions (cumulative bands from top).
+    year_label_y = {top_year: 0.0}
+    cum = 0.0
+    for y in range(top_year - 1, bot_year - 1, -1):
+        cum += band[y]
+        year_label_y[y] = cum
+    total_h = int(cum + 40)
+
+    def _y_at_date(d):
+        """Map a fractional date to its y-position on the shared axis."""
+        y_int = int(d)
+        frac = d - y_int            # 0 (Jan 1, y_int) .. 1 (Jan 1, y_int+1)
+        top_y = year_label_y.get(y_int + 1, 0.0)
+        bot_y = year_label_y.get(y_int, total_h)
+        return top_y + (1 - frac) * (bot_y - top_y)
+
+    # Step 4: place cards.
+    # Point cards: stack within their year band, newest first, starting
+    # just below the year (y+1) label.
+    # Range cards: top = y at end date, bottom = y at start date.
+    for col, slim in columns:
+        # Order by date desc so the newest card lands at the top of the band
+        col.sort(key=lambda e: e["_end"], reverse=True)
+        # Track per-year cursor within this column
+        col_cursor = {}
+        for e in col:
+            is_range = e.get("end_date") and e["_end"] - e["_start"] > 0.05
+            if is_range:
+                top_px = _y_at_date(e["_end"])
+                bot_px = _y_at_date(e["_start"])
+                e["_top_px"] = top_px
+                e["_est_h"] = max(bot_px - top_px, _estimate_card_height(e, slim=False))
+                continue
+            y = int(e["_end"])
+            band_top = year_label_y.get(y + 1, 0.0)
+            cursor = col_cursor.get(y, band_top + MIN_GAP_BELOW_YEAR)
+            h = _estimate_card_height(e, slim=slim)
+            e["_top_px"] = cursor
+            e["_est_h"] = h
+            col_cursor[y] = cursor + h + GAP
 
     # Render newest end first so DOM order matches visual stacking
     events.sort(key=lambda e: e["_end"] or 0, reverse=True)
 
-    parts = [f'<div class="timeline" style="height: {total_h}px;">']
-    for y in range(top_year, bot_year - 1, -1):
-        y_pos = (top_year - y) * _TIMELINE_YEAR_PX
+    parts = [f'<div class="timeline" style="height: {total_h:.0f}px;">']
+    # Month ticks on the rail (small dashes between consecutive year
+    # labels). The band per year is variable, so each tick is placed at
+    # the m/12 fraction of its year's band height.
+    for y in range(top_year - 1, bot_year - 1, -1):
+        band_top = year_label_y.get(y + 1, 0.0)
+        band_h = band.get(y, 0)
+        if band_h <= 0:
+            continue
+        for m in range(1, 12):
+            tick_y = band_top + (m / 12.0) * band_h
+            parts.append(
+                f'<div class="timeline-month-tick" style="top: {tick_y:.1f}px"></div>'
+            )
+    for y, y_pos in year_label_y.items():
         parts.append(
             f'<div class="timeline-year-label" style="top: {y_pos:.1f}px">{y}</div>'
         )
 
     for e in events:
         side, _ = _TIMELINE_TYPE_META.get(e["type"], ("right", ""))
+        top_px = e["_top_px"]
         if side == "left":
-            top_px = e["_top_px"]
-            height_px = None
             parts.append(_render_timeline_card(
-                e, top_px, height_px, lane=0, lanes=1, slim=True,
+                e, top_px, height_px=None, lane=0, lanes=1, slim=True,
             ))
         else:
-            end, start = e["_end"], e["_start"]
-            top_px = (top_year - end) * _TIMELINE_YEAR_PX
-            height_px = None
-            if e.get("end_date") and start is not None and end - start > 0.1:
-                height_px = (end - start) * _TIMELINE_YEAR_PX
+            # Use the packed height so range events keep visibly spanning
+            # their years; point events fall through to natural content.
+            est_h = e.get("_est_h", 0)
+            content_h = _estimate_card_height(e, slim=False)
+            height_px = est_h if est_h > content_h + 1 else None
             parts.append(_render_timeline_card(
                 e, top_px, height_px, lane=e.get("_lane", 0), lanes=n_right,
             ))
@@ -781,7 +1008,11 @@ def _repo_path(url):
 
 
 def render_works(works_data):
-    """Render open source projects as GitHub cards."""
+    """Render open source projects as cards. On About > Open Source:
+      - the title links to the GitHub repo,
+      - the rest of the card surface links to the project page.
+    The standalone GitHub tag-box is intentionally dropped here; it's
+    still rendered by build_projects on the project page itself."""
     works = (works_data or {}).get("works", [])
     if not works:
         return '<p style="color: var(--text-secondary);">No selected works yet.</p>'
@@ -794,15 +1025,23 @@ def render_works(works_data):
         tags = render_tags(work.get("tags"))
 
         slug = slugify(work["title"])
-        links = _render_pub_links([{"name": "GitHub", "url": work["url"]}]) if work.get("url") else ""
+        project_href = f"projects/{slug}/index.html"
+        github_url = work.get("url", "")
+
+        title_html = (
+            f'<a href="{esc(github_url)}" class="work-name" '
+            f'target="_blank" rel="noopener noreferrer">{esc(work["title"])}</a>'
+            if github_url else
+            f'<span class="work-name">{esc(work["title"])}</span>'
+        )
+
         parts.append(
-            f'<div class="work-item">'
+            f'<div class="work-item" data-href="{esc(project_href)}" '
+            f'role="link" tabindex="0">'
             f'<div class="work-head">'
             f'<i class="fab fa-github work-icon" aria-hidden="true"></i>'
-            f'<span class="work-titles">'
-            f'<a href="projects/{slug}/index.html" class="work-name">{esc(work["title"])}</a>'
-            f'{repo_html}</span></div>'
-            f'{desc}{tags}{links}</div>'
+            f'<span class="work-titles">{title_html}{repo_html}</span></div>'
+            f'{desc}{tags}</div>'
         )
     return "\n".join(parts)
 
