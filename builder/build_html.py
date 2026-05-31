@@ -380,12 +380,13 @@ def render_news(data):
             f'{esc(format_date(item["date"]))}</span> '
         )
 
-        content = f'<span class="news-content">{esc(item["content"])}</span>'
+        link_html = ""
         if item.get("link"):
-            content += (
+            link_html = (
                 f' <a href="{esc(item["link"])}" class="news-link" '
                 f'target="_blank" rel="noopener noreferrer">[link]</a>'
             )
+        content = f'<span class="news-content">{esc(item["content"])}{link_html}</span>'
 
         tag_html = ""
         tags = item.get("tags") or []
