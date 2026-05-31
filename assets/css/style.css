@@ -559,10 +559,10 @@ a:hover {
 }
 
 .news-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: 100px 1fr auto;
     align-items: baseline;
-    gap: 10px;
-    flex-wrap: wrap;
+    gap: 12px;
     color: inherit;
     text-decoration: none;
     padding: 4px 6px;
@@ -580,14 +580,11 @@ a.news-row:hover {
     font-size: 0.85em;
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
-    flex-shrink: 0;
-    min-width: 96px;
 }
 
 .news-content {
     color: var(--text-secondary);
-    flex: 1;
-    min-width: 220px;
+    min-width: 0;
 }
 
 .news-link {
@@ -605,8 +602,16 @@ a.news-row:hover {
 .news-tags {
     display: inline-flex;
     gap: 5px;
-    margin-left: auto;
-    flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+    .news-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+    .news-tags {
+        justify-self: start;
+    }
 }
 
 .news-tag {
