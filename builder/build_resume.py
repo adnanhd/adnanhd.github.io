@@ -238,11 +238,14 @@ def render_publications(data):
             ref += f" \\textcolor{{statusamber}}{{[{tex_escape(status)}]}}"
         for a in (paper.get("awards") or []):
             if a.get("name"):
-                ref += f" \\textcolor{{awardcolor}}{{[{tex_escape(a['name'])}]}}"
+                ref += f" \\textcolor{{awardcolor}}{{\\faAward\\ {tex_escape(a['name'])}}}"
         links = _ordered_links(paper.get("links", []))
         if links:
-            link_strs = [f"\\href{{{url}}}{{{tex_escape(label)}}}" for label, url in links]
-            ref += " \\textcolor{linkblue}{[" + " $|$ ".join(link_strs) + "]}"
+            link_strs = [
+                f"\\href{{{url}}}{{\\textcolor{{linkblue}}{{{tex_escape(label)}}}}}"
+                for label, url in links
+            ]
+            ref += "\\hspace{0.5em}" + "\\,\\textperiodcentered\\,".join(link_strs)
         parts.append(f"    \\resumeItem{{{ref}}}")
     return "\n".join(parts)
 
