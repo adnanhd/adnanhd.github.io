@@ -198,9 +198,11 @@ honors:
     timelined: true               # show as its own row on the Timeline
                                   # (set false if it should only appear
                                   # in the CV Honors aggregate)
-skills:
-  - "Python"
-  - "PyTorch"
+skills:                           # grouped: category -> items (the CV
+  Languages & Tools:              # renders one bold-labelled line each).
+    - "Python/PyTorch"            # a flat list also works (legacy form).
+  Research Areas:
+    - "Computer Vision"
 ```
 
 #### `data/news.yaml`
