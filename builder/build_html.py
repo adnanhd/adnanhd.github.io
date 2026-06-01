@@ -812,6 +812,8 @@ def render_timeline(data):
     parent_index = {e["id"]: e for e in events if e.get("id")}
 
     for paper in (data.get("publications") or {}).get("papers", []):
+        if paper.get("timelined") is False:  # explicitly hidden from the timeline
+            continue
         source = paper.get("source")
         if source:
             parent = parent_index.get(source)
