@@ -132,7 +132,12 @@ experience:
     commitment: "Full-time, 3 months"
     logo: "assets/img/logos/example.png"
     timelined: true
-    id: "lab-intern-2024"          # optional explicit id (see below)
+    id: "eth-siplab-cholz"         # optional explicit id. Convention:
+                                   # uni-lab-supervisor, e.g. eth-siplab-cholz
+                                   # or metu-imagelab-kalkan-akbas (multiple
+                                   # supervisors -> hyphenated surnames).
+                                   # Defaults to slugify(position) if omitted;
+                                   # set it so publications can nest via source.
     bullets:
       - "What you did, one line each."
     awards:
@@ -154,7 +159,7 @@ papers:
     image: "assets/img/publications/paper.png"
     selected: true                     # show on About > Selected Publications
     resume:   true                     # show on CV > Publications
-    source:   "lab-intern-2024"        # OPTIONAL: nest this paper inside its
+    source:   "eth-siplab-cholz"       # OPTIONAL: nest this paper inside its
                                        # parent timeline entry. Value is the
                                        # parent's id (or slugify(title) if no
                                        # explicit id). Validated at build
@@ -212,7 +217,7 @@ items:
   - date: "2025-03"
     content: "Something happened."
     link: "https://example.org"              # optional [link] anchor
-    timeline_ref: "research-intern"          # optional; clicking the row
+    timeline_ref: "eth-siplab-cholz"         # optional; clicking the row
                                              # jumps to that Timeline card
     tags: [publication]                      # publication | degree |
                                              # internship | award | life-event
