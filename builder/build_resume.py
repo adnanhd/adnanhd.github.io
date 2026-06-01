@@ -46,10 +46,13 @@ def _tex_with_links(text):
 # Items not listed (incl. research interests) render as plain text.
 _SKILL_ICONS = {
     "python/pytorch": "pytorch",
+    "c/c++": "cplusplus",
     "c++": "cplusplus",
     "ros2": "ros",
+    "ros": "ros",
     "rust": "rust",
     "github": "github",
+    "git": "github",
     "docker": "docker",
 }
 
