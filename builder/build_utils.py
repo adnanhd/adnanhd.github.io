@@ -72,12 +72,14 @@ SHORT_MONTH_NAMES = [
 ]
 
 
-def format_date(value, short=False):
+def format_date(value, short=False, day=True):
     """Render an ISO (full or partial) date as human-readable text.
 
     Defaults to long month names ('March 2025'); set short=True for
-    three-letter month abbreviations ('Mar 2025'). 'Present' is
-    normalized; unknown strings (e.g. 'Spring 2019') pass through.
+    three-letter month abbreviations ('Mar 2025'). Set day=False to drop
+    the day component from full dates ('Mar 12, 2025' -> 'Mar 2025').
+    'Present' is normalized; unknown strings (e.g. 'Spring 2019') pass
+    through.
     """
     if value is None:
         return ""
@@ -89,6 +91,8 @@ def format_date(value, short=False):
     names = SHORT_MONTH_NAMES if short else MONTH_NAMES
     m = re.match(r"^(\d{4})-(\d{2})-(\d{2})$", s)
     if m and 1 <= int(m.group(2)) <= 12:
+        if not day:
+            return f"{names[int(m.group(2))]} {m.group(1)}"
         return f"{names[int(m.group(2))]} {int(m.group(3))}, {m.group(1)}"
     m = re.match(r"^(\d{4})-(\d{2})$", s)
     if m and 1 <= int(m.group(2)) <= 12:

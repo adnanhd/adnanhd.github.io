@@ -53,6 +53,18 @@ def render_sidebar(bio):
     parts.append(f'<p class="sidebar-title">{esc(bio.get("title", ""))}</p>')
     parts.append(f'<p class="sidebar-affiliation">{esc(bio.get("affiliation", ""))}</p>')
 
+    office = bio.get("office") or {}
+    if office.get("location") or office.get("phone"):
+        loc = esc(office.get("location", ""))
+        if loc and office.get("location_map"):
+            loc = (f'<a href="{esc(office["location_map"])}" target="_blank" '
+                   f'rel="noopener noreferrer">{loc}</a>')
+        office_text = f"Office: {loc}" if loc else ""
+        if office.get("phone"):
+            ext = f'ext. {esc(office["phone"])}'
+            office_text = f"{office_text} ({ext})" if office_text else ext
+        parts.append(f'<p class="sidebar-office">{office_text}</p>')
+
     if bio.get("short_bio"):
         parts.append(f'<p class="bio-short">{esc(bio["short_bio"])}</p>')
 
@@ -182,6 +194,22 @@ def _render_awards(awards):
     return f'<div class="entry-awards">{"".join(rows)}</div>'
 
 
+_STATUS_LABELS = {
+    "under-review": "Under Review",
+    "in-progress": "In Progress",
+}
+
+
+def _status_badge(paper):
+    """Render an in-progress / under-review badge, or '' when the paper
+    has no status set."""
+    status = paper.get("status")
+    if not status:
+        return ""
+    text = _STATUS_LABELS.get(str(status).strip().lower(), str(status).strip())
+    return f'<span class="pub-status">{esc(text)}</span>'
+
+
 def render_publication_card(paper):
     """Render a fancy publication card (About page - selected works)."""
     parts = ['<div class="publication-item">']
@@ -212,7 +240,8 @@ def render_publication_card(paper):
     slug = slugify(paper["title"])
     parts.append(
         f'<div class="publication-title">'
-        f'<a href="projects/{slug}/index.html" class="project-link">{esc(paper["title"])}</a></div>'
+        f'<a href="projects/{slug}/index.html" class="project-link">{esc(paper["title"])}</a>'
+        f'{_status_badge(paper)}</div>'
     )
     parts.append(f'<div class="publication-authors">{highlight_author_span(esc(paper.get("authors", "")))}</div>')
 
@@ -235,7 +264,11 @@ def render_compact_publication(paper):
     if paper.get("date"):
         citation += f" ({esc(format_date(paper['date']))})."
     citation += f" {esc(paper['title'])}."
-    if paper.get("venue_link") and paper.get("venue_short"):
+    # Under-review work keeps its venue in the data but doesn't show it
+    # yet -- only the status badge.
+    if paper.get("status"):
+        pass
+    elif paper.get("venue_link") and paper.get("venue_short"):
         citation += (
             f' <em><a href="{esc(paper["venue_link"])}" target="_blank" rel="noopener noreferrer" '
             f'style="color: var(--accent-color); text-decoration: none;">'
@@ -249,7 +282,10 @@ def render_compact_publication(paper):
     parts.append(_render_awards(paper.get("awards")))
     parts.append('</div>')
 
-    if paper.get("links"):
+    # Right column: a status badge (under-review work) or the link pills.
+    if paper.get("status"):
+        parts.append(_status_badge(paper))
+    elif paper.get("links"):
         parts.append('<div class="publication-links">')
         for link in paper["links"]:
             parts.append(
@@ -266,9 +302,28 @@ def render_compact_publication(paper):
 # Resume sections (Education, Experience, Research, Teaching, Honors)
 # ---------------------------------------------------------------------------
 
+_MD_LINK = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+
+
+def _md_to_html(text):
+    """Convert inline markdown links [phrase](url) to anchors; escape
+    everything else."""
+    out, last = [], 0
+    for m in _MD_LINK.finditer(text):
+        out.append(esc(text[last:m.start()]))
+        out.append(
+            f'<a href="{esc(m.group(2))}" target="_blank" rel="noopener noreferrer">'
+            f'{esc(m.group(1))}</a>'
+        )
+        last = m.end()
+    out.append(esc(text[last:]))
+    return "".join(out)
+
+
 def _render_resume_item(title, subtitle, date, description="", logo=None,
                         links=None, logo_link=None, commitment=None,
-                        advisor=None, bullets=None, awards=None):
+                        advisor=None, bullets=None, awards=None, thesis=None,
+                        advisor_label="Advisor"):
     """Render a single resume entry with logo, header, bullets, and links."""
     parts = ['<div class="resume-item">']
 
@@ -285,13 +340,20 @@ def _render_resume_item(title, subtitle, date, description="", logo=None,
     parts.append(f'<div class="resume-header"><strong>{esc(title)}</strong>'
                  f'<span class="date">{esc(date)}</span></div>')
 
-    parts.append(f'<div class="resume-subheader"><span>{esc(subtitle)}</span>')
+    parts.append(f'<div class="resume-subheader"><span>{_md_to_html(subtitle)}</span>')
     if commitment and str(commitment).strip():
         parts.append(f'<span class="resume-commitment">{esc(commitment)}</span>')
     parts.append("</div>")
 
+    if thesis and thesis.get("title"):
+        t = esc(thesis["title"])
+        if thesis.get("link"):
+            t = (f'<a href="{esc(thesis["link"])}" target="_blank" '
+                 f'rel="noopener noreferrer">{t}</a>')
+        parts.append(f'<div class="resume-thesis"><strong>Thesis:</strong> {t}</div>')
+
     if advisor and str(advisor).strip():
-        parts.append(f'<div class="resume-advisor"><strong>Advisor:</strong> {esc(advisor)}</div>')
+        parts.append(f'<div class="resume-advisor"><strong>{esc(advisor_label)}:</strong> {_md_to_html(advisor)}</div>')
 
     if description:
         parts.append(f"<p>{esc(description)}</p>")
@@ -310,7 +372,7 @@ def _render_resume_item(title, subtitle, date, description="", logo=None,
                     f'{esc(code)}</a> - {esc(name)}</li>'
                 )
             else:
-                parts.append(f"<li>{esc(bullet)}</li>")
+                parts.append(f"<li>{_md_to_html(bullet)}</li>")
         parts.append("</ul>")
 
     parts.append(_render_awards(awards))
@@ -319,7 +381,7 @@ def _render_resume_item(title, subtitle, date, description="", logo=None,
     return "\n".join(parts)
 
 
-def _render_section(items, title_key, subtitle_key, date_fn):
+def _render_section(items, title_key, subtitle_key, date_fn, advisor_label="Advisor"):
     """Render a list of resume items."""
     return "\n".join(
         _render_resume_item(
@@ -334,6 +396,8 @@ def _render_section(items, title_key, subtitle_key, date_fn):
             advisor=item.get("advisor"),
             bullets=item.get("bullets"),
             awards=item.get("awards"),
+            thesis=item.get("thesis"),
+            advisor_label=advisor_label,
         )
         for item in items
     )
@@ -354,12 +418,12 @@ def render_education(data):
 
 def render_experience(data):
     items = (data.get("experience") or {}).get("experience", [])
-    return _render_section(items, "position", "company", _date_range)
+    return _render_section(items, "position", "company", _date_range, advisor_label="Supervisor")
 
 
 def render_research(data):
     items = (data.get("research") or {}).get("research", [])
-    return _render_section(items, "position", "company", _date_range)
+    return _render_section(items, "position", "company", _date_range, advisor_label="Supervisor")
 
 
 def render_teaching(data):
@@ -373,8 +437,10 @@ def render_honors(data):
     extracurricular.yaml (scholarships, fellowships with no single
     parent). Sorted newest first."""
     items = list((data.get("extracurricular") or {}).get("honors", []))
+    # Publication awards render as inline badges on the paper itself
+    # (_render_awards), so they are intentionally excluded from the
+    # aggregated Honors list to avoid duplication.
     sources = [
-        ("publications", "papers", "title", "venue_short", "date"),
         ("education",    "education", "degree", "institution", "start_date"),
         ("experience",   "experience", "position", "company", "start_date"),
         ("research",     "research", "position", "company", "start_date"),
@@ -506,7 +572,9 @@ def _timeline_exp_event(item, ev_type):
         "subtitle": item.get("institution") or item.get("company", ""),
         "logo": item.get("logo"),
         "link": item.get("link"),
-        "awards": item.get("awards"),
+        # Awards opt out of the timeline with `timelined: false`.
+        "awards": [a for a in (item.get("awards") or [])
+                   if a.get("timelined") is not False],
     }
 
 

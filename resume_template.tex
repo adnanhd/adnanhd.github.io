@@ -10,6 +10,12 @@
 \usepackage[empty]{fullpage}
 \usepackage{titlesec}
 \usepackage[usenames,dvipsnames]{color}
+\usepackage{fontawesome5}
+\usepackage{academicons}
+\usepackage{simpleicons}
+\definecolor{linkblue}{rgb}{0.08,0.35,0.67}
+\definecolor{awardcolor}{rgb}{0.45,0.13,0.53}
+\definecolor{statusamber}{rgb}{0.72,0.40,0.0}
 \usepackage{enumitem}
 \usepackage[hidelinks]{hyperref}
 \usepackage{fancyhdr}
@@ -56,9 +62,9 @@
   \vspace{-2pt}\item
     \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
       \ifx&#5&
-        \textbf{#1} & #2 \\
+        \textbf{#1} & \textit{#2} \\
       \else
-        \raisebox{-3pt}{\includegraphics[height=12pt,keepaspectratio]{#5}}\hspace{3pt}\textbf{#1} & #2 \\
+        \raisebox{-3pt}{\includegraphics[height=12pt,keepaspectratio]{#5}}\hspace{3pt}\textbf{#1} & \textit{#2} \\
       \fi
       \textit{\small#3} & \textit{\small #4} \\
     \end{tabular*}\vspace{-7pt}
@@ -74,7 +80,7 @@
 \newcommand{\resumeProjectHeading}[2]{
     \item
     \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
-      \small#1 & #2 \\
+      \small#1 & \textit{#2} \\
     \end{tabular*}\vspace{-7pt}
 }
 
@@ -84,7 +90,7 @@
 
 \newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
 \newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
-\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}[parsep=0pt, itemsep=2pt]}
 \newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
 
 %-------------------------------------------
@@ -95,11 +101,12 @@
 %----------HEADING----------
 \begin{center}
     \textbf{\Huge \scshape {{NAME}}} \\ \vspace{1pt}
-    \small {{PHONE}} $|$
-    \href{mailto:{{EMAIL}}}{\underline{ {{EMAIL}}}} $|$
-    \href{https://linkedin.com/in/{{LINKEDIN}}}{\underline{LinkedIn}} $|$
-    \href{https://github.com/{{GITHUB}}}{\underline{GitHub}} $|$
-    \href{https://scholar.google.com/citations?user={{SCHOLAR}}}{\underline{Google Scholar}}
+    \small
+    \href{mailto:{{EMAIL}}}{\faEnvelope\ \underline{ {{EMAIL}}}} $|$
+    \href{{{WEBSITE}}}{\faGlobe\ \underline{Website}} $|$
+    \href{https://linkedin.com/in/{{LINKEDIN}}}{\faLinkedin\ \underline{LinkedIn}} $|$
+    \href{https://github.com/{{GITHUB}}}{\faGithub\ \underline{GitHub}} $|$
+    \href{https://scholar.google.com/citations?user={{SCHOLAR}}}{\aiGoogleScholar\ \underline{Google Scholar}}
 \end{center}
 
 %-----------EDUCATION-----------
@@ -121,13 +128,13 @@
   \end{itemize}
 
 %-----------HONORS-----------
-\section{Honors \& Awards}
+\section{Scores, Honors, \& Awards}
   \resumeSubHeadingListStart
 {{HONORS}}
   \resumeSubHeadingListEnd
 
 %-----------SKILLS-----------
-\section{Technical Skills}
+\section{Technical Skills \& Research Interests}
  \begin{itemize}[leftmargin=0.15in, label={}]
     \small{\item{
      {{SKILLS}}

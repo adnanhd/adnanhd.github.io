@@ -154,8 +154,24 @@ a:hover {
 .sidebar-affiliation {
     font-size: 0.9em;
     color: var(--text-tertiary);
+    margin-bottom: 6px;
+    text-align: center;
+}
+
+.sidebar-office {
+    font-size: 0.82em;
+    color: var(--text-tertiary);
     margin-bottom: 15px;
     text-align: center;
+}
+
+.sidebar-office a {
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+.sidebar-office a:hover {
+    text-decoration: underline;
 }
 
 .bio-short {
@@ -519,6 +535,21 @@ a:hover {
     color: var(--text-secondary);
     font-size: 0.85em;
     margin-bottom: 2px;
+}
+
+.resume-thesis {
+    color: var(--text-secondary);
+    font-size: 0.85em;
+    margin-bottom: 2px;
+}
+
+.resume-thesis a {
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+.resume-thesis a:hover {
+    text-decoration: underline;
 }
 
 .resume-commitment {
@@ -1244,6 +1275,24 @@ a:hover {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* In-progress / under-review status badge on a publication */
+.pub-status {
+    display: inline-block;
+    flex-shrink: 0;
+    white-space: nowrap;
+    align-self: flex-start;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 0.7em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    vertical-align: middle;
+    color: #b45309;
+    background-color: rgba(217, 119, 6, 0.12);
+    border: 1px solid rgba(217, 119, 6, 0.35);
+}
+
 /* Blog and Work Items */
 .blog-list,
 .repos-list {
@@ -1941,14 +1990,15 @@ footer {
         gap: 0 !important;
     }
 
-    /* Compact APA citations on CV (most common case for printed CV) */
+    /* Compact APA citations on CV (most common case for printed CV).
+       Keep the flex row so the link pills / status badge stay on the
+       right instead of dropping to a new line. */
     .publication-item-compact {
-        display: block;
+        display: flex;
         margin-bottom: 4pt;
         font-size: 9.5pt;
         break-inside: avoid;
     }
-    .pub-compact-body { display: block; }
     .pub-compact-reference {
         padding-left: 18pt;
         text-indent: -18pt;
