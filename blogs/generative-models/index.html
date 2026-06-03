@@ -291,8 +291,8 @@ data-cites="zhuang_vargpt_2025">(Zhuang et al. 2025)</span></td>
 <p>(*) VQ-VAE-2's 13B figure aggregates the top-prior 48-layer
 Transformer (~12B) with the bottom-prior 20-layer PixelCNN (~1B);
 per-paper accounting practice varies. "GE" denotes GenEval composite
-score (text-to-image alignment, higher is better, 0–1) and "VB" denotes
-VBench composite (text-to-video, higher is better, 0–100); these
+score (text-to-image alignment, higher is better, 0-1) and "VB" denotes
+VBench composite (text-to-video, higher is better, 0-100); these
 benchmarks are not directly comparable to FID. Pixel-level rows report
 bits-per-dimension instead of FID because Inception-v3 features are
 uninformative at
@@ -760,7 +760,7 @@ is the target velocity for the conditional path
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>t</mi></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>x</mi><mn>0</mn></msub><mo>+</mo><mi>t</mi><msub><mi>x</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">x_t = (1-t)x_0 + t x_1</annotation></semantics></math>
 (linear interpolation with OT paths). Compared to score matching, CFM
 yields straighter trajectories that require fewer integration steps at
-inference (typically 20–50 NFEs vs. 100–1000 for standard diffusion).
+inference (typically 20-50 NFEs vs. 100-1000 for standard diffusion).
 The OT variant uses
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>t</mi></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>σ</mi><mo>min</mo></msub><mo stretchy="true" form="postfix">)</mo></mrow><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>x</mi><mn>0</mn></msub><mo>+</mo><mi>t</mi><msub><mi>x</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">x_t = (1-(1-\sigma_{\min})t)x_0 + tx_1</annotation></semantics></math>,
 producing nearly straight paths that can be sampled with Euler
@@ -788,8 +788,8 @@ that manipulating cross-attention maps enables localized editing without
 retraining.</p>
 <p>The field continues advancing rapidly, with Sora <span
 class="citation"
-data-cites="noauthor_sora_2024">(<span>“<span>SORA</span>:
-<span>Video</span> Generation Models as World Simulators”</span>
+data-cites="noauthor_sora_2024">(<span>"<span>SORA</span>:
+<span>Video</span> Generation Models as World Simulators"</span>
 2024)</span> demonstrating minute-long coherent video generation,
 <u>suggesting diffusion transformers can serve as world simulators
 understanding physical dynamics and 3D consistency</u>.</p>
@@ -907,9 +907,9 @@ follow the standard B/L/H/g/G/E convention; "/14" = patch 14). LLM
 column gives the language tower for VLMs that wire one in (contrastive
 models leave it blank). "Train data" reports the headline pre-training
 pair count. "IN 0-shot" is ImageNet-1k zero-shot top-1 (where
-applicable; instruction VLMs are not designed for this task and read –).
+applicable; instruction VLMs are not designed for this task and read - ).
 "COCO R@1" is image-to-text retrieval on MS-COCO 5K (zero-shot for
-contrastive models; – where the model targets generation only). "VQAv2"
+contrastive models; - where the model targets generation only). "VQAv2"
 is test-dev accuracy (zero-shot reported where the paper exposed it;
 otherwise fine-tuned). "GQA" is the test-dev split. Citations point to
 the canonical paper for each model. Numbers reflect the largest
@@ -935,10 +935,10 @@ data-cites="radford_learning_2021">(Radford et al. 2021)</span></td>
 <td>2021</td>
 <td>C</td>
 <td>ViT-L/14</td>
-<td>–</td>
+<td> - </td>
 <td>WIT 400M</td>
 <td>76.2</td>
-<td>–</td>
+<td> - </td>
 <td>58.4</td>
 </tr>
 <tr>
@@ -950,7 +950,7 @@ al. 2021)</span></td>
 <td>BERT-Large</td>
 <td>ALIGN 1.8B</td>
 <td>76.4</td>
-<td>–</td>
+<td> - </td>
 <td>58.6</td>
 </tr>
 <tr>
@@ -959,10 +959,10 @@ data-cites="radford_learning_2021">(Radford et al. 2021)</span></td>
 <td>2023</td>
 <td>C</td>
 <td>ViT-L/14</td>
-<td>–</td>
+<td> - </td>
 <td>LAION-400M</td>
 <td>74.6</td>
-<td>–</td>
+<td> - </td>
 <td>54.8</td>
 </tr>
 <tr>
@@ -971,10 +971,10 @@ data-cites="radford_learning_2021">(Radford et al. 2021)</span></td>
 <td>2022</td>
 <td>C</td>
 <td>ViT-G/14</td>
-<td>–</td>
+<td> - </td>
 <td>LAION-2B</td>
 <td>80.1</td>
-<td>–</td>
+<td> - </td>
 <td>67.3</td>
 </tr>
 <tr>
@@ -983,10 +983,10 @@ data-cites="radford_learning_2021">(Radford et al. 2021)</span></td>
 <td>2023</td>
 <td>C</td>
 <td>ViT-E/14</td>
-<td>–</td>
+<td> - </td>
 <td>LAION-2B+</td>
 <td>82.0</td>
-<td>–</td>
+<td> - </td>
 <td>71.1</td>
 </tr>
 <tr>
@@ -995,10 +995,10 @@ data-cites="zhai_sigmoid_2023">(Zhai et al. 2023)</span></td>
 <td>2023</td>
 <td>C</td>
 <td>SoViT-400m/14</td>
-<td>–</td>
+<td> - </td>
 <td>WebLI 10B</td>
 <td>83.0</td>
-<td>–</td>
+<td> - </td>
 <td>70.6</td>
 </tr>
 <tr>
@@ -1009,9 +1009,9 @@ data-cites="yang_chinese_2023">(Yang et al. 2023)</span></td>
 <td>ViT-H/14</td>
 <td>RoBERTa-wwm</td>
 <td>LAION+Wukong</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
 </tr>
 <tr>
 <td>BLIP ViT-L <span class="citation" data-cites="li_blip_2022">(J. Li
@@ -1021,7 +1021,7 @@ et al. 2022)</span></td>
 <td>ViT-L/16</td>
 <td>BERT-Large</td>
 <td>129M</td>
-<td>–</td>
+<td> - </td>
 <td>78.2</td>
 <td>65.1</td>
 </tr>
@@ -1045,9 +1045,9 @@ data-cites="li_blip-2_2023">(J. Li et al. 2023)</span></td>
 <td>EVA-ViT-g</td>
 <td>FlanT5-XXL 11B</td>
 <td>129M</td>
-<td>–</td>
+<td> - </td>
 <td>65.0</td>
-<td>–</td>
+<td> - </td>
 </tr>
 <tr>
 <td>BEiT-3 <span class="citation"
@@ -1057,7 +1057,7 @@ data-cites="radford_learning_2021">(Radford et al. 2021)</span></td>
 <td>ViT-g (BEiT-3)</td>
 <td>BEiT-3 dec.</td>
 <td>35M</td>
-<td>–</td>
+<td> - </td>
 <td>84.0</td>
 <td>76.0</td>
 </tr>
@@ -1069,9 +1069,9 @@ data-cites="alayrac_flamingo_2022">(Alayrac et al. 2022)</span></td>
 <td>NFNet-F6</td>
 <td>Chinchilla 70B</td>
 <td>M3W 43M+</td>
-<td>–</td>
+<td> - </td>
 <td>82.0</td>
-<td>–</td>
+<td> - </td>
 </tr>
 <tr>
 <td>IDEFICS-80B <span class="citation"
@@ -1081,9 +1081,9 @@ data-cites="alayrac_flamingo_2022">(Alayrac et al. 2022)</span></td>
 <td>OpenCLIP H/14</td>
 <td>LLaMA-65B</td>
 <td>OBELICS 141M</td>
-<td>–</td>
+<td> - </td>
 <td>60.0</td>
-<td>–</td>
+<td> - </td>
 </tr>
 <tr>
 <td>Florence-2-Large <span class="citation"
@@ -1093,9 +1093,9 @@ data-cites="radford_learning_2021">(Radford et al. 2021)</span></td>
 <td>DaViT-Large</td>
 <td>BART-base dec.</td>
 <td>FLD-5B</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
 </tr>
 <tr>
 <td>MiniGPT-4 <span class="citation" data-cites="liu_visual_2023">(H.
@@ -1105,9 +1105,9 @@ Liu et al. 2023)</span></td>
 <td>EVA-ViT-g</td>
 <td>Vicuna-13B</td>
 <td>LAION+CC+SBU</td>
-<td>–</td>
+<td> - </td>
 <td>48.5</td>
-<td>–</td>
+<td> - </td>
 </tr>
 <tr>
 <td>LLaVA-1.5-13B <span class="citation"
@@ -1117,9 +1117,9 @@ data-cites="liu_improved_2024">(H. Liu et al. 2024)</span></td>
 <td>CLIP ViT-L-336</td>
 <td>Vicuna-13B</td>
 <td>1.2M</td>
-<td>–</td>
+<td> - </td>
 <td>80.0</td>
-<td>–</td>
+<td> - </td>
 </tr>
 <tr>
 <td>InstructBLIP-13B <span class="citation"
@@ -1129,9 +1129,9 @@ data-cites="dai_instructblip_2023">(Dai et al. 2023)</span></td>
 <td>EVA-ViT-g</td>
 <td>Vicuna-13B</td>
 <td>26 datasets</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
 </tr>
 <tr>
 <td>Qwen-VL-Chat <span class="citation"
@@ -1141,9 +1141,9 @@ data-cites="bai_qwen-vl_2023">(Bai et al. 2023)</span></td>
 <td>ViT-bigG</td>
 <td>Qwen-7B</td>
 <td>1.4B+7M+350K</td>
-<td>–</td>
+<td> - </td>
 <td>78.2</td>
-<td>–</td>
+<td> - </td>
 </tr>
 <tr>
 <td>CogVLM-17B <span class="citation"
@@ -1153,9 +1153,9 @@ data-cites="wang_cogvlm_2024">(Weihan Wang et al. 2024)</span></td>
 <td>EVA2-CLIP-E</td>
 <td>Vicuna-7B</td>
 <td>1.5B</td>
-<td>–</td>
+<td> - </td>
 <td>82.3</td>
-<td>–</td>
+<td> - </td>
 </tr>
 <tr>
 <td>LLaVA-NeXT-34B <span class="citation"
@@ -1165,9 +1165,9 @@ data-cites="lee_llava-next_2024">(Y. J. Lee et al. 2024)</span></td>
 <td>CLIP ViT-L-336</td>
 <td>Nous-Hermes-Yi-34B</td>
 <td>1.3M</td>
-<td>–</td>
+<td> - </td>
 <td>83.7</td>
-<td>–</td>
+<td> - </td>
 </tr>
 <tr>
 <td>GPT-4V <span class="citation"
@@ -1177,9 +1177,9 @@ data-cites="noauthor_gpt-4vision_2023">(OpenAI 2023)</span></td>
 <td>undisclosed</td>
 <td>GPT-4</td>
 <td>undisclosed</td>
-<td>–</td>
+<td> - </td>
 <td>77.2</td>
-<td>–</td>
+<td> - </td>
 </tr>
 <tr>
 <td>Gemini-1.5 Pro <span class="citation"
@@ -1189,22 +1189,22 @@ data-cites="team_gemini_2024">(Team et al. 2024)</span></td>
 <td>undisclosed</td>
 <td>Gemini Pro</td>
 <td>undisclosed</td>
-<td>–</td>
+<td> - </td>
 <td>73.2</td>
-<td>–</td>
+<td> - </td>
 </tr>
 </tbody>
 </table></div>
 <p>GQA was dropped to keep the table within 14 cm; instruction-tuned VLM
 GQA scores cluster between 49 and 67 (InstructBLIP-13B 49.5,
 Qwen-VL-Chat 57.5, LLaVA-1.5-13B 63.3, CogVLM 65.2, LLaVA-NeXT-34B 67.1)
-and are visited per-model in the chapter sections below. The "–" entries
+and are visited per-model in the chapter sections below. The " - " entries
 are not failures: contrastive dual-encoders cannot answer free-form VQA
 questions without a generative head; instruction VLMs are not optimized
 for ImageNet zero-shot prompting; closed frontier systems (GPT-4V,
 Gemini) do not publish architectural
 details.[fn:s3-problem-vlm-comparability]</p>
-<p>The contrastive era (rows 1–7) opens with CLIP, whose ViT-L/14-336
+<p>The contrastive era (rows 1-7) opens with CLIP, whose ViT-L/14-336
 set the 76.2% ImageNet zero-shot bar that anchored the field for two
 years. ALIGN matched it the same year using 1.8B noisy web pairs,
 validating that curation could be replaced by scale. FLIP introduced
@@ -1218,7 +1218,7 @@ recipe has since become the default vision tower for downstream VLMs
 (PaliGemma, LLaVA-NeXT-Sigmoid). Chinese-CLIP (row 7) extended the
 pattern to non-English, with bilingual retrieval scores no
 English-trained CLIP can match.</p>
-<p>The generative and bootstrapping era (rows 8–14) introduced unified
+<p>The generative and bootstrapping era (rows 8-14) introduced unified
 objectives for retrieval, captioning, and VQA simultaneously. BLIP's
 CapFilt cleaned web captions and reached 78.2 VQAv2 with only 129M
 training pairs. CoCa fused contrastive and captioning losses in one
@@ -1233,7 +1233,7 @@ Flamingo and its open clone IDEFICS-80B introduced gated cross-attention
 and Perceiver resamplers to enable few-shot multimodal in-context
 learning, while Florence-2 went the opposite direction (dense prediction
 unification with DaViT and a BART-style decoder).</p>
-<p>The instruction era (rows 15–22) replaced fine-tuning with visual
+<p>The instruction era (rows 15-22) replaced fine-tuning with visual
 instruction tuning. MiniGPT-4 showed the basic recipe, LLaVA-1.5 cleaned
 it up with a 2-layer MLP projector and 336px CLIP, reaching 80.0 VQAv2
 on a 1.2M-sample budget. InstructBLIP turned 26 datasets into
@@ -1253,15 +1253,15 @@ extractive benchmarks while remaining wide on holistic ones.</p>
 data-entry-spacing="0" role="list">
 <div id="ref-alayrac_flamingo_2022" class="csl-entry" role="listitem">
 Alayrac, Jean-Baptiste, Jeff Donahue, Pauline Luc, Antoine Miech, Iain
-Barr, Yana Hasson, Karel Lenc, et al. 2022. <span>“Flamingo: A
+Barr, Yana Hasson, Karel Lenc, et al. 2022. <span>"Flamingo: A
 <span>Visual</span> <span>Language</span> <span>Model</span> for
-<span>Few</span>-<span>Shot</span> <span>Learning</span>.”</span> arXiv.
+<span>Few</span>-<span>Shot</span> <span>Learning</span>."</span> arXiv.
 <a
 href="https://doi.org/10.48550/arXiv.2204.14198">https://doi.org/10.48550/arXiv.2204.14198</a>.
 </div>
 <div id="ref-bahdanau_neural_2015" class="csl-entry" role="listitem">
-Bahdanau, Dzmitry, Kyunghyun Cho, and Yoshua Bengio. 2015. <span>“Neural
-Machine Translation by Jointly Learning to Align and Translate.”</span>
+Bahdanau, Dzmitry, Kyunghyun Cho, and Yoshua Bengio. 2015. <span>"Neural
+Machine Translation by Jointly Learning to Align and Translate."</span>
 In <em>International Conference on Learning Representations (ICLR)</em>.
 <a
 href="https://arxiv.org/abs/1409.0473">https://arxiv.org/abs/1409.0473</a>.
@@ -1269,168 +1269,168 @@ href="https://arxiv.org/abs/1409.0473">https://arxiv.org/abs/1409.0473</a>.
 <div id="ref-bai_qwen-vl_2023" class="csl-entry" role="listitem">
 Bai, Jinze, Shuai Bai, Shusheng Yang, Shijie Wang, Sinan Tan, Peng Wang,
 Junyang Lin, Chang Zhou, and Jingren Zhou. 2023.
-<span>“Qwen-<span>VL</span>: <span>A</span> <span>Versatile</span>
+<span>"Qwen-<span>VL</span>: <span>A</span> <span>Versatile</span>
 <span>Vision</span>-<span>Language</span> <span>Model</span> for
 <span>Understanding</span>, <span>Localization</span>, <span>Text</span>
-<span>Reading</span>, and <span>Beyond</span>.”</span> arXiv. <a
+<span>Reading</span>, and <span>Beyond</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2308.12966">https://doi.org/10.48550/arXiv.2308.12966</a>.
 </div>
 <div id="ref-balaji_ediff-i_2023" class="csl-entry" role="listitem">
 Balaji, Yogesh, Seungjun Nah, Xun Huang, Arash Vahdat, Jiaming Song,
-Qinsheng Zhang, Karsten Kreis, et al. 2023. <span>“<span
+Qinsheng Zhang, Karsten Kreis, et al. 2023. <span>"<span
 class="nocase">eDiff</span>-<span>I</span>:
 <span>Text</span>-to-<span>Image</span> <span>Diffusion</span>
 <span>Models</span> with an <span>Ensemble</span> of <span>Expert</span>
-<span>Denoisers</span>.”</span> arXiv. <a
+<span>Denoisers</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2211.01324">https://doi.org/10.48550/arXiv.2211.01324</a>.
 </div>
 <div id="ref-bao_all_2023" class="csl-entry" role="listitem">
 Bao, Fan, Shen Nie, Kaiwen Xue, Yue Cao, Chongxuan Li, Hang Su, and Jun
-Zhu. 2023. <span>“All Are <span>Worth</span> <span>Words</span>:
+Zhu. 2023. <span>"All Are <span>Worth</span> <span>Words</span>:
 <span>A</span> <span>ViT</span> <span>Backbone</span> for
-<span>Diffusion</span> <span>Models</span>.”</span> arXiv. <a
+<span>Diffusion</span> <span>Models</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2209.12152">https://doi.org/10.48550/arXiv.2209.12152</a>.
 </div>
 <div id="ref-betker_improving_2023" class="csl-entry" role="listitem">
 Betker, James, Gabriel Goh, Li Jing, Tim Brooks, Jianfeng Wang, Linjie
-Li, Long Ouyang, et al. 2023. <span>“Improving <span>Image</span>
+Li, Long Ouyang, et al. 2023. <span>"Improving <span>Image</span>
 <span>Generation</span> with <span>Better</span>
-<span>Captions</span>.”</span>
+<span>Captions</span>."</span>
 </div>
 <div id="ref-blattmann_stable_2023" class="csl-entry" role="listitem">
 Blattmann, Andreas, Tim Dockhorn, Sumith Kulal, Daniel Mendelevitch,
-Maciej Kilian, Dominik Lorenz, Yam Levi, et al. 2023. <span>“Stable
+Maciej Kilian, Dominik Lorenz, Yam Levi, et al. 2023. <span>"Stable
 <span>Video</span> <span>Diffusion</span>: <span>Scaling</span>
 <span>Latent</span> <span>Video</span> <span>Diffusion</span>
-<span>Models</span> to <span>Large</span> <span>Datasets</span>.”</span>
+<span>Models</span> to <span>Large</span> <span>Datasets</span>."</span>
 arXiv. <a
 href="https://doi.org/10.48550/arXiv.2311.15127">https://doi.org/10.48550/arXiv.2311.15127</a>.
 </div>
 <div id="ref-blattmann_align_2023" class="csl-entry" role="listitem">
 Blattmann, Andreas, Robin Rombach, Huan Ling, Tim Dockhorn, Seung Wook
-Kim, Sanja Fidler, and Karsten Kreis. 2023. <span>“Align Your
+Kim, Sanja Fidler, and Karsten Kreis. 2023. <span>"Align Your
 <span>Latents</span>: <span>High</span>-<span>Resolution</span>
 <span>Video</span> <span>Synthesis</span> with <span>Latent</span>
-<span>Diffusion</span> <span>Models</span>.”</span> arXiv. <a
+<span>Diffusion</span> <span>Models</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2304.08818">https://doi.org/10.48550/arXiv.2304.08818</a>.
 </div>
 <div id="ref-brooks_instructpix2pix_2023" class="csl-entry"
 role="listitem">
 Brooks, Tim, Aleksander Holynski, and Alexei A. Efros. 2023.
-<span>“<span>InstructPix2Pix</span>: <span>Learning</span> to
+<span>"<span>InstructPix2Pix</span>: <span>Learning</span> to
 <span>Follow</span> <span>Image</span> <span>Editing</span>
-<span>Instructions</span>.”</span> arXiv. <a
+<span>Instructions</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2211.09800">https://doi.org/10.48550/arXiv.2211.09800</a>.
 </div>
 <div id="ref-burda_importance_2016" class="csl-entry" role="listitem">
 Burda, Yuri, Roger Grosse, and Ruslan Salakhutdinov. 2016.
-<span>“Importance <span>Weighted</span>
-<span>Autoencoders</span>.”</span> In <em>International Conference on
+<span>"Importance <span>Weighted</span>
+<span>Autoencoders</span>."</span> In <em>International Conference on
 Learning Representations</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1509.00519">https://doi.org/10.48550/arXiv.1509.00519</a>.
 </div>
 <div id="ref-chang_muse_2023" class="csl-entry" role="listitem">
 Chang, Huiwen, Han Zhang, Jarred Barber, A. J. Maschinot, Jose Lezama,
-Lu Jiang, Ming-Hsuan Yang, et al. 2023. <span>“Muse:
+Lu Jiang, Ming-Hsuan Yang, et al. 2023. <span>"Muse:
 <span>Text</span>-<span>To</span>-<span>Image</span>
 <span>Generation</span> via <span>Masked</span> <span>Generative</span>
-<span>Transformers</span>.”</span> In <em>International Conference on
+<span>Transformers</span>."</span> In <em>International Conference on
 Machine Learning (ICML)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.2301.00704">https://doi.org/10.48550/arXiv.2301.00704</a>.
 </div>
 <div id="ref-chang_maskgit_2022" class="csl-entry" role="listitem">
 Chang, Huiwen, Han Zhang, Lu Jiang, Ce Liu, and William T. Freeman.
-2022. <span>“<span>MaskGIT</span>: <span>Masked</span>
+2022. <span>"<span>MaskGIT</span>: <span>Masked</span>
 <span>Generative</span> <span>Image</span>
-<span>Transformer</span>.”</span> In <em>IEEE/CVF Conference on Computer
+<span>Transformer</span>."</span> In <em>IEEE/CVF Conference on Computer
 Vision and Pattern Recognition (CVPR)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.2202.04200">https://doi.org/10.48550/arXiv.2202.04200</a>.
 </div>
 <div id="ref-chen_pixart-_2023" class="csl-entry" role="listitem">
 Chen, Junsong, Jincheng Yu, Chongjian Ge, Lewei Yao, Enze Xie, Yue Wu,
-Zhongdao Wang, et al. 2023. <span>“<span>PixArt</span>-$α$:
+Zhongdao Wang, et al. 2023. <span>"<span>PixArt</span>-$α$:
 <span>Fast</span> <span>Training</span> of <span>Diffusion</span>
 <span>Transformer</span> for <span>Photorealistic</span>
-<span>Text</span>-to-<span>Image</span> <span>Synthesis</span>.”</span>
+<span>Text</span>-to-<span>Image</span> <span>Synthesis</span>."</span>
 arXiv. <a
 href="https://doi.org/10.48550/arXiv.2310.00426">https://doi.org/10.48550/arXiv.2310.00426</a>.
 </div>
 <div id="ref-chen_generative_2020" class="csl-entry" role="listitem">
 Chen, Mark, Alec Radford, Rewon Child, Jeffrey Wu, Heewoo Jun, David
-Luan, and Ilya Sutskever. 2020. <span>“Generative
-<span>Pretraining</span> <span>From</span> <span>Pixels</span>.”</span>
+Luan, and Ilya Sutskever. 2020. <span>"Generative
+<span>Pretraining</span> <span>From</span> <span>Pixels</span>."</span>
 In <em>Proceedings of the 37th <span>International</span>
 <span>Conference</span> on <span>Machine</span>
-<span>Learning</span></em>, 1691–1703. PMLR. <a
+<span>Learning</span></em>, 1691-1703. PMLR. <a
 href="https://proceedings.mlr.press/v119/chen20s.html">https://proceedings.mlr.press/v119/chen20s.html</a>.
 </div>
 <div id="ref-chu_mobilevlm_2023" class="csl-entry" role="listitem">
 Chu, Xiangxiang, Limeng Qiao, Xinyang Lin, Shuang Xu, Yang Yang, Yiming
-Hu, Fei Wei, et al. 2023. <span>“<span>MobileVLM</span> : <span>A</span>
+Hu, Fei Wei, et al. 2023. <span>"<span>MobileVLM</span> : <span>A</span>
 <span>Fast</span>, <span>Strong</span> and <span>Open</span>
 <span>Vision</span> <span>Language</span> <span>Assistant</span> for
-<span>Mobile</span> <span>Devices</span>.”</span> arXiv. <a
+<span>Mobile</span> <span>Devices</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2312.16886">https://doi.org/10.48550/arXiv.2312.16886</a>.
 </div>
 <div id="ref-dai_instructblip_2023" class="csl-entry" role="listitem">
 Dai, Wenliang, Junnan Li, Dongxu Li, Anthony Meng Huat Tiong, Junqi
 Zhao, Weisheng Wang, Boyang Li, Pascale Fung, and Steven Hoi. 2023.
-<span>“<span>InstructBLIP</span>: <span>Towards</span>
+<span>"<span>InstructBLIP</span>: <span>Towards</span>
 <span>General</span>-Purpose <span>Vision</span>-<span>Language</span>
 <span>Models</span> with <span>Instruction</span>
-<span>Tuning</span>.”</span> arXiv. <a
+<span>Tuning</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2305.06500">https://doi.org/10.48550/arXiv.2305.06500</a>.
 </div>
 <div id="ref-debortoli_diffusion_2021" class="csl-entry"
 role="listitem">
 De Bortoli, Valentin, James Thornton, Jeremy Heng, and Arnaud Doucet.
-2021. <span>“Diffusion <span class="nocase">Schr<span
+2021. <span>"Diffusion <span class="nocase">Schr<span
 class="nocase">ö</span>dinger</span> Bridge with Applications to
-Score-Based Generative Modeling.”</span> In <em>Advances in Neural
+Score-Based Generative Modeling."</span> In <em>Advances in Neural
 Information Processing Systems (<span>NeurIPS</span>)</em>. <a
 href="https://arxiv.org/abs/2106.01357">https://arxiv.org/abs/2106.01357</a>.
 </div>
 <div id="ref-dhariwal_diffusion_2021" class="csl-entry" role="listitem">
-Dhariwal, Prafulla, and Alex Nichol. 2021. <span>“Diffusion
+Dhariwal, Prafulla, and Alex Nichol. 2021. <span>"Diffusion
 <span>Models</span> <span>Beat</span> <span>GANs</span> on
-<span>Image</span> <span>Synthesis</span>.”</span> arXiv. <a
+<span>Image</span> <span>Synthesis</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2105.05233">https://doi.org/10.48550/arXiv.2105.05233</a>.
 </div>
 <div id="ref-dinh_density_2017" class="csl-entry" role="listitem">
 Dinh, Laurent, Jascha Sohl-Dickstein, and Samy Bengio. 2017.
-<span>“Density Estimation Using <span>Real</span>
-<span>NVP</span>.”</span> arXiv. <a
+<span>"Density Estimation Using <span>Real</span>
+<span>NVP</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.1605.08803">https://doi.org/10.48550/arXiv.1605.08803</a>.
 </div>
 <div id="ref-durkan_neural_2019" class="csl-entry" role="listitem">
 Durkan, Conor, Artur Bekasov, Iain Murray, and George Papamakarios.
-2019. <span>“Neural <span>Spline</span> <span>Flows</span>.”</span>
+2019. <span>"Neural <span>Spline</span> <span>Flows</span>."</span>
 arXiv. <a
 href="https://doi.org/10.48550/arXiv.1906.04032">https://doi.org/10.48550/arXiv.1906.04032</a>.
 </div>
 <div id="ref-esser_scaling_2024" class="csl-entry" role="listitem">
 Esser, Patrick, Sumith Kulal, Andreas Blattmann, Rahim Entezari, Jonas
-Müller, Harry Saini, Yam Levi, et al. 2024. <span>“Scaling
+Müller, Harry Saini, Yam Levi, et al. 2024. <span>"Scaling
 <span>Rectified</span> <span>Flow</span> <span>Transformers</span> for
 <span>High</span>-<span>Resolution</span> <span>Image</span>
-<span>Synthesis</span>.”</span> arXiv. <a
+<span>Synthesis</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2403.03206">https://doi.org/10.48550/arXiv.2403.03206</a>.
 </div>
 <div id="ref-gafni_make--scene_2022" class="csl-entry" role="listitem">
 Gafni, Oran, Adam Polyak, Oron Ashual, Shelly Sheynin, Devi Parikh, and
-Yaniv Taigman. 2022. <span>“Make-<span>A</span>-<span>Scene</span>:
+Yaniv Taigman. 2022. <span>"Make-<span>A</span>-<span>Scene</span>:
 <span>Scene</span>-<span>Based</span>
 <span>Text</span>-to-<span>Image</span> <span>Generation</span> with
-<span>Human</span> <span>Priors</span>.”</span> In <em>European
+<span>Human</span> <span>Priors</span>."</span> In <em>European
 Conference on Computer Vision (ECCV)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.2203.13131">https://doi.org/10.48550/arXiv.2203.13131</a>.
 </div>
 <div id="ref-ge_long_2022" class="csl-entry" role="listitem">
 Ge, Songwei, Thomas Hayes, Harry Yang, Xi Yin, Guan Pang, David Jacobs,
-Jia-Bin Huang, and Devi Parikh. 2022. <span>“Long <span>Video</span>
+Jia-Bin Huang, and Devi Parikh. 2022. <span>"Long <span>Video</span>
 <span>Generation</span> with <span>Time</span>-<span>Agnostic</span>
 <span>VQGAN</span> and <span>Time</span>-<span>Sensitive</span>
-<span>Transformer</span>.”</span> In <em>European Conference on Computer
+<span>Transformer</span>."</span> In <em>European Conference on Computer
 Vision (ECCV)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.2204.03638">https://doi.org/10.48550/arXiv.2204.03638</a>.
 </div>
@@ -1438,291 +1438,291 @@ href="https://doi.org/10.48550/arXiv.2204.03638">https://doi.org/10.48550/arXiv.
 role="listitem">
 Goodfellow, Ian J., Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David
 Warde-Farley, Sherjil Ozair, Aaron Courville, and Yoshua Bengio. 2014.
-<span>“Generative <span>Adversarial</span>
-<span>Networks</span>.”</span> In <em>Advances in Neural Information
+<span>"Generative <span>Adversarial</span>
+<span>Networks</span>."</span> In <em>Advances in Neural Information
 Processing Systems</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1406.2661">https://doi.org/10.48550/arXiv.1406.2661</a>.
 </div>
 <div id="ref-gulrajani_improved_2017" class="csl-entry" role="listitem">
 Gulrajani, Ishaan, Faruk Ahmed, Martin Arjovsky, Vincent Dumoulin, and
-Aaron Courville. 2017. <span>“Improved <span>Training</span> of
-<span>Wasserstein</span> <span>GANs</span>.”</span> In <em>Advances in
+Aaron Courville. 2017. <span>"Improved <span>Training</span> of
+<span>Wasserstein</span> <span>GANs</span>."</span> In <em>Advances in
 Neural Information Processing Systems</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1704.00028">https://doi.org/10.48550/arXiv.1704.00028</a>.
 </div>
 <div id="ref-guo_animatediff_2024" class="csl-entry" role="listitem">
 Guo, Yuwei, Ceyuan Yang, Anyi Rao, Zhengyang Liang, Yaohui Wang, Yu
 Qiao, Maneesh Agrawala, Dahua Lin, and Bo Dai. 2024.
-<span>“<span>AnimateDiff</span>: <span>Animate</span> <span>Your</span>
+<span>"<span>AnimateDiff</span>: <span>Animate</span> <span>Your</span>
 <span>Personalized</span> <span>Text</span>-to-<span>Image</span>
 <span>Diffusion</span> <span>Models</span> Without <span>Specific</span>
-<span>Tuning</span>.”</span> arXiv. <a
+<span>Tuning</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2307.04725">https://doi.org/10.48550/arXiv.2307.04725</a>.
 </div>
 <div id="ref-han_infinity_2025" class="csl-entry" role="listitem">
 Han, Jian, Jinlai Liu, Yi Jiang, Bin Yan, Yuqi Zhang, Zehuan Yuan,
-Bingyue Peng, and Xiaobing Liu. 2025. <span>“Infinity:
+Bingyue Peng, and Xiaobing Liu. 2025. <span>"Infinity:
 <span>Scaling</span> <span>Bitwise</span> <span>AutoRegressive</span>
 <span>Modeling</span> for <span>High</span>-<span>Resolution</span>
-<span>Image</span> <span>Synthesis</span>.”</span> arXiv. <a
+<span>Image</span> <span>Synthesis</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2412.04431">https://doi.org/10.48550/arXiv.2412.04431</a>.
 </div>
 <div id="ref-henighan_scaling_2020" class="csl-entry" role="listitem">
 Henighan, Tom, Jared Kaplan, Mor Katz, Mark Chen, Christopher Hesse,
-Jacob Jackson, Heewoo Jun, et al. 2020. <span>“Scaling <span>Laws</span>
+Jacob Jackson, Heewoo Jun, et al. 2020. <span>"Scaling <span>Laws</span>
 for <span>Autoregressive</span> <span>Generative</span>
-<span>Modeling</span>.”</span> arXiv. <a
+<span>Modeling</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2010.14701">https://doi.org/10.48550/arXiv.2010.14701</a>.
 </div>
 <div id="ref-hertz_prompt--prompt_2022" class="csl-entry"
 role="listitem">
 Hertz, Amir, Ron Mokady, Jay Tenenbaum, Kfir Aberman, Yael Pritch, and
-Daniel Cohen-Or. 2022. <span>“Prompt-to-<span>Prompt</span>
+Daniel Cohen-Or. 2022. <span>"Prompt-to-<span>Prompt</span>
 <span>Image</span> <span>Editing</span> with <span>Cross</span>
-<span>Attention</span> <span>Control</span>.”</span> arXiv. <a
+<span>Attention</span> <span>Control</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2208.01626">https://doi.org/10.48550/arXiv.2208.01626</a>.
 </div>
 <div id="ref-higgins_beta-vae_2017" class="csl-entry" role="listitem">
 Higgins, Irina, Loic Matthey, Arka Pal, Christopher Burgess, Xavier
 Glorot, Matthew Botvinick, Shakir Mohamed, and Alexander Lerchner. 2017.
-<span>“Beta-<span>VAE</span>: <span>Learning</span> <span>Basic</span>
+<span>"Beta-<span>VAE</span>: <span>Learning</span> <span>Basic</span>
 <span>Visual</span> <span>Concepts</span> with a
 <span>Constrained</span> <span>Variational</span>
-<span>Framework</span>.”</span> In. <a
+<span>Framework</span>."</span> In. <a
 href="https://openreview.net/forum?id=Sy2fzU9gl">https://openreview.net/forum?id=Sy2fzU9gl</a>.
 </div>
 <div id="ref-hinton_reducing_2006" class="csl-entry" role="listitem">
-Hinton, Geoffrey E., and Ruslan R. Salakhutdinov. 2006. <span>“Reducing
-the Dimensionality of Data with Neural Networks.”</span>
-<em>Science</em> 313 (5786): 504–7.
+Hinton, Geoffrey E., and Ruslan R. Salakhutdinov. 2006. <span>"Reducing
+the Dimensionality of Data with Neural Networks."</span>
+<em>Science</em> 313 (5786): 504-7.
 </div>
 <div id="ref-ho_imagen_2022" class="csl-entry" role="listitem">
 Ho, Jonathan, William Chan, Chitwan Saharia, Jay Whang, Ruiqi Gao,
-Alexey Gritsenko, Diederik P. Kingma, et al. 2022. <span>“Imagen
+Alexey Gritsenko, Diederik P. Kingma, et al. 2022. <span>"Imagen
 <span>Video</span>: <span>High</span> <span>Definition</span>
 <span>Video</span> <span>Generation</span> with <span>Diffusion</span>
-<span>Models</span>.”</span> arXiv. <a
+<span>Models</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2210.02303">https://doi.org/10.48550/arXiv.2210.02303</a>.
 </div>
 <div id="ref-ho_denoising_2020" class="csl-entry" role="listitem">
-Ho, Jonathan, Ajay Jain, and Pieter Abbeel. 2020. <span>“Denoising
+Ho, Jonathan, Ajay Jain, and Pieter Abbeel. 2020. <span>"Denoising
 <span>Diffusion</span> <span>Probabilistic</span>
-<span>Models</span>.”</span> In <em>Advances in Neural Information
+<span>Models</span>."</span> In <em>Advances in Neural Information
 Processing Systems</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.2006.11239">https://doi.org/10.48550/arXiv.2006.11239</a>.
 </div>
 <div id="ref-ho_video_2022" class="csl-entry" role="listitem">
 Ho, Jonathan, Tim Salimans, Alexey Gritsenko, William Chan, Mohammad
-Norouzi, and David J. Fleet. 2022. <span>“Video <span>Diffusion</span>
-<span>Models</span>.”</span> arXiv. <a
+Norouzi, and David J. Fleet. 2022. <span>"Video <span>Diffusion</span>
+<span>Models</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2204.03458">https://doi.org/10.48550/arXiv.2204.03458</a>.
 </div>
 <div id="ref-hoogeboom_autoregressive_2022" class="csl-entry"
 role="listitem">
 Hoogeboom, Emiel, Alexey A. Gritsenko, Jasmijn Bastings, Ben Poole,
-Rianne van den Berg, and Tim Salimans. 2022. <span>“Autoregressive
-<span>Diffusion</span> <span>Models</span>.”</span> In <em>International
+Rianne van den Berg, and Tim Salimans. 2022. <span>"Autoregressive
+<span>Diffusion</span> <span>Models</span>."</span> In <em>International
 Conference on Learning Representations</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.2110.02037">https://doi.org/10.48550/arXiv.2110.02037</a>.
 </div>
 <div id="ref-hooker_hardware_2020" class="csl-entry" role="listitem">
-Hooker, Sara. 2020. <span>“The <span>Hardware</span>
-<span>Lottery</span>.”</span> arXiv. <a
+Hooker, Sara. 2020. <span>"The <span>Hardware</span>
+<span>Lottery</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2009.06489">https://doi.org/10.48550/arXiv.2009.06489</a>.
 </div>
 <div id="ref-hyvarinen_estimation_2005" class="csl-entry"
 role="listitem">
-Hyvärinen, Aapo. 2005. <span>“Estimation of Non-Normalized Statistical
-Models by Score Matching.”</span> <em>Journal of Machine Learning
-Research (<span>JMLR</span>)</em> 6: 695–709.
+Hyvärinen, Aapo. 2005. <span>"Estimation of Non-Normalized Statistical
+Models by Score Matching."</span> <em>Journal of Machine Learning
+Research (<span>JMLR</span>)</em> 6: 695-709.
 </div>
 <div id="ref-jia_scaling_2021" class="csl-entry" role="listitem">
 Jia, Chao, Yinfei Yang, Ye Xia, Yi-Ting Chen, Zarana Parekh, Hieu Pham,
-Quoc V. Le, Yunhsuan Sung, Zhen Li, and Tom Duerig. 2021. <span>“Scaling
+Quoc V. Le, Yunhsuan Sung, Zhen Li, and Tom Duerig. 2021. <span>"Scaling
 <span>Up</span> <span>Visual</span> and
 <span>Vision</span>-<span>Language</span> <span>Representation</span>
 <span>Learning</span> <span>With</span> <span>Noisy</span>
-<span>Text</span> <span>Supervision</span>.”</span> arXiv. <a
+<span>Text</span> <span>Supervision</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2102.05918">https://doi.org/10.48550/arXiv.2102.05918</a>.
 </div>
 <div id="ref-jordan_introduction_1999" class="csl-entry"
 role="listitem">
 Jordan, Michael I., Zoubin Ghahramani, Tommi S. Jaakkola, and Lawrence
-K. Saul. 1999. <span>“An Introduction to Variational Methods for
-Graphical Models.”</span> <em>Machine Learning</em> 37 (2): 183–233.
+K. Saul. 1999. <span>"An Introduction to Variational Methods for
+Graphical Models."</span> <em>Machine Learning</em> 37 (2): 183-233.
 </div>
 <div id="ref-karras_progressive_2018" class="csl-entry" role="listitem">
 Karras, Tero, Timo Aila, Samuli Laine, and Jaakko Lehtinen. 2018.
-<span>“Progressive <span>Growing</span> of <span>GANs</span> for
+<span>"Progressive <span>Growing</span> of <span>GANs</span> for
 <span>Improved</span> <span>Quality</span>, <span>Stability</span>, and
-<span>Variation</span>.”</span> In <em>International Conference on
+<span>Variation</span>."</span> In <em>International Conference on
 Learning Representations</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1710.10196">https://doi.org/10.48550/arXiv.1710.10196</a>.
 </div>
 <div id="ref-karras_elucidating_2022" class="csl-entry" role="listitem">
 Karras, Tero, Miika Aittala, Timo Aila, and Samuli Laine. 2022.
-<span>“Elucidating the <span>Design</span> <span>Space</span> of
+<span>"Elucidating the <span>Design</span> <span>Space</span> of
 <span>Diffusion</span>-<span>Based</span> <span>Generative</span>
-<span>Models</span>.”</span> arXiv. <a
+<span>Models</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2206.00364">https://doi.org/10.48550/arXiv.2206.00364</a>.
 </div>
 <div id="ref-karras_style-based_2019" class="csl-entry" role="listitem">
-Karras, Tero, Samuli Laine, and Timo Aila. 2019. <span>“A
+Karras, Tero, Samuli Laine, and Timo Aila. 2019. <span>"A
 <span>Style</span>-<span>Based</span> <span>Generator</span>
 <span>Architecture</span> for <span>Generative</span>
-<span>Adversarial</span> <span>Networks</span>.”</span> In <em>IEEE/CVF
+<span>Adversarial</span> <span>Networks</span>."</span> In <em>IEEE/CVF
 Conference on Computer Vision and Pattern Recognition (CVPR)</em>.
 arXiv. <a
 href="https://doi.org/10.48550/arXiv.1812.04948">https://doi.org/10.48550/arXiv.1812.04948</a>.
 </div>
 <div id="ref-kingma_glow_2018" class="csl-entry" role="listitem">
-Kingma, Diederik P., and Prafulla Dhariwal. 2018. <span>“Glow:
+Kingma, Diederik P., and Prafulla Dhariwal. 2018. <span>"Glow:
 <span>Generative</span> <span>Flow</span> with <span>Invertible</span>
-1x1 <span>Convolutions</span>.”</span> arXiv. <a
+1x1 <span>Convolutions</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.1807.03039">https://doi.org/10.48550/arXiv.1807.03039</a>.
 </div>
 <div id="ref-kingma_auto-encoding_2022" class="csl-entry"
 role="listitem">
 Kingma, Diederik P., and Max Welling. 2014.
-<span>“Auto-<span>Encoding</span> <span>Variational</span>
-<span>Bayes</span>.”</span> In <em>International Conference on Learning
+<span>"Auto-<span>Encoding</span> <span>Variational</span>
+<span>Bayes</span>."</span> In <em>International Conference on Learning
 Representations</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1312.6114">https://doi.org/10.48550/arXiv.1312.6114</a>.
 </div>
 <div id="ref-kulkarni_babytalk_2011" class="csl-entry" role="listitem">
 Kulkarni, Girish, Visruth Premraj, Sagnik Dhar, Siming Li, Yejin Choi,
-Alexander C. Berg, and Tamara L. Berg. 2011. <span>“Baby Talk:
-Understanding and Generating Image Descriptions.”</span> In <em>IEEE
+Alexander C. Berg, and Tamara L. Berg. 2011. <span>"Baby Talk:
+Understanding and Generating Image Descriptions."</span> In <em>IEEE
 Conference on Computer Vision and Pattern Recognition (CVPR)</em>. <a
 href="https://doi.org/10.1109/CVPR.2011.5995466">https://doi.org/10.1109/CVPR.2011.5995466</a>.
 </div>
 <div id="ref-lee_autoregressive_2022" class="csl-entry" role="listitem">
 Lee, Doyup, Chiheon Kim, Saehoon Kim, Minsu Cho, and Wook-Shin Han.
-2022. <span>“Autoregressive <span>Image</span> <span>Generation</span>
-Using <span>Residual</span> <span>Quantization</span>.”</span> In
+2022. <span>"Autoregressive <span>Image</span> <span>Generation</span>
+Using <span>Residual</span> <span>Quantization</span>."</span> In
 <em>IEEE/CVF Conference on Computer Vision and Pattern Recognition
 (CVPR)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.2203.01941">https://doi.org/10.48550/arXiv.2203.01941</a>.
 </div>
 <div id="ref-lee_llava-next_2024" class="csl-entry" role="listitem">
 Lee, Yong Jae, Chunyuan Li, Yuheng Li, Bo Li, Yuanhan Zhang, Sheng Shen,
-and Haotian Liu. 2024. <span>“<span>LLaVA</span>-<span>NeXT</span>:
+and Haotian Liu. 2024. <span>"<span>LLaVA</span>-<span>NeXT</span>:
 <span>Improved</span> Reasoning, <span>OCR</span>, and World
-Knowledge.”</span> <em>LLaVA</em>. <a
+Knowledge."</span> <em>LLaVA</em>. <a
 href="https://llava-vl.github.io/blog/2024-01-30-llava-next/">https://llava-vl.github.io/blog/2024-01-30-llava-next/</a>.
 </div>
 <div id="ref-li_object-centric_2025" class="csl-entry" role="listitem">
 Li, Guangyuan, Rongzhen Zhao, Jinhong Deng, Yanbo Wang, and Joni
-Pajarinen. 2025. <span>“Object-<span>Centric</span> <span>Vision</span>
+Pajarinen. 2025. <span>"Object-<span>Centric</span> <span>Vision</span>
 <span>Token</span> <span>Pruning</span> for <span>Vision</span>
-<span>Language</span> <span>Models</span>.”</span> <a
+<span>Language</span> <span>Models</span>."</span> <a
 href="https://doi.org/10.48550/arXiv.2511.20439">https://doi.org/10.48550/arXiv.2511.20439</a>.
 </div>
 <div id="ref-li_blip-2_2023" class="csl-entry" role="listitem">
 Li, Junnan, Dongxu Li, Silvio Savarese, and Steven Hoi. 2023.
-<span>“<span>BLIP</span>-2: <span>Bootstrapping</span>
+<span>"<span>BLIP</span>-2: <span>Bootstrapping</span>
 <span>Language</span>-<span>Image</span> <span>Pre</span>-Training with
 <span>Frozen</span> <span>Image</span> <span>Encoders</span> and
-<span>Large</span> <span>Language</span> <span>Models</span>.”</span>
+<span>Large</span> <span>Language</span> <span>Models</span>."</span>
 arXiv. <a
 href="https://doi.org/10.48550/arXiv.2301.12597">https://doi.org/10.48550/arXiv.2301.12597</a>.
 </div>
 <div id="ref-li_blip_2022" class="csl-entry" role="listitem">
 Li, Junnan, Dongxu Li, Caiming Xiong, and Steven Hoi. 2022.
-<span>“<span>BLIP</span>: <span>Bootstrapping</span>
+<span>"<span>BLIP</span>: <span>Bootstrapping</span>
 <span>Language</span>-<span>Image</span> <span>Pre</span>-Training for
 <span>Unified</span> <span>Vision</span>-<span>Language</span>
-<span>Understanding</span> and <span>Generation</span>.”</span> arXiv.
+<span>Understanding</span> and <span>Generation</span>."</span> arXiv.
 <a
 href="https://doi.org/10.48550/arXiv.2201.12086">https://doi.org/10.48550/arXiv.2201.12086</a>.
 </div>
 <div id="ref-li_mage_2023" class="csl-entry" role="listitem">
 Li, Tianhong, Huiwen Chang, Shlok Kumar Mishra, Han Zhang, Dina Katabi,
-and Dilip Krishnan. 2023. <span>“<span>MAGE</span>: <span>MAsked</span>
+and Dilip Krishnan. 2023. <span>"<span>MAGE</span>: <span>MAsked</span>
 <span>Generative</span> <span>Encoder</span> to <span>Unify</span>
 <span>Representation</span> <span>Learning</span> and <span>Image</span>
-<span>Synthesis</span>.”</span> In <em>IEEE/CVF Conference on Computer
+<span>Synthesis</span>."</span> In <em>IEEE/CVF Conference on Computer
 Vision and Pattern Recognition (CVPR)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.2211.09117">https://doi.org/10.48550/arXiv.2211.09117</a>.
 </div>
 <div id="ref-lipman_flow_2023" class="csl-entry" role="listitem">
 Lipman, Yaron, Ricky T. Q. Chen, Heli Ben-Hamu, Maximilian Nickel, and
-Matt Le. 2023. <span>“Flow <span>Matching</span> for
-<span>Generative</span> <span>Modeling</span>.”</span> arXiv. <a
+Matt Le. 2023. <span>"Flow <span>Matching</span> for
+<span>Generative</span> <span>Modeling</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2210.02747">https://doi.org/10.48550/arXiv.2210.02747</a>.
 </div>
 <div id="ref-liu_improved_2024" class="csl-entry" role="listitem">
 Liu, Haotian, Chunyuan Li, Yuheng Li, and Yong Jae Lee. 2024.
-<span>“Improved <span>Baselines</span> with <span>Visual</span>
-<span>Instruction</span> <span>Tuning</span>.”</span> arXiv. <a
+<span>"Improved <span>Baselines</span> with <span>Visual</span>
+<span>Instruction</span> <span>Tuning</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2310.03744">https://doi.org/10.48550/arXiv.2310.03744</a>.
 </div>
 <div id="ref-liu_visual_2023" class="csl-entry" role="listitem">
 Liu, Haotian, Chunyuan Li, Qingyang Wu, and Yong Jae Lee. 2023.
-<span>“Visual <span>Instruction</span> <span>Tuning</span>.”</span>
+<span>"Visual <span>Instruction</span> <span>Tuning</span>."</span>
 arXiv. <a
 href="https://doi.org/10.48550/arXiv.2304.08485">https://doi.org/10.48550/arXiv.2304.08485</a>.
 </div>
 <div id="ref-liu_infinitystar_2025" class="csl-entry" role="listitem">
 Liu, Jinlai, Jian Han, Bin Yan, Hui Wu, Fengda Zhu, Xing Wang, Yi Jiang,
-Bingyue Peng, and Zehuan Yuan. 2025. <span>“<span>InfinityStar</span>:
+Bingyue Peng, and Zehuan Yuan. 2025. <span>"<span>InfinityStar</span>:
 <span>Unified</span> <span>Spacetime</span> <span>AutoRegressive</span>
 <span>Modeling</span> for <span>Visual</span>
-<span>Generation</span>.”</span> In <em>Advances in Neural Information
+<span>Generation</span>."</span> In <em>Advances in Neural Information
 Processing Systems</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.2511.04675">https://doi.org/10.48550/arXiv.2511.04675</a>.
 </div>
 <div id="ref-lu_dpm-solver_2022" class="csl-entry" role="listitem">
 Lu, Cheng, Yuhao Zhou, Fan Bao, Jianfei Chen, Chongxuan Li, and Jun Zhu.
-2022. <span>“<span>DPM</span>-<span>Solver</span>++: <span>Fast</span>
+2022. <span>"<span>DPM</span>-<span>Solver</span>++: <span>Fast</span>
 <span>Solver</span> for <span>Guided</span> <span>Sampling</span> of
 <span>Diffusion</span> <span>Probabilistic</span>
-<span>Models</span>.”</span> <em>Machine Intelligence Research</em> 22
-(4): 730–51. <a
+<span>Models</span>."</span> <em>Machine Intelligence Research</em> 22
+(4): 730-51. <a
 href="https://doi.org/10.1007/s11633-025-1562-4">https://doi.org/10.1007/s11633-025-1562-4</a>.
 </div>
 <div id="ref-mikolov_distributed_2013" class="csl-entry"
 role="listitem">
 Mikolov, Tomas, Ilya Sutskever, Kai Chen, Greg Corrado, and Jeffrey
-Dean. 2013. <span>“Distributed Representations of Words and Phrases and
-Their Compositionality.”</span> In <em>Advances in Neural Information
+Dean. 2013. <span>"Distributed Representations of Words and Phrases and
+Their Compositionality."</span> In <em>Advances in Neural Information
 Processing Systems (NeurIPS)</em>. <a
 href="https://papers.nips.cc/paper_files/paper/2013/hash/9aa42b31882ec039965f3c4923ce901b-Abstract.html">https://papers.nips.cc/paper_files/paper/2013/hash/9aa42b31882ec039965f3c4923ce901b-Abstract.html</a>.
 </div>
 <div id="ref-nichol_improved_2021" class="csl-entry" role="listitem">
-Nichol, Alex, and Prafulla Dhariwal. 2021. <span>“Improved
+Nichol, Alex, and Prafulla Dhariwal. 2021. <span>"Improved
 <span>Denoising</span> <span>Diffusion</span> <span>Probabilistic</span>
-<span>Models</span>.”</span> arXiv. <a
+<span>Models</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2102.09672">https://doi.org/10.48550/arXiv.2102.09672</a>.
 </div>
 <div id="ref-nichol_glide_2022" class="csl-entry" role="listitem">
 Nichol, Alex, Prafulla Dhariwal, Aditya Ramesh, Pranav Shyam, Pamela
 Mishkin, Bob McGrew, Ilya Sutskever, and Mark Chen. 2022.
-<span>“<span>GLIDE</span>: <span>Towards</span>
+<span>"<span>GLIDE</span>: <span>Towards</span>
 <span>Photorealistic</span> <span>Image</span> <span>Generation</span>
 and <span>Editing</span> with <span>Text</span>-<span>Guided</span>
-<span>Diffusion</span> <span>Models</span>.”</span> arXiv. <a
+<span>Diffusion</span> <span>Models</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2112.10741">https://doi.org/10.48550/arXiv.2112.10741</a>.
 </div>
 <div id="ref-oord_pixel_2016" class="csl-entry" role="listitem">
 Oord, Aaron van den, Nal Kalchbrenner, and Koray Kavukcuoglu. 2016a.
-<span>“Pixel <span>Recurrent</span> <span>Neural</span>
-<span>Networks</span>.”</span> In <em>International Conference on
+<span>"Pixel <span>Recurrent</span> <span>Neural</span>
+<span>Networks</span>."</span> In <em>International Conference on
 Machine Learning (ICML)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1601.06759">https://doi.org/10.48550/arXiv.1601.06759</a>.
 </div>
 <div id="ref-oord_conditional_2016" class="csl-entry" role="listitem">
 Oord, Aaron van den, Nal Kalchbrenner, Oriol Vinyals, Lasse Espeholt,
-Alex Graves, and Koray Kavukcuoglu. 2016. <span>“Conditional
+Alex Graves, and Koray Kavukcuoglu. 2016. <span>"Conditional
 <span>Image</span> <span>Generation</span> with <span>PixelCNN</span>
-<span>Decoders</span>.”</span> In <em>Advances in Neural Information
+<span>Decoders</span>."</span> In <em>Advances in Neural Information
 Processing Systems</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1606.05328">https://doi.org/10.48550/arXiv.1606.05328</a>.
 </div>
 <div id="ref-oord_neural_2018" class="csl-entry" role="listitem">
 Oord, Aaron van den, Oriol Vinyals, and Koray Kavukcuoglu. 2017.
-<span>“Neural <span>Discrete</span> <span>Representation</span>
-<span>Learning</span>.”</span> In <em>Advances in Neural Information
+<span>"Neural <span>Discrete</span> <span>Representation</span>
+<span>Learning</span>."</span> In <em>Advances in Neural Information
 Processing Systems</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1711.00937">https://doi.org/10.48550/arXiv.1711.00937</a>.
 </div>
@@ -1730,328 +1730,328 @@ href="https://doi.org/10.48550/arXiv.1711.00937">https://doi.org/10.48550/arXiv.
 role="listitem">
 Oord, Aäron van den, Sander Dieleman, Heiga Zen, Karen Simonyan, Oriol
 Vinyals, Alex Graves, Nal Kalchbrenner, Andrew Senior, and Koray
-Kavukcuoglu. 2016. <span>“<span>WaveNet</span>: A Generative Model for
-Raw Audio.”</span> <a
+Kavukcuoglu. 2016. <span>"<span>WaveNet</span>: A Generative Model for
+Raw Audio."</span> <a
 href="https://arxiv.org/abs/1609.03499">https://arxiv.org/abs/1609.03499</a>.
 </div>
 <div id="ref-van_den_oord_pixel_2016" class="csl-entry" role="listitem">
 Oord, Aäron van den, Nal Kalchbrenner, and Koray Kavukcuoglu. 2016b.
-<span>“Pixel Recurrent Neural Networks.”</span> In <em>International
+<span>"Pixel Recurrent Neural Networks."</span> In <em>International
 Conference on Machine Learning (<span>ICML</span>)</em>. <a
 href="https://arxiv.org/abs/1601.06759">https://arxiv.org/abs/1601.06759</a>.
 </div>
 <div id="ref-van_den_oord_conditional_2016" class="csl-entry"
 role="listitem">
 Oord, Aäron van den, Nal Kalchbrenner, Oriol Vinyals, Lasse Espeholt,
-Alex Graves, and Koray Kavukcuoglu. 2016. <span>“Conditional Image
-Generation with <span>PixelCNN</span> Decoders.”</span> In <em>Advances
+Alex Graves, and Koray Kavukcuoglu. 2016. <span>"Conditional Image
+Generation with <span>PixelCNN</span> Decoders."</span> In <em>Advances
 in Neural Information Processing Systems (<span>NeurIPS</span>)</em>. <a
 href="https://arxiv.org/abs/1606.05328">https://arxiv.org/abs/1606.05328</a>.
 </div>
 <div id="ref-noauthor_gpt-4vision_2023" class="csl-entry"
 role="listitem">
-OpenAI. 2023. <span>“<span>GPT</span>-<span>4V</span>(ision)
-<span>System</span> <span>Card</span>.”</span> OpenAI Technical Report.
+OpenAI. 2023. <span>"<span>GPT</span>-<span>4V</span>(ision)
+<span>System</span> <span>Card</span>."</span> OpenAI Technical Report.
 <a
 href="https://cdn.openai.com/papers/GPTV_System_Card.pdf">https://cdn.openai.com/papers/GPTV_System_Card.pdf</a>.
 </div>
 <div id="ref-oquab_dinov2_2024" class="csl-entry" role="listitem">
 Oquab, Maxime, Timothée Darcet, Théo Moutakanni, Huy Vo, Marc
 Szafraniec, Vasil Khalidov, Pierre Fernandez, et al. 2024.
-<span>“<span>DINOv2</span>: <span>Learning</span> <span>Robust</span>
+<span>"<span>DINOv2</span>: <span>Learning</span> <span>Robust</span>
 <span>Visual</span> <span>Features</span> Without
-<span>Supervision</span>.”</span> arXiv. <a
+<span>Supervision</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2304.07193">https://doi.org/10.48550/arXiv.2304.07193</a>.
 </div>
 <div id="ref-papamakarios_masked_2018" class="csl-entry"
 role="listitem">
 Papamakarios, George, Theo Pavlakou, and Iain Murray. 2018.
-<span>“Masked <span>Autoregressive</span> <span>Flow</span> for
-<span>Density</span> <span>Estimation</span>.”</span> arXiv. <a
+<span>"Masked <span>Autoregressive</span> <span>Flow</span> for
+<span>Density</span> <span>Estimation</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.1705.07057">https://doi.org/10.48550/arXiv.1705.07057</a>.
 </div>
 <div id="ref-peebles_scalable_2023" class="csl-entry" role="listitem">
-Peebles, William, and Saining Xie. 2023. <span>“Scalable
+Peebles, William, and Saining Xie. 2023. <span>"Scalable
 <span>Diffusion</span> <span>Models</span> with
-<span>Transformers</span>.”</span> arXiv. <a
+<span>Transformers</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2212.09748">https://doi.org/10.48550/arXiv.2212.09748</a>.
 </div>
 <div id="ref-podell_sdxl_2023" class="csl-entry" role="listitem">
 Podell, Dustin, Zion English, Kyle Lacey, Andreas Blattmann, Tim
 Dockhorn, Jonas Müller, Joe Penna, and Robin Rombach. 2023.
-<span>“<span>SDXL</span>: <span>Improving</span> <span>Latent</span>
+<span>"<span>SDXL</span>: <span>Improving</span> <span>Latent</span>
 <span>Diffusion</span> <span>Models</span> for
 <span>High</span>-<span>Resolution</span> <span>Image</span>
-<span>Synthesis</span>.”</span> arXiv. <a
+<span>Synthesis</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2307.01952">https://doi.org/10.48550/arXiv.2307.01952</a>.
 </div>
 <div id="ref-radford_learning_2021" class="csl-entry" role="listitem">
 Radford, Alec, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh,
-Sandhini Agarwal, Girish Sastry, et al. 2021. <span>“Learning
+Sandhini Agarwal, Girish Sastry, et al. 2021. <span>"Learning
 <span>Transferable</span> <span>Visual</span> <span>Models</span>
 <span>From</span> <span>Natural</span> <span>Language</span>
-<span>Supervision</span>.”</span> arXiv. <a
+<span>Supervision</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2103.00020">https://doi.org/10.48550/arXiv.2103.00020</a>.
 </div>
 <div id="ref-radford_language_2019" class="csl-entry" role="listitem">
 Radford, Alec, Jeffrey Wu, Rewon Child, David Luan, Dario Amodei, and
-Ilya Sutskever. 2019. <span>“Language Models Are Unsupervised Multitask
-Learners.”</span> OpenAI Technical Report.
+Ilya Sutskever. 2019. <span>"Language Models Are Unsupervised Multitask
+Learners."</span> OpenAI Technical Report.
 </div>
 <div id="ref-ramesh_hierarchical_2022" class="csl-entry"
 role="listitem">
 Ramesh, Aditya, Prafulla Dhariwal, Alex Nichol, Casey Chu, and Mark
-Chen. 2022. <span>“Hierarchical
+Chen. 2022. <span>"Hierarchical
 <span>Text</span>-<span>Conditional</span> <span>Image</span>
 <span>Generation</span> with <span>CLIP</span>
-<span>Latents</span>.”</span> arXiv. <a
+<span>Latents</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2204.06125">https://doi.org/10.48550/arXiv.2204.06125</a>.
 </div>
 <div id="ref-ramesh_zero-shot_2021" class="csl-entry" role="listitem">
 Ramesh, Aditya, Mikhail Pavlov, Gabriel Goh, Scott Gray, Chelsea Voss,
 Alec Radford, Mark Chen, and Ilya Sutskever. 2021.
-<span>“Zero-<span>Shot</span> <span>Text</span>-to-<span>Image</span>
-<span>Generation</span>.”</span> In <em>International Conference on
+<span>"Zero-<span>Shot</span> <span>Text</span>-to-<span>Image</span>
+<span>Generation</span>."</span> In <em>International Conference on
 Machine Learning (ICML)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.2102.12092">https://doi.org/10.48550/arXiv.2102.12092</a>.
 </div>
 <div id="ref-razavi_generating_2019" class="csl-entry" role="listitem">
 Razavi, Ali, Aaron van den Oord, and Oriol Vinyals. 2019.
-<span>“Generating <span>Diverse</span>
+<span>"Generating <span>Diverse</span>
 <span>High</span>-<span>Fidelity</span> <span>Images</span> with
-<span>VQ</span>-<span>VAE</span>-2.”</span> In <em>Advances in Neural
+<span>VQ</span>-<span>VAE</span>-2."</span> In <em>Advances in Neural
 Information Processing Systems</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1906.00446">https://doi.org/10.48550/arXiv.1906.00446</a>.
 </div>
 <div id="ref-reynolds_gaussian_2009" class="csl-entry" role="listitem">
-Reynolds, Douglas A. 2009. <span>“<span>Gaussian</span> Mixture
-Models.”</span> In <em>Encyclopedia of Biometrics</em>, edited by Stan
-Z. Li and Anil K. Jain, 659–63. Springer.
+Reynolds, Douglas A. 2009. <span>"<span>Gaussian</span> Mixture
+Models."</span> In <em>Encyclopedia of Biometrics</em>, edited by Stan
+Z. Li and Anil K. Jain, 659-63. Springer.
 </div>
 <div id="ref-rezende_variational_2016" class="csl-entry"
 role="listitem">
-Rezende, Danilo Jimenez, and Shakir Mohamed. 2015. <span>“Variational
+Rezende, Danilo Jimenez, and Shakir Mohamed. 2015. <span>"Variational
 <span>Inference</span> with <span>Normalizing</span>
-<span>Flows</span>.”</span> In <em>International Conference on Machine
+<span>Flows</span>."</span> In <em>International Conference on Machine
 Learning (ICML)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1505.05770">https://doi.org/10.48550/arXiv.1505.05770</a>.
 </div>
 <div id="ref-rombach_high-resolution_2022" class="csl-entry"
 role="listitem">
 Rombach, Robin, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and
-Björn Ommer. 2022. <span>“High-<span>Resolution</span>
+Björn Ommer. 2022. <span>"High-<span>Resolution</span>
 <span>Image</span> <span>Synthesis</span> with <span>Latent</span>
-<span>Diffusion</span> <span>Models</span>.”</span> arXiv. <a
+<span>Diffusion</span> <span>Models</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2112.10752">https://doi.org/10.48550/arXiv.2112.10752</a>.
 </div>
 <div id="ref-saharia_photorealistic_2022" class="csl-entry"
 role="listitem">
 Saharia, Chitwan, William Chan, Saurabh Saxena, Lala Li, Jay Whang,
 Emily Denton, Seyed Kamyar Seyed Ghasemipour, et al. 2022.
-<span>“Photorealistic <span>Text</span>-to-<span>Image</span>
+<span>"Photorealistic <span>Text</span>-to-<span>Image</span>
 <span>Diffusion</span> <span>Models</span> with <span>Deep</span>
-<span>Language</span> <span>Understanding</span>.”</span> arXiv. <a
+<span>Language</span> <span>Understanding</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2205.11487">https://doi.org/10.48550/arXiv.2205.11487</a>.
 </div>
 <div id="ref-salimans_pixelcnn_2017" class="csl-entry" role="listitem">
 Salimans, Tim, Andrej Karpathy, Xi Chen, and Diederik P. Kingma. 2017.
-<span>“<span>PixelCNN</span>++: <span>Improving</span> the
+<span>"<span>PixelCNN</span>++: <span>Improving</span> the
 <span>PixelCNN</span> with <span>Discretized</span>
 <span>Logistic</span> <span>Mixture</span> <span>Likelihood</span> and
-<span>Other</span> <span>Modifications</span>.”</span> In
+<span>Other</span> <span>Modifications</span>."</span> In
 <em>International Conference on Learning Representations</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1701.05517">https://doi.org/10.48550/arXiv.1701.05517</a>.
 </div>
 <div id="ref-song_denoising_2022" class="csl-entry" role="listitem">
-Song, Jiaming, Chenlin Meng, and Stefano Ermon. 2021. <span>“Denoising
+Song, Jiaming, Chenlin Meng, and Stefano Ermon. 2021. <span>"Denoising
 <span>Diffusion</span> <span>Implicit</span>
-<span>Models</span>.”</span> In <em>International Conference on Learning
+<span>Models</span>."</span> In <em>International Conference on Learning
 Representations</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.2010.02502">https://doi.org/10.48550/arXiv.2010.02502</a>.
 </div>
 <div id="ref-song_consistency_2023" class="csl-entry" role="listitem">
 Song, Yang, Prafulla Dhariwal, Mark Chen, and Ilya Sutskever. 2023.
-<span>“Consistency <span>Models</span>.”</span> arXiv. <a
+<span>"Consistency <span>Models</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2303.01469">https://doi.org/10.48550/arXiv.2303.01469</a>.
 </div>
 <div id="ref-song_generative_2020" class="csl-entry" role="listitem">
-Song, Yang, and Stefano Ermon. 2020. <span>“Generative
+Song, Yang, and Stefano Ermon. 2020. <span>"Generative
 <span>Modeling</span> by <span>Estimating</span> <span>Gradients</span>
-of the <span>Data</span> <span>Distribution</span>.”</span> arXiv. <a
+of the <span>Data</span> <span>Distribution</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.1907.05600">https://doi.org/10.48550/arXiv.1907.05600</a>.
 </div>
 <div id="ref-song_score-based_2021" class="csl-entry" role="listitem">
 Song, Yang, Jascha Sohl-Dickstein, Diederik P. Kingma, Abhishek Kumar,
-Stefano Ermon, and Ben Poole. 2021. <span>“Score-<span>Based</span>
+Stefano Ermon, and Ben Poole. 2021. <span>"Score-<span>Based</span>
 <span>Generative</span> <span>Modeling</span> Through
 <span>Stochastic</span> <span>Differential</span>
-<span>Equations</span>.”</span> In <em>International Conference on
+<span>Equations</span>."</span> In <em>International Conference on
 Learning Representations</em>. <a
 href="https://doi.org/10.48550/arXiv.2011.13456">https://doi.org/10.48550/arXiv.2011.13456</a>.
 </div>
 <div id="ref-noauthor_sora_2024" class="csl-entry" role="listitem">
-<span>“<span>SORA</span>: <span>Video</span> Generation Models as World
-Simulators.”</span> 2024. <a
+<span>"<span>SORA</span>: <span>Video</span> Generation Models as World
+Simulators."</span> 2024. <a
 href="https://openai.com/index/video-generation-models-as-world-simulators/">https://openai.com/index/video-generation-models-as-world-simulators/</a>.
 </div>
 <div id="ref-sun_autoregressive_2024" class="csl-entry" role="listitem">
 Sun, Peize, Yi Jiang, Shoufa Chen, Shilong Zhang, Bingyue Peng, Ping
-Luo, and Zehuan Yuan. 2024. <span>“Autoregressive <span>Model</span>
+Luo, and Zehuan Yuan. 2024. <span>"Autoregressive <span>Model</span>
 <span>Beats</span> <span>Diffusion</span>: <span>Llama</span> for
 <span>Scalable</span> <span>Image</span>
-<span>Generation</span>.”</span> arXiv. <a
+<span>Generation</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2406.06525">https://doi.org/10.48550/arXiv.2406.06525</a>.
 </div>
 <div id="ref-sutskever_sequence_2014" class="csl-entry" role="listitem">
-Sutskever, Ilya, Oriol Vinyals, and Quoc V. Le. 2014. <span>“Sequence to
-Sequence Learning with Neural Networks.”</span> In <em>Advances in
+Sutskever, Ilya, Oriol Vinyals, and Quoc V. Le. 2014. <span>"Sequence to
+Sequence Learning with Neural Networks."</span> In <em>Advances in
 Neural Information Processing Systems (NeurIPS)</em>. <a
 href="https://arxiv.org/abs/1409.3215">https://arxiv.org/abs/1409.3215</a>.
 </div>
 <div id="ref-team_gemini_2025" class="csl-entry" role="listitem">
 Team, Gemini, Rohan Anil, Sebastian Borgeaud, Jean-Baptiste Alayrac,
-Jiahui Yu, Radu Soricut, Johan Schalkwyk, et al. 2023. <span>“Gemini:
+Jiahui Yu, Radu Soricut, Johan Schalkwyk, et al. 2023. <span>"Gemini:
 <span>A</span> <span>Family</span> of <span>Highly</span>
 <span>Capable</span> <span>Multimodal</span>
-<span>Models</span>.”</span> arXiv. <a
+<span>Models</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2312.11805">https://doi.org/10.48550/arXiv.2312.11805</a>.
 </div>
 <div id="ref-team_gemini_2024" class="csl-entry" role="listitem">
 Team, Gemini, Petko Georgiev, Ving Ian Lei, Ryan Burnell, Libin Bai,
-Anmol Gulati, Garrett Tanzer, et al. 2024. <span>“Gemini 1.5:
+Anmol Gulati, Garrett Tanzer, et al. 2024. <span>"Gemini 1.5:
 <span>Unlocking</span> Multimodal Understanding Across Millions of
-Tokens of Context.”</span> arXiv. <a
+Tokens of Context."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2403.05530">https://doi.org/10.48550/arXiv.2403.05530</a>.
 </div>
 <div id="ref-tian_visual_2024" class="csl-entry" role="listitem">
 Tian, Keyu, Yi Jiang, Zehuan Yuan, Bingyue Peng, and Liwei Wang. 2024.
-<span>“Visual <span>Autoregressive</span> <span>Modeling</span>:
+<span>"Visual <span>Autoregressive</span> <span>Modeling</span>:
 <span>Scalable</span> <span>Image</span> <span>Generation</span> via
-<span>Next</span>-<span>Scale</span> <span>Prediction</span>.”</span> In
+<span>Next</span>-<span>Scale</span> <span>Prediction</span>."</span> In
 <em>Advances in Neural Information Processing Systems</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.2404.02905">https://doi.org/10.48550/arXiv.2404.02905</a>.
 </div>
 <div id="ref-vahdat_nvae_2021" class="csl-entry" role="listitem">
-Vahdat, Arash, and Jan Kautz. 2020. <span>“<span>NVAE</span>:
+Vahdat, Arash, and Jan Kautz. 2020. <span>"<span>NVAE</span>:
 <span>A</span> <span>Deep</span> <span>Hierarchical</span>
-<span>Variational</span> <span>Autoencoder</span>.”</span> In
+<span>Variational</span> <span>Autoencoder</span>."</span> In
 <em>Advances in Neural Information Processing Systems</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.2007.03898">https://doi.org/10.48550/arXiv.2007.03898</a>.
 </div>
 <div id="ref-villegas_phenaki_2022" class="csl-entry" role="listitem">
 Villegas, Ruben, Mohammad Babaeizadeh, Pieter-Jan Kindermans, Hernan
 Moraldo, Han Zhang, Mohammad Taghi Saffar, Santiago Castro, Julius
-Kunze, and Dumitru Erhan. 2023. <span>“Phenaki: <span>Variable</span>
+Kunze, and Dumitru Erhan. 2023. <span>"Phenaki: <span>Variable</span>
 <span>Length</span> <span>Video</span> <span>Generation</span>
 <span>From</span> <span>Open</span> <span>Domain</span>
-<span>Textual</span> <span>Description</span>.”</span> In
+<span>Textual</span> <span>Description</span>."</span> In
 <em>International Conference on Learning Representations</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.2210.02399">https://doi.org/10.48550/arXiv.2210.02399</a>.
 </div>
 <div id="ref-vincent_extracting_2008" class="csl-entry" role="listitem">
 Vincent, Pascal, Hugo Larochelle, Yoshua Bengio, and Pierre-Antoine
-Manzagol. 2008. <span>“Extracting and Composing Robust Features with
-Denoising Autoencoders.”</span> In <em>International Conference on
+Manzagol. 2008. <span>"Extracting and Composing Robust Features with
+Denoising Autoencoders."</span> In <em>International Conference on
 Machine Learning (<span>ICML</span>)</em>.
 </div>
 <div id="ref-voleti_mcvd_2022" class="csl-entry" role="listitem">
 Voleti, Vikram, Alexia Jolicoeur-Martineau, and Christopher Pal. 2022.
-<span>“<span>MCVD</span>: <span>Masked</span> <span>Conditional</span>
+<span>"<span>MCVD</span>: <span>Masked</span> <span>Conditional</span>
 <span>Video</span> <span>Diffusion</span> for <span>Prediction</span>,
-<span>Generation</span>, and <span>Interpolation</span>.”</span> In
+<span>Generation</span>, and <span>Interpolation</span>."</span> In
 <em>Advances in Neural Information Processing Systems</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.2205.09853">https://doi.org/10.48550/arXiv.2205.09853</a>.
 </div>
 <div id="ref-wang_cogvlm_2024" class="csl-entry" role="listitem">
 Wang, Weihan, Qingsong Lv, Wenmeng Yu, Wenyi Hong, Ji Qi, Yan Wang,
-Junhui Ji, et al. 2024. <span>“<span>CogVLM</span>: <span>Visual</span>
+Junhui Ji, et al. 2024. <span>"<span>CogVLM</span>: <span>Visual</span>
 <span>Expert</span> for <span>Pretrained</span> <span>Language</span>
-<span>Models</span>.”</span> arXiv. <a
+<span>Models</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2311.03079">https://doi.org/10.48550/arXiv.2311.03079</a>.
 </div>
 <div id="ref-zhou_semantic_2025" class="csl-entry" role="listitem">
 Wang, Weilun, Jianmin Bao, Wengang Zhou, Dongdong Chen, Dong Chen, Lu
-Yuan, and Houqiang Li. 2023. <span>“Semantic <span>Image</span>
+Yuan, and Houqiang Li. 2023. <span>"Semantic <span>Image</span>
 <span>Synthesis</span> via <span>Diffusion</span>
-<span>Models</span>.”</span> arXiv. <a
+<span>Models</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2207.00050">https://doi.org/10.48550/arXiv.2207.00050</a>.
 </div>
 <div id="ref-xue_xgen-mm_2025" class="csl-entry" role="listitem">
 Xue, Le, Manli Shu, Anas Awadalla, Jun Wang, An Yan, Senthil
-Purushwalkam, Honglu Zhou, et al. 2024. <span>“<span
+Purushwalkam, Honglu Zhou, et al. 2024. <span>"<span
 class="nocase">xGen</span>-<span>MM</span> (<span>BLIP</span>-3):
 <span>A</span> <span>Family</span> of <span>Open</span>
-<span>Large</span> <span>Multimodal</span> <span>Models</span>.”</span>
+<span>Large</span> <span>Multimodal</span> <span>Models</span>."</span>
 arXiv. <a
 href="https://doi.org/10.48550/arXiv.2408.08872">https://doi.org/10.48550/arXiv.2408.08872</a>.
 </div>
 <div id="ref-yan_videogpt_2021" class="csl-entry" role="listitem">
 Yan, Wilson, Yunzhi Zhang, Pieter Abbeel, and Aravind Srinivas. 2021.
-<span>“<span>VideoGPT</span>: <span>Video</span> <span>Generation</span>
+<span>"<span>VideoGPT</span>: <span>Video</span> <span>Generation</span>
 Using <span>VQ</span>-<span>VAE</span> and
-<span>Transformers</span>.”</span> arXiv. <a
+<span>Transformers</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2104.10157">https://doi.org/10.48550/arXiv.2104.10157</a>.
 </div>
 <div id="ref-yang_chinese_2023" class="csl-entry" role="listitem">
 Yang, An, Junshu Pan, Junyang Lin, Rui Men, Yichang Zhang, Jingren Zhou,
-and Chang Zhou. 2023. <span>“Chinese <span>CLIP</span>:
+and Chang Zhou. 2023. <span>"Chinese <span>CLIP</span>:
 <span>Contrastive</span> <span>Vision</span>-<span>Language</span>
-<span>Pretraining</span> in <span>Chinese</span>.”</span> arXiv. <a
+<span>Pretraining</span> in <span>Chinese</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2211.01335">https://doi.org/10.48550/arXiv.2211.01335</a>.
 </div>
 <div id="ref-yu_scaling_2022" class="csl-entry" role="listitem">
 Yu, Jiahui, Yuanzhong Xu, Jing Yu Koh, Thang Luong, Gunjan Baid, Zirui
-Wang, Vijay Vasudevan, et al. 2022. <span>“Scaling
+Wang, Vijay Vasudevan, et al. 2022. <span>"Scaling
 <span>Autoregressive</span> <span>Models</span> for
 <span>Content</span>-<span>Rich</span>
-<span>Text</span>-to-<span>Image</span> <span>Generation</span>.”</span>
+<span>Text</span>-to-<span>Image</span> <span>Generation</span>."</span>
 arXiv. <a
 href="https://doi.org/10.48550/arXiv.2206.10789">https://doi.org/10.48550/arXiv.2206.10789</a>.
 </div>
 <div id="ref-yuan_tinygpt-v_2024" class="csl-entry" role="listitem">
 Yuan, Zhengqing, Zhaoxu Li, Weiran Huang, Yanfang Ye, and Lichao Sun.
-2024. <span>“<span>TinyGPT</span>-<span>V</span>: <span>Efficient</span>
+2024. <span>"<span>TinyGPT</span>-<span>V</span>: <span>Efficient</span>
 <span>Multimodal</span> <span>Large</span> <span>Language</span>
 <span>Model</span> via <span>Small</span>
-<span>Backbones</span>.”</span> arXiv. <a
+<span>Backbones</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2312.16862">https://doi.org/10.48550/arXiv.2312.16862</a>.
 </div>
 <div id="ref-zhai_scaling_2022" class="csl-entry" role="listitem">
 Zhai, Xiaohua, Alexander Kolesnikov, Neil Houlsby, and Lucas Beyer.
-2022. <span>“Scaling <span>Vision</span>
-<span>Transformers</span>.”</span> In <em>IEEE/CVF Conference on
+2022. <span>"Scaling <span>Vision</span>
+<span>Transformers</span>."</span> In <em>IEEE/CVF Conference on
 Computer Vision and Pattern Recognition (CVPR)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.2106.04560">https://doi.org/10.48550/arXiv.2106.04560</a>.
 </div>
 <div id="ref-zhai_sigmoid_2023" class="csl-entry" role="listitem">
 Zhai, Xiaohua, Basil Mustafa, Alexander Kolesnikov, and Lucas Beyer.
-2023. <span>“Sigmoid <span>Loss</span> for <span>Language</span>
-<span>Image</span> <span>Pre</span>-<span>Training</span>.”</span>
+2023. <span>"Sigmoid <span>Loss</span> for <span>Language</span>
+<span>Image</span> <span>Pre</span>-<span>Training</span>."</span>
 arXiv. <a
 href="https://doi.org/10.48550/arXiv.2303.15343">https://doi.org/10.48550/arXiv.2303.15343</a>.
 </div>
 <div id="ref-zhang_adding_2023" class="csl-entry" role="listitem">
-Zhang, Lvmin, Anyi Rao, and Maneesh Agrawala. 2023. <span>“Adding
+Zhang, Lvmin, Anyi Rao, and Maneesh Agrawala. 2023. <span>"Adding
 <span>Conditional</span> <span>Control</span> to
 <span>Text</span>-to-<span>Image</span> <span>Diffusion</span>
-<span>Models</span>.”</span> arXiv. <a
+<span>Models</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2302.05543">https://doi.org/10.48550/arXiv.2302.05543</a>.
 </div>
 <div id="ref-zhu_llava-phi_2024" class="csl-entry" role="listitem">
 Zhu, Yichen, Minjie Zhu, Ning Liu, Zhicai Ou, Xiaofeng Mou, and Jian
-Tang. 2024. <span>“<span>LLaVA</span>-<span>Phi</span>:
+Tang. 2024. <span>"<span>LLaVA</span>-<span>Phi</span>:
 <span>Efficient</span> <span>Multi</span>-<span>Modal</span>
 <span>Assistant</span> with <span>Small</span> <span>Language</span>
-<span>Model</span>.”</span> arXiv. <a
+<span>Model</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2401.02330">https://doi.org/10.48550/arXiv.2401.02330</a>.
 </div>
 <div id="ref-zhuang_vargpt_2025" class="csl-entry" role="listitem">
 Zhuang, Xianwei, Yuxin Xie, Yufan Deng, Liming Liang, Jinghan Ru, Yuguo
-Yin, and Yuexian Zou. 2025. <span>“<span>VARGPT</span>:
+Yin, and Yuexian Zou. 2025. <span>"<span>VARGPT</span>:
 <span>Unified</span> <span>Understanding</span> and
 <span>Generation</span> in a <span>Visual</span>
 <span>Autoregressive</span> <span>Multimodal</span> <span>Large</span>
-<span>Language</span> <span>Model</span>.”</span> arXiv. <a
+<span>Language</span> <span>Model</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2501.12327">https://doi.org/10.48550/arXiv.2501.12327</a>.
 </div>
 </div>

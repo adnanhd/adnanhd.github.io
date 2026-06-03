@@ -12,7 +12,7 @@
         <div class="blog-page">
             <a href="../../index.html" class="blog-back">&larr; Back to home</a>
             <h1>Reinforcement Learning</h1>
-            <div class="blog-meta">A survey of 30+ RL models — from REINFORCE to MuZero and DPO</div>
+            <div class="blog-meta">A survey of 30+ RL models - from REINFORCE to MuZero and DPO</div>
             <article class="blog-body">
 <p><u>Policy optimization directly parameterizes and optimizes the
 policy function, contrasting with value-based methods that derive
@@ -252,11 +252,11 @@ data-cites="williams_simple_1992">(Williams 1992)</span></td>
 <td>log-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi><mo>⋅</mo><msub><mi>G</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">\pi \cdot G_t</annotation></semantics></math>
 (MC, no baseline)</td>
 <td>Cart-pole</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
 </tr>
 <tr>
 <td>PG theorem <span
@@ -267,11 +267,11 @@ al. 1999)</span></td>
 <td>log-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi><mo>⋅</mo><msup><mi>Q</mi><mi>π</mi></msup></mrow><annotation encoding="application/x-tex">\pi \cdot Q^\pi</annotation></semantics></math>
 (compatible)</td>
 <td>Theoretical</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
 </tr>
 <tr>
 <td>Natural PG <span
@@ -282,11 +282,11 @@ class="citation" data-cites="kakade_natural_2001">(Kakade
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mi>∇</mi><mi>J</mi></mrow><annotation encoding="application/x-tex">F^{-1} \nabla J</annotation></semantics></math>,
 Tetris linear</td>
 <td>Tetris</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
 <td>~6000 lines</td>
-<td>–</td>
+<td> - </td>
 </tr>
 <tr>
 <td>Deterministic PG <span class="citation"
@@ -296,11 +296,11 @@ data-cites="silver_deterministic_2014">(Silver et al. 2014)</span></td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>∇</mi><mi>a</mi></msub><mi>Q</mi><msub><mi>∇</mi><mi>θ</mi></msub><mi>μ</mi></mrow><annotation encoding="application/x-tex">\nabla_a Q \nabla_\theta \mu</annotation></semantics></math>
 (det.)</td>
 <td>Octopus arm</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
 </tr>
 <tr>
 <td>Natural AC <span
@@ -311,11 +311,11 @@ class="citation" data-cites="peters_natural_2008">(Peters and Schaal
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>F</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mi>∇</mi><mi>J</mi></mrow><annotation encoding="application/x-tex">F^{-1} \nabla J</annotation></semantics></math>,
 LSTD-Q(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>)</td>
 <td>Robotics</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
 <td>~200 ep.</td>
-<td>–</td>
+<td> - </td>
 </tr>
 <tr>
 <td>DQN <span class="citation" data-cites="mnih_human_2015">(Mnih et al.
@@ -326,8 +326,8 @@ LSTD-Q(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semant
 replay</td>
 <td>Atari</td>
 <td>79</td>
-<td>–</td>
-<td>–</td>
+<td> - </td>
+<td> - </td>
 <td>200M frames</td>
 <td>8 days GPU</td>
 </tr>
@@ -341,9 +341,9 @@ data-cites="schulman_high-dimensional_2018">(Schulman et al.
 +
 GAE(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>=0.96)</td>
 <td>MuJoCo</td>
-<td>–</td>
+<td> - </td>
 <td>~4800</td>
-<td>–</td>
+<td> - </td>
 <td>1M steps</td>
 <td>~1 day</td>
 </tr>
@@ -355,9 +355,9 @@ data-cites="schulman_trust_2017">(Schulman et al. 2015)</span></td>
 <td>KL-TRPO(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>=0.01)
 CG+line-search</td>
 <td>MuJoCo</td>
-<td>–</td>
+<td> - </td>
 <td>~4500</td>
-<td>–</td>
+<td> - </td>
 <td>1M steps</td>
 <td>~1 day</td>
 </tr>
@@ -370,9 +370,9 @@ data-cites="mnih_asynchronous_2016">(Mnih et al. 2016)</span></td>
 + V-MSE, async</td>
 <td>Atari</td>
 <td>344</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
 <td>4 days CPU</td>
 </tr>
 <tr>
@@ -382,11 +382,11 @@ al. 2017)</span></td>
 <td>off-policy MF</td>
 <td>trunc.IS + bias-correct, replay</td>
 <td>Atari</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
 </tr>
 <tr>
 <td>ACKTR <span class="citation" data-cites="wu_scalable_2017">(Wu et
@@ -397,11 +397,11 @@ al. 2017)</span></td>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>F</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">F^{-1}</annotation></semantics></math>,
 KL(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>=10<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mrow><mi>−</mi><mn>3</mn></mrow></msup><annotation encoding="application/x-tex">^{-3}</annotation></semantics></math>)</td>
 <td>MuJoCo</td>
-<td>–</td>
+<td> - </td>
 <td>~4900</td>
-<td>–</td>
+<td> - </td>
 <td>1M steps</td>
-<td>–</td>
+<td> - </td>
 </tr>
 <tr>
 <td>PPO <span class="citation"
@@ -413,7 +413,7 @@ GAE(0.95)</td>
 <td>MuJoCo+Atari</td>
 <td>250*</td>
 <td>~5800</td>
-<td>–</td>
+<td> - </td>
 <td>1M steps</td>
 <td>~hours GPU</td>
 </tr>
@@ -426,11 +426,11 @@ data-cites="lillicrap_continuous_2019">(Lillicrap et al.
 <td>Bellman-Q(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>=0.99),
 OU-noise</td>
 <td>MuJoCo</td>
-<td>–</td>
+<td> - </td>
 <td>~3300</td>
-<td>–</td>
+<td> - </td>
 <td>1M steps</td>
-<td>–</td>
+<td> - </td>
 </tr>
 <tr>
 <td>TD3 <span class="citation"
@@ -440,11 +440,11 @@ data-cites="fujimoto_addressing_2018">(Fujimoto, Hoof, and Meger
 <td>off-policy MF</td>
 <td>clipped 2Q + delay(d=2) + target-smooth</td>
 <td>MuJoCo</td>
-<td>–</td>
+<td> - </td>
 <td>~9500</td>
-<td>–</td>
+<td> - </td>
 <td>1M steps</td>
-<td>–</td>
+<td> - </td>
 </tr>
 <tr>
 <td>SAC <span class="citation"
@@ -454,11 +454,11 @@ data-cites="haarnoja_soft_2019">(Haarnoja et al. 2019)</span></td>
 <td>Bellman-Q +
 entropy(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>=auto)</td>
 <td>MuJoCo+DMC</td>
-<td>–</td>
+<td> - </td>
 <td>~11000</td>
 <td>~770</td>
 <td>1M steps</td>
-<td>–</td>
+<td> - </td>
 </tr>
 <tr>
 <td>IMPALA <span class="citation"
@@ -469,8 +469,8 @@ data-cites="espeholt_impala_2018">(Espeholt et al. 2018)</span></td>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>c</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar c</annotation></semantics></math>=1)</td>
 <td>DMLab+Atari</td>
 <td>191.8</td>
-<td>–</td>
-<td>–</td>
+<td> - </td>
+<td> - </td>
 <td>10B frames</td>
 <td>hours, 1k CPUs</td>
 </tr>
@@ -483,8 +483,8 @@ data-cites="kapturowski_recurrent_2018">(Kapturowski et al.
 <td>n-step Bellman + LSTM, prioritised replay</td>
 <td>Atari</td>
 <td>1920</td>
-<td>–</td>
-<td>–</td>
+<td> - </td>
+<td> - </td>
 <td>10B frames</td>
 <td>5 days, 256 actors</td>
 </tr>
@@ -496,8 +496,8 @@ data-cites="badia_agent57_2020">(Badia et al. 2020)</span></td>
 <td>NGU intrinsic + meta-controller</td>
 <td>Atari</td>
 <td>superhuman 57/57</td>
-<td>–</td>
-<td>–</td>
+<td> - </td>
+<td> - </td>
 <td>80B frames</td>
 <td>weeks, distrib.</td>
 </tr>
@@ -508,9 +508,9 @@ data-cites="silver_mastering_2017">(Silver et al. 2017)</span></td>
 <td>model-based</td>
 <td>MCTS(N=1600) + self-play CE</td>
 <td>Go</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
 <td>4.9M games</td>
 <td>40 days, 64 GPU</td>
 </tr>
@@ -523,8 +523,8 @@ data-cites="schrittwieser_mastering_2020">(Schrittwieser et al.
 <td>MCTS(N=50) + learned dynamics</td>
 <td>Atari+Go</td>
 <td>731 (mean)</td>
-<td>–</td>
-<td>–</td>
+<td> - </td>
+<td> - </td>
 <td>20B frames</td>
 <td>12 hours TPU</td>
 </tr>
@@ -549,11 +549,11 @@ data-cites="kumar_conservative_2020">(Kumar et al. 2020)</span></td>
 <td>CQL(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>=1)
 lower-bound + Bellman-Q</td>
 <td>D4RL+Adroit</td>
-<td>–</td>
+<td> - </td>
 <td>41.1 (medium)*</td>
-<td>–</td>
+<td> - </td>
 <td>offline</td>
-<td>–</td>
+<td> - </td>
 </tr>
 <tr>
 <td>IQL <span class="citation"
@@ -564,11 +564,11 @@ data-cites="kostrikov_offline_2022">(Kostrikov, Nair, and Levine
 <td>expectile(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>=0.7)
 + AWR</td>
 <td>D4RL</td>
-<td>–</td>
+<td> - </td>
 <td>47.4 (medium)*</td>
-<td>–</td>
+<td> - </td>
 <td>offline</td>
-<td>–</td>
+<td> - </td>
 </tr>
 <tr>
 <td>Decision Transformer <span
@@ -578,11 +578,11 @@ class="citation" data-cites="chen_decision_2021">(Chen et al.
 <td>offline</td>
 <td>seq-CE return-conditioned</td>
 <td>D4RL+Atari</td>
-<td>–</td>
+<td> - </td>
 <td>42.6 (medium)*</td>
-<td>–</td>
+<td> - </td>
 <td>offline</td>
-<td>–</td>
+<td> - </td>
 </tr>
 <tr>
 <td>GRPO <span class="citation"
@@ -591,11 +591,11 @@ data-cites="shao_deepseekmath_2024">(Shao et al. 2024)</span></td>
 <td>on-policy</td>
 <td>clip-PPO + KL + group-rel. baseline</td>
 <td>LLM math</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
 </tr>
 <tr>
 <td>DPO <span class="citation"
@@ -605,11 +605,11 @@ data-cites="rafailov_direct_2024">(Rafailov et al. 2023)</span></td>
 <td>Bradley-Terry implicit
 (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>=0.1)</td>
 <td>LLM align.</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
 <td>offline</td>
-<td>–</td>
+<td> - </td>
 </tr>
 </tbody>
 </table></div>
@@ -720,8 +720,8 @@ reward-model overfitting).</p>
 data-entry-spacing="0" role="list">
 <div id="ref-agarwal_precipice_2021" class="csl-entry" role="listitem">
 Agarwal, Rishabh, Max Schwarzer, Pablo Samuel Castro, Aaron Courville,
-and Marc G. Bellemare. 2021. <span>“Deep Reinforcement Learning at the
-Edge of the Statistical Precipice.”</span> In <em>Advances in Neural
+and Marc G. Bellemare. 2021. <span>"Deep Reinforcement Learning at the
+Edge of the Statistical Precipice."</span> In <em>Advances in Neural
 Information Processing Systems (NeurIPS)</em>. <a
 href="https://arxiv.org/abs/2108.13264">https://arxiv.org/abs/2108.13264</a>.
 </div>
@@ -729,149 +729,149 @@ href="https://arxiv.org/abs/2108.13264">https://arxiv.org/abs/2108.13264</a>.
 role="listitem">
 Andrychowicz, Marcin, Filip Wolski, Alex Ray, Jonas Schneider, Rachel
 Fong, Peter Welinder, Bob McGrew, Josh Tobin, Pieter Abbeel, and
-Wojciech Zaremba. 2017. <span>“Hindsight Experience Replay.”</span> In
+Wojciech Zaremba. 2017. <span>"Hindsight Experience Replay."</span> In
 <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a
 href="https://arxiv.org/abs/1707.01495">https://arxiv.org/abs/1707.01495</a>.
 </div>
 <div id="ref-badia_agent57_2020" class="csl-entry" role="listitem">
 Badia, Adrià Puigdomènech, Bilal Piot, Steven Kapturowski, Pablo
 Sprechmann, Alex Vitvitskyi, Daniel Guo, and Charles Blundell. 2020.
-<span>“Agent57: <span>Outperforming</span> the <span>Atari</span>
-<span>Human</span> <span>Benchmark</span>.”</span> arXiv. <a
+<span>"Agent57: <span>Outperforming</span> the <span>Atari</span>
+<span>Human</span> <span>Benchmark</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2003.13350">https://doi.org/10.48550/arXiv.2003.13350</a>.
 </div>
 <div id="ref-chen_decision_2021" class="csl-entry" role="listitem">
 Chen, Lili, Kevin Lu, Aravind Rajeswaran, Kimin Lee, Aditya Grover,
 Michael Laskin, Pieter Abbeel, Aravind Srinivas, and Igor Mordatch.
-2021. <span>“Decision <span>Transformer</span>:
+2021. <span>"Decision <span>Transformer</span>:
 <span>Reinforcement</span> <span>Learning</span> via
-<span>Sequence</span> <span>Modeling</span>.”</span> arXiv. <a
+<span>Sequence</span> <span>Modeling</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2106.01345">https://doi.org/10.48550/arXiv.2106.01345</a>.
 </div>
 <div id="ref-engstrom_implementation_2020" class="csl-entry"
 role="listitem">
 Engstrom, Logan, Andrew Ilyas, Shibani Santurkar, Dimitris Tsipras,
 Firdaus Janoos, Larry Rudolph, and Aleksander Madry. 2020.
-<span>“Implementation <span>Matters</span> in <span>Deep</span>
+<span>"Implementation <span>Matters</span> in <span>Deep</span>
 <span>Policy</span> <span>Gradients</span>: <span>A</span>
 <span>Case</span> <span>Study</span> on <span>PPO</span> and
-<span>TRPO</span>.”</span> arXiv. <a
+<span>TRPO</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2005.12729">https://doi.org/10.48550/arXiv.2005.12729</a>.
 </div>
 <div id="ref-espeholt_impala_2018" class="csl-entry" role="listitem">
 Espeholt, Lasse, Hubert Soyer, Remi Munos, Karen Simonyan, Volodymir
-Mnih, Tom Ward, Yotam Doron, et al. 2018. <span>“<span>IMPALA</span>:
+Mnih, Tom Ward, Yotam Doron, et al. 2018. <span>"<span>IMPALA</span>:
 <span>Scalable</span> <span>Distributed</span>
 <span>Deep</span>-<span>RL</span> with <span>Importance</span>
 <span>Weighted</span> <span>Actor</span>-<span>Learner</span>
-<span>Architectures</span>.”</span> arXiv. <a
+<span>Architectures</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.1802.01561">https://doi.org/10.48550/arXiv.1802.01561</a>.
 </div>
 <div id="ref-fujimoto_addressing_2018" class="csl-entry"
 role="listitem">
 Fujimoto, Scott, Herke van Hoof, and David Meger. 2018.
-<span>“Addressing <span>Function</span> <span>Approximation</span>
+<span>"Addressing <span>Function</span> <span>Approximation</span>
 <span>Error</span> in <span>Actor</span>-<span>Critic</span>
-<span>Methods</span>.”</span> arXiv. <a
+<span>Methods</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.1802.09477">https://doi.org/10.48550/arXiv.1802.09477</a>.
 </div>
 <div id="ref-haarnoja_soft_2018" class="csl-entry" role="listitem">
 Haarnoja, Tuomas, Aurick Zhou, Pieter Abbeel, and Sergey Levine. 2018.
-<span>“Soft <span>Actor</span>-<span>Critic</span>:
+<span>"Soft <span>Actor</span>-<span>Critic</span>:
 <span>Off</span>-<span>Policy</span> <span>Maximum</span>
 <span>Entropy</span> <span>Deep</span> <span>Reinforcement</span>
 <span>Learning</span> with a <span>Stochastic</span>
-<span>Actor</span>.”</span> arXiv. <a
+<span>Actor</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.1801.01290">https://doi.org/10.48550/arXiv.1801.01290</a>.
 </div>
 <div id="ref-haarnoja_soft_2019" class="csl-entry" role="listitem">
 Haarnoja, Tuomas, Aurick Zhou, Kristian Hartikainen, George Tucker,
-Sehoon Ha, Jie Tan, Vikash Kumar, et al. 2019. <span>“Soft
+Sehoon Ha, Jie Tan, Vikash Kumar, et al. 2019. <span>"Soft
 <span>Actor</span>-<span>Critic</span> <span>Algorithms</span> and
-<span>Applications</span>.”</span> arXiv. <a
+<span>Applications</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.1812.05905">https://doi.org/10.48550/arXiv.1812.05905</a>.
 </div>
 <div id="ref-hafner_mastering_2022" class="csl-entry" role="listitem">
 Hafner, Danijar, Timothy Lillicrap, Mohammad Norouzi, and Jimmy Ba.
-2022. <span>“Mastering <span>Atari</span> with <span>Discrete</span>
-<span>World</span> <span>Models</span>.”</span> arXiv. <a
+2022. <span>"Mastering <span>Atari</span> with <span>Discrete</span>
+<span>World</span> <span>Models</span>."</span> arXiv. <a
 href="http://arxiv.org/abs/2010.02193">http://arxiv.org/abs/2010.02193</a>.
 </div>
 <div id="ref-hafner_mastering_2023" class="csl-entry" role="listitem">
 Hafner, Danijar, Jurgis Pasukonis, Jimmy Ba, and Timothy Lillicrap.
-2023. <span>“Mastering <span>Diverse</span> <span>Domains</span> Through
-<span>World</span> <span>Models</span>.”</span> arXiv. <a
+2023. <span>"Mastering <span>Diverse</span> <span>Domains</span> Through
+<span>World</span> <span>Models</span>."</span> arXiv. <a
 href="http://arxiv.org/abs/2301.04104">http://arxiv.org/abs/2301.04104</a>.
 </div>
 <div id="ref-hessel_rainbow_2018" class="csl-entry" role="listitem">
 Hessel, Matteo, Joseph Modayil, Hado van Hasselt, Tom Schaul, Georg
 Ostrovski, Will Dabney, Dan Horgan, Bilal Piot, Mohammad Gheshlaghi
-Azar, and David Silver. 2018. <span>“Rainbow: Combining Improvements in
-Deep Reinforcement Learning.”</span> In <em>Proceedings of the AAAI
+Azar, and David Silver. 2018. <span>"Rainbow: Combining Improvements in
+Deep Reinforcement Learning."</span> In <em>Proceedings of the AAAI
 Conference on Artificial Intelligence</em>. <a
 href="https://arxiv.org/abs/1710.02298">https://arxiv.org/abs/1710.02298</a>.
 </div>
 <div id="ref-kakade_natural_2001" class="csl-entry" role="listitem">
-Kakade, Sham M. 2001. <span>“A <span>Natural</span> <span>Policy</span>
-<span>Gradient</span>.”</span>
+Kakade, Sham M. 2001. <span>"A <span>Natural</span> <span>Policy</span>
+<span>Gradient</span>."</span>
 </div>
 <div id="ref-kapturowski_recurrent_2018" class="csl-entry"
 role="listitem">
 Kapturowski, Steven, Georg Ostrovski, John Quan, Remi Munos, and Will
-Dabney. 2018. <span>“Recurrent <span>Experience</span>
+Dabney. 2018. <span>"Recurrent <span>Experience</span>
 <span>Replay</span> in <span>Distributed</span>
-<span>Reinforcement</span> <span>Learning</span>.”</span> In. <a
+<span>Reinforcement</span> <span>Learning</span>."</span> In. <a
 href="https://openreview.net/forum?id=r1lyTjAqYX">https://openreview.net/forum?id=r1lyTjAqYX</a>.
 </div>
 <div id="ref-kostrikov_offline_2022" class="csl-entry" role="listitem">
-Kostrikov, Ilya, Ashvin Nair, and Sergey Levine. 2022. <span>“Offline
+Kostrikov, Ilya, Ashvin Nair, and Sergey Levine. 2022. <span>"Offline
 <span>Reinforcement</span> <span>Learning</span> with
-<span>Implicit</span> <span>Q</span>-<span>Learning</span>.”</span> In
+<span>Implicit</span> <span>Q</span>-<span>Learning</span>."</span> In
 <em>International Conference on Learning Representations</em>. <a
 href="http://arxiv.org/abs/2110.06169">http://arxiv.org/abs/2110.06169</a>.
 </div>
 <div id="ref-kumar_conservative_2020" class="csl-entry" role="listitem">
 Kumar, Aviral, Aurick Zhou, George Tucker, and Sergey Levine. 2020.
-<span>“Conservative <span>Q</span>-<span>Learning</span> for
+<span>"Conservative <span>Q</span>-<span>Learning</span> for
 <span>Offline</span> <span>Reinforcement</span>
-<span>Learning</span>.”</span> arXiv. <a
+<span>Learning</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2006.04779">https://doi.org/10.48550/arXiv.2006.04779</a>.
 </div>
 <div id="ref-lillicrap_continuous_2019" class="csl-entry"
 role="listitem">
 Lillicrap, Timothy P., Jonathan J. Hunt, Alexander Pritzel, Nicolas
 Heess, Tom Erez, Yuval Tassa, David Silver, and Daan Wierstra. 2019.
-<span>“Continuous Control with Deep Reinforcement Learning.”</span>
+<span>"Continuous Control with Deep Reinforcement Learning."</span>
 arXiv. <a
 href="https://doi.org/10.48550/arXiv.1509.02971">https://doi.org/10.48550/arXiv.1509.02971</a>.
 </div>
 <div id="ref-mnih_asynchronous_2016" class="csl-entry" role="listitem">
 Mnih, Volodymyr, Adrià Puigdomènech Badia, Mehdi Mirza, Alex Graves,
 Timothy P. Lillicrap, Tim Harley, David Silver, and Koray Kavukcuoglu.
-2016. <span>“Asynchronous <span>Methods</span> for <span>Deep</span>
-<span>Reinforcement</span> <span>Learning</span>.”</span> arXiv. <a
+2016. <span>"Asynchronous <span>Methods</span> for <span>Deep</span>
+<span>Reinforcement</span> <span>Learning</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.1602.01783">https://doi.org/10.48550/arXiv.1602.01783</a>.
 </div>
 <div id="ref-mnih_human_2015" class="csl-entry" role="listitem">
 Mnih, Volodymyr, Koray Kavukcuoglu, David Silver, Andrei A. Rusu, Joel
-Veness, Marc G. Bellemare, Alex Graves, et al. 2015. <span>“Human-Level
-Control Through Deep Reinforcement Learning.”</span> <em>Nature</em>. <a
+Veness, Marc G. Bellemare, Alex Graves, et al. 2015. <span>"Human-Level
+Control Through Deep Reinforcement Learning."</span> <em>Nature</em>. <a
 href="https://doi.org/10.1038/nature14236">https://doi.org/10.1038/nature14236</a>.
 </div>
 <div id="ref-peters_natural_2008" class="csl-entry" role="listitem">
-Peters, Jan, and Stefan Schaal. 2008. <span>“Natural
-<span>Actor</span>-<span>Critic</span>.”</span> <em>Neurocomputing</em>,
+Peters, Jan, and Stefan Schaal. 2008. <span>"Natural
+<span>Actor</span>-<span>Critic</span>."</span> <em>Neurocomputing</em>,
 Progress in <span>Modeling</span>, <span>Theory</span>, and
 <span>Application</span> of <span>Computational</span>
-<span>Intelligenc</span>, 71 (7): 1180–90. <a
+<span>Intelligenc</span>, 71 (7): 1180-90. <a
 href="https://doi.org/10.1016/j.neucom.2007.11.026">https://doi.org/10.1016/j.neucom.2007.11.026</a>.
 </div>
 <div id="ref-rafailov_direct_2024" class="csl-entry" role="listitem">
 Rafailov, Rafael, Archit Sharma, Eric Mitchell, Stefano Ermon,
-Christopher D. Manning, and Chelsea Finn. 2023. <span>“Direct
+Christopher D. Manning, and Chelsea Finn. 2023. <span>"Direct
 <span>Preference</span> <span>Optimization</span>: <span>Your</span>
 <span>Language</span> <span>Model</span> Is <span>Secretly</span> a
-<span>Reward</span> <span>Model</span>.”</span> In <em>Advances in
+<span>Reward</span> <span>Model</span>."</span> In <em>Advances in
 Neural Information Processing Systems (NeurIPS)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.2305.18290">https://doi.org/10.48550/arXiv.2305.18290</a>.
 </div>
@@ -879,105 +879,105 @@ href="https://doi.org/10.48550/arXiv.2305.18290">https://doi.org/10.48550/arXiv.
 role="listitem">
 Schrittwieser, Julian, Ioannis Antonoglou, Thomas Hubert, Karen
 Simonyan, Laurent Sifre, Simon Schmitt, Arthur Guez, et al. 2020.
-<span>“Mastering <span>Atari</span>, <span>Go</span>, <span>Chess</span>
+<span>"Mastering <span>Atari</span>, <span>Go</span>, <span>Chess</span>
 and <span>Shogi</span> by <span>Planning</span> with a
-<span>Learned</span> <span>Model</span>.”</span> <em>Nature</em> 588
-(7839): 604–9. <a
+<span>Learned</span> <span>Model</span>."</span> <em>Nature</em> 588
+(7839): 604-9. <a
 href="https://doi.org/10.1038/s41586-020-03051-4">https://doi.org/10.1038/s41586-020-03051-4</a>.
 </div>
 <div id="ref-schulman_trust_2017" class="csl-entry" role="listitem">
 Schulman, John, Sergey Levine, Philipp Moritz, Michael I. Jordan, and
-Pieter Abbeel. 2015. <span>“Trust <span>Region</span>
-<span>Policy</span> <span>Optimization</span>.”</span> arXiv. <a
+Pieter Abbeel. 2015. <span>"Trust <span>Region</span>
+<span>Policy</span> <span>Optimization</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.1502.05477">https://doi.org/10.48550/arXiv.1502.05477</a>.
 </div>
 <div id="ref-schulman_high-dimensional_2018" class="csl-entry"
 role="listitem">
 Schulman, John, Philipp Moritz, Sergey Levine, Michael Jordan, and
-Pieter Abbeel. 2018. <span>“High-<span>Dimensional</span>
+Pieter Abbeel. 2018. <span>"High-<span>Dimensional</span>
 <span>Continuous</span> <span>Control</span> <span>Using</span>
 <span>Generalized</span> <span>Advantage</span>
-<span>Estimation</span>.”</span> arXiv. <a
+<span>Estimation</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.1506.02438">https://doi.org/10.48550/arXiv.1506.02438</a>.
 </div>
 <div id="ref-schulman_proximal_2017" class="csl-entry" role="listitem">
 Schulman, John, Filip Wolski, Prafulla Dhariwal, Alec Radford, and Oleg
-Klimov. 2017. <span>“Proximal <span>Policy</span>
-<span>Optimization</span> <span>Algorithms</span>.”</span> arXiv. <a
+Klimov. 2017. <span>"Proximal <span>Policy</span>
+<span>Optimization</span> <span>Algorithms</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.1707.06347">https://doi.org/10.48550/arXiv.1707.06347</a>.
 </div>
 <div id="ref-shao_deepseekmath_2024" class="csl-entry" role="listitem">
 Shao, Zhihong, Peiyi Wang, Qihao Zhu, Runxin Xu, Junxiao Song, Mingchuan
 Zhang, Y. K. Li, Y. Wu, and Daya Guo. 2024.
-<span>“<span>DeepSeekMath</span>: <span>Pushing</span> the
+<span>"<span>DeepSeekMath</span>: <span>Pushing</span> the
 <span>Limits</span> of <span>Mathematical</span> <span>Reasoning</span>
-in <span>Open</span> <span>Language</span> <span>Models</span>.”</span>
+in <span>Open</span> <span>Language</span> <span>Models</span>."</span>
 arXiv. <a
 href="https://doi.org/10.48550/arXiv.2402.03300">https://doi.org/10.48550/arXiv.2402.03300</a>.
 </div>
 <div id="ref-silver_mastering_2016" class="csl-entry" role="listitem">
 Silver, David, Aja Huang, Chris J. Maddison, Arthur Guez, Laurent Sifre,
 George van den Driessche, Julian Schrittwieser, et al. 2016.
-<span>“Mastering the Game of <span>Go</span> with Deep Neural Networks
-and Tree Search.”</span> <em>Nature</em> 529 (7587): 484–89. <a
+<span>"Mastering the Game of <span>Go</span> with Deep Neural Networks
+and Tree Search."</span> <em>Nature</em> 529 (7587): 484-89. <a
 href="https://doi.org/10.1038/nature16961">https://doi.org/10.1038/nature16961</a>.
 </div>
 <div id="ref-silver_deterministic_2014" class="csl-entry"
 role="listitem">
 Silver, David, Guy Lever, Nicolas Heess, Thomas Degris, Daan Wierstra,
-and Martin Riedmiller. 2014. <span>“Deterministic <span>Policy</span>
-<span>Gradient</span> <span>Algorithms</span>.”</span>
+and Martin Riedmiller. 2014. <span>"Deterministic <span>Policy</span>
+<span>Gradient</span> <span>Algorithms</span>."</span>
 </div>
 <div id="ref-silver_mastering_2017" class="csl-entry" role="listitem">
 Silver, David, Julian Schrittwieser, Karen Simonyan, Ioannis Antonoglou,
-Aja Huang, Arthur Guez, Thomas Hubert, et al. 2017. <span>“Mastering the
-Game of <span>Go</span> Without Human Knowledge.”</span> <em>Nature</em>
-550 (7676): 354–59. <a
+Aja Huang, Arthur Guez, Thomas Hubert, et al. 2017. <span>"Mastering the
+Game of <span>Go</span> Without Human Knowledge."</span> <em>Nature</em>
+550 (7676): 354-59. <a
 href="https://doi.org/10.1038/nature24270">https://doi.org/10.1038/nature24270</a>.
 </div>
 <div id="ref-sutton_learning_1988" class="csl-entry" role="listitem">
-Sutton, Richard S. 1988. <span>“Learning to Predict by the Methods of
-Temporal Differences.”</span> <em>Machine Learning</em> 3 (1): 9–44. <a
+Sutton, Richard S. 1988. <span>"Learning to Predict by the Methods of
+Temporal Differences."</span> <em>Machine Learning</em> 3 (1): 9-44. <a
 href="https://doi.org/10.1007/BF00115009">https://doi.org/10.1007/BF00115009</a>.
 </div>
 <div id="ref-sutton_policy_1999" class="csl-entry" role="listitem">
 Sutton, Richard S, David McAllester, Satinder Singh, and Yishay Mansour.
-1999. <span>“Policy <span>Gradient</span> <span>Methods</span> for
+1999. <span>"Policy <span>Gradient</span> <span>Methods</span> for
 <span>Reinforcement</span> <span>Learning</span> with
-<span>Function</span> <span>Approximation</span>.”</span> In
+<span>Function</span> <span>Approximation</span>."</span> In
 <em>Advances in <span>Neural</span> <span>Information</span>
 <span>Processing</span> <span>Systems</span></em>. Vol. 12. MIT Press.
 <a
 href="https://papers.nips.cc/paper_files/paper/1999/hash/464d828b85b0bed98e80ade0a5c43b0f-Abstract.html">https://papers.nips.cc/paper_files/paper/1999/hash/464d828b85b0bed98e80ade0a5c43b0f-Abstract.html</a>.
 </div>
 <div id="ref-tesauro_temporal_1995" class="csl-entry" role="listitem">
-Tesauro, Gerald. 1995. <span>“Temporal Difference Learning and
-<span>TD-Gammon</span>.”</span> <em>Communications of the ACM</em> 38
-(3): 58–68. <a
+Tesauro, Gerald. 1995. <span>"Temporal Difference Learning and
+<span>TD-Gammon</span>."</span> <em>Communications of the ACM</em> 38
+(3): 58-68. <a
 href="https://doi.org/10.1145/203330.203343">https://doi.org/10.1145/203330.203343</a>.
 </div>
 <div id="ref-wang_sample_2017" class="csl-entry" role="listitem">
 Wang, Ziyu, Victor Bapst, Nicolas Heess, Volodymyr Mnih, Remi Munos,
-Koray Kavukcuoglu, and Nando de Freitas. 2017. <span>“Sample
+Koray Kavukcuoglu, and Nando de Freitas. 2017. <span>"Sample
 <span>Efficient</span> <span>Actor</span>-<span>Critic</span> with
-<span>Experience</span> <span>Replay</span>.”</span> arXiv. <a
+<span>Experience</span> <span>Replay</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.1611.01224">https://doi.org/10.48550/arXiv.1611.01224</a>.
 </div>
 <div id="ref-watkins_q-learning_1992" class="csl-entry" role="listitem">
 Watkins, Christopher J. C. H., and Peter Dayan. 1992.
-<span>“Q-Learning.”</span> <em>Machine Learning</em> 8 (3–4): 279–92. <a
+<span>"Q-Learning."</span> <em>Machine Learning</em> 8 (3-4): 279-92. <a
 href="https://doi.org/10.1007/BF00992698">https://doi.org/10.1007/BF00992698</a>.
 </div>
 <div id="ref-williams_simple_1992" class="csl-entry" role="listitem">
-Williams, Ronald J. 1992. <span>“Simple Statistical Gradient-Following
-Algorithms for Connectionist Reinforcement Learning.”</span> <em>Machine
-Learning</em> 8 (3-4): 229–56. <a
+Williams, Ronald J. 1992. <span>"Simple Statistical Gradient-Following
+Algorithms for Connectionist Reinforcement Learning."</span> <em>Machine
+Learning</em> 8 (3-4): 229-56. <a
 href="https://doi.org/10.1007/BF00992696">https://doi.org/10.1007/BF00992696</a>.
 </div>
 <div id="ref-wu_scalable_2017" class="csl-entry" role="listitem">
 Wu, Yuhuai, Elman Mansimov, Shun Liao, Roger Grosse, and Jimmy Ba. 2017.
-<span>“Scalable Trust-Region Method for Deep Reinforcement Learning
-Using <span>Kronecker</span>-Factored Approximation.”</span> arXiv. <a
+<span>"Scalable Trust-Region Method for Deep Reinforcement Learning
+Using <span>Kronecker</span>-Factored Approximation."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.1708.05144">https://doi.org/10.48550/arXiv.1708.05144</a>.
 </div>
 </div>

@@ -440,7 +440,7 @@ data-cites="domke_implicit_2010">(Domke 2010)</span></td>
 <td>marginal NLL</td>
 <td>Cvx-MAP</td>
 <td>100</td>
-<td>–</td>
+<td> - </td>
 <td>1x</td>
 <td>low</td>
 </tr>
@@ -453,7 +453,7 @@ data-cites="barratt_differentiability_2019">(Barratt 2019)</span></td>
 <td>downstream-task</td>
 <td>SOCP</td>
 <td>100</td>
-<td>–</td>
+<td> - </td>
 <td>0.3x</td>
 <td>med</td>
 </tr>
@@ -515,7 +515,7 @@ data-cites="agrawal_differentiable_2019">(Agrawal et al.
 <td>task</td>
 <td>Cvx</td>
 <td>100</td>
-<td>–</td>
+<td> - </td>
 <td>0.4x</td>
 <td>high</td>
 </tr>
@@ -528,7 +528,7 @@ class="citation" data-cites="prates_learning_2018">(Prates et al.
 <td>binary CE on feasibility</td>
 <td>SAT</td>
 <td>85</td>
-<td>–</td>
+<td> - </td>
 <td>30x</td>
 <td>low</td>
 </tr>
@@ -553,10 +553,10 @@ class="citation" data-cites="franceschi_bilevel_2018">(Franceschi et al.
 <td>reverse-mode unrolling</td>
 <td>val loss</td>
 <td>Cvx</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
-<td>–</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
 </tr>
 <tr>
 <td>Lorraine
@@ -567,8 +567,8 @@ data-cites="lorraine_optimizing_2019">(Lorraine, Vicol, and Duvenaud
 <td>Neumann implicit</td>
 <td>val loss</td>
 <td>Cvx</td>
-<td>–</td>
-<td>–</td>
+<td> - </td>
+<td> - </td>
 <td>10x</td>
 <td>high</td>
 </tr>
@@ -581,7 +581,7 @@ data-cites="lorraine_optimizing_2019">(Lorraine, Vicol, and Duvenaud
 <td>meta-loss (CE)</td>
 <td>QP</td>
 <td>100</td>
-<td>–</td>
+<td> - </td>
 <td>0.6x</td>
 <td>high</td>
 </tr>
@@ -621,7 +621,7 @@ Martins, and Niculae 2020)</span></td>
 <td>Fenchel-Young</td>
 <td>Comb</td>
 <td>100</td>
-<td>–</td>
+<td> - </td>
 <td>1x</td>
 <td>high</td>
 </tr>
@@ -634,7 +634,7 @@ data-cites="mensch_differentiable-dp_2018">(Mensch and Blondel
 <td>structured</td>
 <td>DP-Comb</td>
 <td>100</td>
-<td>–</td>
+<td> - </td>
 <td>5x</td>
 <td>med</td>
 </tr>
@@ -646,7 +646,7 @@ data-cites="wang_satnet_2019">(P.-W. Wang et al. 2019)</span></td>
 <td>MSE on logits</td>
 <td>SDP-MaxSAT</td>
 <td>100</td>
-<td>–</td>
+<td> - </td>
 <td>20x</td>
 <td>low</td>
 </tr>
@@ -659,7 +659,7 @@ Campbell 2021)</span></td>
 <td>task</td>
 <td>Cvx</td>
 <td>100</td>
-<td>–</td>
+<td> - </td>
 <td>0.5x</td>
 <td>med</td>
 </tr>
@@ -835,54 +835,25 @@ LPs.</p>
 <h2
 id="optimal-transport-theory-and-applications-in-machine-learning">Optimal
 Transport: Theory and Applications in Machine Learning</h2>
-<p><u>Optimal transport spans three centuries of mathematical thought:
-from Monge's 1781 sand-pile problem, through Kantorovich's 1942 LP
-relaxation, to Brenier's 1991 polar factorization, and finally to
-Cuturi's 2013 entropic Sinkhorn solver that brought OT into the
-deep-learning era.</u> Each computational regime; <strong>exact
-LP</strong>, <strong>entropic-OT</strong>, <strong>sliced</strong>
-projection, <strong>unbalanced</strong> extensions,
-<strong>Gromov-Wasserstein</strong> for graphs,
-<strong>neural-OT</strong>, and <strong>Schrödinger</strong> /
-<strong>flow-matching</strong> generative paths; carries a distinct
-trade-off between statistical accuracy, computational cost, and
-modelling assumptions, walked through paragraph-by-paragraph after the
-SoTA leaderboard below.</p>
-<p>The historical context is important for understanding the field's
-trajectory. Classical OT (1781-1990) was a topic of mathematical
-analysis with no scalable algorithms; the polar factorization of Brenier
-<span class="citation" data-cites="brenier_polar_1991">(Brenier
-1991)</span> and the geometric theory of Gangbo-McCann <span
-class="citation" data-cites="gangbo_geometry_1996">(Gangbo and McCann
-1996)</span> established the foundations but offered little
-computational guidance. <u>The 2013 Sinkhorn-Cuturi breakthrough
-collapsed the cost of approximate OT from
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>3</mn></msup><mo>log</mo><mi>n</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n^3 \log n)</annotation></semantics></math>
-to
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>O</mi><mo accent="true">̃</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>2</mn></msup><mi>/</mi><msup><mi>ε</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\tilde{O}(n^2/\varepsilon^2)</annotation></semantics></math></u>
-<span class="citation" data-cites="cuturi_sinkhorn_2013">(Cuturi
-2013)</span>, unlocking ML applications including Wasserstein GANs <span class="citation"
-data-cites="arjovsky_wasserstein_2017">(Arjovsky, Chintala, and Bottou
-2017)</span>, domain adaptation
-<span class="citation"
-data-cites="courty_optimal_2016 courty_joint_2017">(Courty, Flamary,
-Tuia, et al. 2017; Courty, Flamary, Habrard, et al. 2017)</span>, and Sinkhorn divergences for
-generative training <span class="citation"
-data-cites="genevay_learning_2017">(Genevay, Peyré, and Cuturi
-2018)</span>. <strong>The 2017-2020 wave introduced unbalanced OT <span
-class="citation" data-cites="chizat_unbalanced_2019">(Chizat et al.
-2018)</span>, stochastic large-scale solvers <span class="citation"
-data-cites="genevay_stochastic_2016">(Genevay et al. 2016)</span>, and
-accelerated gradient methods <span class="citation"
-data-cites="dvurechensky_computational_2018">(Dvurechensky, Gasnikov,
-and Kroshnin 2018)</span></strong>; the 2020-2024 era has seen
-<strong>neural-OT</strong> <span class="citation"
-data-cites="korotin_neural_2023">(Korotin, Selikhanovych, and Burnaev
-2023)</span>, <strong>flow-matching</strong> on OT couplings, and
-<strong>Schrödinger-bridge</strong> dynamics emerge as the dominant
-generative-modelling paradigm.</p>
-<p>A second strand runs through textbook treatments. Villani's two
-volumes <span class="citation"
+<h3 id="the-feasibility-vs-fidelity-tension">The Feasibility-vs-Fidelity
+Tension</h3>
+<p><u>One tension drives the entire computational history of optimal
+transport: exact solutions are provably correct but computationally
+prohibitive, while tractable approximations each pay a distinct fidelity
+price.</u> Every algorithmic generation from 1955 to 2024 is best
+understood as a specific answer to the question "how much fidelity can
+we afford to trade for the compute budget we actually have?" The five
+major lineages (classical LP, entropic/Sinkhorn, sliced projection,
+unbalanced/Gromov-Wasserstein extensions, and neural/flow-matching)
+converge, in recent work, on one unifying principle: recover a coupling
+or transport map that minimizes a cost, subject to the marginal and
+feasibility constraints your budget can enforce.</p>
+<p>The table below places every major method on this trade-off surface.
+Methods appear as responses to the limitations of their predecessors;
+each section below follows that logic rather than a strict chronology.
+Textbook coverage is in the Mathematical Foundations section;
+algorithmic details are in Computational Methods and Extensions.</p>
+<p>Villani's two volumes <span class="citation"
 data-cites="villani_topics_2003 villani_optimal_2009">(Villani 2003,
 2009)</span> remain the definitive references; Santambrogio <span
 class="citation"
@@ -1076,8 +1047,8 @@ data-cites="gulrajani_improved_2017">(Gulrajani et al. 2017)</span></td>
 </tr>
 <tr>
 <td>OT domain adaptation <span
-class="citation" data-cites="courty_optimal_2016">(Courty, Flamary,
-Tuia, et al. 2017)</span></td>
+class="citation" data-cites="courty_optimal_2016">(Courty et al.
+2017)</span></td>
 <td>2017</td>
 <td>Sinkhorn(class)</td>
 <td>barycentric-mapping</td>
@@ -1248,10 +1219,78 @@ data-cites="peyre_computational_2020">(Peyré and Cuturi
 </tr>
 </tbody>
 </table></div>
-<p>The table groups the literature into seven families, walked through
-in chronological order. <strong>Classical exact-LP</strong> methods
-(Hungarian, network simplex) solve the discrete Kantorovich problem to
-numerical zero error, but the
+<p>The table groups the literature into five generations, each a
+response to the feasibility-vs-fidelity tension. The sub-sections below
+follow the same logic. The table below summarizes the structural
+trade-offs of each lineage; individual method numbers are in the SoTA
+leaderboard above.</p>
+<div class="blog-table"><table id="tbl:ot-lineage-tradeoffs">
+<caption>Lineage-level feasibility-vs-fidelity properties. Cost =
+per-problem time complexity in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+samples; Bias = relative error vs.\ exact OT on synthetic Gaussians
+(from SoTA table above); Differentiable = whether the loss is
+differentiable end-to-end without manual adjoint derivation; Continuous
+dist.\ = whether the method applies to continuous (non-discrete)
+source/target measures; Unequal mass = whether the method handles
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝒳</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>≠</mo><mi>ν</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝒴</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mu(\mathcal{X}) \neq \nu(\mathcal{Y})</annotation></semantics></math>.</caption>
+<tbody>
+<tr>
+<td>Lineage</td>
+<td>Cost</td>
+<td>Bias</td>
+<td>Differentiable</td>
+<td>Continuous dist.</td>
+<td>Unequal mass</td>
+</tr>
+<tr>
+<td>Exact LP / analytic</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>3</mn></msup><mo>log</mo><mi>n</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n^3 \log n)</annotation></semantics></math></td>
+<td>0%</td>
+<td>no (plan is sparse, vertex changes)</td>
+<td>analytic cases only</td>
+<td>no</td>
+</tr>
+<tr>
+<td>Entropic / Sinkhorn</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>O</mi><mo accent="true">̃</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>2</mn></msup><mi>/</mi><msup><mi>ε</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\tilde{O}(n^2/\varepsilon^2)</annotation></semantics></math></td>
+<td>2-15%</td>
+<td>yes (implicit diff.)</td>
+<td>via sampling</td>
+<td>no</td>
+</tr>
+<tr>
+<td>Sliced projection</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>L</mi><mi>n</mi><mo>log</mo><mi>n</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(Ln \log n)</annotation></semantics></math></td>
+<td>5-12%</td>
+<td>yes (sorting)</td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr>
+<td>Unbalanced / GW</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>O</mi><mo accent="true">̃</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\tilde{O}(n^2)</annotation></semantics></math></td>
+<td>3-8%</td>
+<td>partial</td>
+<td>partial</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>Neural / flow-matching</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><mtext mathvariant="normal">training</mtext><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(\text{training})</annotation></semantics></math></td>
+<td>2-5%</td>
+<td>yes (autodiff)</td>
+<td>yes</td>
+<td>partial</td>
+</tr>
+</tbody>
+</table></div>
+<h3
+id="generation-1-1955-2000-exact-lp-and-analytic-foundations">Generation
+1 (1955-2000): Exact LP and Analytic Foundations</h3>
+<p><strong>Classical exact-LP</strong> methods (Hungarian, network
+simplex) solve the discrete Kantorovich problem to numerical zero error,
+but the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>3</mn></msup><mo>log</mo><mi>n</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n^3 \log n)</annotation></semantics></math>
 cost makes them prohibitive beyond
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>≈</mo><msup><mn>10</mn><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">n \approx 10^4</annotation></semantics></math>
@@ -1272,6 +1311,13 @@ These foundational results give exact answers in closed form for
 tractable cases (Gaussians via Bures-Wasserstein, 1D via quantile
 composition) but provide no algorithm for the high-dimensional empirical
 regime that ML faces.</p>
+<p>The fidelity of exact-LP is maximal (zero relative error) but the
+feasibility cost is a cubic barrier. Generation 2 resolves this by
+accepting a tunable bias in exchange for near-linear parallel
+complexity.</p>
+<h3
+id="generation-2-2013-2018-entropic-regularization-and-the-sinkhorn-revolution">Generation
+2 (2013-2018): Entropic Regularization and the Sinkhorn Revolution</h3>
 <p><strong>Entropic-OT</strong> via the <strong>Sinkhorn</strong>
 iteration <span class="citation"
 data-cites="cuturi_sinkhorn_2013">(Cuturi 2013)</span> is the
@@ -1306,6 +1352,15 @@ of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ε</mi><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math>)
 recovers near-exact OT in roughly an order of magnitude fewer total
 iterations.</p>
+<p>Entropic OT still scales as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>n</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(n^2)</annotation></semantics></math>
+in the cost matrix, which dominates memory and compute when
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+is large and the ground cost is expensive to evaluate. Generation 3
+sidesteps the cost matrix entirely by projecting to 1D.</p>
+<h3
+id="generation-3-2018-2019-sliced-ot-and-dimension-free-projections">Generation
+3 (2018-2019): Sliced OT and Dimension-Free Projections</h3>
 <p><strong>Sliced</strong> and projection-based methods <span
 class="citation"
 data-cites="kolouri_sliced-wasserstein_2018 le_tree-wasserstein_2019">(Kolouri
@@ -1355,15 +1410,25 @@ debiasing; (iii) the 2018-2023 <strong>neural-OT</strong> and
 integration of OT-coupled velocity fields, reaches 2-3% accuracy on
 continuous problems where direct Sinkhorn is infeasible.</figcaption>
 </figure>
+<p>Both sliced and entropic methods still assume the source and target
+live in the same metric space and carry equal total mass. Many practical
+problems violate both assumptions. Generation 4 relaxes them.</p>
+<h3
+id="generation-4-2017-2022-unbalanced-ot-gromov-wasserstein-and-neural-potentials">Generation
+4 (2017-2022): Unbalanced OT, Gromov-Wasserstein, and Neural
+Potentials</h3>
 <p><strong>Unbalanced</strong> OT <span class="citation"
 data-cites="chizat_unbalanced_2019">(Chizat et al. 2018)</span> relaxes
 the equal-mass marginal constraint of classical OT; required whenever
 source and target have different totals (single-cell snapshots,
 partial-shape correspondences, class-imbalanced datasets)<a href="#fn35"
 class="footnote-ref" id="fnref35" role="doc-noteref"><sup>35</sup></a>.
-The relaxation replaces hard marginals with soft KL or TV penalties:
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>min</mo><mi>γ</mi></msub><mo>∫</mo><mi>c</mi><mspace width="0.167em"></mspace><mi>d</mi><mi>γ</mi><mo>+</mo><msub><mi>τ</mi><mn>1</mn></msub><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>γ</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">|</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>τ</mi><mn>2</mn></msub><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>γ</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">|</mo><mi>ν</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\min_\gamma \int c\,d\gamma + \tau_1 \mathrm{KL}(\gamma_1 | \mu) + \tau_2 \mathrm{KL}(\gamma_2 | \nu)</annotation></semantics></math>,
-which admits a scaling iteration analogous to Sinkhorn.
+The relaxation replaces hard marginals with soft KL or TV penalties:</p>
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mo>min</mo><mrow><mi>γ</mi><mo>≥</mo><mn>0</mn></mrow></munder><mo>∫</mo><mi>c</mi><mspace width="0.167em"></mspace><mi>d</mi><mi>γ</mi><mo>+</mo><msub><mi>τ</mi><mn>1</mn></msub><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>γ</mi><mn>1</mn></msub><mo>∣</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>τ</mi><mn>2</mn></msub><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>γ</mi><mn>2</mn></msub><mo>∣</mo><mi>ν</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\begin{equation}\label{eq:uot-rw}
+\min_{\gamma \geq 0} \int c\,d\gamma + \tau_1 \mathrm{KL}(\gamma_1 \mid \mu) + \tau_2 \mathrm{KL}(\gamma_2 \mid \nu)
+\end{equation}
+</annotation></semantics></math>
+<p>which admits a scaling iteration analogous to Sinkhorn.
 <strong>Gromov-Wasserstein</strong> <span class="citation"
 data-cites="memoli_gromovwasserstein_2011">(Mémoli 2011)</span> handles
 the dual difficulty: source and target live in <em>different</em> metric
@@ -1377,6 +1442,13 @@ non-convex in the coupling; entropic GW solvers depend strongly on
 initialization, with random / spectral / identity warm-starts producing
 different local optima<a href="#fn36" class="footnote-ref" id="fnref36"
 role="doc-noteref"><sup>36</sup></a>.</p>
+<p>The unbalanced and GW extensions are not Pareto-dominated by
+classical OT; they <em>enable</em> problems (unequal-mass biology, graph
+matching) that classical OT cannot even formulate. But all of the above
+methods require either a discrete cost matrix or a fixed-support
+approximation, blocking application to the continuous high-dimensional
+distributions that arise in generative modeling. Generation 5 abandons
+the matrix entirely.</p>
 <p><strong>Neural-OT</strong> methods <span class="citation"
 data-cites="korotin_neural_2023 seguy_large-scale_2018 amos_input_2017">(Korotin,
 Selikhanovych, and Burnaev 2023; Seguy et al. 2018; Amos, Xu, and Kolter
@@ -1401,6 +1473,9 @@ class="citation" data-cites="bunne_proximal_2022">(Bunne et al.
 2022)</span> uses ICNNs to discretize Wasserstein gradient flows via the
 <strong>JKO scheme</strong>, learning energy landscapes from population
 snapshots.</p>
+<h3
+id="generation-5-2022-2024-flow-matching-schrödinger-bridges-and-unification">Generation
+5 (2022-2024): Flow-Matching, Schrödinger Bridges, and Unification</h3>
 <p><strong>OT flow-matching</strong> and
 <strong>Schrödinger-bridge</strong> methods are the 2022-2024
 generative-modelling synthesis. <strong>Flow-matching</strong> trains a
@@ -1415,31 +1490,59 @@ path-measure space via iterative proportional fitting (the dynamic
 analog of Sinkhorn), interpolating between deterministic OT
 (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi><mo>→</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\varepsilon \to 0</annotation></semantics></math>)
 and pure diffusion
-(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi><mo>→</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">\varepsilon \to \infty</annotation></semantics></math>).
-The table separates four eras: exact-LP and analytic foundations
-(1955-2000), entropic and sliced (2013-2018), unbalanced / GW / neural
-(2017-2022), and the modern flow / bridge synthesis (2022-2024). Three
-readings emerge. First, the entropic-to-sliced-to-neural progression
-traded statistical accuracy for scalability, with Sinkhorn divergences
-and OT-flow recovering 1-3% accuracy at the high-dimensional continuous
-regime where direct exact-LP is infeasible. Second, the unbalanced and
-GW extensions are not Pareto-dominated by classical OT; they
-<em>enable</em> problems (unequal-mass biology, graph matching) that
-classical OT cannot even formulate. <u>Third, neural OT and
-flow-matching are converging on a single paradigm in which Brenier
-potentials, Schrödinger bridges, and continuous-time normalizing flows
-are different parameterizations of the same underlying
-displacement-interpolation theory introduced by Brenier and
-Benamou-Brenier three decades earlier.</u></p>
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi><mo>→</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">\varepsilon \to \infty</annotation></semantics></math>).</p>
+<p><u>The five lineages (exact-LP, entropic, sliced, unbalanced/GW, and
+neural/flow) converge on one principle: recover a coupling or transport
+map that minimizes a transport cost under the marginal and feasibility
+constraints your compute budget can enforce.</u> Brenier potentials,
+Schrödinger bridges, and continuous-time normalizing flows are different
+parameterizations of the same underlying displacement-interpolation
+theory introduced by Brenier <span class="citation"
+data-cites="brenier_polar_1991">(Brenier 1991)</span> and
+Benamou-Brenier <span class="citation"
+data-cites="benamou_computational_2000">(Benamou and Brenier
+2000)</span> three decades earlier. The figure below maps all five
+lineages onto a feasibility-vs-fidelity trade-off plane.</p>
+<figure id="fig:ot-feasibility-fidelity">
+<img src="figures/ot-feasibility-fidelity.svg" />
+<figcaption>Feasibility-vs-fidelity map of the five OT lineages. The
+horizontal axis measures fidelity cost (0 = exact LP ground truth, 10 =
+high bias relative to true
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mn>2</mn></msub><annotation encoding="application/x-tex">W_2</annotation></semantics></math>);
+the vertical axis measures computational speed (0 = slowest, 10 =
+fastest). The ideal method sits at top-left (zero bias, infinite speed);
+no method achieves this. The <strong>exact-LP</strong> family (blue X)
+occupies the bottom-left: zero error but computationally prohibitive
+beyond
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>≈</mo><msup><mn>10</mn><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">n \approx 10^4</annotation></semantics></math>.
+The <strong>entropic</strong> family (orange circles) breaks left by
+trading 2-15% bias for massive GPU parallelism; Sinkhorn divergences
+(orange) pull back toward the fidelity axis via debiasing. The
+<strong>sliced</strong> family (green diamonds) achieves the highest
+speed by projecting to 1D, at the cost of projection bias that degrades
+on non-Gaussian manifolds. The <strong>unbalanced</strong> and
+<strong>GW</strong> families (purple hexagons, brown triangles) are off
+the main Pareto curve because they address different
+<em>formulation</em> problems (mass inequality, cross-space matching)
+rather than trading bias for speed. The <strong>neural</strong> family
+(red triangles) accepts slow training (hours) to reach good bias at
+continuous-measure scale where Sinkhorn cannot form the cost matrix. The
+<strong>flow-matching / Schrödinger bridge</strong> family (cyan
+squares) combines OT-coupled paths with neural ODE integration, reaching
+1-2% relative error at inference-time speeds competitive with entropic
+OT. The convergence of all five lineages onto the upper-left region
+(2-3% error, GPU-feasible) is the defining achievement of the 2022-2024
+period.</figcaption>
+</figure>
 <h2 class="blog-refs-title">References</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 data-entry-spacing="0" role="list">
 <div id="ref-agrawal_differentiable_2019" class="csl-entry"
 role="listitem">
 Agrawal, Akshay, Brandon Amos, Shane Barratt, Stephen Boyd, Steven
-Diamond, and Zico Kolter. 2019. <span>“Differentiable
+Diamond, and Zico Kolter. 2019. <span>"Differentiable
 <span>Convex</span> <span>Optimization</span>
-<span>Layers</span>.”</span> In <em>Advances in Neural Information
+<span>Layers</span>."</span> In <em>Advances in Neural Information
 Processing Systems (NeurIPS)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1910.12430">https://doi.org/10.48550/arXiv.1910.12430</a>.
 </div>
@@ -1452,24 +1555,24 @@ Ambrosio, Luigi, Nicola Gigli, and Giuseppe Savaré. 2008. <em>Gradient
 href="https://doi.org/10.1007/978-3-7643-8722-8">https://doi.org/10.1007/978-3-7643-8722-8</a>.
 </div>
 <div id="ref-amos_optnet_2021" class="csl-entry" role="listitem">
-Amos, Brandon, and J. Zico Kolter. 2017. <span>“<span>OptNet</span>:
+Amos, Brandon, and J. Zico Kolter. 2017. <span>"<span>OptNet</span>:
 <span>Differentiable</span> <span>Optimization</span> as a
-<span>Layer</span> in <span>Neural</span> <span>Networks</span>.”</span>
+<span>Layer</span> in <span>Neural</span> <span>Networks</span>."</span>
 In <em>International Conference on Machine Learning (ICML)</em>. <a
 href="https://doi.org/10.48550/arXiv.1703.00443">https://doi.org/10.48550/arXiv.1703.00443</a>.
 </div>
 <div id="ref-amos_differentiable_2019" class="csl-entry"
 role="listitem">
 Amos, Brandon, Ivan Dario Jimenez Rodriguez, Jacob Sacks, Byron Boots,
-and J. Zico Kolter. 2018. <span>“Differentiable <span>MPC</span> for
+and J. Zico Kolter. 2018. <span>"Differentiable <span>MPC</span> for
 <span>End</span>-to-End <span>Planning</span> and
-<span>Control</span>.”</span> In <em>Advances in Neural Information
+<span>Control</span>."</span> In <em>Advances in Neural Information
 Processing Systems (NeurIPS)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1810.13400">https://doi.org/10.48550/arXiv.1810.13400</a>.
 </div>
 <div id="ref-amos_input_2017" class="csl-entry" role="listitem">
-Amos, Brandon, Lei Xu, and J. Zico Kolter. 2017. <span>“Input
-<span>Convex</span> <span>Neural</span> <span>Networks</span>.”</span>
+Amos, Brandon, Lei Xu, and J. Zico Kolter. 2017. <span>"Input
+<span>Convex</span> <span>Neural</span> <span>Networks</span>."</span>
 In <em>International Conference on Machine Learning (ICML)</em>. arXiv.
 <a
 href="https://doi.org/10.48550/arXiv.1609.07152">https://doi.org/10.48550/arXiv.1609.07152</a>.
@@ -1477,306 +1580,299 @@ href="https://doi.org/10.48550/arXiv.1609.07152">https://doi.org/10.48550/arXiv.
 <div id="ref-arjovsky_wasserstein_2017" class="csl-entry"
 role="listitem">
 Arjovsky, Martin, Soumith Chintala, and Léon Bottou. 2017.
-<span>“Wasserstein <span>GAN</span>.”</span> In <em>International
+<span>"Wasserstein <span>GAN</span>."</span> In <em>International
 Conference on Machine Learning (ICML)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1701.07875">https://doi.org/10.48550/arXiv.1701.07875</a>.
 </div>
 <div id="ref-barratt_differentiability_2019" class="csl-entry"
 role="listitem">
-Barratt, Shane. 2019. <span>“On the <span>Differentiability</span> of
+Barratt, Shane. 2019. <span>"On the <span>Differentiability</span> of
 the <span>Solution</span> to <span>Convex</span>
-<span>Optimization</span> <span>Problems</span>.”</span> arXiv. <a
+<span>Optimization</span> <span>Problems</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.1804.05098">https://doi.org/10.48550/arXiv.1804.05098</a>.
 </div>
 <div id="ref-benamou_computational_2000" class="csl-entry"
 role="listitem">
-Benamou, Jean-David, and Yann Brenier. 2000. <span>“A Computational
+Benamou, Jean-David, and Yann Brenier. 2000. <span>"A Computational
 Fluid Mechanics Solution to the
 <span>Monge</span>-<span>Kantorovich</span> Mass Transfer
-Problem.”</span> <em>Numerische Mathematik</em> 84 (3): 375–93. <a
+Problem."</span> <em>Numerische Mathematik</em> 84 (3): 375-93. <a
 href="https://doi.org/10.1007/s002110050002">https://doi.org/10.1007/s002110050002</a>.
 </div>
 <div id="ref-berthet_learning_2020" class="csl-entry" role="listitem">
 Berthet, Quentin, Mathieu Blondel, Olivier Teboul, Marco Cuturi,
-Jean-Philippe Vert, and Francis Bach. 2020. <span>“Learning with
+Jean-Philippe Vert, and Francis Bach. 2020. <span>"Learning with
 <span>Differentiable</span> <span>Perturbed</span>
-<span>Optimizers</span>.”</span> In <em>Advances in Neural Information
+<span>Optimizers</span>."</span> In <em>Advances in Neural Information
 Processing Systems (<span>NeurIPS</span>)</em>. Vol. 33. <a
 href="http://arxiv.org/abs/2002.08676">http://arxiv.org/abs/2002.08676</a>.
 </div>
 <div id="ref-blondel_fenchel-young_2020" class="csl-entry"
 role="listitem">
 Blondel, Mathieu, André F. T. Martins, and Vlad Niculae. 2020.
-<span>“Learning with <span>Fenchel</span>-<span>Young</span>
-<span>Losses</span>.”</span> <a
+<span>"Learning with <span>Fenchel</span>-<span>Young</span>
+<span>Losses</span>."</span> <a
 href="https://doi.org/10.48550/arXiv.1901.02324">https://doi.org/10.48550/arXiv.1901.02324</a>.
 </div>
 <div id="ref-brenier_polar_1991" class="csl-entry" role="listitem">
-Brenier, Yann. 1991. <span>“Polar Factorization and Monotone
-Rearrangement of Vector‐valued Functions.”</span> <em>Communications on
-Pure and Applied Mathematics</em> 44 (4): 375–417. <a
+Brenier, Yann. 1991. <span>"Polar Factorization and Monotone
+Rearrangement of Vector‐valued Functions."</span> <em>Communications on
+Pure and Applied Mathematics</em> 44 (4): 375-417. <a
 href="https://doi.org/10.1002/cpa.3160440402">https://doi.org/10.1002/cpa.3160440402</a>.
 </div>
 <div id="ref-brochu_tutorial_2010" class="csl-entry" role="listitem">
-Brochu, Eric, Vlad M. Cora, and Nando de Freitas. 2010. <span>“A
+Brochu, Eric, Vlad M. Cora, and Nando de Freitas. 2010. <span>"A
 <span>Tutorial</span> on <span>Bayesian</span> <span>Optimization</span>
 of <span>Expensive</span> <span>Cost</span> <span>Functions</span>, with
 <span>Application</span> to <span>Active</span> <span>User</span>
 <span>Modeling</span> and <span>Hierarchical</span>
-<span>Reinforcement</span> <span>Learning</span>.”</span> arXiv. <a
+<span>Reinforcement</span> <span>Learning</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.1012.2599">https://doi.org/10.48550/arXiv.1012.2599</a>.
 </div>
 <div id="ref-brochu_portfolio_2011" class="csl-entry" role="listitem">
 Brochu, Eric, Matthew W. Hoffman, and Nando de Freitas. 2011.
-<span>“Portfolio <span>Allocation</span> for <span>Bayesian</span>
-<span>Optimization</span>.”</span> arXiv. <a
+<span>"Portfolio <span>Allocation</span> for <span>Bayesian</span>
+<span>Optimization</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.1009.5419">https://doi.org/10.48550/arXiv.1009.5419</a>.
 </div>
 <div id="ref-bunne_proximal_2022" class="csl-entry" role="listitem">
 Bunne, Charlotte, Laetitia Meng-Papaxanthos, Andreas Krause, and Marco
-Cuturi. 2022. <span>“Proximal <span>Optimal</span>
+Cuturi. 2022. <span>"Proximal <span>Optimal</span>
 <span>Transport</span> <span>Modeling</span> of <span>Population</span>
-<span>Dynamics</span>.”</span> <a
+<span>Dynamics</span>."</span> <a
 href="https://doi.org/10.48550/arXiv.2106.06345">https://doi.org/10.48550/arXiv.2106.06345</a>.
 </div>
 <div id="ref-chizat_unbalanced_2019" class="csl-entry" role="listitem">
 Chizat, Lenaic, Gabriel Peyré, Bernhard Schmitzer, and François-Xavier
-Vialard. 2018. <span>“Unbalanced <span>Optimal</span>
+Vialard. 2018. <span>"Unbalanced <span>Optimal</span>
 <span>Transport</span>: <span>Dynamic</span> and
-<span>Kantorovich</span> <span>Formulation</span>.”</span> <em>Journal
+<span>Kantorovich</span> <span>Formulation</span>."</span> <em>Journal
 of Functional Analysis</em>, February. <a
 href="https://doi.org/10.48550/arXiv.1508.05216">https://doi.org/10.48550/arXiv.1508.05216</a>.
 </div>
-<div id="ref-courty_joint_2017" class="csl-entry" role="listitem">
-Courty, Nicolas, Rémi Flamary, Amaury Habrard, and Alain Rakotomamonjy.
-2017. <span>“Joint <span>Distribution</span> <span>Optimal</span>
-<span>Transportation</span> for <span>Domain</span>
-<span>Adaptation</span>.”</span> arXiv. <a
-href="https://doi.org/10.48550/arXiv.1705.08848">https://doi.org/10.48550/arXiv.1705.08848</a>.
-</div>
 <div id="ref-courty_optimal_2016" class="csl-entry" role="listitem">
 Courty, Nicolas, Rémi Flamary, Devis Tuia, and Alain Rakotomamonjy.
-2017. <span>“Optimal <span>Transport</span> for <span>Domain</span>
-<span>Adaptation</span>.”</span> <em>IEEE Transactions on Pattern
+2017. <span>"Optimal <span>Transport</span> for <span>Domain</span>
+<span>Adaptation</span>."</span> <em>IEEE Transactions on Pattern
 Analysis and Machine Intelligence (TPAMI)</em>, June. <a
 href="https://doi.org/10.48550/arXiv.1507.00504">https://doi.org/10.48550/arXiv.1507.00504</a>.
 </div>
 <div id="ref-cuturi_sinkhorn_2013" class="csl-entry" role="listitem">
-Cuturi, Marco. 2013. <span>“Sinkhorn <span>Distances</span>:
+Cuturi, Marco. 2013. <span>"Sinkhorn <span>Distances</span>:
 <span>Lightspeed</span> <span>Computation</span> of <span>Optimal</span>
-<span>Transportation</span> <span>Distances</span>.”</span> In
+<span>Transportation</span> <span>Distances</span>."</span> In
 <em>Advances in Neural Information Processing Systems (NeurIPS)</em>.
 arXiv. <a
 href="https://doi.org/10.48550/arXiv.1306.0895">https://doi.org/10.48550/arXiv.1306.0895</a>.
 </div>
 <div id="ref-cuturi_fast_2014" class="csl-entry" role="listitem">
-Cuturi, Marco, and Arnaud Doucet. 2014. <span>“Fast
+Cuturi, Marco, and Arnaud Doucet. 2014. <span>"Fast
 <span>Computation</span> of <span>Wasserstein</span>
-<span>Barycenters</span>.”</span> In <em>International Conference on
+<span>Barycenters</span>."</span> In <em>International Conference on
 Machine Learning (ICML)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1310.4375">https://doi.org/10.48550/arXiv.1310.4375</a>.
 </div>
 <div id="ref-domke_implicit_2010" class="csl-entry" role="listitem">
-Domke, Justin. 2010. <span>“Implicit <span>Differentiation</span> by
-<span>Perturbation</span>.”</span> In <em>Advances in
+Domke, Justin. 2010. <span>"Implicit <span>Differentiation</span> by
+<span>Perturbation</span>."</span> In <em>Advances in
 <span>Neural</span> <span>Information</span> <span>Processing</span>
 <span>Systems</span></em>. Vol. 23. Curran Associates, Inc. <a
 href="https://papers.nips.cc/paper_files/paper/2010/hash/6ecbdd6ec859d284dc13885a37ce8d81-Abstract.html">https://papers.nips.cc/paper_files/paper/2010/hash/6ecbdd6ec859d284dc13885a37ce8d81-Abstract.html</a>.
 </div>
 <div id="ref-duvenaud_additive_2011" class="csl-entry" role="listitem">
 Duvenaud, David, Hannes Nickisch, and Carl Edward Rasmussen. 2011.
-<span>“Additive <span>Gaussian</span> <span>Processes</span>.”</span>
+<span>"Additive <span>Gaussian</span> <span>Processes</span>."</span>
 arXiv. <a
 href="https://doi.org/10.48550/arXiv.1112.4394">https://doi.org/10.48550/arXiv.1112.4394</a>.
 </div>
 <div id="ref-dvurechensky_computational_2018" class="csl-entry"
 role="listitem">
 Dvurechensky, Pavel, Alexander Gasnikov, and Alexey Kroshnin. 2018.
-<span>“Computational <span>Optimal</span> <span>Transport</span>:
+<span>"Computational <span>Optimal</span> <span>Transport</span>:
 <span>Complexity</span> by <span>Accelerated</span>
 <span>Gradient</span> <span>Descent</span> <span>Is</span>
-<span>Better</span> <span>Than</span> by <span>Sinkhorn</span>’s
-<span>Algorithm</span>.”</span> In <em>International Conference on
+<span>Better</span> <span>Than</span> by <span>Sinkhorn</span>'s
+<span>Algorithm</span>."</span> In <em>International Conference on
 Machine Learning (ICML)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1802.04367">https://doi.org/10.48550/arXiv.1802.04367</a>.
 </div>
 <div id="ref-elmachtoub_smart_2020" class="csl-entry" role="listitem">
-Elmachtoub, Adam N., and Paul Grigas. 2022. <span>“Smart
-"<span>Predict</span>, Then <span>Optimize</span>".”</span>
+Elmachtoub, Adam N., and Paul Grigas. 2022. <span>"Smart
+"<span>Predict</span>, Then <span>Optimize</span>"."</span>
 <em>Management Science</em>, November. <a
 href="https://doi.org/10.48550/arXiv.1710.08005">https://doi.org/10.48550/arXiv.1710.08005</a>.
 </div>
 <div id="ref-eriksson_high-dimensional_2021" class="csl-entry"
 role="listitem">
 Eriksson, David, and Martin Jankowiak. 2021.
-<span>“High-<span>Dimensional</span> <span>Bayesian</span>
+<span>"High-<span>Dimensional</span> <span>Bayesian</span>
 <span>Optimization</span> with <span>Sparse</span>
-<span>Axis</span>-<span>Aligned</span> <span>Subspaces</span>.”</span>
+<span>Axis</span>-<span>Aligned</span> <span>Subspaces</span>."</span>
 arXiv. <a
 href="https://doi.org/10.48550/arXiv.2103.00349">https://doi.org/10.48550/arXiv.2103.00349</a>.
 </div>
 <div id="ref-eriksson_scalable_2019" class="csl-entry" role="listitem">
 Eriksson, David, Michael Pearce, Jacob Gardner, Ryan D Turner, and
-Matthias Poloczek. 2019. <span>“Scalable <span>Global</span>
+Matthias Poloczek. 2019. <span>"Scalable <span>Global</span>
 <span>Optimization</span> via <span>Local</span> <span>Bayesian</span>
-<span>Optimization</span>.”</span>
+<span>Optimization</span>."</span>
 </div>
 <div id="ref-falkner_bohb_2018" class="csl-entry" role="listitem">
 Falkner, Stefan, Aaron Klein, and Frank Hutter. 2018.
-<span>“<span>BOHB</span>: <span>Robust</span> and <span>Efficient</span>
+<span>"<span>BOHB</span>: <span>Robust</span> and <span>Efficient</span>
 <span>Hyperparameter</span> <span>Optimization</span> at
-<span>Scale</span>.”</span> In <em>International Conference on Machine
+<span>Scale</span>."</span> In <em>International Conference on Machine
 Learning (ICML)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1807.01774">https://doi.org/10.48550/arXiv.1807.01774</a>.
 </div>
 <div id="ref-feurer_practical_2022" class="csl-entry" role="listitem">
 Feurer, Matthias, Benjamin Letham, Frank Hutter, and Eytan Bakshy. 2022.
-<span>“Practical <span>Transfer</span> <span>Learning</span> for
-<span>Bayesian</span> <span>Optimization</span>.”</span>
+<span>"Practical <span>Transfer</span> <span>Learning</span> for
+<span>Bayesian</span> <span>Optimization</span>."</span>
 <em>Transactions on Machine Learning Research (TMLR)</em>, October. <a
 href="https://doi.org/10.48550/arXiv.1802.02219">https://doi.org/10.48550/arXiv.1802.02219</a>.
 </div>
 <div id="ref-franceschi_bilevel_2018" class="csl-entry" role="listitem">
 Franceschi, Luca, Paolo Frasconi, Saverio Salzo, Riccardo Grazzi, and
-Massimilano Pontil. 2018. <span>“Bilevel <span>Programming</span> for
+Massimilano Pontil. 2018. <span>"Bilevel <span>Programming</span> for
 <span>Hyperparameter</span> <span>Optimization</span> and
-<span>Meta</span>-<span>Learning</span>.”</span> In <em>International
+<span>Meta</span>-<span>Learning</span>."</span> In <em>International
 Conference on Machine Learning (ICML)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1806.04910">https://doi.org/10.48550/arXiv.1806.04910</a>.
 </div>
 <div id="ref-frazier_tutorial_2018" class="csl-entry" role="listitem">
-Frazier, Peter I. 2018. <span>“A <span>Tutorial</span> on
-<span>Bayesian</span> <span>Optimization</span>.”</span> arXiv. <a
+Frazier, Peter I. 2018. <span>"A <span>Tutorial</span> on
+<span>Bayesian</span> <span>Optimization</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.1807.02811">https://doi.org/10.48550/arXiv.1807.02811</a>.
 </div>
 <div id="ref-gangbo_geometry_1996" class="csl-entry" role="listitem">
-Gangbo, Wilfrid, and Robert J. McCann. 1996. <span>“The Geometry of
-Optimal Transportation.”</span> <em>Acta Mathematica</em> 177 (2):
-113–61. <a
+Gangbo, Wilfrid, and Robert J. McCann. 1996. <span>"The Geometry of
+Optimal Transportation."</span> <em>Acta Mathematica</em> 177 (2):
+113-61. <a
 href="https://doi.org/10.1007/BF02392620">https://doi.org/10.1007/BF02392620</a>.
 </div>
 <div id="ref-gardner_gpytorch_2021" class="csl-entry" role="listitem">
 Gardner, Jacob R., Geoff Pleiss, David Bindel, Kilian Q. Weinberger, and
-Andrew Gordon Wilson. 2018. <span>“<span>GPyTorch</span>:
+Andrew Gordon Wilson. 2018. <span>"<span>GPyTorch</span>:
 <span>Blackbox</span> <span>Matrix</span>-<span>Matrix</span>
 <span>Gaussian</span> <span>Process</span> <span>Inference</span> with
-<span>GPU</span> <span>Acceleration</span>.”</span> In <em>Advances in
+<span>GPU</span> <span>Acceleration</span>."</span> In <em>Advances in
 Neural Information Processing Systems (NeurIPS)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1809.11165">https://doi.org/10.48550/arXiv.1809.11165</a>.
 </div>
 <div id="ref-genevay_stochastic_2016" class="csl-entry" role="listitem">
 Genevay, Aude, Marco Cuturi, Gabriel Peyré, and Francis Bach. 2016.
-<span>“Stochastic <span>Optimization</span> for <span>Large</span>-Scale
-<span>Optimal</span> <span>Transport</span>.”</span> In <em>Advances in
+<span>"Stochastic <span>Optimization</span> for <span>Large</span>-Scale
+<span>Optimal</span> <span>Transport</span>."</span> In <em>Advances in
 Neural Information Processing Systems (NeurIPS)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1605.08527">https://doi.org/10.48550/arXiv.1605.08527</a>.
 </div>
 <div id="ref-genevay_learning_2017" class="csl-entry" role="listitem">
-Genevay, Aude, Gabriel Peyré, and Marco Cuturi. 2018. <span>“Learning
+Genevay, Aude, Gabriel Peyré, and Marco Cuturi. 2018. <span>"Learning
 <span>Generative</span> <span>Models</span> with <span>Sinkhorn</span>
-<span>Divergences</span>.”</span> In <em>International Conference on
+<span>Divergences</span>."</span> In <em>International Conference on
 Artificial Intelligence and Statistics (AISTATS)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1706.00292">https://doi.org/10.48550/arXiv.1706.00292</a>.
 </div>
 <div id="ref-gould_deep_2021" class="csl-entry" role="listitem">
-Gould, Stephen, Richard Hartley, and Dylan Campbell. 2021. <span>“Deep
+Gould, Stephen, Richard Hartley, and Dylan Campbell. 2021. <span>"Deep
 <span>Declarative</span> <span>Networks</span>: <span>A</span>
-<span>New</span> <span>Hope</span>.”</span> <em>IEEE Transactions on
-Pattern Analysis and Machine Intelligence</em>, 1–1. <a
+<span>New</span> <span>Hope</span>."</span> <em>IEEE Transactions on
+Pattern Analysis and Machine Intelligence</em>, 1-1. <a
 href="https://doi.org/10.1109/TPAMI.2021.3059462">https://doi.org/10.1109/TPAMI.2021.3059462</a>.
 </div>
 <div id="ref-gulrajani_improved_2017" class="csl-entry" role="listitem">
 Gulrajani, Ishaan, Faruk Ahmed, Martin Arjovsky, Vincent Dumoulin, and
-Aaron Courville. 2017. <span>“Improved <span>Training</span> of
-<span>Wasserstein</span> <span>GANs</span>.”</span> In <em>Advances in
+Aaron Courville. 2017. <span>"Improved <span>Training</span> of
+<span>Wasserstein</span> <span>GANs</span>."</span> In <em>Advances in
 Neural Information Processing Systems (NeurIPS)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1704.00028">https://doi.org/10.48550/arXiv.1704.00028</a>.
 </div>
 <div id="ref-ha_bayesian_2019" class="csl-entry" role="listitem">
 Ha, Huong, Santu Rana, Sunil Gupta, Thanh Nguyen, Hung Tran-The, and
-Svetha Venkatesh. 2019. <span>“Bayesian <span>Optimization</span> with
-<span>Unknown</span> <span>Search</span> <span>Space</span>.”</span>
+Svetha Venkatesh. 2019. <span>"Bayesian <span>Optimization</span> with
+<span>Unknown</span> <span>Search</span> <span>Space</span>."</span>
 arXiv. <a
 href="https://doi.org/10.48550/arXiv.1910.13092">https://doi.org/10.48550/arXiv.1910.13092</a>.
 </div>
 <div id="ref-hernandez-lobato_general_2016" class="csl-entry"
 role="listitem">
 Hernández-Lobato, José Miguel, Michael A. Gelbart, Ryan P. Adams,
-Matthew W. Hoffman, and Zoubin Ghahramani. 2016. <span>“A
+Matthew W. Hoffman, and Zoubin Ghahramani. 2016. <span>"A
 <span>General</span> <span>Framework</span> for <span>Constrained</span>
 <span>Bayesian</span> <span>Optimization</span> Using
-<span>Information</span>-Based <span>Search</span>.”</span> <em>Journal
+<span>Information</span>-Based <span>Search</span>."</span> <em>Journal
 of Machine Learning Research (JMLR)</em>, September. <a
 href="https://doi.org/10.48550/arXiv.1511.09422">https://doi.org/10.48550/arXiv.1511.09422</a>.
 </div>
 <div id="ref-hernandez-lobato_predictive_2014" class="csl-entry"
 role="listitem">
 Hernández-Lobato, José Miguel, Matthew W. Hoffman, and Zoubin
-Ghahramani. 2014. <span>“Predictive <span>Entropy</span>
+Ghahramani. 2014. <span>"Predictive <span>Entropy</span>
 <span>Search</span> for <span>Efficient</span> <span>Global</span>
 <span>Optimization</span> of <span>Black</span>-Box
-<span>Functions</span>.”</span> arXiv. <a
+<span>Functions</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.1406.2541">https://doi.org/10.48550/arXiv.1406.2541</a>.
 </div>
 <div id="ref-jones_efficient_1998" class="csl-entry" role="listitem">
 Jones, Donald R., Matthias Schonlau, and William J. Welch. 1998.
-<span>“Efficient <span>Global</span> <span>Optimization</span> of
+<span>"Efficient <span>Global</span> <span>Optimization</span> of
 <span>Expensive</span> <span>Black</span>-<span>Box</span>
-<span>Functions</span>.”</span> <em>Journal of Global Optimization</em>
-13 (4): 455–92. <a
+<span>Functions</span>."</span> <em>Journal of Global Optimization</em>
+13 (4): 455-92. <a
 href="https://doi.org/10.1023/A:1008306431147">https://doi.org/10.1023/A:1008306431147</a>.
 </div>
 <div id="ref-kandasamy_multi-fidelity_2017" class="csl-entry"
 role="listitem">
 Kandasamy, Kirthevasan, Gautam Dasarathy, Jeff Schneider, and Barnabas
-Poczos. 2017. <span>“Multi-Fidelity <span>Bayesian</span>
+Poczos. 2017. <span>"Multi-Fidelity <span>Bayesian</span>
 <span>Optimisation</span> with <span>Continuous</span>
-<span>Approximations</span>.”</span> In <em>International Conference on
+<span>Approximations</span>."</span> In <em>International Conference on
 Machine Learning (ICML)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1703.06240">https://doi.org/10.48550/arXiv.1703.06240</a>.
 </div>
 <div id="ref-kandasamy_neural_2019" class="csl-entry" role="listitem">
 Kandasamy, Kirthevasan, Willie Neiswanger, Jeff Schneider, Barnabas
-Poczos, and Eric Xing. 2018. <span>“Neural <span>Architecture</span>
+Poczos, and Eric Xing. 2018. <span>"Neural <span>Architecture</span>
 <span>Search</span> with <span>Bayesian</span> <span>Optimisation</span>
-and <span>Optimal</span> <span>Transport</span>.”</span> In <em>Advances
+and <span>Optimal</span> <span>Transport</span>."</span> In <em>Advances
 in Neural Information Processing Systems (NeurIPS)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1802.07191">https://doi.org/10.48550/arXiv.1802.07191</a>.
 </div>
 <div id="ref-klamkin_dual_2025" class="csl-entry" role="listitem">
 Klamkin, Michael, Mathieu Tanneau, and Pascal Van Hentenryck. 2025.
-<span>“Dual <span>Interior</span> <span>Point</span>
-<span>Optimization</span> <span>Learning</span>.”</span> arXiv. <a
+<span>"Dual <span>Interior</span> <span>Point</span>
+<span>Optimization</span> <span>Learning</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2402.02596">https://doi.org/10.48550/arXiv.2402.02596</a>.
 </div>
 <div id="ref-kolouri_sliced-wasserstein_2018" class="csl-entry"
 role="listitem">
 Kolouri, Soheil, Phillip E. Pope, Charles E. Martin, and Gustavo K.
-Rohde. 2018. <span>“Sliced-<span>Wasserstein</span>
+Rohde. 2018. <span>"Sliced-<span>Wasserstein</span>
 <span>Autoencoder</span>: <span>An</span> <span>Embarrassingly</span>
-<span>Simple</span> <span>Generative</span> <span>Model</span>.”</span>
+<span>Simple</span> <span>Generative</span> <span>Model</span>."</span>
 arXiv. <a
 href="https://doi.org/10.48550/arXiv.1804.01947">https://doi.org/10.48550/arXiv.1804.01947</a>.
 </div>
 <div id="ref-kool_attention_2019" class="csl-entry" role="listitem">
-Kool, Wouter, Herke van Hoof, and Max Welling. 2019. <span>“Attention,
+Kool, Wouter, Herke van Hoof, and Max Welling. 2019. <span>"Attention,
 <span>Learn</span> to <span>Solve</span> <span>Routing</span>
-<span>Problems</span>!”</span> In <em>International Conference on
+<span>Problems</span>!"</span> In <em>International Conference on
 Learning Representations (ICLR)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1803.08475">https://doi.org/10.48550/arXiv.1803.08475</a>.
 </div>
 <div id="ref-korotin_neural_2023" class="csl-entry" role="listitem">
 Korotin, Alexander, Daniil Selikhanovych, and Evgeny Burnaev. 2023.
-<span>“Neural <span>Optimal</span> <span>Transport</span>.”</span> In
+<span>"Neural <span>Optimal</span> <span>Transport</span>."</span> In
 <em>International Conference on Learning Representations (ICLR)</em>.
 arXiv. <a
 href="https://doi.org/10.48550/arXiv.2201.12220">https://doi.org/10.48550/arXiv.2201.12220</a>.
 </div>
 <div id="ref-kotary_learning_2021" class="csl-entry" role="listitem">
 Kotary, James, Ferdinando Fioretto, and Pascal Van Hentenryck. 2021.
-<span>“Learning <span>Hard</span> <span>Optimization</span>
+<span>"Learning <span>Hard</span> <span>Optimization</span>
 <span>Problems</span>: <span>A</span> <span>Data</span>
-<span>Generation</span> <span>Perspective</span>.”</span> In
+<span>Generation</span> <span>Perspective</span>."</span> In
 <em>Advances in Neural Information Processing Systems (NeurIPS)</em>.
 arXiv. <a
 href="https://doi.org/10.48550/arXiv.2106.02601">https://doi.org/10.48550/arXiv.2106.02601</a>.
@@ -1784,79 +1880,79 @@ href="https://doi.org/10.48550/arXiv.2106.02601">https://doi.org/10.48550/arXiv.
 <div id="ref-le_tree-wasserstein_2019" class="csl-entry"
 role="listitem">
 Le, Tam, Makoto Yamada, Kenji Fukumizu, and Marco Cuturi. 2019.
-<span>“Tree-<span>Sliced</span> <span>Variants</span> of
-<span>Wasserstein</span> <span>Distances</span>.”</span> In <em>Advances
+<span>"Tree-<span>Sliced</span> <span>Variants</span> of
+<span>Wasserstein</span> <span>Distances</span>."</span> In <em>Advances
 in Neural Information Processing Systems (<span>NeurIPS</span>)</em>.
 Vol. 32. <a
 href="http://arxiv.org/abs/1902.00342">http://arxiv.org/abs/1902.00342</a>.
 </div>
 <div id="ref-lee_meta-learning_2019" class="csl-entry" role="listitem">
 Lee, Kwonjoon, Subhransu Maji, Avinash Ravichandran, and Stefano Soatto.
-2019. <span>“Meta-<span>Learning</span> <span>With</span>
+2019. <span>"Meta-<span>Learning</span> <span>With</span>
 <span>Differentiable</span> <span>Convex</span>
-<span>Optimization</span>.”</span> In <em>2019
+<span>Optimization</span>."</span> In <em>2019
 <span>IEEE</span>/<span>CVF</span> <span>Conference</span> on
 <span>Computer</span> <span>Vision</span> and <span>Pattern</span>
-<span>Recognition</span> (<span>CVPR</span>)</em>, 10649–57. Long Beach,
+<span>Recognition</span> (<span>CVPR</span>)</em>, 10649-57. Long Beach,
 CA, USA: IEEE. <a
 href="https://doi.org/10.1109/CVPR.2019.01091">https://doi.org/10.1109/CVPR.2019.01091</a>.
 </div>
 <div id="ref-letham_bayesian_2019" class="csl-entry" role="listitem">
-Letham, Benjamin, and Eytan Bakshy. 2019. <span>“Bayesian
+Letham, Benjamin, and Eytan Bakshy. 2019. <span>"Bayesian
 <span>Optimization</span> for <span>Policy</span> <span>Search</span>
 via <span>Online</span>-<span>Oﬄine</span>
-<span>Experimentation</span>.”</span> <em>Annals of Applied
+<span>Experimentation</span>."</span> <em>Annals of Applied
 Statistics</em>.
 </div>
 <div id="ref-li_multi-fidelity_2020" class="csl-entry" role="listitem">
 Li, Shibo, Wei Xing, Mike Kirby, and Shandian Zhe. 2020.
-<span>“Multi-<span>Fidelity</span> <span>Bayesian</span>
+<span>"Multi-<span>Fidelity</span> <span>Bayesian</span>
 <span>Optimization</span> via <span>Deep</span> <span>Neural</span>
-<span>Networks</span>.”</span> In <em>Advances in Neural Information
+<span>Networks</span>."</span> In <em>Advances in Neural Information
 Processing Systems (NeurIPS)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.2007.03117">https://doi.org/10.48550/arXiv.2007.03117</a>.
 </div>
 <div id="ref-lorraine_optimizing_2019" class="csl-entry"
 role="listitem">
 Lorraine, Jonathan, Paul Vicol, and David Duvenaud. 2020.
-<span>“Optimizing <span>Millions</span> of <span>Hyperparameters</span>
-by <span>Implicit</span> <span>Differentiation</span>.”</span> In
+<span>"Optimizing <span>Millions</span> of <span>Hyperparameters</span>
+by <span>Implicit</span> <span>Differentiation</span>."</span> In
 <em>International Conference on Artificial Intelligence and Statistics
 (AISTATS)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1911.02590">https://doi.org/10.48550/arXiv.1911.02590</a>.
 </div>
 <div id="ref-matthews_sparse_2015" class="csl-entry" role="listitem">
 Matthews, Alexander G. de G., James Hensman, Richard E. Turner, and
-Zoubin Ghahramani. 2016. <span>“On <span>Sparse</span> Variational
+Zoubin Ghahramani. 2016. <span>"On <span>Sparse</span> Variational
 Methods and the <span>Kullback</span>-<span>Leibler</span> Divergence
-Between Stochastic Processes.”</span> In <em>International Conference on
+Between Stochastic Processes."</span> In <em>International Conference on
 Artificial Intelligence and Statistics (AISTATS)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1504.07027">https://doi.org/10.48550/arXiv.1504.07027</a>.
 </div>
 <div id="ref-memoli_gromovwasserstein_2011" class="csl-entry"
 role="listitem">
-Mémoli, Facundo. 2011. <span>“Gromov–<span>Wasserstein</span>
+Mémoli, Facundo. 2011. <span>"Gromov - <span>Wasserstein</span>
 <span>Distances</span> and the <span>Metric</span> <span>Approach</span>
-to <span>Object</span> <span>Matching</span>.”</span> <em>Foundations of
-Computational Mathematics</em> 11 (4): 417–87. <a
+to <span>Object</span> <span>Matching</span>."</span> <em>Foundations of
+Computational Mathematics</em> 11 (4): 417-87. <a
 href="https://doi.org/10.1007/s10208-011-9093-5">https://doi.org/10.1007/s10208-011-9093-5</a>.
 </div>
 <div id="ref-mensch_differentiable-dp_2018" class="csl-entry"
 role="listitem">
-Mensch, Arthur, and Mathieu Blondel. 2018. <span>“Differentiable
+Mensch, Arthur, and Mathieu Blondel. 2018. <span>"Differentiable
 <span>Dynamic</span> <span>Programming</span> for
 <span>Structured</span> <span>Prediction</span> and
-<span>Attention</span>.”</span> In <em>International Conference on
+<span>Attention</span>."</span> In <em>International Conference on
 Machine Learning (ICML)</em>. <a
 href="https://doi.org/10.48550/arXiv.1802.03676">https://doi.org/10.48550/arXiv.1802.03676</a>.
 </div>
 <div id="ref-pan_bpqp_2024" class="csl-entry" role="listitem">
 Pan, Jianming, Zeqi Ye, Xiao Yang, Xu Yang, Weiqing Liu, Lewen Wang, and
-Jiang Bian. 2024. <span>“<span>BPQP</span>: <span>A</span>
+Jiang Bian. 2024. <span>"<span>BPQP</span>: <span>A</span>
 <span>Differentiable</span> <span>Convex</span>
 <span>Optimization</span> <span>Framework</span> for
 <span>Efficient</span> <span>End</span>-to-<span>End</span>
-<span>Learning</span>.”</span> In <em>Advances in Neural Information
+<span>Learning</span>."</span> In <em>Advances in Neural Information
 Processing Systems (NeurIPS)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.2411.19285">https://doi.org/10.48550/arXiv.2411.19285</a>.
 </div>
@@ -1869,19 +1965,19 @@ href="https://doi.org/10.48550/arXiv.1803.00567">https://doi.org/10.48550/arXiv.
 </div>
 <div id="ref-prates_learning_2018" class="csl-entry" role="listitem">
 Prates, Marcelo O. R., Pedro H. C. Avelar, Henrique Lemos, Luis Lamb,
-and Moshe Vardi. 2019. <span>“Learning to <span>Solve</span>
+and Moshe Vardi. 2019. <span>"Learning to <span>Solve</span>
 <span>NP</span>-<span>Complete</span> <span>Problems</span> -
 <span>A</span> <span>Graph</span> <span>Neural</span>
-<span>Network</span> for <span>Decision</span> <span>TSP</span>.”</span>
+<span>Network</span> for <span>Decision</span> <span>TSP</span>."</span>
 In <em>AAAI Conference on Artificial Intelligence</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1809.02721">https://doi.org/10.48550/arXiv.1809.02721</a>.
 </div>
 <div id="ref-rachev_mongekantorovich_2006" class="csl-entry"
 role="listitem">
-Rachev, S. T. 1985. <span>“The
-<span>Monge</span>–<span>Kantorovich</span> <span>Mass</span>
+Rachev, S. T. 1985. <span>"The
+<span>Monge</span> - <span>Kantorovich</span> <span>Mass</span>
 <span>Transference</span> <span>Problem</span> and <span>Its</span>
-<span>Stochastic</span> <span>Applications</span>.”</span> <em>Theory of
+<span>Stochastic</span> <span>Applications</span>."</span> <em>Theory of
 Probability &amp; Its Applications</em>, July. <a
 href="https://doi.org/10.1137/1129093">https://doi.org/10.1137/1129093</a>.
 </div>
@@ -1892,22 +1988,21 @@ and Machine Learning. Cambridge, Mass: MIT Press.
 </div>
 <div id="ref-sander_sinkformers_2022" class="csl-entry" role="listitem">
 Sander, Michaël E., Pierre Ablin, Mathieu Blondel, and Gabriel Peyré.
-2022. <span>“Sinkformers: <span>Transformers</span> with
+2022. <span>"Sinkformers: <span>Transformers</span> with
 <span>Doubly</span> <span>Stochastic</span>
-<span>Attention</span>.”</span> <a
+<span>Attention</span>."</span> <a
 href="https://doi.org/10.48550/arXiv.2110.11773">https://doi.org/10.48550/arXiv.2110.11773</a>.
 </div>
 <div id="ref-santambrogio_introduction_2010" class="csl-entry"
 role="listitem">
-Santambrogio, Filippo. 2014. <span>“Introduction to <span>Optimal</span>
-<span>Transport</span> <span>Theory</span>.”</span> In <em>Optimal
+Santambrogio, Filippo. 2014. <span>"Introduction to <span>Optimal</span>
+<span>Transport</span> <span>Theory</span>."</span> In <em>Optimal
 Transport: Theory and Applications (London Math. Soc. Lecture Note
 Series 413)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1009.3856">https://doi.org/10.48550/arXiv.1009.3856</a>.
 </div>
 <div id="ref-santambrogio_optimal_2015" class="csl-entry"
-role="listitem">
-———. 2015. <em>Optimal <span>Transport</span> for <span>Applied</span>
+role="listitem"> -  -  - . 2015. <em>Optimal <span>Transport</span> for <span>Applied</span>
 <span>Mathematicians</span>: <span>Calculus</span> of
 <span>Variations</span>, <span>PDEs</span>, and
 <span>Modeling</span></em>. Vol. 87. Progress in <span>Nonlinear</span>
@@ -1918,84 +2013,84 @@ href="https://doi.org/10.1007/978-3-319-20828-2">https://doi.org/10.1007/978-3-3
 <div id="ref-seguy_large-scale_2018" class="csl-entry" role="listitem">
 Seguy, Vivien, Bharath Bhushan Damodaran, Rémi Flamary, Nicolas Courty,
 Antoine Rolet, and Mathieu Blondel. 2018.
-<span>“Large-<span>Scale</span> <span>Optimal</span>
+<span>"Large-<span>Scale</span> <span>Optimal</span>
 <span>Transport</span> and <span>Mapping</span>
-<span>Estimation</span>.”</span> In <em>International Conference on
+<span>Estimation</span>."</span> In <em>International Conference on
 Learning Representations (ICLR)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.1711.02283">https://doi.org/10.48550/arXiv.1711.02283</a>.
 </div>
 <div id="ref-shahriari_taking_2016" class="csl-entry" role="listitem">
 Shahriari, Bobak, Kevin Swersky, Ziyu Wang, Ryan P. Adams, and Nando de
-Freitas. 2016. <span>“Taking the <span>Human</span> <span>Out</span> of
+Freitas. 2016. <span>"Taking the <span>Human</span> <span>Out</span> of
 the <span>Loop</span>: <span>A</span> <span>Review</span> of
-<span>Bayesian</span> <span>Optimization</span>.”</span> <em>Proceedings
-of the IEEE</em> 104 (1): 148–75. <a
+<span>Bayesian</span> <span>Optimization</span>."</span> <em>Proceedings
+of the IEEE</em> 104 (1): 148-75. <a
 href="https://doi.org/10.1109/JPROC.2015.2494218">https://doi.org/10.1109/JPROC.2015.2494218</a>.
 </div>
 <div id="ref-snelson_sparse_2006" class="csl-entry" role="listitem">
-Snelson, Edward, and Zoubin Ghahramani. 2006. <span>“Sparse
+Snelson, Edward, and Zoubin Ghahramani. 2006. <span>"Sparse
 <span>Gaussian</span> <span>Processes</span> Using
-<span>Pseudo</span>-Inputs.”</span> In <em>Advances in Neural
+<span>Pseudo</span>-Inputs."</span> In <em>Advances in Neural
 Information Processing Systems (NeurIPS)</em>.
 </div>
 <div id="ref-snoek_practical_2012" class="csl-entry" role="listitem">
 Snoek, Jasper, Hugo Larochelle, and Ryan P. Adams. 2012.
-<span>“Practical <span>Bayesian</span> <span>Optimization</span> of
+<span>"Practical <span>Bayesian</span> <span>Optimization</span> of
 <span>Machine</span> <span>Learning</span>
-<span>Algorithms</span>.”</span> arXiv. <a
+<span>Algorithms</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.1206.2944">https://doi.org/10.48550/arXiv.1206.2944</a>.
 </div>
 <div id="ref-srinivas_gaussian_2012" class="csl-entry" role="listitem">
 Srinivas, Niranjan, Andreas Krause, Sham M. Kakade, and Matthias Seeger.
-2012. <span>“Gaussian <span>Process</span> <span>Optimization</span> in
+2012. <span>"Gaussian <span>Process</span> <span>Optimization</span> in
 the <span>Bandit</span> <span>Setting</span>: <span>No</span>
 <span>Regret</span> and <span>Experimental</span>
-<span>Design</span>.”</span> <em>IEEE Transactions on Information
-Theory</em> 58 (5): 3250–65. <a
+<span>Design</span>."</span> <em>IEEE Transactions on Information
+Theory</em> 58 (5): 3250-65. <a
 href="https://doi.org/10.1109/TIT.2011.2182033">https://doi.org/10.1109/TIT.2011.2182033</a>.
 </div>
 <div id="ref-stanton_accelerating_2022" class="csl-entry"
 role="listitem">
 Stanton, Samuel, Wesley Maddox, Nate Gruver, Phillip Maffettone, Emily
 Delaney, Peyton Greenside, and Andrew Gordon Wilson. 2022.
-<span>“Accelerating <span>Bayesian</span> <span>Optimization</span> for
+<span>"Accelerating <span>Bayesian</span> <span>Optimization</span> for
 <span>Biological</span> <span>Sequence</span> <span>Design</span> with
-<span>Denoising</span> <span>Autoencoders</span>.”</span> arXiv. <a
+<span>Denoising</span> <span>Autoencoders</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.2203.12742">https://doi.org/10.48550/arXiv.2203.12742</a>.
 </div>
 <div id="ref-sui_safe_2015" class="csl-entry" role="listitem">
 Sui, Yanan, Alkis Gotovos, Joel W Burdick, and Andreas Krause. 2015.
-<span>“Safe <span>Exploration</span> for <span>Optimization</span> with
-<span>Gaussian</span> <span>Processes</span>.”</span> In
+<span>"Safe <span>Exploration</span> for <span>Optimization</span> with
+<span>Gaussian</span> <span>Processes</span>."</span> In
 <em>International Conference on Machine Learning (ICML)</em>.
 </div>
 <div id="ref-swersky_multi-task_2013" class="csl-entry" role="listitem">
 Swersky, Kevin, Jasper Snoek, and Ryan P Adams. 2013.
-<span>“Multi-<span>Task</span> <span>Bayesian</span>
-<span>Optimization</span>.”</span> In <em>Advances in Neural Information
+<span>"Multi-<span>Task</span> <span>Bayesian</span>
+<span>Optimization</span>."</span> In <em>Advances in Neural Information
 Processing Systems (NeurIPS)</em>.
 </div>
 <div id="ref-swersky_freeze-thaw_2014" class="csl-entry"
 role="listitem">
 Swersky, Kevin, Jasper Snoek, and Ryan Prescott Adams. 2014.
-<span>“Freeze-<span>Thaw</span> <span>Bayesian</span>
-<span>Optimization</span>.”</span> arXiv. <a
+<span>"Freeze-<span>Thaw</span> <span>Bayesian</span>
+<span>Optimization</span>."</span> arXiv. <a
 href="https://doi.org/10.48550/arXiv.1406.3896">https://doi.org/10.48550/arXiv.1406.3896</a>.
 </div>
 <div id="ref-tang_cave_2024" class="csl-entry" role="listitem">
-Tang, Bo, and Elias B. Khalil. 2024. <span>“<span>CaVE</span>:
+Tang, Bo, and Elias B. Khalil. 2024. <span>"<span>CaVE</span>:
 <span>A</span> <span>Cone</span>-<span>Aligned</span>
 <span>Approach</span> for <span>Fast</span>
 <span>Predict</span>-Then-Optimize with <span>Binary</span>
-<span>Linear</span> <span>Programs</span>.”</span> In <em>International
+<span>Linear</span> <span>Programs</span>."</span> In <em>International
 Conference on Machine Learning (ICML)</em>. arXiv. <a
 href="https://doi.org/10.48550/arXiv.2312.07718">https://doi.org/10.48550/arXiv.2312.07718</a>.
 </div>
 <div id="ref-titsias_variational_2009" class="csl-entry"
 role="listitem">
-Titsias, Michalis K. 2009. <span>“Variational <span>Learning</span> of
+Titsias, Michalis K. 2009. <span>"Variational <span>Learning</span> of
 <span>Inducing</span> <span>Variables</span> in <span>Sparse</span>
-<span>Gaussian</span> <span>Processes</span>.”</span> In
+<span>Gaussian</span> <span>Processes</span>."</span> In
 <em>International Conference on Artificial Intelligence and Statistics
 (AISTATS)</em>.
 </div>
@@ -2004,41 +2099,40 @@ Villani, Cédric. 2003. <em>Topics in <span>Optimal</span>
 <span>Transportation</span></em>. Vol. 58. Graduate <span>Studies</span>
 in <span>Mathematics</span>. American Mathematical Society.
 </div>
-<div id="ref-villani_optimal_2009" class="csl-entry" role="listitem">
-———. 2009. <em>Optimal <span>Transport</span>: <span>Old</span> and
+<div id="ref-villani_optimal_2009" class="csl-entry" role="listitem"> -  -  - . 2009. <em>Optimal <span>Transport</span>: <span>Old</span> and
 <span>New</span></em>. Springer. <a
 href="https://doi.org/10.1007/978-3-540-71050-9">https://doi.org/10.1007/978-3-540-71050-9</a>.
 </div>
 <div id="ref-vlastelica_differentiation_2020" class="csl-entry"
 role="listitem">
 Vlastelica, Marin, Anselm Paulus, Vít Musil, Georg Martius, and Michal
-Rolínek. 2020. <span>“Differentiation of <span>Blackbox</span>
-<span>Combinatorial</span> <span>Solvers</span>.”</span> In
+Rolínek. 2020. <span>"Differentiation of <span>Blackbox</span>
+<span>Combinatorial</span> <span>Solvers</span>."</span> In
 <em>International Conference on Learning Representations (ICLR)</em>.
 arXiv. <a
 href="https://doi.org/10.48550/arXiv.1912.02175">https://doi.org/10.48550/arXiv.1912.02175</a>.
 </div>
 <div id="ref-wang_parallel_2019" class="csl-entry" role="listitem">
 Wang, Jialei, Scott C. Clark, Eric Liu, and Peter I. Frazier. 2020.
-<span>“Parallel <span>Bayesian</span> <span>Global</span>
+<span>"Parallel <span>Bayesian</span> <span>Global</span>
 <span>Optimization</span> of <span>Expensive</span>
-<span>Functions</span>.”</span> <em>Operations Research</em>, May. <a
+<span>Functions</span>."</span> <em>Operations Research</em>, May. <a
 href="https://doi.org/10.48550/arXiv.1602.05149">https://doi.org/10.48550/arXiv.1602.05149</a>.
 </div>
 <div id="ref-wang_satnet_2019" class="csl-entry" role="listitem">
 Wang, Po-Wei, Priya L. Donti, Bryan Wilder, and Zico Kolter. 2019.
-<span>“<span>SATNet</span>: <span>Bridging</span> Deep Learning and
-Logical Reasoning Using a Differentiable Satisfiability Solver.”</span>
+<span>"<span>SATNet</span>: <span>Bridging</span> Deep Learning and
+Logical Reasoning Using a Differentiable Satisfiability Solver."</span>
 In <em>International Conference on Machine Learning
-(<span>ICML</span>)</em>, 97:6545–54. Proceedings of Machine Learning
+(<span>ICML</span>)</em>, 97:6545-54. Proceedings of Machine Learning
 Research. PMLR. <a
 href="http://arxiv.org/abs/1905.12149">http://arxiv.org/abs/1905.12149</a>.
 </div>
 <div id="ref-wang_bayesian_2016" class="csl-entry" role="listitem">
 Wang, Ziyu, Masrour Zoghi, Frank Hutter, David Matheson, and Nando de
-Freitas. 2016. <span>“Bayesian <span>Optimization</span> in
+Freitas. 2016. <span>"Bayesian <span>Optimization</span> in
 <span>High</span> <span>Dimensions</span> via <span>Random</span>
-<span>Embeddings</span>.”</span> <em>Journal of Artificial Intelligence
+<span>Embeddings</span>."</span> <em>Journal of Artificial Intelligence
 Research (JAIR)</em>.
 </div>
 </div>

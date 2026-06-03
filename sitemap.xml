@@ -2,62 +2,62 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://adnanhd.github.io/</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-06-03</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://adnanhd.github.io/#cv</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-06-03</lastmod>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://adnanhd.github.io/#blogs</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-06-03</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://adnanhd.github.io/blogs/reinforcement-learning/index.html</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-06-03</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://adnanhd.github.io/blogs/computer-vision/index.html</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-06-03</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://adnanhd.github.io/blogs/generative-models/index.html</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-06-03</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://adnanhd.github.io/blogs/self-supervised-learning/index.html</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-06-03</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://adnanhd.github.io/blogs/optimization/index.html</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-06-03</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://adnanhd.github.io/blogs/probabilistic-deep-learning/index.html</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-06-03</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://adnanhd.github.io/blogs/statistical-deep-learning/index.html</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-06-03</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://adnanhd.github.io/blogs/quantization-aware-training/index.html</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-06-03</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://adnanhd.github.io/blogs/inertial-motion-capture/index.html</loc>
-    <lastmod>2026-06-01</lastmod>
+    <lastmod>2026-06-03</lastmod>
     <priority>0.6</priority>
   </url>
 </urlset>

@@ -131,6 +131,25 @@ def _postprocess(html, org_dir, out_dir):
     return html
 
 
+def _normalize_punctuation(text):
+    """Normalize AI-tell unicode punctuation to plain ASCII.
+
+    em/en dashes -> hyphens (numeric ranges close up; parenthetical dashes become
+    a spaced hyphen), smart quotes -> straight, ellipsis -> three dots. Operates on
+    the rendered page; MathML uses U+2212 minus (untouched) so equations are safe.
+    """
+    text = re.sub(r"(\d)\s*[–—]\s*(\d)", r"\1-\2", text)  # 10–20 -> 10-20
+    text = re.sub(r"\s*[–—]\s*", " - ", text)            # a — b / a–b -> a - b
+    text = (text.replace("“", '"').replace("”", '"')      # “ ” -> "
+                .replace("‘", "'").replace("’", "'")      # ‘ ’ -> '
+                .replace("…", "..."))                          # … -> ...
+    text = (text.replace("&mdash;", " - ").replace("&ndash;", "-")
+                .replace("&hellip;", "...")
+                .replace("&ldquo;", '"').replace("&rdquo;", '"')
+                .replace("&lsquo;", "'").replace("&rsquo;", "'"))
+    return text
+
+
 BLOG_SHELL = """<!doctype html>
 <html lang="en">
     <head>
@@ -175,6 +194,7 @@ def build_blog(spec):
     page = BLOG_SHELL.format(
         title=spec.title, meta=spec.meta, description=spec.description, body=body,
     )
+    page = _normalize_punctuation(page)
     (out_dir / "index.html").write_text(page)
     print(f"Built blogs/{spec.slug}/index.html ({len(page):,} bytes)")
 
