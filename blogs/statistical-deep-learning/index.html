@@ -34,83 +34,97 @@ be analyzed inside the framework (SVM, AdaBoost, kernel ridge
 regression). <u>The later Parts of the book will show how each of these
 components either breaks or bends when the hypothesis class becomes a
 deep neural network trained by SGD.</u></p>
-<h3 id="one-sentence-summaries">One-sentence summaries</h3>
-<ul>
-<li><span class="citation" data-cites="vapnik_nature_1995">(Vapnik
-1995)</span> states the Structural Risk Minimization programme and
-collects the Vapnik school's main bounds for classification and
-regression; covered in ERM and MLE and
-VC / Rademacher.</li>
-<li><span class="citation" data-cites="mohri_foundations_2018">(Mohri,
-Rostamizadeh, and Talwalkar 2018)</span> is the current standard
-textbook for the uniform-convergence view (Rademacher complexity, VC,
-margin bounds, kernels); used throughout ERM, VC, kernels, SVM,
-and boosting.</li>
-<li><span class="citation"
-data-cites="vandervaart_asymptotic_1998">(Vaart 1998)</span> develops
-the asymptotic theory of M-estimators and MLE (consistency,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mi>n</mi></msqrt><annotation encoding="application/x-tex">\sqrt{n}</annotation></semantics></math>-rate,
-limiting normal distribution); covered in ERM and MLE.</li>
-<li><span class="citation" data-cites="murphy_pml_intro_2022">(Murphy
-2022 Ch 5)</span> gives the modern Bayesian-probabilistic framing of
-ERM/MLE/MAP and their relation via regularizers; covered in ERM and MLE.</li>
-<li><span class="citation"
+<h3 id="lineage-of-the-classical-theory">Lineage of the classical
+theory</h3>
+<p>The statistical reading of supervised learning begins with the
+uniform convergence theorem of <span class="citation"
+data-cites="vapnik_chervonenkis_1971">(Vapnik and Chervonenkis
+1971)</span>, which bounds the gap between empirical and population
+error uniformly over a hypothesis class and, in the same stroke,
+introduces the growth function and the VC dimension as the first general
+capacity measures; this is the result on which the VC / Rademacher chapter is built.
+<span class="citation" data-cites="vapnik_nature_1995">(Vapnik
+1995)</span> later organizes these bounds for both classification and
+regression into the Structural Risk Minimization programme, the
+prescription to trade empirical fit against capacity by minimizing over
+a nested family of classes; that programme frames both the ERM and MLE and VC / Rademacher chapters. The modern
+textbook synthesis of this uniform-convergence view (Rademacher
+complexity, VC, margin bounds, kernels) is <span class="citation"
+data-cites="mohri_foundations_2018">(Mohri, Rostamizadeh, and Talwalkar
+2018)</span>, used as the standing reference throughout ERM, VC, kernels, SVM,
+and boosting.</p>
+<p>The capacity side of the theory was then sharpened in two directions.
+<span class="citation" data-cites="bartlett_mendelson_2002">(Bartlett
+and Mendelson 2002)</span> replaces the distribution-free VC dimension
+with the data-dependent Rademacher and Gaussian complexities and proves
+the symmetrization bound that is now standard, yielding estimates that
+adapt to the sample rather than to the worst case. In parallel, the
+capacity of neural networks specifically was estimated first by <span
+class="citation" data-cites="baum_haussler_1989">(Baum and Haussler
+1989)</span>, whose VC-based sample-complexity count for threshold
+feed-forward networks is the earliest such result, and then collected
+with the pseudo-dimension and fat-shattering refinements in the
+monograph of <span class="citation"
+data-cites="anthony_bartlett_1999">(Anthony and Bartlett 1999)</span>;
+all three feed the VC /
+Rademacher chapter.</p>
+<p>Underneath every such bound sits a tail inequality that converts an
+expectation into a high-probability statement. <span class="citation"
 data-cites="boucheron_concentration_2013">(Boucheron, Lugosi, and
-Massart 2013)</span> is the standard reference for tail inequalities
-used in learning theory: Hoeffding, Bernstein, bounded-differences,
-entropy method, log-Sobolev; covered in Concentration.</li>
-<li><span class="citation" data-cites="murphy_pml_advanced_2023">(Murphy
-2023)</span> provides an ML-practitioner-oriented summary of
-concentration tools that feed into PAC and PAC-Bayes analyses; covered
-in Concentration.</li>
-<li><span class="citation" data-cites="vapnik_chervonenkis_1971">(Vapnik
-and Chervonenkis 1971)</span> proves the foundational uniform
-convergence theorem; the growth function bound and VC dimension are
-introduced here; covered in VC /
-Rademacher.</li>
-<li><span class="citation"
-data-cites="bartlett_mendelson_2002">(Bartlett and Mendelson
-2002)</span> introduces data-dependent Rademacher and Gaussian
-complexities and proves the now-standard symmetrization bound; covered
-in VC / Rademacher.</li>
-<li><span class="citation" data-cites="baum_haussler_1989">(Baum and
-Haussler 1989)</span> gives the first VC-based sample-complexity
-estimate for feed-forward neural networks with threshold units; covered
-in VC / Rademacher.</li>
-<li><span class="citation" data-cites="anthony_bartlett_1999">(Anthony
-and Bartlett 1999)</span> is the canonical monograph on VC,
-pseudo-dimension, fat-shattering, and sample complexity of neural
-networks; covered in VC /
-Rademacher.</li>
-<li><span class="citation" data-cites="scholkopf_smola_2002">(Schölkopf
-and Smola 2002)</span> is the canonical kernel-methods textbook:
-positive-definite kernels, RKHS, representer theorem, SVM, kernel PCA;
-covered in Kernels and SVM.</li>
-<li><span class="citation"
+Massart 2013)</span> is the standard reference for this machinery
+(Hoeffding, Bernstein, the bounded-differences inequality, the entropy
+method, and log-Sobolev arguments), and <span class="citation"
+data-cites="murphy_pml_advanced_2023">(Murphy 2023)</span> gives the
+practitioner-oriented digest of the same tools as they feed PAC and
+PAC-Bayes analyses; both are treated in the Concentration chapter.</p>
+<p>A complementary, estimation-theoretic account of the same fitting
+procedures comes from classical asymptotics. <span class="citation"
+data-cites="vandervaart_asymptotic_1998">(Vaart 1998)</span> develops
+the consistency, the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mi>n</mi></msqrt><annotation encoding="application/x-tex">\sqrt{n}</annotation></semantics></math>
+rate, and the limiting normal law of M-estimators and the
+maximum-likelihood estimator, while <span class="citation"
+data-cites="murphy_pml_intro_2022">(Murphy 2022 Ch 5)</span> supplies
+the Bayesian-probabilistic framing in which ERM, MLE, and MAP differ
+only by their regularizer; both inform the ERM and MLE chapter.</p>
+<p>The kernel branch of the field gives the theory a function-space
+home. <span class="citation"
+data-cites="scholkopf_smola_2002">(Schölkopf and Smola 2002)</span> is
+the canonical account of positive-definite kernels, the
+reproducing-kernel Hilbert space, the representer theorem, and their use
+in the SVM and kernel PCA, and <span class="citation"
 data-cites="rasmussen_williams_2006">(Rasmussen and Williams
-2006)</span> is the canonical GP textbook: covariance functions,
-posterior inference, marginal likelihood, connections to kernel ridge
-regression; covered in Kernels.</li>
-<li><span class="citation" data-cites="cortes_vapnik_1995">(Cortes and
-Vapnik 1995)</span> introduces the <em>soft-margin</em> SVM with slack
-variables and hinge loss, making SVMs applicable to non-separable data;
-covered in SVM.</li>
-<li><span class="citation" data-cites="boser_guyon_vapnik_1992">(Boser,
-Guyon, and Vapnik 1992)</span> introduces the <em>kernel trick</em> in
-the margin-classifier dual, enabling nonlinear decision boundaries
-without explicit feature maps; covered in SVM.</li>
-<li><span class="citation" data-cites="platt_smo_1999">(Platt
-1999)</span> proposes SMO, a pairwise coordinate-ascent algorithm that
-solves the SVM quadratic program without a general QP solver; covered in
-SVM.</li>
-<li><span class="citation" data-cites="freund_schapire_1997">(Freund and
-Schapire 1997)</span> introduces AdaBoost and proves its training-error
-bound via the product of normalization constants; covered in Boosting.</li>
-<li><span class="citation" data-cites="schapire_margin_1998">(Schapire
-et al. 1998)</span> proves a test-error bound in terms of the <em>margin
-distribution</em>, not the number of rounds, explaining why AdaBoost
-keeps generalizing after training error hits zero; covered in Boosting.</li>
-</ul>
+2006)</span> is its Bayesian counterpart, developing Gaussian-process
+covariance functions, posterior inference, the marginal likelihood, and
+the equivalence to kernel ridge regression; the Kernels chapter draws on both.</p>
+<p>These pieces meet in the support vector machine, the algorithm that
+made the margin theory concrete. <span class="citation"
+data-cites="boser_guyon_vapnik_1992">(Boser, Guyon, and Vapnik
+1992)</span> introduces the <em>kernel trick</em> in the dual of the
+margin classifier, allowing nonlinear boundaries with no explicit
+feature map; <span class="citation"
+data-cites="cortes_vapnik_1995">(Cortes and Vapnik 1995)</span> adds the
+slack variables and the hinge loss of the <em>soft-margin</em>
+formulation, extending the method to non-separable data; and <span
+class="citation" data-cites="platt_smo_1999">(Platt 1999)</span> makes
+it practical with Sequential Minimal Optimization, a pairwise
+coordinate-ascent scheme that solves the quadratic program without a
+general QP solver. The SVM chapter follows
+exactly this progression.</p>
+<p>Boosting supplies the other classical algorithm and, with it, the
+first clean case of benign overfitting. <span class="citation"
+data-cites="freund_schapire_1997">(Freund and Schapire 1997)</span>
+introduces AdaBoost and bounds its training error by the product of the
+per-round normalization constants, and <span class="citation"
+data-cites="schapire_margin_1998">(Schapire et al. 1998)</span> then
+explains the algorithm's most puzzling behavior, the continued
+improvement of test error after the training error reaches zero, with a
+bound that depends on the <em>margin distribution</em> rather than on
+the number of rounds; the Boosting
+chapter develops both. <u>That last observation, capacity controlled
+through a margin rather than through a parameter count, is precisely the
+thread the later Parts pick up once the classifier becomes an
+overparameterized network.</u></p>
 <h3 id="sota-table-classical-benchmarks">SoTA table: classical
 benchmarks</h3>
 <p><u>Classical learning theory crystallized around a handful of
