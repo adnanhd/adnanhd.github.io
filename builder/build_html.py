@@ -267,46 +267,60 @@ def render_appointment_calendar(bio):
     )
 
 
+# platform key -> (display label, icon class, brand color for the icon)
+_POST_PLATFORM = {
+    "linkedin": ("LinkedIn", "fa-brands fa-linkedin",  "#0a66c2"),
+    "twitter":  ("X",        "fa-brands fa-x-twitter", "currentColor"),
+    "x":        ("X",        "fa-brands fa-x-twitter", "currentColor"),
+}
+
+
 def render_social_posts(data):
-    """"Recent Posts" section at the bottom of the Blogs tab. Curated individual
-    post embeds from `posts:` in data/social_posts.yaml -- real, live content:
-      * X tweet:     platform: twitter, url: <tweet url>   (blockquote widget)
-      * LinkedIn:    platform: linkedin, embed: <iframe src from "Embed post">
-    X's auto profile-timeline is disabled for logged-out users, so the feed has
-    to be specific posts. Returns '' when no posts are configured."""
-    sp = data.get("social_posts") or {}
-    posts = sp.get("posts") or []
+    """"Recent Posts" section at the bottom of the Blogs tab. Each curated post
+    in `posts:` (data/social_posts.yaml) renders as a link-preview card with
+    the post's title, excerpt and optional thumbnail. Cards are used instead of
+    live iframe/widget embeds because those render blank on mobile and for
+    logged-out visitors. Returns '' when no posts are configured.
+    Each entry: platform, url, title, [excerpt], [image]."""
+    posts = (data.get("social_posts") or {}).get("posts") or []
 
     cards = []
-    has_twitter = False
     for p in posts:
-        plat = (p.get("platform") or "").lower()
-        if plat in ("twitter", "x") and p.get("url"):
-            has_twitter = True
-            cards.append(
-                '<div class="social-card social-twitter">'
-                '<blockquote class="twitter-tweet" data-dnt="true">'
-                f'<a href="{esc(p["url"])}"></a></blockquote></div>'
-            )
-        elif plat == "linkedin" and p.get("embed"):
-            height = p.get("height", 540)
-            cards.append(
-                '<div class="social-card social-linkedin">'
-                f'<iframe src="{esc(p["embed"])}" height="{esc(height)}" '
-                'width="100%" frameborder="0" allowfullscreen '
-                'title="Embedded LinkedIn post" loading="lazy"></iframe></div>'
-            )
+        key = (p.get("platform") or "").lower()
+        url = p.get("url")
+        meta = _POST_PLATFORM.get(key)
+        if not url or not meta:
+            continue
+        label, icon, color = meta
+        img = p.get("image")
+        media = (
+            f'<div class="post-card-media">'
+            f'<img src="{esc(img)}" alt="" loading="lazy" '
+            f'onerror="this.closest(\'.post-card-media\').style.display=\'none\'" />'
+            f'</div>' if img else ""
+        )
+        title = esc(p.get("title", "")) or f"Post on {esc(label)}"
+        excerpt = esc(p.get("excerpt", ""))
+        excerpt_html = f'<p class="post-card-excerpt">{excerpt}</p>' if excerpt else ""
+        cards.append(
+            f'<a class="social-card post-card post-card-{esc(key)}" '
+            f'href="{esc(url)}" target="_blank" rel="noopener noreferrer">'
+            f'{media}'
+            f'<div class="post-card-body">'
+            f'<span class="post-card-source">'
+            f'<i class="{icon}" style="color:{color}"></i> {esc(label)}</span>'
+            f'<span class="post-card-title">{title}</span>'
+            f'{excerpt_html}'
+            f'<span class="post-card-link">View on {esc(label)} '
+            f'<i class="fa-solid fa-arrow-right"></i></span>'
+            f'</div></a>'
+        )
     if not cards:
         return ""
-    script = (
-        '<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>'
-        if has_twitter else ""
-    )
     return (
         '<div class="content-section" id="social-posts-section">'
         '<h2>Recent Posts</h2>'
         f'<div id="recent-posts" class="social-grid">{"".join(cards)}</div>'
-        f'{script}'
         '</div>'
     )
 
