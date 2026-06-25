@@ -1,61 +1,53 @@
-# Blog figure generator
+# Blog figures
 
-Reusable Matplotlib toolkit for the blog figures, matching the existing house
-style (DejaVu Sans, `tab10` colours, despined axes, faint dotted grid,
-~9.2x3.8in SVG).
+In-repo, reproducible generators for every figure used by the blogs.
 
-## Files
+## Layout
 
-- `figlib.py` -- the toolkit: shared style (`use_style`), `save`, and the two
-  figure builders.
-- `build.py` -- figure definitions + renderer. Each entry in `FIGURES` maps an
-  output path to a builder.
-- `examples/` -- rendered reference output (one of each archetype).
+- `src/<name>.py` -- one generator per blog figure (14 total), each extracted
+  verbatim from its `~/org/roam2/informatics` org source and given a fixed RNG
+  seed so re-runs don't churn. Each saves a relative `figures/<name>.svg`.
+- `build.py` -- runs the generators with the right working directory so each
+  SVG lands in `blogs/<blog>/figures/<name>.svg`. Holds the figure -> blog map.
+- `figlib.py` -- a small style + archetype helper (`family_timeline`,
+  `landscape`) for authoring *new* figures in the house style.
 
 ## Usage
 
 ```bash
-pip install matplotlib            # only dependency
-python figures/build.py           # render every figure to its path
-python figures/build.py /tmp/out  # render under /tmp/out instead (preview)
+pip install matplotlib                          # only dependency
+python figures/build.py                         # rebuild every figure
+python figures/build.py gp-family-timeline      # rebuild a subset
 ```
 
-## Archetypes
+Each generated SVG matches its committed counterpart (same source); a re-render
+differs only in matplotlib's per-run element IDs / timestamp.
 
-**`family_timeline(points, families, ...)`** -- scatter of methods over a year
-axis; marker shape + colour keyed by "family"; per-point text labels; optional
-dotted baseline reference lines. Used by `gp-family-timeline`,
-`pac-bayes-trends`, `rl-method-timeline`, and the other `*-timeline` figures.
+## The figures
 
-```python
-families = {"deepgp": {"color": TAB10["green"], "marker": "D", "label": "deep-gp"}}
-points   = [{"x": 2017, "y": 2.81, "family": "deepgp", "label": "DSVI 3L"}]
-fig, ax  = family_timeline(points, families, title="...", ylabel="...",
-                           invert_y=True, baselines=[{"y": 2.97, "text": "baseline"}])
-```
+| figure | blog | kind |
+|---|---|---|
+| cnn-detection-timeline | computer-vision | timeline |
+| ar-causal-masking | generative-models | custom |
+| dgm-taxonomy | generative-models | custom |
+| col-family-timeline | optimization | timeline |
+| ot-family-timeline | optimization | timeline |
+| ot-feasibility-fidelity | optimization | landscape |
+| gp-family-timeline | probabilistic-deep-learning | timeline |
+| inference-tractability-landscape | probabilistic-deep-learning | landscape |
+| qat-family-timeline | quantization-aware-training | timeline |
+| rl-method-timeline | reinforcement-learning | timeline |
+| kd-family-timeline | self-supervised-learning | timeline |
+| ssl-family-timeline | self-supervised-learning | timeline |
+| classical-trends | statistical-deep-learning | timeline |
+| pac-bayes-trends | statistical-deep-learning | timeline |
 
-**`landscape(points, bands, ...)`** -- 2D conceptual map with pastel horizontal
-bands, labelled points, and an optional curved trend arrow. Used by
-`inference-tractability-landscape` and `ot-feasibility-fidelity`.
+## Adding a new figure
 
-```python
-bands  = [{"ymin": 0.66, "ymax": 1.0, "color": BAND["green"], "label": "Exact posterior"}]
-points = [{"x": 0.08, "y": 0.93, "label": "Conjugate Bayes"}]
-fig, ax = landscape(points, bands, title="...", xlabel="...", ylabel="...",
-                    arrow={"start": (0.1, 0.9), "end": (0.9, 0.2), "rad": 0.28})
-```
+1. Write `src/<name>.py` (a plain Matplotlib script saving `figures/<name>.svg`;
+   use `figlib.py` for the timeline/landscape archetypes if it fits).
+2. Add `"<name>": "<blog-dir>"` to `FIGURES` in `build.py`.
+3. `python figures/build.py <name>`.
 
-## Adding a figure
-
-1. Write a builder in `build.py` that returns `family_timeline(...)` /
-   `landscape(...)` (or a custom plot using `use_style()`).
-2. Register it in `FIGURES` with its output path
-   (e.g. `blogs/<topic>/figures/<name>.svg`).
-3. Run `python figures/build.py`.
-
-The builders return `(fig, ax)`, so you can tweak the axes before saving for
-anything the helpers don't cover.
-
-> Note: these are kept separate from the site build (`python -m builder`), which
-> does not need Matplotlib. Figures are regenerated only when you run
-> `build.py`, and the pre-commit hook does not rebuild them.
+> Kept separate from the site build (`python -m builder`), which does not need
+> Matplotlib. The pre-commit hook does not regenerate figures.
