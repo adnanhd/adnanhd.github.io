@@ -2699,62 +2699,14 @@ footer {
     overflow: hidden;
     background: var(--bg-primary);
 }
-/* Profile link cards ("Find me online"). */
-.social-profiles {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+/* Curated post embeds (real X tweets / LinkedIn posts). */
+.social-card .twitter-tweet {
+    margin: 0 !important;
 }
-.social-profile {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 16px 18px;
-    text-decoration: none;
-    color: var(--text-primary);
-    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
-}
-.social-profile:hover {
-    border-color: var(--accent-color);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-}
-.social-profile-icon {
-    font-size: 26px;
-    width: 30px;
-    text-align: center;
-    flex-shrink: 0;
-    color: var(--text-secondary);
-}
-.social-profile-x .social-profile-icon,
-.social-profile-twitter .social-profile-icon {
-    color: var(--text-primary);
-}
-.social-profile-linkedin .social-profile-icon {
-    color: #0a66c2;
-}
-.social-profile-text {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.3;
-    min-width: 0;
-}
-.social-profile-name {
-    font-weight: 600;
-}
-.social-profile-handle {
-    font-size: 0.85em;
-    color: var(--text-tertiary);
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.social-profile-arrow {
-    margin-left: auto;
-    font-size: 13px;
-    color: var(--text-tertiary);
-    transition: transform 0.15s ease;
-}
-.social-profile:hover .social-profile-arrow {
-    transform: translateX(3px);
-    color: var(--accent-color);
+.social-linkedin iframe {
+    display: block;
+    width: 100%;
+    border: 0;
 }
 
 /* ------------------------------------------------------------------ */
@@ -2791,5 +2743,42 @@ footer {
 @media (max-width: 600px) {
     .social-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+/* Mobile polish for this session's new sidebar elements. On mobile the sidebar
+   is a centered horizontal strip (not a vertical column), so the full-width
+   dividers are dropped and the contact lines lay out inline + centered. */
+@media (max-width: 768px) {
+    .sidebar-meta {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 4px 14px;
+    }
+    .links {
+        width: auto;
+        padding-top: 0;
+        border-top: none;
+    }
+    .sidebar-affiliations {
+        width: auto;
+        padding-top: 0;
+        border-top: none;
+        text-align: center;
+    }
+    .affiliation {
+        font-size: 0.8em;
+        margin-bottom: 4px;
+    }
+    .affiliation-contact {
+        white-space: normal;
+    }
+    .booking-overlay {
+        padding: 12px;
+    }
+    .booking-dialog {
+        width: 100%;
+        height: 90vh;
     }
 }

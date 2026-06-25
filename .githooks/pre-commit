@@ -40,7 +40,7 @@ if ! "$PY" -m builder; then
 fi
 
 # --- stage regenerated artifacts ---------------------------------------------
-git add index.html sitemap.xml resume.pdf 2>/dev/null || true
+git add index.html sitemap.xml feed.xml resume.pdf 2>/dev/null || true
 git add projects 2>/dev/null || true
 
 exit 0

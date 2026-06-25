@@ -267,51 +267,46 @@ def render_appointment_calendar(bio):
     )
 
 
-# Profile-card metadata: key -> (display name, icon, handle formatter).
-# Auto X/LinkedIn feeds don't work on a static site (X disabled logged-out
-# profile timelines; LinkedIn has no feed embed), so the section links out to
-# the profiles instead -- always works, zero maintenance.
-_PROFILE_META = {
-    "twitter":  ("X",        "fa-brands fa-x-twitter", lambda uid: "@" + uid),
-    "x":        ("X",        "fa-brands fa-x-twitter", lambda uid: "@" + uid),
-    "linkedin": ("LinkedIn", "fa-brands fa-linkedin",  lambda uid: uid),
-    "github":   ("GitHub",   "fa-brands fa-github",    lambda uid: "@" + uid),
-}
-
-
 def render_social_posts(data):
-    """"Find me online" section at the bottom of the Blogs tab: profile link
-    cards for the platforms listed under `profiles:` in data/social_posts.yaml
-    (handles read from bio.yaml social). Returns '' when none are configured."""
+    """"Recent Posts" section at the bottom of the Blogs tab. Curated individual
+    post embeds from `posts:` in data/social_posts.yaml -- real, live content:
+      * X tweet:     platform: twitter, url: <tweet url>   (blockquote widget)
+      * LinkedIn:    platform: linkedin, embed: <iframe src from "Embed post">
+    X's auto profile-timeline is disabled for logged-out users, so the feed has
+    to be specific posts. Returns '' when no posts are configured."""
     sp = data.get("social_posts") or {}
-    social = (data.get("bio") or {}).get("social") or {}
-    profiles = sp.get("profiles") or []
+    posts = sp.get("posts") or []
 
     cards = []
-    for key in profiles:
-        key = str(key).lower()
-        meta = _PROFILE_META.get(key)
-        uid = social.get(key if key != "x" else "twitter")
-        if not meta or not uid or key not in URL_TEMPLATES:
-            continue
-        label, icon, handle_fn = meta
-        url = URL_TEMPLATES[key].format(id=esc(str(uid)))
-        cards.append(
-            f'<a class="social-card social-profile social-profile-{esc(key)}" '
-            f'href="{url}" target="_blank" rel="noopener noreferrer">'
-            f'<i class="{icon} social-profile-icon"></i>'
-            f'<span class="social-profile-text">'
-            f'<span class="social-profile-name">{esc(label)}</span>'
-            f'<span class="social-profile-handle">{esc(handle_fn(str(uid)))}</span>'
-            f'</span>'
-            f'<i class="fa-solid fa-arrow-right social-profile-arrow"></i></a>'
-        )
+    has_twitter = False
+    for p in posts:
+        plat = (p.get("platform") or "").lower()
+        if plat in ("twitter", "x") and p.get("url"):
+            has_twitter = True
+            cards.append(
+                '<div class="social-card social-twitter">'
+                '<blockquote class="twitter-tweet" data-dnt="true">'
+                f'<a href="{esc(p["url"])}"></a></blockquote></div>'
+            )
+        elif plat == "linkedin" and p.get("embed"):
+            height = p.get("height", 540)
+            cards.append(
+                '<div class="social-card social-linkedin">'
+                f'<iframe src="{esc(p["embed"])}" height="{esc(height)}" '
+                'width="100%" frameborder="0" allowfullscreen '
+                'title="Embedded LinkedIn post" loading="lazy"></iframe></div>'
+            )
     if not cards:
         return ""
+    script = (
+        '<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>'
+        if has_twitter else ""
+    )
     return (
         '<div class="content-section" id="social-posts-section">'
-        '<h2>Find me online</h2>'
-        f'<div id="recent-posts" class="social-grid social-profiles">{"".join(cards)}</div>'
+        '<h2>Recent Posts</h2>'
+        f'<div id="recent-posts" class="social-grid">{"".join(cards)}</div>'
+        f'{script}'
         '</div>'
     )
 
