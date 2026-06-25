@@ -54,12 +54,14 @@
 
 body {
     font-family:
-        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
-        Arial, sans-serif;
-    line-height: 1.6;
+        "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.65;
     color: var(--text-primary);
     background-color: var(--bg-secondary);
     font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* Skip to content link */
@@ -151,34 +153,108 @@ a:hover {
     text-align: center;
 }
 
-.sidebar-affiliation {
-    font-size: 0.9em;
-    color: var(--text-tertiary);
-    margin-bottom: 6px;
+/* Address block: location + local time, a divider, then affiliations.
+   One flex column with a single consistent gap so the spacing isn't ad hoc. */
+.sidebar-address {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
     text-align: center;
 }
 
-.sidebar-office {
+.sidebar-affiliations {
+    list-style: none;
+    margin: 0;
+    padding: 14px 0 0;
+    width: 100%;
+    border-top: 1px solid var(--border-color);
+}
+
+.affiliation {
     font-size: 0.82em;
     color: var(--text-tertiary);
-    margin-bottom: 15px;
-    text-align: center;
+    margin-bottom: 8px;
+    line-height: 1.4;
 }
-
-.sidebar-office a {
+.affiliation:last-child {
+    margin-bottom: 0;
+}
+.affiliation-name {
+    display: block;
+    color: var(--text-secondary);
+}
+.affiliation-name a {
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+.affiliation-name a:hover {
+    text-decoration: underline;
+}
+/* Office + phone sit side by side on one row, separated by a dot. */
+.affiliation-contact {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.92em;
+    white-space: nowrap;
+}
+.affiliation-detail,
+.affiliation-phone {
+    display: inline-flex;
+    align-items: center;
+}
+.affiliation-detail + .affiliation-phone::before {
+    content: "\00b7";
+    margin-right: 6px;
+    color: var(--text-tertiary);
+}
+.affiliation-detail a,
+.affiliation-phone a {
     color: var(--accent-color);
     text-decoration: none;
 }
-
-.sidebar-office a:hover {
+.affiliation-detail a:hover,
+.affiliation-phone a:hover {
     text-decoration: underline;
+}
+.affiliation-phone i {
+    font-size: 0.85em;
+    color: var(--text-tertiary);
+}
+
+/* Location + GitHub-style live local clock. */
+.sidebar-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+    font-size: 0.8em;
+    color: var(--text-tertiary);
+}
+.sidebar-location i,
+.sidebar-localtime i {
+    color: var(--accent-color);
+    margin-right: 3px;
+}
+.local-time {
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+.lt-label {
+    color: var(--text-tertiary);
 }
 
 .bio-short {
     font-size: 13px;
     line-height: 1.6;
     color: var(--text-tertiary);
-    margin-bottom: 15px;
+    margin: 0;
     text-align: center;
     padding: 0 10px;
 }
@@ -333,6 +409,9 @@ a:hover {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    width: 100%;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
 }
 
 /* Social link styling - icon + label */
@@ -356,7 +435,11 @@ a:hover {
 }
 
 .social-link .social-label {
-    flex: 1;
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .social-link:hover {
@@ -887,24 +970,82 @@ a:hover {
 .timeline-slim::after { top: 14px; }
 .timeline-slim::before { top: 20px; }
 
+/* Type-filter chips above the timeline (mirrors the blog filter row). */
+.timeline-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 auto 20px;
+    max-width: 1140px;
+}
+.timeline-filter {
+    padding: 4px 12px;
+    font-size: 0.82em;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.timeline-filter:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+.timeline-filter.active {
+    color: #fff;
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+/* Visual polish: light up a card's border on hover (the dot already
+   brightens via the sibling combinator above). */
+.timeline-item:hover {
+    border-color: var(--dot-color, var(--accent-color));
+}
+
+/* Mobile: collapse the two-sided absolute layout into a single-column
+   stack on a left rail. Cards keep their own date text, so the absolute
+   year labels / month ticks / rail markers are dropped here. DOM order is
+   already newest-first chronological, so the stack reads top-to-bottom. */
 @media (max-width: 760px) {
-    .timeline { --rail-x: 24px; }
-    .timeline-year-label {
-        transform: translate(-50%, -50%);
+    .timeline {
+        height: auto !important;
+        max-width: 100%;
+        margin: 8px 0 32px;
+        padding-left: 22px;
+        border-left: 2px solid var(--border-color);
     }
-    .timeline-left,
-    .timeline-right {
-        left: 50px;
-        right: 0;
-        width: auto;
+    .timeline::before,
+    .timeline-month-tick,
+    .timeline-year-label,
+    .rail-marker {
+        display: none !important;
     }
-    /* On mobile everything stacks in one column, so the arm is always
-       just a short hop from the rail to the card. */
-    .rail-marker-left::before,
-    .rail-marker-right::before {
-        left: 14px;
-        right: auto;
-        width: 22px;
+    .timeline-item {
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
+        width: auto !important;
+        min-height: 0 !important;
+        margin: 0 0 14px 0;
+    }
+    /* A small dot per card, sitting on the left rail. */
+    .timeline-item::before {
+        content: "";
+        position: absolute;
+        top: 18px;
+        left: -28px;
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: var(--bg-primary);
+        border: 2px solid var(--dot-color, var(--accent-color));
+        box-sizing: border-box;
+    }
+    .timeline-controls {
+        margin-bottom: 16px;
     }
 }
 
@@ -2434,3 +2575,221 @@ footer {
 [data-theme="dark"] .hljs-title, [data-theme="dark"] .hljs-title.function_,
 [data-theme="dark"] .hljs-section, [data-theme="dark"] .hljs-name { color: #d2a8ff; }
 [data-theme="dark"] .hljs-built_in, [data-theme="dark"] .hljs-type { color: #ffa657; }
+
+/* ------------------------------------------------------------------ */
+/* Live profile metrics under their sidebar link (Scholar / GitHub)     */
+/* ------------------------------------------------------------------ */
+/* Metric badges sit inline on the right of their link row, same line. */
+.link-metrics {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 3px;
+    margin-left: auto;       /* push to the right edge of the link row */
+    flex-shrink: 0;
+}
+.link-metric {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 2px;
+    padding: 0 5px;
+    font-size: 9.5px;
+    line-height: 1.5;
+    color: var(--text-tertiary);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    white-space: nowrap;
+}
+.lm-value {
+    font-weight: 700;
+    color: var(--accent-color);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------------ */
+/* Sidebar "Schedule a meeting" link                                    */
+/* ------------------------------------------------------------------ */
+/* "Schedule a meeting" sits in the sidebar-meta group, styled like the
+   location / local-time lines (icon + text, same size/font). */
+.sidebar-schedule {
+    display: inline-flex;
+    align-items: center;
+    color: var(--text-tertiary);
+    text-decoration: none;
+}
+.sidebar-schedule i {
+    color: var(--accent-color);
+    margin-right: 3px;
+}
+.sidebar-schedule:hover {
+    color: var(--accent-color);
+    text-decoration: underline;
+}
+
+/* In-page booking overlay (dimmed backdrop + centered white dialog). The
+   dialog is intentionally white in both themes so the Google booking widget
+   inside it never clashes with a dark page theme. */
+.booking-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 24px;
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+}
+.booking-overlay.active {
+    display: flex;
+}
+.booking-dialog {
+    position: relative;
+    width: min(1100px, 95vw);
+    height: min(88vh, 920px);
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 16px 60px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+}
+.booking-frame {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #fff;
+}
+.booking-close {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    z-index: 2;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    color: #333;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+.booking-close:hover {
+    background: #f2f2f2;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Recent Posts (curated X / LinkedIn embeds)                           */
+/* ------------------------------------------------------------------ */
+.social-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 18px;
+    align-items: start;
+}
+.social-card {
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--bg-primary);
+}
+/* Profile link cards ("Find me online"). */
+.social-profiles {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+.social-profile {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.social-profile:hover {
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+.social-profile-icon {
+    font-size: 26px;
+    width: 30px;
+    text-align: center;
+    flex-shrink: 0;
+    color: var(--text-secondary);
+}
+.social-profile-x .social-profile-icon,
+.social-profile-twitter .social-profile-icon {
+    color: var(--text-primary);
+}
+.social-profile-linkedin .social-profile-icon {
+    color: #0a66c2;
+}
+.social-profile-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+    min-width: 0;
+}
+.social-profile-name {
+    font-weight: 600;
+}
+.social-profile-handle {
+    font-size: 0.85em;
+    color: var(--text-tertiary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.social-profile-arrow {
+    margin-left: auto;
+    font-size: 13px;
+    color: var(--text-tertiary);
+    transition: transform 0.15s ease;
+}
+.social-profile:hover .social-profile-arrow {
+    transform: translateX(3px);
+    color: var(--accent-color);
+}
+
+/* ------------------------------------------------------------------ */
+/* RSS badge (Blogs section header)                                     */
+/* ------------------------------------------------------------------ */
+.section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.rss-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    background: #f26522;
+    border: 1px solid #f26522;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.rss-badge:hover {
+    opacity: 0.88;
+    transform: translateY(-1px);
+}
+.rss-badge i {
+    font-size: 11px;
+}
+@media (max-width: 600px) {
+    .social-grid {
+        grid-template-columns: 1fr;
+    }
+}

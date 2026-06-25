@@ -6,6 +6,9 @@
         <meta name="description" content="{{META_DESCRIPTION}}" />
         <meta name="author" content="{{NAME}}" />
         <meta name="theme-color" content="#0066cc" />
+        <!-- Allow normal search indexing, but opt out of AI/LLM training & scraping. -->
+        <meta name="robots" content="index, follow, noai, noimageai" />
+        <meta name="googlebot" content="index, follow" />
         <meta property="og:title" content="{{NAME}}" />
         <meta property="og:description" content="{{META_DESCRIPTION}}" />
         <meta property="og:image" content="{{SITE_URL}}/{{PROFILE_IMAGE}}" />
@@ -19,6 +22,7 @@
         <link rel="canonical" href="{{SITE_URL}}/" />
         <link rel="icon" type="image/jpeg" href="{{PROFILE_IMAGE}}" />
         <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+        <link rel="alternate" type="application/rss+xml" title="{{NAME}} - Blog" href="/feed.xml" />
         <title>{{NAME}}</title>
         <script type="application/ld+json">
 {{JSON_LD}}
@@ -36,6 +40,12 @@
         </script>
         <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+        />
         <link rel="stylesheet" href="assets/css/style.css?v={{CSS_HASH}}" />
         <link
             rel="stylesheet"
@@ -76,9 +86,10 @@
                 <!-- Navigation -->
                 <nav class="main-nav" aria-label="Page navigation">
                     <div class="nav-links">
-                        <a href="#about" class="nav-link active" data-page="about">About</a>
-                        <a href="#cv" class="nav-link" data-page="cv">Curriculum Vitae</a>
-                        <a href="#blogs" class="nav-link" data-page="blogs">Blogs</a>
+                        <a href="?tab=about" class="nav-link active" data-page="about">About</a>
+                        <a href="?tab=cv" class="nav-link" data-page="cv">Curriculum Vitae</a>
+                        <a href="?tab=blogs" class="nav-link" data-page="blogs">Blogs</a>
+                        <a href="?tab=timeline" class="nav-link" data-page="timeline">Timeline</a>
                     </div>
                     <button
                         id="theme-toggle"
@@ -100,7 +111,7 @@
                     <div class="content-section">
                         <h2>News</h2>
                         <ul class="news-list">{{NEWS}}</ul>
-                        <p class="see-all-link"><a href="#timeline" class="nav-link-inline" onclick="showPage('timeline')">see all timeline &rarr;</a></p>
+                        <p class="see-all-link"><a href="?tab=timeline" class="nav-link-inline">see all timeline &rarr;</a></p>
                     </div>
 
                     <div class="content-section">
@@ -109,7 +120,7 @@
                             id="selected-works"
                             class="publications-grid"
                         >{{SELECTED_PUBLICATIONS}}</div>
-                        <p class="see-all-link"><a href="#cv:resume-papers" class="nav-link-inline" onclick="showPage('cv', 'resume-papers')">see all publications &rarr;</a></p>
+                        <p class="see-all-link"><a href="?tab=cv#resume-papers" class="nav-link-inline">see all publications &rarr;</a></p>
                     </div>
 
                     <div class="content-section">
@@ -121,10 +132,15 @@
                 <!-- Blogs Page -->
                 <section id="blogs" class="page-section" aria-label="Blog posts" tabindex="-1">
                     <div class="content-section">
-                        <h2>Blog Posts</h2>
+                        <div class="section-head">
+                            <h2>Blog Posts</h2>
+                            <a class="rss-badge" href="/feed.xml" target="_blank" rel="noopener noreferrer" title="Subscribe via RSS" aria-label="Subscribe via RSS"><i class="fas fa-rss"></i> RSS</a>
+                        </div>
                         {{BLOG_CONTROLS}}
                         <div id="blog-posts" class="blog-list">{{ALL_BLOGS}}</div>
                     </div>
+
+                    {{SOCIAL_POSTS}}
                 </section>
 
                 <!-- Curriculum Vitae Page -->

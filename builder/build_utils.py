@@ -147,7 +147,7 @@ def parse_date(date_str):
 YAML_FILES = [
     "bio", "education", "teaching", "experience",
     "research", "extracurricular", "news", "publications",
-    "blogs", "works",
+    "blogs", "works", "social_posts",
 ]
 
 

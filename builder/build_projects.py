@@ -194,7 +194,7 @@ def generate_project_pages(data):
         body = _render_summary(p.get("abstract"))
         _write(slugify(p["title"]), title=p["title"], meta=meta,
                description=p.get("venue", ""),
-               back="../../index.html#about:selected-works",
+               back="../../index.html?tab=about#selected-works",
                back_label="Selected publications",
                image=image, body=body, links=p.get("links"))
         count += 1
@@ -205,7 +205,7 @@ def generate_project_pages(data):
         links = [{"name": "GitHub", "url": w["url"]}] if w.get("url") else []
         _write(slugify(w["title"]), title=w["title"], meta=meta,
                description=w.get("description", ""),
-               back="../../index.html#about:selected-repos",
+               back="../../index.html?tab=about#selected-repos",
                back_label="Open source",
                body=body, links=links)
         count += 1

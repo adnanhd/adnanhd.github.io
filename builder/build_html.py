@@ -22,17 +22,30 @@ from .build_utils import esc, format_date, highlight_author, highlight_author_sp
 # Sidebar
 # ---------------------------------------------------------------------------
 
-def _render_social_link(platform, uid):
-    """Render a single social link element."""
+def primary_affiliation(bio):
+    """First affiliation name, for meta/JSON-LD. Falls back to the legacy
+    singular `affiliation` field if the list isn't present."""
+    affs = bio.get("affiliations") or []
+    if affs:
+        return affs[0].get("name", "")
+    return bio.get("affiliation", "")
+
+
+def _render_social_link(platform, uid, metrics_html="", label=None):
+    """Render a single social link element. metrics_html (if any) sits on the
+    same row, right-aligned. label overrides the visible text (the full name
+    stays in the title/aria-label)."""
     url = URL_TEMPLATES[platform].format(id=esc(uid))
     icon = LINK_ICONS.get(platform, "")
-    label = LINK_NAMES.get(platform, platform)
+    full = LINK_NAMES.get(platform, platform)
+    shown = label or full
     target = "" if platform == "email" else ' target="_blank" rel="noopener noreferrer"'
     return (
-        f'<a href="{url}" class="social-link" title="{esc(label)}" '
-        f'aria-label="{esc(label)}"{target}>'
+        f'<a href="{url}" class="social-link" title="{esc(full)}" '
+        f'aria-label="{esc(full)}"{target}>'
         f'<i class="{icon}"></i>'
-        f'<span class="social-label">{esc(label)}</span></a>'
+        f'<span class="social-label">{esc(shown)}</span>'
+        f'{metrics_html}</a>'
     )
 
 
@@ -48,40 +61,109 @@ def render_sidebar(bio):
         f'</div>'
     )
 
-    # Identity
+    # Identity: name, then the descriptive bio (replaces the old title line).
     parts.append(f'<h1 class="sidebar-name">{esc(bio["name"])}</h1>')
-    parts.append(f'<p class="sidebar-title">{esc(bio.get("title", ""))}</p>')
-    parts.append(f'<p class="sidebar-affiliation">{esc(bio.get("affiliation", ""))}</p>')
-
-    office = bio.get("office") or {}
-    if office.get("location") or office.get("phone"):
-        loc = esc(office.get("location", ""))
-        if loc and office.get("location_map"):
-            loc = (f'<a href="{esc(office["location_map"])}" target="_blank" '
-                   f'rel="noopener noreferrer">{loc}</a>')
-        office_text = f"Office: {loc}" if loc else ""
-        if office.get("phone"):
-            ext = f'ext. {esc(office["phone"])}'
-            office_text = f"{office_text} ({ext})" if office_text else ext
-        parts.append(f'<p class="sidebar-office">{office_text}</p>')
 
     if bio.get("short_bio"):
         parts.append(f'<p class="bio-short">{esc(bio["short_bio"])}</p>')
 
-    # Links container
-    parts.append('<div class="links">')
-    social = bio.get("social") or {}
+    # Contact group: location + live local clock + the booking link.
+    meta_bits = []
+    if bio.get("location"):
+        meta_bits.append(
+            f'<span class="sidebar-location">'
+            f'<i class="fas fa-location-dot"></i> {esc(bio["location"])}</span>'
+        )
+    if bio.get("timezone"):
+        meta_bits.append(
+            f'<span class="sidebar-localtime"><i class="fas fa-clock"></i> '
+            f'<span class="local-time" data-tz="{esc(bio["timezone"])}">--:--</span> '
+            f'<span class="lt-label">local time</span></span>'
+        )
+    schedule = render_appointment_calendar(bio)
+    if schedule:
+        meta_bits.append(schedule)
+    if meta_bits:
+        parts.append(f'<div class="sidebar-meta">{"".join(meta_bits)}</div>')
 
-    # Primary links (always visible)
+    # Affiliations are rendered LAST (after the links) as footer-style contact
+    # details; build the HTML here, append it at the very bottom.
+    aff_items = []
+    for aff in bio.get("affiliations") or []:
+        name = esc(aff.get("name", ""))
+        if not name:
+            continue
+        if aff.get("url"):
+            name = (f'<a href="{esc(aff["url"])}" target="_blank" '
+                    f'rel="noopener noreferrer">{name}</a>')
+        detail = esc(aff.get("detail", ""))
+        if detail and aff.get("map"):
+            detail = (f'<a href="{esc(aff["map"])}" target="_blank" '
+                      f'rel="noopener noreferrer">{detail}</a>')
+        detail_html = f'<span class="affiliation-detail">{detail}</span>' if detail else ""
+        phone_html = ""
+        if aff.get("phone"):
+            phone = str(aff["phone"]).strip()
+            tel = "tel:" + re.sub(r"[^\d+]", "", phone)
+            phone_html = (
+                f'<span class="affiliation-phone">'
+                f'<a href="{esc(tel)}">{esc(phone)}</a></span>'
+            )
+        contact = detail_html + phone_html
+        if contact:
+            contact = f'<span class="affiliation-contact">{contact}</span>'
+        aff_items.append(
+            f'<li class="affiliation">'
+            f'<span class="affiliation-name">{name}</span>{contact}</li>'
+        )
+    affiliations_html = (
+        f'<ul class="sidebar-affiliations">{"".join(aff_items)}</ul>'
+        if aff_items else ""
+    )
+
+    # Links container. Metric badges (citations / stars / PRs) are optional:
+    # set `show_metrics: true` in bio.yaml to enable them. When off, no badges
+    # render and the data-github/data-scholar hooks (which drive the live
+    # refresh in initStats) are omitted too.
+    social = bio.get("social") or {}
+    show_metrics = bool(bio.get("show_metrics"))
+    if show_metrics:
+        gh = esc((social.get("github") or "").strip())
+        gs = esc((social.get("google_scholar") or "").strip())
+        parts.append(f'<div class="links" data-github="{gh}" data-scholar="{gs}">')
+        metrics = bio.get("metrics") or {}
+    else:
+        parts.append('<div class="links">')
+        metrics = {}
+    # Shorter visible labels for links that carry metric badges, so the badges
+    # fit on the same row in the narrow sidebar (full name stays in the title).
+    SIDEBAR_LABELS = {"google_scholar": "Scholar"}
+
+    # Primary links (always visible), each with its metric badges inline.
     for platform in PRIMARY_LINKS:
         uid = social.get(platform)
         if uid and str(uid).strip() and platform in URL_TEMPLATES:
-            parts.append(_render_social_link(platform, uid))
+            parts.append(_render_social_link(
+                platform, uid,
+                _link_metrics_html(platform, metrics),
+                label=SIDEBAR_LABELS.get(platform),
+            ))
 
-    # Custom links (Resume PDF, etc.)
+    # Custom links (Resume PDF, etc.). PDF targets get a file-pdf icon and
+    # render in the same icon+label style as the GitHub/Scholar links.
     for link in bio.get("custom_links") or []:
-        target = ' target="_blank" rel="noopener noreferrer"' if link["url"].startswith("http") else ""
-        parts.append(f'<a href="{esc(link["url"])}"{target}>{esc(link["name"])}</a>')
+        url = link["url"]
+        name = esc(link["name"])
+        if url.lower().endswith(".pdf"):
+            parts.append(
+                f'<a class="social-link" href="{esc(url)}" title="{name}" '
+                f'aria-label="{name}" target="_blank" rel="noopener noreferrer">'
+                f'<i class="fas fa-file-pdf"></i>'
+                f'<span class="social-label">{name}</span></a>'
+            )
+        else:
+            target = ' target="_blank" rel="noopener noreferrer"' if url.startswith("http") else ""
+            parts.append(f'<a href="{esc(url)}"{target}>{name}</a>')
 
     # Collapsible secondary categories
     for category, platforms in SECONDARY_CATEGORIES.items():
@@ -102,6 +184,10 @@ def render_sidebar(bio):
             parts.append("</div></div>")
 
     parts.append("</div>")
+
+    # Affiliations (institution / office / phone) at the very bottom.
+    parts.append(affiliations_html)
+
     return "\n".join(parts)
 
 
@@ -113,6 +199,121 @@ def render_bio(bio):
     """Render About Me paragraphs. Bio text is trusted HTML (author-controlled)."""
     paragraphs = bio.get("bio", "").split("\n\n")
     return "\n".join(f"<p>{p.strip()}</p>" for p in paragraphs if p.strip())
+
+
+# Metric badges shown beneath the relevant sidebar link. Values are baked
+# from bio.yaml `metrics:` so the badges always show real numbers; GitHub's
+# stars/PRs are then refreshed live on top by initStats() in data.js.
+# (key, label, metrics-subdict, value-key-in-yaml)
+_LINK_METRICS = {
+    "github": [
+        ("stars", "stars", "github", "stars"),
+        ("prs", "PRs", "github", "prs"),
+    ],
+    "google_scholar": [
+        ("citations", "cited", "scholar", "citations"),
+        ("hindex", "h", "scholar", "h_index"),
+        ("i10", "i10", "scholar", "i10"),
+    ],
+}
+
+
+def _fmt_count(n):
+    """Compact number: 1234 -> '1,234', 12000 -> '12k'."""
+    try:
+        n = int(n)
+    except (TypeError, ValueError):
+        return None
+    if n >= 1000:
+        return f"{n/1000:.1f}".rstrip("0").rstrip(".") + "k"
+    return f"{n:,}"
+
+
+def _link_metrics_html(platform, metrics):
+    spec = _LINK_METRICS.get(platform)
+    if not spec:
+        return ""
+    chips = []
+    for stat_key, label, group, yaml_key in spec:
+        val = ((metrics or {}).get(group) or {}).get(yaml_key)
+        shown = _fmt_count(val)
+        if shown is None:
+            continue
+        chips.append(
+            f'<span class="link-metric">'
+            f'<span class="lm-value" data-stat="{stat_key}">{shown}</span> '
+            f'<span class="lm-label">{esc(label)}</span></span>'
+        )
+    if not chips:
+        return ""
+    return f'<div class="link-metrics">{"".join(chips)}</div>'
+
+
+def render_appointment_calendar(bio):
+    """A plain "Schedule a meeting" link. initAppointment() in data.js opens the
+    booking calendar in an in-page overlay (a dimmed backdrop + centered white
+    dialog, same window -- the behavior of Google's own scheduling button).
+    data-booking is the `?gv=true` embeddable view. The href is a no-JS
+    fallback. Reads `appointment_url` from bio.yaml; '' when unset."""
+    url = (bio.get("appointment_url") or "").strip()
+    if not url:
+        return ""
+    sep = "&" if "?" in url else "?"
+    embed = esc(url + sep + "gv=true")
+    return (
+        f'<a class="sidebar-schedule" href="{esc(url)}" data-booking="{embed}" '
+        f'rel="noopener noreferrer">'
+        f'<i class="fas fa-calendar-day"></i> Schedule a meeting</a>'
+    )
+
+
+# Profile-card metadata: key -> (display name, icon, handle formatter).
+# Auto X/LinkedIn feeds don't work on a static site (X disabled logged-out
+# profile timelines; LinkedIn has no feed embed), so the section links out to
+# the profiles instead -- always works, zero maintenance.
+_PROFILE_META = {
+    "twitter":  ("X",        "fa-brands fa-x-twitter", lambda uid: "@" + uid),
+    "x":        ("X",        "fa-brands fa-x-twitter", lambda uid: "@" + uid),
+    "linkedin": ("LinkedIn", "fa-brands fa-linkedin",  lambda uid: uid),
+    "github":   ("GitHub",   "fa-brands fa-github",    lambda uid: "@" + uid),
+}
+
+
+def render_social_posts(data):
+    """"Find me online" section at the bottom of the Blogs tab: profile link
+    cards for the platforms listed under `profiles:` in data/social_posts.yaml
+    (handles read from bio.yaml social). Returns '' when none are configured."""
+    sp = data.get("social_posts") or {}
+    social = (data.get("bio") or {}).get("social") or {}
+    profiles = sp.get("profiles") or []
+
+    cards = []
+    for key in profiles:
+        key = str(key).lower()
+        meta = _PROFILE_META.get(key)
+        uid = social.get(key if key != "x" else "twitter")
+        if not meta or not uid or key not in URL_TEMPLATES:
+            continue
+        label, icon, handle_fn = meta
+        url = URL_TEMPLATES[key].format(id=esc(str(uid)))
+        cards.append(
+            f'<a class="social-card social-profile social-profile-{esc(key)}" '
+            f'href="{url}" target="_blank" rel="noopener noreferrer">'
+            f'<i class="{icon} social-profile-icon"></i>'
+            f'<span class="social-profile-text">'
+            f'<span class="social-profile-name">{esc(label)}</span>'
+            f'<span class="social-profile-handle">{esc(handle_fn(str(uid)))}</span>'
+            f'</span>'
+            f'<i class="fa-solid fa-arrow-right social-profile-arrow"></i></a>'
+        )
+    if not cards:
+        return ""
+    return (
+        '<div class="content-section" id="social-posts-section">'
+        '<h2>Find me online</h2>'
+        f'<div id="recent-posts" class="social-grid social-profiles">{"".join(cards)}</div>'
+        '</div>'
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -529,7 +730,7 @@ def render_news(data):
         tag_html = f'<span class="news-tags">{chips}</span>' if chips else ""
 
         ref = item.get("timeline_ref")
-        attrs = f' data-href="#timeline:tl-{esc(ref)}" role="link" tabindex="0"' if ref else ""
+        attrs = f' data-href="?tab=timeline#tl-{esc(ref)}" role="link" tabindex="0"' if ref else ""
         parts.append(
             f'<li><div class="news-row"{attrs}>'
             f'{date_html}{content_html}{tag_html}</div></li>'
@@ -552,6 +753,15 @@ _TIMELINE_TYPE_META = {
     "experience":  ("left",  "#2aa198"),  # internships / positions -> left
     "research":    ("left",  "#2aa198"),  # research projects -> left
 }
+
+# Order + labels for the timeline type-filter chips (only present types show).
+_TL_FILTER_ORDER = [
+    ("experience",  "Experience"),
+    ("research",    "Research"),
+    ("publication", "Publications"),
+    ("degree",      "Education"),
+    ("award",       "Awards"),
+]
 
 
 def _timeline_exp_event(item, ev_type):
@@ -780,8 +990,10 @@ def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False
     # correctly, and the arm extends precisely to the rail for every
     # lane.
     lane_ratio = lane / max(1, lanes)
+    # The marker carries the same timeline-<type> class as its card so the
+    # type filter (initTimelineFilter) hides a card together with its dot+arm.
     rail_marker = (
-        f'<div class="rail-marker rail-marker-{side}" aria-hidden="true" '
+        f'<div class="rail-marker rail-marker-{side} timeline-{e["type"]}" aria-hidden="true" '
         f'style="top: {top_px:.1f}px; --lane-ratio: {lane_ratio:.6f}; '
         f'--dot-color: {color};"></div>'
     )
@@ -1063,7 +1275,21 @@ def render_timeline(data):
         total_h = max(total_h, int(canvas_max + 40))
 
     # Render newest end first so DOM order matches visual stacking
+    # (also what the responsive single-column collapse reads top-to-bottom).
     events.sort(key=lambda e: e["_end"] or 0, reverse=True)
+
+    # Type-filter chips. Only show chips for types actually present.
+    present_types = {e["type"] for e in events}
+    chips = ['<button class="timeline-filter active" data-tl-type="">All</button>']
+    for type_key, label in _TL_FILTER_ORDER:
+        if type_key in present_types:
+            chips.append(
+                f'<button class="timeline-filter" data-tl-type="{type_key}">{label}</button>'
+            )
+    controls = (
+        f'<div class="timeline-controls">{"".join(chips)}</div>'
+        if len(chips) > 1 else ""
+    )
 
     # Emit the per-build lane counts so the CSS computes one uniform
     # --lane-w across all sub-columns (no left-vs-right width asymmetry).
@@ -1111,7 +1337,7 @@ def render_timeline(data):
         ))
 
     parts.append('</div>')
-    return "\n".join(parts)
+    return controls + "\n".join(parts)
 
 
 # ---------------------------------------------------------------------------
@@ -1305,7 +1531,7 @@ def render_json_ld(bio):
         "url": bio.get("site_url", "") + "/",
         "image": bio.get("site_url", "") + "/" + bio.get("profile_image", ""),
         "jobTitle": bio.get("title", ""),
-        "worksFor": {"@type": "Organization", "name": bio.get("affiliation", "")},
+        "worksFor": {"@type": "Organization", "name": primary_affiliation(bio)},
         "sameAs": same_as,
     }
     return json.dumps(person, indent=2, ensure_ascii=False)
@@ -1319,8 +1545,9 @@ def generate_sitemap(bio, blogs_data):
 
     urls = [
         (f"{site_url}/", today, "1.0"),
-        (f"{site_url}/#cv", today, "0.9"),
-        (f"{site_url}/#blogs", today, "0.8"),
+        (f"{site_url}/?tab=cv", today, "0.9"),
+        (f"{site_url}/?tab=blogs", today, "0.8"),
+        (f"{site_url}/?tab=timeline", today, "0.7"),
     ]
     for blog in (blogs_data or {}).get("blogs", []):
         if blog.get("path"):
@@ -1332,3 +1559,53 @@ def generate_sitemap(bio, blogs_data):
         for loc, lastmod, prio in urls
     )
     return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{entries}\n</urlset>'
+
+
+def generate_rss(bio, blogs_data):
+    """Generate an RSS 2.0 feed (feed.xml) of the blog posts."""
+    from datetime import datetime, timezone
+
+    site_url = bio.get("site_url", "https://adnanhd.github.io").rstrip("/")
+    name = bio.get("name", "")
+    desc = bio.get("meta_description") or f"Blog posts by {name}."
+
+    def rfc822(dt):
+        return dt.strftime("%a, %d %b %Y %H:%M:%S +0000")
+
+    blogs = [b for b in (blogs_data or {}).get("blogs", []) if b.get("path")]
+    blogs = sorted(blogs, key=lambda b: parse_date(b.get("date", "")), reverse=True)
+
+    items = []
+    for blog in blogs:
+        link = f"{site_url}/{blog['path']}"
+        pub = rfc822(parse_date(blog.get("date", "")))
+        cats = "".join(
+            f"\n      <category>{esc(t)}</category>" for t in (blog.get("tags") or [])
+        )
+        items.append(
+            "    <item>\n"
+            f"      <title>{esc(blog.get('title', ''))}</title>\n"
+            f"      <link>{esc(link)}</link>\n"
+            f"      <guid isPermaLink=\"true\">{esc(link)}</guid>\n"
+            f"      <pubDate>{pub}</pubDate>\n"
+            f"      <description>{esc(blog.get('description', ''))}</description>"
+            f"{cats}\n"
+            "    </item>"
+        )
+
+    now = rfc822(datetime.now(timezone.utc))
+    body = "\n".join(items)
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n'
+        "  <channel>\n"
+        f"    <title>{esc(name)} - Blog</title>\n"
+        f"    <link>{esc(site_url)}/?tab=blogs</link>\n"
+        f"    <description>{esc(desc)}</description>\n"
+        "    <language>en-us</language>\n"
+        f"    <lastBuildDate>{now}</lastBuildDate>\n"
+        f'    <atom:link href="{esc(site_url)}/feed.xml" rel="self" type="application/rss+xml" />\n'
+        f"{body}\n"
+        "  </channel>\n"
+        "</rss>"
+    )

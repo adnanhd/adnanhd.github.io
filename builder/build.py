@@ -13,6 +13,7 @@ Usage:
 
 from .build_config import BASE_DIR, OUTPUT_PATH, TEMPLATE_PATH
 from .build_html import (
+    generate_rss,
     generate_sitemap,
     render_bio,
     render_blog_controls,
@@ -25,7 +26,9 @@ from .build_html import (
     render_news,
     render_publication_card,
     render_research,
+    primary_affiliation,
     render_sidebar,
+    render_social_posts,
     render_teaching,
     render_timeline,
     render_works,
@@ -49,7 +52,7 @@ def main():
 
     # Meta
     meta_desc = bio.get("meta_description") or (
-        f'{bio["name"]} - {bio.get("title", "")} at {bio.get("affiliation", "")}.'
+        f'{bio["name"]} - {bio.get("title", "")} at {primary_affiliation(bio)}.'
     )
     twitter_id = (bio.get("social") or {}).get("twitter", "")
 
@@ -78,6 +81,7 @@ def main():
         "{{HONORS}}": render_honors(data),
         "{{NEWS}}": render_news(data),
         "{{TIMELINE}}": render_timeline(data),
+        "{{SOCIAL_POSTS}}": render_social_posts(data),
     }
 
     output = template
@@ -94,6 +98,11 @@ def main():
     sitemap_path = BASE_DIR / "sitemap.xml"
     sitemap_path.write_text(generate_sitemap(bio, data["blogs"]))
     print(f"Built {sitemap_path}")
+
+    # RSS feed (blog posts)
+    feed_path = BASE_DIR / "feed.xml"
+    feed_path.write_text(generate_rss(bio, data["blogs"]))
+    print(f"Built {feed_path}")
 
     # Resume PDF
     build_resume_pdf(data)
