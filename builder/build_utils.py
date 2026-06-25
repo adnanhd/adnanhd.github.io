@@ -89,6 +89,11 @@ def format_date(value, short=False, day=True):
     if s.lower() == "present":
         return "Present"
     names = SHORT_MONTH_NAMES if short else MONTH_NAMES
+    # Datetime "YYYY-MM-DD HH:MM(:SS)" -> "Mon D, YYYY, HH:MM"
+    m = re.match(r"^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})", s)
+    if m and 1 <= int(m.group(2)) <= 12:
+        base = f"{names[int(m.group(2))]} {int(m.group(3))}, {m.group(1)}"
+        return f"{base}, {m.group(4)}:{m.group(5)}" if day else f"{names[int(m.group(2))]} {m.group(1)}"
     m = re.match(r"^(\d{4})-(\d{2})-(\d{2})$", s)
     if m and 1 <= int(m.group(2)) <= 12:
         if not day:
@@ -109,6 +114,12 @@ def parse_date(date_str):
     s = str(date_str).strip()
     if s.lower() == "present":
         return datetime.now()
+
+    # ISO datetime "YYYY-MM-DD HH:MM(:SS)"
+    m = re.match(r"^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$", s)
+    if m:
+        return datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)),
+                        int(m.group(4)), int(m.group(5)), int(m.group(6) or 0))
 
     # ISO "YYYY-MM-DD" / "YYYY-MM"
     m = re.match(r"^(\d{4})-(\d{2})(?:-(\d{2}))?$", s)
