@@ -219,6 +219,7 @@ BLOG_SHELL = """<!doctype html>
         <script type="application/ld+json">
 {json_ld}
         </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
         <link rel="stylesheet" href="../../assets/css/style.css" />
         <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
     </head>

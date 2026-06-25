@@ -5,19 +5,16 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="description" content="A Dockerfile-like declarative experiment runner for PyTorch with a content-addressed pickle hub for layered finetune workflows." />
         <title>torchestrator - Adnan Harun Dogan</title>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
         <link rel="stylesheet" href="../../assets/css/style.css?v=6685894f" />
         <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
-        <link rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-        <link rel="stylesheet"
-            href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.16.0/devicon.min.css" />
         <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
     </head>
     <body>
         <div class="blog-page project-page">
             <a href="../../index.html?tab=about#selected-repos" class="blog-back">&larr; Open source</a>
             <h1>torchestrator</h1>
-            <div class="blog-meta"><div class="work-tags"><span class="tech-badge" style="background:#3776AB"><i class="devicon-python-plain" aria-hidden="true"></i>Python</span><span class="tech-badge" style="background:#EE4C2C"><i class="devicon-pytorch-original" aria-hidden="true"></i>PyTorch</span></div></div>
+            <div class="blog-meta"><div class="work-tags"><span class="tech-badge" style="background:#3776AB"><i class="devicon-python-plain" aria-hidden="true"></i>Python</span><span class="tech-badge" style="background:#EE4C2C"><i class="devicon-pytorch-plain" aria-hidden="true"></i>PyTorch</span></div></div>
             
             <div class="blog-body"><p>torchestrator is a Dockerfile-like declarative experiment runner for PyTorch. One experiment is a &quot;torchfile&quot;: a config that names the model, dataset, optimizer, loss, metrics and training loop in named blocks (<code>MODEL</code>, <code>DATA</code>, <code>TRAIN</code>, <code>EVAL</code>, <code>ENV</code>, <code>LOGGING</code>, <code>METERS</code>), resolved to a typed config and built by a dependency-injection engine over a name-based registry. Components talk through named slots via <code>call</code> / <code>outs</code> mappings, and shapes, dtypes and parameter counts are verified at build time before any training starts.</p><h3>A torchfile</h3><pre><code class="language-yaml">MODEL:
   type: Sequential

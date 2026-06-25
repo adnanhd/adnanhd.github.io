@@ -4,3 +4,8 @@ PyYAML>=6.0
 
 # Blog figure generator (figures/) -- not needed for the site build
 matplotlib>=3.8
+
+# Font subsetting tool (tools/build_vendor_fonts.py) -- run only to refresh the
+# self-hosted fonts in assets/; not needed for the site build
+fonttools>=4.40
+brotli>=1.0

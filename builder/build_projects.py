@@ -19,12 +19,9 @@ PROJECT_SHELL = """<!doctype html>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="description" content="{description}" />
         <title>{title} - Adnan Harun Dogan</title>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
         <link rel="stylesheet" href="../../assets/css/style.css?v={css_v}" />
         <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
-        <link rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-        <link rel="stylesheet"
-            href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.16.0/devicon.min.css" />
         <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
     </head>
     <body>

@@ -1446,15 +1446,14 @@ def render_blogs(blogs_data, selected_only=False):
 # tech tag -> (brand colour, Devicon class). Tags not listed render as plain chips.
 _TECH_BADGES = {
     "python": ("#3776AB", "devicon-python-plain"),
-    "pytorch": ("#EE4C2C", "devicon-pytorch-original"),
+    "pytorch": ("#EE4C2C", "devicon-pytorch-plain"),
     "tensorflow": ("#FF6F00", "devicon-tensorflow-original"),
     "jax": ("#5E97F6", "devicon-python-plain"),
     "c++": ("#00599C", "devicon-cplusplus-plain"),
-    "cuda": ("#76B900", "devicon-nvidia-plain"),
     "docker": ("#2496ED", "devicon-docker-plain"),
     "apptainer": ("#0F4C81", "fas fa-cubes"),   # no Devicon glyph -> Font Awesome
     "singularity": ("#0F4C81", "fas fa-cubes"),
-    "numpy": ("#013243", "devicon-numpy-original"),
+    "numpy": ("#013243", "devicon-numpy-plain"),
 }
 
 

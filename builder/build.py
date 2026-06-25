@@ -59,6 +59,7 @@ def main():
     # Template replacements
     replacements = {
         "{{CSS_HASH}}": file_hash(BASE_DIR / "assets" / "css" / "style.css"),
+        "{{VENDOR_HASH}}": file_hash(BASE_DIR / "assets" / "css" / "vendor.css"),
         "{{JS_HASH}}": file_hash(BASE_DIR / "assets" / "js" / "data.js"),
         "{{SITE_URL}}": esc(bio.get("site_url", "")),
         "{{NAME}}": esc(bio["name"]),
