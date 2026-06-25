@@ -1,3 +1,6 @@
 # Python dependencies for fetching Google Scholar publications
 scholarly>=1.7.0
 PyYAML>=6.0
+
+# Blog figure generator (figures/) -- not needed for the site build
+matplotlib>=3.8
