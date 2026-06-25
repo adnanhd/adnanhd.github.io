@@ -13,15 +13,59 @@ citations from the folder's shared .bib.
 """
 
 import re
+import json
 import shutil
 import subprocess
 import sys
 from dataclasses import dataclass, field
+from html import escape
 from pathlib import Path
+
+import yaml
 
 from .build_config import BASE_DIR
 
 ORG_ROOT = Path.home() / "org" / "roam2" / "informatics"
+SITE_URL = "https://adnanhd.github.io"
+AUTHOR = "Adnan Harun Dogan"
+FALLBACK_OG_IMAGE = "assets/img/profile.jpeg"
+
+
+def _blog_dates():
+    """Map slug -> ISO datePublished from data/blogs.yaml (best effort)."""
+    out = {}
+    try:
+        data = yaml.safe_load((BASE_DIR / "data" / "blogs.yaml").read_text()) or {}
+        for blog in data.get("blogs", []):
+            path = blog.get("path", "")
+            parts = path.split("/")
+            if len(parts) >= 2 and parts[0] == "blogs" and blog.get("date"):
+                iso = str(blog["date"]).strip().replace(" ", "T")
+                out[parts[1]] = iso
+    except (OSError, yaml.YAMLError):
+        pass
+    return out
+
+
+def _make_og_image(html, out_dir, slug):
+    """Rasterize the post's first figure to og-image.png (1200px, white bg) for
+    social previews, since SVGs don't render as OG images. Returns the image
+    path relative to the site root; falls back to the profile photo."""
+    m = re.search(r'src="(figures/[^"]+\.svg)"', html)
+    if m and shutil.which("rsvg-convert"):
+        src = out_dir / m.group(1)
+        dst = out_dir / "og-image.png"
+        if src.exists():
+            try:
+                subprocess.run(
+                    ["rsvg-convert", "-w", "1200", "-b", "white",
+                     str(src), "-o", str(dst)],
+                    check=True, capture_output=True,
+                )
+                return f"blogs/{slug}/og-image.png"
+            except (OSError, subprocess.CalledProcessError):
+                pass
+    return FALLBACK_OG_IMAGE
 
 
 @dataclass
@@ -116,13 +160,17 @@ def _postprocess(html, org_dir, out_dir):
     # href may be separated by a newline.
     html = re.sub(r'<a\s+href="id:[^"]*"[^>]*>(.*?)</a>', r"\1", html, flags=re.S)
 
+    # Copy only figures not already present locally: figures are owned by
+    # figures/build.py (in-repo generators), so we don't clobber them here --
+    # we only fill in anything missing from the org source.
     figs = set(re.findall(r'src="(figures/[^"]+)"', html))
     if figs:
         (out_dir / "figures").mkdir(parents=True, exist_ok=True)
         for rel in figs:
             src = org_dir / rel
-            if src.exists():
-                shutil.copy2(src, out_dir / rel)
+            dst = out_dir / rel
+            if src.exists() and not dst.exists():
+                shutil.copy2(src, dst)
 
     html = re.sub(r"<table\b", '<div class="blog-table"><table', html)
     html = html.replace("</table>", "</table></div>")
@@ -155,8 +203,22 @@ BLOG_SHELL = """<!doctype html>
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="description" content="{description}" />
-        <title>{title} - Adnan Harun Dogan</title>
+        <meta name="description" content="{description_attr}" />
+        <title>{title_attr} - Adnan Harun Dogan</title>
+        <link rel="canonical" href="{url}" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="{title_attr}" />
+        <meta property="og:description" content="{description_attr}" />
+        <meta property="og:url" content="{url}" />
+        <meta property="og:image" content="{og_image}" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="{title_attr}" />
+        <meta name="twitter:description" content="{description_attr}" />
+        <meta name="twitter:image" content="{og_image}" />
+        <script type="application/ld+json">
+{json_ld}
+        </script>
         <link rel="stylesheet" href="../../assets/css/style.css" />
         <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
     </head>
@@ -191,8 +253,28 @@ def build_blog(spec):
     out_dir.mkdir(parents=True, exist_ok=True)
     body = _postprocess(body, spec.sources[0].parent, out_dir)
 
+    url = f"{SITE_URL}/blogs/{spec.slug}/"
+    og_image = f"{SITE_URL}/{_make_og_image(body, out_dir, spec.slug)}"
+    ld = {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": spec.title,
+        "description": spec.description,
+        "url": url,
+        "image": og_image,
+        "author": {"@type": "Person", "name": AUTHOR, "url": SITE_URL + "/"},
+        "publisher": {"@type": "Person", "name": AUTHOR},
+        "mainEntityOfPage": url,
+    }
+    date_iso = _blog_dates().get(spec.slug)
+    if date_iso:
+        ld["datePublished"] = date_iso
+    json_ld = json.dumps(ld, indent=2, ensure_ascii=False)
+
     page = BLOG_SHELL.format(
-        title=spec.title, meta=spec.meta, description=spec.description, body=body,
+        title=spec.title, title_attr=escape(spec.title),
+        description_attr=escape(spec.description), meta=spec.meta, body=body,
+        url=url, og_image=og_image, json_ld=json_ld,
     )
     page = _normalize_punctuation(page)
     (out_dir / "index.html").write_text(page)
