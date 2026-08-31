@@ -486,7 +486,17 @@ def render_compact_publication(paper):
             f'{esc(paper["venue_short"])}</a></em>.'
         )
     elif paper.get("venue"):
-        citation += f" <em>{esc(paper['venue'])}</em>."
+        v = f"<em>{esc(paper['venue'])}</em>"
+        if paper.get("venue_prefix"):
+            v = f"{esc(paper['venue_prefix'])} {v}"
+        detail = esc(paper.get("venue_detail") or "")
+        if detail:
+            if detail.startswith("("):
+                sep = "" if paper["venue"][-1].isdigit() else " "
+            else:
+                sep = ", "
+            v += sep + detail
+        citation += f" {v}."
 
     parts.append('<div class="pub-compact-body">')
     parts.append(f'<div class="pub-compact-reference">{citation}</div>')

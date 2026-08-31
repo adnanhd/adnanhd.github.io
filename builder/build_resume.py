@@ -263,10 +263,14 @@ def render_publications(data):
         # unless the title already carries the italics (standalone work).
         if venue and not status:
             venue_tex = venue if standalone else f"\\emph{{{venue}}}"
-            # Venues with a `venue_link` become hyperlinks (link colour),
-            # which is how notable outlets stand out without bold.
+            # `selected: true` papers get a bold-italic venue; blue only
+            # when a `venue_link` also makes it clickable.
+            if paper.get("selected"):
+                venue_tex = f"\\textbf{{{venue_tex}}}"
+                if paper.get("venue_link"):
+                    venue_tex = f"\\textcolor{{linkblue}}{{{venue_tex}}}"
             if paper.get("venue_link"):
-                venue_tex = f"\\href{{{tex_url(paper['venue_link'])}}}{{\\textcolor{{linkblue}}{{\\textbf{{{venue_tex}}}}}}}"
+                venue_tex = f"\\href{{{tex_url(paper['venue_link'])}}}{{{venue_tex}}}"
             ref += f" {venue_tex}."
         if status:
             ref += f" \\textcolor{{statusamber}}{{[{tex_escape(status)}]}}"

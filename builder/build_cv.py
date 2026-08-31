@@ -92,7 +92,10 @@ def render_personal(data):
 
 
 def render_employment(data):
-    items = (data.get("experience") or {}).get("experience", [])
+    items = list((data.get("experience") or {}).get("experience", []))
+    # Newest first by end date ('Present' sorts to the top), start date
+    # breaking ties.
+    items.sort(key=lambda r: (parse_date(r.get("end_date")), parse_date(r.get("start_date"))), reverse=True)
     parts = []
     for exp in items:
         body = f"\\textbf{{{tex_escape(exp.get('position', ''))}}}, {_tex_with_links(exp.get('company', ''))}"
@@ -107,7 +110,10 @@ def render_employment(data):
 
 
 def render_education(data):
-    items = (data.get("education") or {}).get("education", [])
+    items = list((data.get("education") or {}).get("education", []))
+    # Newest first by end date ('Present' sorts to the top), start date
+    # breaking ties.
+    items.sort(key=lambda r: (parse_date(r.get("end_date")), parse_date(r.get("start_date"))), reverse=True)
     parts = []
     for edu in items:
         body = f"\\textbf{{{tex_escape(edu.get('degree', ''))}}}, {_tex_with_links(edu.get('institution', ''))}"
@@ -128,7 +134,12 @@ def render_education(data):
 
 def render_interests(data):
     bio = data["bio"]
-    return tex_escape(bio.get("research_interests") or bio.get("short_bio") or "")
+    text = tex_escape(bio.get("research_interests") or bio.get("short_bio") or "")
+    keywords = bio.get("research_keywords") or []
+    if text and keywords:
+        text += ("\n\n\\smallskip\n\\textbf{Keywords:} "
+                 + tex_escape(", ".join(keywords)))
+    return text
 
 
 def _all_awards(data):
@@ -214,19 +225,49 @@ def _render_pub_item(paper, number):
         ref += "}."
     elif venue:
         venue_tex = venue if standalone else f"\\emph{{{venue}}}"
+        if paper.get("selected"):
+            venue_tex = f"\\textbf{{{venue_tex}}}"
+            if paper.get("venue_link"):
+                venue_tex = f"\\textcolor{{linkblue}}{{{venue_tex}}}"
         if paper.get("venue_link"):
-            venue_tex = _href(paper["venue_link"], f"\\textbf{{{venue_tex}}}")
+            venue_tex = f"\\href{{{paper['venue_link'].replace('%', chr(92)+'%')}}}{{{venue_tex}}}"
+        # Only the venue name is italic; the "In Eds.," prefix and the
+        # series/volume/pages detail stay plain (APA).
+        if paper.get("venue_prefix"):
+            venue_tex = f"{tex_escape(paper['venue_prefix'])} {venue_tex}"
+        detail = tex_escape(paper.get("venue_detail") or "")
+        isbn_url = next((l.get("url") for l in (paper.get("links") or [])
+                         if (l.get("name") or "").lower() == "isbn" and l.get("url")), None)
+        if detail and isbn_url:
+            detail = re.sub(r"(ISBN [\d-]+)", lambda m: _href(isbn_url, m.group(1)), detail)
+        if detail:
+            if detail.startswith("("):
+                sep = "" if venue and venue[-1].isdigit() else " "
+            else:
+                sep = ", "
+            venue_tex += f"{sep}{detail}"
         ref += f" {venue_tex}."
+    # APA embeds the persistent identifier in the reference itself: the
+    # DOI as a full URL, else the arXiv id; the ISBN (already part of
+    # venue_detail) becomes a hyperlink. Remaining links (PDF, Code,
+    # Data, ...) stay as a trailing parenthesised list.
     links = _ordered_links(paper.get("links", []))
-    if links:
-        ref += " (" + ", ".join(_href(url, tex_escape(label)) for label, url in links) + ")"
-    item = f"  \\item[{number}.] {ref}"
-    awards = [a["name"] for a in (paper.get("awards") or []) if a.get("name")]
-    if awards:
-        item += "\n  \\begin{cvsublist}\n"
-        item += "\n".join(f"    \\item \\textcolor{{awardcolor}}{{\\faAward\\ {tex_escape(a)}}}" for a in awards)
-        item += "\n  \\end{cvsublist}"
-    return item
+    doi = next((url for label, url in links if label == "DOI"), None)
+    arx = next((url for label, url in links if label == "arXiv"), None)
+    if doi:
+        ref += f" \\href{{{doi}}}{{\\textcolor{{linkblue}}{{\\nolinkurl{{{doi.replace('https://', '')}}}}}}}"
+    elif arx:
+        m = re.search(r"arxiv\.org/(?:abs|pdf)/([\w.]+)", arx)
+        if m:
+            ref += " " + _href(arx, f"arXiv:{m.group(1)}")
+    shown = {"DOI", "ISBN"} | ({"arXiv"} if not doi else set())
+    rest = [(label, url) for label, url in links if label not in shown]
+    if rest:
+        ref += " (" + ", ".join(_href(url, tex_escape(label)) for label, url in rest) + ")"
+    for a in (paper.get("awards") or []):
+        if a.get("name"):
+            ref += f" \\textcolor{{awardcolor}}{{\\faAward\\ {tex_escape(a['name'])}}}"
+    return f"  \\item[{number}.] {ref}"
 
 
 def render_publications(data):
@@ -251,7 +292,9 @@ def render_publications(data):
 
 def render_research(data):
     items = list((data.get("research") or {}).get("research", []))
-    items.sort(key=lambda r: parse_date(r.get("start_date")), reverse=True)
+    # Newest first by end date ('Present' sorts to the top), start date
+    # breaking ties.
+    items.sort(key=lambda r: (parse_date(r.get("end_date")), parse_date(r.get("start_date"))), reverse=True)
     parts = []
     for r in items:
         body = f"\\textbf{{{_tex_with_links(r.get('company', ''))}}}"
@@ -291,10 +334,15 @@ def render_teaching(data):
 
 def render_skills(data):
     skills = (data.get("extracurricular") or {}).get("skills") or {}
+    # Research-area categories (those echoed in the research keywords)
+    # already live in the Research Interests section; the CV's Computer
+    # Skills keeps only the genuinely technical ones.
+    keywords = {k.lower() for k in data["bio"].get("research_keywords") or []}
     if isinstance(skills, dict):
         return "\n".join(
             f"\\cvfield{{{tex_escape(cat)}}}{{{tex_escape(', '.join(items))}}}"
-            for cat, items in skills.items() if items
+            for cat, items in skills.items()
+            if items and cat.lower() not in keywords
         )
     return tex_escape(", ".join(skills))
 
