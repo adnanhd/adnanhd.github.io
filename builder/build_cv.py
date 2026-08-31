@@ -297,7 +297,13 @@ def render_research(data):
     items.sort(key=lambda r: (parse_date(r.get("end_date")), parse_date(r.get("start_date"))), reverse=True)
     parts = []
     for r in items:
-        body = f"\\textbf{{{_tex_with_links(r.get('company', ''))}}}"
+        company = r.get("company", "")
+        company_tex = _tex_with_links(company)
+        # No inline markdown link in the name: fall back to logo_link so
+        # the project/lab page is reachable from the CV too.
+        if "](" not in company and r.get("logo_link"):
+            company_tex = _href(r["logo_link"], company_tex)
+        body = f"\\textbf{{{company_tex}}}"
         body += f"\\\\ \\emph{{{tex_escape(r.get('position', ''))}}}"
         if r.get("description"):
             body += f"\\\\ {_tex_with_links(r['description'])}"
