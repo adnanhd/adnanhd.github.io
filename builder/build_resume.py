@@ -36,7 +36,7 @@ def _tex_with_links(text):
     out, last = [], 0
     for m in _MD_LINK.finditer(text):
         out.append(tex_escape(text[last:m.start()]))
-        out.append(f"\\href{{{m.group(2)}}}{{\\textcolor{{linkblue}}{{{tex_escape(m.group(1))}}}}}")
+        out.append(f"\\href{{{tex_url(m.group(2))}}}{{\\textcolor{{linkblue}}{{{tex_escape(m.group(1))}}}}}")
         last = m.end()
     out.append(tex_escape(text[last:]))
     return "".join(out)
@@ -67,6 +67,13 @@ _TEX_SPECIAL = {
 }
 
 
+def tex_url(url):
+    """Escape a URL for use inside \\href{...}: only % and # are special
+    there (hyperref handles the rest), and an unescaped % would start a
+    TeX comment and swallow the rest of the line."""
+    return str(url).replace("%", "\\%").replace("#", "\\#")
+
+
 def tex_escape(text):
     """Escape special LaTeX characters."""
     if not text:
@@ -78,6 +85,19 @@ def tex_escape(text):
 
 
 AUTHOR_NAME_APA = "Dogan, A. H."
+
+
+def is_standalone(paper):
+    """APA treats theses, preprints and manuscripts under review as
+    standalone works: their *title* is italic and what follows is plain.
+    Articles, proceedings papers and book chapters are the reverse
+    (plain title, italic venue)."""
+    if paper.get("status"):
+        return True
+    venue = str(paper.get("venue") or paper.get("venue_short") or "").lower()
+    if not venue:  # no outlet at all: an unpublished manuscript
+        return True
+    return venue.startswith("arxiv") or "thesis" in venue or "dissertation" in venue
 
 
 def tex_bold_author(text):
@@ -111,8 +131,10 @@ _LINK_LABELS = {
     "kaggle": "Data",
     "dataset": "Data",
     "data": "Data",
+    "thesis": "Thesis",
+    "isbn": "ISBN",
 }
-_LINK_ORDER = ["DOI", "arXiv", "PDF", "Code", "Data"]
+_LINK_ORDER = ["DOI", "ISBN", "arXiv", "PDF", "Thesis", "Code", "Data"]
 
 # Display text for a paper's `status` field (in-progress / unpublished work).
 _STATUS_LABELS = {
@@ -130,8 +152,9 @@ def _status_label(status):
 
 def _ordered_links(links):
     """Normalize link labels to a canonical vocabulary, drop duplicate
-    labels (first URL wins), and sort by a fixed priority so every
-    publication shows its links in the same order."""
+    labels (first URL wins), and sort by a fixed priority (permanent
+    identifier, then content, then artefacts) so every publication
+    shows its links in the same order."""
     seen = {}
     for l in links:
         url = l.get("url")
@@ -172,7 +195,7 @@ def render_education(data):
         if thesis.get("title"):
             t = tex_escape(thesis["title"])
             if thesis.get("link"):
-                t = f"\\href{{{thesis['link']}}}{{\\textcolor{{linkblue}}{{{t}}}}}"
+                t = f"\\href{{{tex_url(thesis['link'])}}}{{\\textcolor{{linkblue}}{{{t}}}}}"
             sub.append(f"\\textbf{{Thesis:}} {t}")
         if edu.get("advisor"):
             sub.append(f"\\textbf{{Advisor:}} {_tex_with_links(edu['advisor'])}")
@@ -222,20 +245,28 @@ def render_publications(data):
     parts = []
     for paper in pubs:
         authors = tex_bold_author(tex_escape(paper.get("authors", "")))
-        title = tex_escape(paper.get("title", ""))
+        # APA: sentence-case title (`title_apa`), falling back to the
+        # display title used elsewhere on the site.
+        title = tex_escape(paper.get("title_apa") or paper.get("title", ""))
         venue = tex_escape(paper.get("venue_short") or paper.get("venue", ""))
-        year = tex_escape(_short_date(paper.get("date", "")))
-        # Format: Author, A. B. (Year). *Title*. Venue. [Award] [links]
-        # The title is italic; the venue is plain text. Links stay inline
+        year = tex_escape(str(paper.get("date", ""))[:4])  # APA: year only
+        # Format: Author, A. B. (Year). Title. *Venue*. [Award] [links]
+        # The title is plain; the venue is italic (APA). Links stay inline
         # and are colored; a bare "|" renders as an em-dash in text mode,
         # so the separator is "$|$".
-        ref = f"{authors} ({year}). \\emph{{{title}}}."
+        standalone = is_standalone(paper)
+        title_tex = f"\\emph{{{title}}}" if standalone else title
+        ref = f"{authors} ({year}). {title_tex}."
         status = _status_label(paper.get("status"))
         # Under-review work keeps its venue in the data but doesn't show
-        # it yet -- only the status badge. Venue is plain, bold-
-        # highlighted only for `selected: true` papers.
+        # it yet -- only the status badge. Otherwise the venue is italic
+        # unless the title already carries the italics (standalone work).
         if venue and not status:
-            venue_tex = f"\\textbf{{{venue}}}" if paper.get("selected") else venue
+            venue_tex = venue if standalone else f"\\emph{{{venue}}}"
+            # Venues with a `venue_link` become hyperlinks (link colour),
+            # which is how notable outlets stand out without bold.
+            if paper.get("venue_link"):
+                venue_tex = f"\\href{{{tex_url(paper['venue_link'])}}}{{\\textcolor{{linkblue}}{{\\textbf{{{venue_tex}}}}}}}"
             ref += f" {venue_tex}."
         if status:
             ref += f" \\textcolor{{statusamber}}{{[{tex_escape(status)}]}}"
@@ -245,7 +276,7 @@ def render_publications(data):
         links = _ordered_links(paper.get("links", []))
         if links:
             link_strs = [
-                f"\\href{{{url}}}{{\\textcolor{{linkblue}}{{{tex_escape(label)}}}}}"
+                f"\\href{{{tex_url(url)}}}{{\\textcolor{{linkblue}}{{{tex_escape(label)}}}}}"
                 for label, url in links
             ]
             ref += "\\hspace{0.5em}" + "\\,\\textperiodcentered\\,".join(link_strs)

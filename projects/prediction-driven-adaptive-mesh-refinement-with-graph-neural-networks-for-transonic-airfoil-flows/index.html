@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="IEEE Aerospace Science and Technology" />
+        <title>Prediction-Driven Adaptive Mesh Refinement with Graph Neural Networks for Transonic Airfoil Flows - Adnan Harun Dogan</title>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css?v=6685894f" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+        <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    </head>
+    <body>
+        <div class="blog-page project-page">
+            <a href="../../index.html?tab=about#selected-works" class="blog-back">&larr; Selected publications</a>
+            <h1>Prediction-Driven Adaptive Mesh Refinement with Graph Neural Networks for Transonic Airfoil Flows</h1>
+            <div class="blog-meta"><strong>Dogan, A. H.</strong>, Celtik, S. O., Baran, O. U., &amp; Alemdar, H. &middot; IEEE Aerospace Science and Technology &middot; 2026</div>
+            
+            <div class="blog-body"><p>Obtaining flow fields around airfoils is an essential process in aerodynamics design which requires considerably powerful hardware and computation time. Deep learning is a way to eliminate those difficulties by providing satisfactory predictions with much less inference time. Even though CNNs and RNNs are popular architectures and most commonly used in deep learning, they are naturally unsuitable for tasks that require unstructured mesh, making GNNs good alternatives for their flexibility in model simulation environments. An accurate solution for a flow field requires high resolution, especially near the airfoil surface and in high-gradient regions. Thus, scaling these models still raises a problem in GNNs, limiting the number of nodes for a flow field to hold while going through the model. In this paper, we propose a new pipeline that integrates minimalist adaptive mesh refinement into the learning process of GNN models, modifying the mesh resolution through learning without degrading the area-based prediction quality. All GNN models are implemented using PyTorch Geometric and trained with a dataset containing airfoils with different angles of attack in near-transonic regimes, and the results are compared with node- and area-based loss calculations. We found in this study that the number of nodes in high-gradient areas can be increased within the same training budget while improving the area-based prediction quality: a single refinement round lowers the area-based RMSE from 0.1395 to 0.1228, and every refined level stays below the unrefined value, whereas the node-based RMSE rises from 0.1138 to 0.2024 over the same rounds as nodes crowd onto the shock. Furthermore, we pointed out that area-based loss and metric calculations better represent and match the visual distribution of flow field predictions.</p></div>
+            
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+        <script>if (window.hljs) hljs.highlightAll();</script>
+    </body>
+</html>

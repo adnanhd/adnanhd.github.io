@@ -11,6 +11,8 @@ TEMPLATE_PATH = BASE_DIR / "template.html"
 OUTPUT_PATH = BASE_DIR / "index.html"
 RESUME_TEMPLATE_PATH = BASE_DIR / "resume_template.tex"
 RESUME_OUTPUT_PATH = BASE_DIR / "resume.pdf"
+CV_TEMPLATE_PATH = BASE_DIR / "cv_template.tex"
+CV_OUTPUT_PATH = BASE_DIR / "cv.pdf"
 
 # Author identity (used for highlighting in publications)
 AUTHOR_NAME = "Dogan, A. H."

@@ -6,6 +6,7 @@ Reads YAML data files and template.html, produces:
   - index.html    (rendered static site)
   - sitemap.xml   (SEO sitemap)
   - resume.pdf    (LaTeX-generated resume)
+  - cv.pdf        (LaTeX-generated long-form CV)
 
 Usage:
     python -m builder
@@ -34,6 +35,7 @@ from .build_html import (
     render_works,
 )
 from .build_projects import generate_project_pages
+from .build_cv import build_cv_pdf
 from .build_resume import build_resume_pdf
 from .build_utils import esc, file_hash, load_data
 
@@ -107,6 +109,9 @@ def main():
 
     # Resume PDF
     build_resume_pdf(data)
+
+    # Long-form CV PDF
+    build_cv_pdf(data)
 
 
 if __name__ == "__main__":

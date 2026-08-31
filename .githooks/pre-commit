@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# pre-commit: rebuild generated artifacts (index.html, sitemap.xml, resume.pdf,
+# pre-commit: rebuild generated artifacts (index.html, sitemap.xml, resume.pdf, cv.pdf,
 # project pages) from data/ + templates and stage them, so they ride along in
 # the same commit.
 #
@@ -14,7 +14,7 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
 # --- only rebuild when a build source is part of this commit -----------------
-SOURCE_REGEX='^(data/|builder/|assets/|template\.html$|resume_template\.tex$)'
+SOURCE_REGEX='^(data/|builder/|assets/|template\.html$|resume_template\.tex$|cv_template\.tex$)'
 
 if ! git diff --cached --name-only --diff-filter=ACMR | grep -Eq "$SOURCE_REGEX"; then
     exit 0
@@ -40,7 +40,7 @@ if ! "$PY" -m builder; then
 fi
 
 # --- stage regenerated artifacts ---------------------------------------------
-git add index.html sitemap.xml feed.xml resume.pdf 2>/dev/null || true
+git add index.html sitemap.xml feed.xml resume.pdf cv.pdf 2>/dev/null || true
 git add projects 2>/dev/null || true
 
 exit 0

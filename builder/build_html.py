@@ -345,6 +345,7 @@ _VENUE_COLORS = {
     "AAAI":     "#0e4d92",
     "AINA":     "#5b7eb0",
     "BOOK":     "#8b5e34",
+    "CNR":      "#8b5e34",   # CNR Edizioni book chapter
     "ITU":      "#7a1a35",
     "SRMC":     "#1e7a3d",
     "CINC":     "#c0392b",   # cardiology red
@@ -473,7 +474,7 @@ def render_compact_publication(paper):
     citation = authors_html
     if paper.get("date"):
         citation += f" ({esc(format_date(paper['date']))})."
-    citation += f" {esc(paper['title'])}."
+    citation += f" {esc(paper.get('title_apa') or paper['title'])}."
     # Under-review work keeps its venue in the data but doesn't show it
     # yet -- only the status badge.
     if paper.get("status"):
