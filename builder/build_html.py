@@ -439,11 +439,19 @@ def render_publication_card(paper):
     else:
         parts.append(f'<div class="publication-venue-tag"{style}>{esc(venue_text)}</div>')
 
-    if paper.get("image"):
-        parts.append(
-            f'<div class="publication-image">'
-            f'<img src="{esc(paper["image"])}" alt="{esc(paper["title"])}" loading="lazy" /></div>'
-        )
+    media = paper.get("image")
+    if media:
+        ext = str(media).rsplit(".", 1)[-1].lower()
+        if ext in ("mp4", "webm", "mov"):
+            # Looping inline preview video (al-folio style); muted +
+            # playsinline so mobile browsers autoplay it.
+            tag = (
+                f'<video src="{esc(media)}" autoplay loop muted playsinline '
+                f'preload="metadata" aria-label="{esc(paper["title"])}"></video>'
+            )
+        else:  # png / jpg / gif / webp all render through <img>
+            tag = f'<img src="{esc(media)}" alt="{esc(paper["title"])}" loading="lazy" />'
+        parts.append(f'<div class="publication-image">{tag}</div>')
     parts.append("</div>")
 
     # Right: title, authors, venue, links
@@ -456,7 +464,18 @@ def render_publication_card(paper):
     )
     parts.append(f'<div class="publication-authors">{highlight_author_span(esc(paper.get("authors", "")))}</div>')
 
+    # Full citation venue: prefix + name + series/volume/pages detail,
+    # same joining rules as the CV renderer.
     venue_full = paper.get("venue", "")
+    if paper.get("venue_prefix"):
+        venue_full = f"{paper['venue_prefix']} {venue_full}"
+    detail = paper.get("venue_detail") or ""
+    if detail:
+        if detail.startswith("("):
+            sep = "" if venue_full and venue_full[-1].isdigit() else " "
+        else:
+            sep = ", "
+        venue_full += f"{sep}{detail}"
     if paper.get("date"):
         venue_full += f', {format_date(paper["date"])}'
     parts.append(f'<div class="publication-venue">{esc(venue_full)}</div>')
@@ -715,6 +734,24 @@ def _normalize_tags(raw):
 _NEWS_MAX_ITEMS = 15  # cap on About; rest live on Timeline ("see all news ->")
 
 
+_MD_LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+
+
+def _md_links(text):
+    """Escape text for HTML, converting [phrase](url) markdown links
+    into news-style anchors on the phrase."""
+    out, last = [], 0
+    for m in _MD_LINK_RE.finditer(text):
+        out.append(esc(text[last:m.start()]))
+        out.append(
+            f'<a href="{esc(m.group(2))}" class="news-link" '
+            f'target="_blank" rel="noopener noreferrer">{esc(m.group(1))}</a>'
+        )
+        last = m.end()
+    out.append(esc(text[last:]))
+    return "".join(out)
+
+
 def render_news(data):
     """One-line news entries with optional [link] and tag chips.
     Row is a <div data-href=...> (not <a>) because the content already
@@ -731,10 +768,11 @@ def render_news(data):
 
     parts = []
     for item in items:
-        tags = _normalize_tags(item.get("tags"))
         date_html = f'<span class="news-date">{esc(format_date(item["date"], short=True))}</span>'
 
-        body = esc(item["content"])
+        # Inline markdown links [text](url) become understated anchors;
+        # the legacy `link` field still renders as a trailing "[link]".
+        body = _md_links(item["content"])
         if item.get("link"):
             body += (
                 f' <a href="{esc(item["link"])}" class="news-link" '
@@ -742,18 +780,11 @@ def render_news(data):
             )
         content_html = f'<span class="news-content">{body}</span>'
 
-        chips = "".join(
-            f'<span class="news-tag" style="background-color: '
-            f'{_NEWS_TAG_COLORS.get(t, "var(--text-muted)")}">{esc(t)}</span>'
-            for t in tags
-        )
-        tag_html = f'<span class="news-tags">{chips}</span>' if chips else ""
-
-        ref = item.get("timeline_ref")
-        attrs = f' data-href="?tab=timeline#tl-{esc(ref)}" role="link" tabindex="0"' if ref else ""
+        # News rows are static one-liners: no tag chips, and timeline_ref
+        # is kept in the data but no longer turned into a click-through.
         parts.append(
-            f'<li><div class="news-row"{attrs}>'
-            f'{date_html}{content_html}{tag_html}</div></li>'
+            f'<li><div class="news-row">'
+            f'{date_html}{content_html}</div></li>'
         )
     return "\n".join(parts)
 
@@ -1462,9 +1493,17 @@ _TECH_BADGES = {
     "jax": ("#5E97F6", "devicon-python-plain"),
     "c++": ("#00599C", "devicon-cplusplus-plain"),
     "docker": ("#2496ED", "devicon-docker-plain"),
-    "apptainer": ("#0F4C81", "fas fa-cubes"),   # no Devicon glyph -> Font Awesome
-    "singularity": ("#0F4C81", "fas fa-cubes"),
+    "apptainer": ("#0F4C81", "svg:assets/img/badges/apptainer.svg"),
+    "singularity": ("#0F4C81", "svg:assets/img/badges/apptainer.svg"),
     "numpy": ("#013243", "devicon-numpy-plain"),
+    # No fitting glyph in the self-hosted subsets -> icon-less badge
+    "rust": ("#B7410E", "devicon-rust-plain"),
+    "ros": ("#22314E", None),
+    "ros2": ("#22314E", None),
+    "rabbitmq": ("#FF6600", "devicon-rabbitmq-original"),
+    "redis": ("#DC382D", "devicon-redis-plain"),
+    # Marks missing from the icon fonts ship as inline SVG files
+    "pydantic": ("#E92063", "svg:assets/img/badges/pydantic.svg"),
 }
 
 
@@ -1477,9 +1516,16 @@ def render_tags(tags):
         badge = _TECH_BADGES.get(str(tag).lower())
         if badge:
             color, icon = badge
+            if icon and icon.startswith("svg:"):
+                from .build_config import BASE_DIR
+                icon_html = (BASE_DIR / icon[4:]).read_text().strip()
+            elif icon:
+                icon_html = f'<i class="{icon}" aria-hidden="true"></i>'
+            else:
+                icon_html = ""
             out.append(
                 f'<span class="tech-badge" style="background:{color}">'
-                f'<i class="{icon}" aria-hidden="true"></i>{esc(tag)}</span>'
+                f'{icon_html}{esc(tag)}</span>'
             )
         else:
             out.append(f'<span class="work-tag">{esc(tag)}</span>')
