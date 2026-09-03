@@ -36,6 +36,6 @@
 .devicon-cplusplus-plain::before{content:"\e99a"}
 .devicon-docker-plain::before{content:"\e9c3"}
 .devicon-numpy-plain::before{content:"\eb36"}
-.devicon-python-plain::before{content:"\eb9c"}
+.devicon-python-plain::before{content:"\eb9c"}.devicon-rust-plain::before{content:"\ebe6"}.devicon-redis-plain::before{content:"\ebc8"}.devicon-rabbitmq-original::before{content:"\eba9"}
 .devicon-pytorch-plain::before{content:"\eb9e"}
 .devicon-tensorflow-original::before{content:"\ec3f"}

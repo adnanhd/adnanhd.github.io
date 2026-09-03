@@ -667,8 +667,8 @@ a:hover {
 }
 
 .news-list li {
-    margin-bottom: 8px;
-    line-height: 1.55;
+    margin-bottom: 2px;
+    line-height: 1.45;
     font-size: 1em;
 }
 
@@ -679,7 +679,7 @@ a:hover {
     gap: 12px;
     color: inherit;
     text-decoration: none;
-    padding: 4px 6px;
+    padding: 2px 6px;
     border-radius: 4px;
     transition: background-color 0.15s ease;
 }
@@ -1205,8 +1205,8 @@ a:hover {
 
 .publication-item {
     display: flex;
-    gap: 20px;
-    padding: 20px 0;
+    gap: 18px;
+    padding: 12px 0;
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -1216,24 +1216,28 @@ a:hover {
 
 .publication-left {
     flex-shrink: 0;
-    width: 200px;
+    width: 260px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
 }
 
 .publication-venue-tag {
     background-color: var(--accent-color);
     color: #fff;
-    padding: 7px 14px;
-    border-radius: 5px;
-    font-size: 0.92em;
-    font-weight: 700;
+    padding: 0 10px; /* slim bar: full width, low height */
+    border-radius: 3px;
+    font-size: 0.62em;
+    line-height: 1.5;
+    font-weight: 600;
     text-align: center;
     width: 100%;
-    letter-spacing: 0.02em;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
 }
 
 .publication-venue-tag a {
@@ -1243,14 +1247,18 @@ a:hover {
 
 .publication-image {
     width: 100%;
-    height: auto;
+    max-height: 165px; /* cap so cards stay comparable */
     border-radius: 8px;
     border: 1px solid var(--border-color);
+    overflow: hidden;
 }
 
-.publication-image img {
+.publication-image img,
+.publication-image video {
     width: 100%;
-    height: auto;
+    height: auto; /* natural aspect: no letterbox gaps */
+    max-height: 165px;
+    object-fit: cover;
     display: block;
     border-radius: 8px;
 }
@@ -1260,11 +1268,11 @@ a:hover {
 }
 
 .publication-title {
-    font-size: 1.1em;
+    font-size: 1.05em;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 8px;
-    line-height: 1.4;
+    margin-bottom: 5px;
+    line-height: 1.35;
 }
 
 .publication-authors {
@@ -1281,14 +1289,14 @@ a:hover {
     font-size: 0.9em;
     color: var(--text-tertiary);
     font-style: italic;
-    margin-bottom: 12px;
+    margin-bottom: 6px;
 }
 
 .publication-links {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     flex-wrap: wrap;
-    margin-top: 12px;
+    margin-top: 8px;
 }
 
 /* Inline awards: attached to publications, education entries, and
@@ -1395,7 +1403,7 @@ a:hover {
 .nested-pub .entry-award { font-size: 0.72em; }
 
 .pub-link {
-    padding: 8px 16px;
+    padding: 4px 11px;
     border: 2px solid var(--border-color);
     border-radius: 6px;
     text-decoration: none;
@@ -2369,8 +2377,36 @@ footer {
 /* ---- Open Source project cards ---- */
 .repos-list {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+/* Denser than blog cards so three columns keep a wide aspect */
+.repos-list .work-item {
+    padding: 10px 12px;
+}
+.repos-list .work-item h3 {
+    font-size: 0.92em;
+    margin-bottom: 3px;
+}
+.repos-list .work-item p {
+    font-size: 0.78em;
+    line-height: 1.4;
+    margin-bottom: 6px;
+}
+.repos-list .work-tags {
+    gap: 5px;
+    margin-top: 6px;
+}
+.repos-list .work-tag,
+.repos-list .tech-badge {
+    padding: 1px 7px;
+    font-size: 0.7em;
+    border-radius: 3px;
+    line-height: 1.6;
+}
+.repos-list .tech-badge {
+    gap: 4px;
 }
 
 .work-item {
@@ -2484,6 +2520,11 @@ footer {
 }
 
 /* ---- Tech badges (Devicon / Font Awesome) ---- */
+.tech-badge svg {
+    height: 1em;
+    width: auto;
+}
+
 .tech-badge {
     display: inline-flex;
     align-items: center;
