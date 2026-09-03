@@ -601,18 +601,7 @@ def _render_resume_item(title, subtitle, date, description="", logo=None,
     if bullets:
         parts.append('<ul class="resume-bullets">')
         for bullet in bullets:
-            course = re.match(r"^(CENG \d+)\s*-\s*(.+)$", bullet)
-            if course:
-                code, name = course.group(1), course.group(2)
-                num = code.replace("CENG ", "")
-                url = f"https://catalog.metu.edu.tr/course.php?course_code=5710{num}"
-                parts.append(
-                    f'<li><a href="{url}" target="_blank" rel="noopener noreferrer" '
-                    f'style="color: var(--accent-color); text-decoration: none;">'
-                    f'{esc(code)}</a> - {esc(name)}</li>'
-                )
-            else:
-                parts.append(f"<li>{_md_to_html(bullet)}</li>")
+            parts.append(f"<li>{_md_to_html(bullet)}</li>")
         parts.append("</ul>")
 
     parts.append(_render_awards(awards))

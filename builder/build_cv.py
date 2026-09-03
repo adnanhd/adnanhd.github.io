@@ -333,7 +333,7 @@ def render_teaching(data):
             parts.append("\\begin{cvlist}")
             n = len(courses)
             for i, course in enumerate(courses):
-                parts.append(f"  \\item[{n - i}.] {tex_escape(course)}")
+                parts.append(f"  \\item[{n - i}.] {_tex_with_links(course)}")
             parts.append("\\end{cvlist}")
     return "\n".join(parts)
 
