@@ -403,6 +403,11 @@ a:hover {
 .bio-description p {
     color: var(--text-secondary);
     text-align: justify;
+    margin-bottom: 14px;
+}
+
+.bio-description p:last-child {
+    margin-bottom: 0;
 }
 
 .links {
@@ -1282,7 +1287,8 @@ a:hover {
 }
 
 .publication-authors .author-me {
-    font-weight: 600;
+    font-weight: 700;
+    color: var(--text-primary);
 }
 
 .publication-venue {
