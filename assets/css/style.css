@@ -85,7 +85,10 @@ a {
     color: var(--link-color);
 }
 
-a:visited:not(.nav-link):not(.social-link):not(.pub-link):not(.timeline-link) {
+/* Visited colour applies to real outbound links only: not to nav
+   (menu + inline tab links), pill buttons, disguised author names, or
+   block card wrappers whose whole text would turn purple. */
+a:visited:not(.nav-link):not(.nav-link-inline):not(.social-link):not(.pub-link):not(.timeline-link):not(.work-link):not(.blog-link):not(.author-link) {
     color: var(--visited-color);
 }
 
@@ -2471,7 +2474,7 @@ footer {
 
 .work-name {
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--link-color); /* reads as a link, not plain bold text */
     font-size: 1.05em;
     line-height: 1.2;
 }
@@ -2520,7 +2523,9 @@ footer {
 
 /* ---- Clickable project titles + project pages ---- */
 .project-link {
-    color: var(--text-primary);
+    /* Link-coloured so titles read as links, not just bold text; the
+       global :visited rule then applies naturally. */
+    color: var(--link-color);
     text-decoration: none;
 }
 
