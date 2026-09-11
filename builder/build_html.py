@@ -501,8 +501,8 @@ def render_compact_publication(paper):
         pass
     elif paper.get("venue_link") and paper.get("venue_short"):
         citation += (
-            f' <em><a href="{esc(paper["venue_link"])}" target="_blank" rel="noopener noreferrer" '
-            f'style="color: var(--accent-color); text-decoration: none;">'
+            f' <em><a href="{esc(paper["venue_link"])}" class="venue-link" '
+            f'target="_blank" rel="noopener noreferrer">'
             f'{esc(paper["venue_short"])}</a></em>.'
         )
     elif paper.get("venue"):

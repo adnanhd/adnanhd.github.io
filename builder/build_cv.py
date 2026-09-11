@@ -148,9 +148,9 @@ def render_interests(data):
 
 
 def _all_awards(data):
-    """Every award anywhere in the data (publication, degree, experience,
-    research, standalone honors). The `resume` flag is ignored: the CV
-    is the complete record."""
+    """Awards attached to degrees, positions and research projects, plus
+    standalone honors. Publication awards are excluded: they render as
+    inline badges on the reference. The `resume` flag is ignored."""
     items = []
     for h in (data.get("extracurricular") or {}).get("honors", []):
         if h.get("title"):
@@ -169,14 +169,8 @@ def _all_awards(data):
                         "organization": a.get("organization") or entry.get(sub_field, ""),
                         "date": a.get("date") or entry.get(date_field),
                     })
-    for p in (data.get("publications") or {}).get("papers", []):
-        for a in (p.get("awards") or []):
-            if a.get("name"):
-                items.append({
-                    "title": a["name"],
-                    "organization": p.get("venue_short") or p.get("venue", ""),
-                    "date": a.get("date") or p.get("date"),
-                })
+    # Publication awards (e.g. Best Paper) already ride inline on the
+    # reference itself; listing them here would double-count.
     items.sort(key=lambda h: parse_date(h.get("date")), reverse=True)
     return items
 

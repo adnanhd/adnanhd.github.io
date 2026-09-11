@@ -1286,6 +1286,15 @@ a:hover {
     margin-bottom: 4px;
 }
 
+/* Venue links in compact citations: accent, but honour :visited */
+.venue-link {
+    color: var(--accent-color);
+    text-decoration: none;
+}
+.venue-link:visited {
+    color: var(--visited-color);
+}
+
 /* Pool-linked co-author names: understated, dotted underline */
 .author-link {
     color: inherit;
