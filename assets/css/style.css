@@ -1286,6 +1286,17 @@ a:hover {
     margin-bottom: 4px;
 }
 
+/* Pool-linked co-author names: understated, dotted underline */
+.author-link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted var(--text-muted);
+}
+.author-link:hover {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+}
+
 .publication-authors .author-me {
     font-weight: 700;
     color: var(--text-primary);
