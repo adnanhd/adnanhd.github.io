@@ -16,6 +16,7 @@ from pathlib import Path
 from .build_config import BASE_DIR, CV_OUTPUT_PATH, CV_TEMPLATE_PATH
 from .build_resume import (
     _logo_path,
+    tex_linkify_names,
     _ordered_links,
     _status_label,
     _tex_with_links,
@@ -102,7 +103,7 @@ def render_employment(data):
         # Supervisor on the left, location pushed to the right margin.
         loc = f"\\hfill\\emph{{{tex_escape(exp['location'])}}}" if exp.get("location") else ""
         if exp.get("advisor"):
-            body += f"\\\\ Supervisor: {_tex_with_links(exp['advisor'])}{loc}"
+            body += f"\\\\ Supervisor: {tex_linkify_names(_tex_with_links(exp['advisor']))}{loc}"
         elif loc:
             body += f"\\\\ {loc}"
         parts.append(_entry(exp, _month_range(exp.get('start_date'), exp.get('end_date')), body))
@@ -119,7 +120,7 @@ def render_education(data):
         body = f"\\textbf{{{tex_escape(edu.get('degree', ''))}}}, {_tex_with_links(edu.get('institution', ''))}"
         loc = f"\\hfill\\emph{{{tex_escape(edu['location'])}}}" if edu.get("location") else ""
         if edu.get("advisor"):
-            body += f"\\\\ Advisor: {_tex_with_links(edu['advisor'])}{loc}"
+            body += f"\\\\ Advisor: {tex_linkify_names(_tex_with_links(edu['advisor']))}{loc}"
         elif loc:
             body += f"\\\\ {loc}"
         thesis = edu.get("thesis") or {}
@@ -220,10 +221,14 @@ def _render_pub_item(paper, number):
     status = _status_label(paper.get("status"))
     if status:
         ref += f" \\textcolor{{statusamber}}{{{tex_escape(status)}"
-        # Double-blind venues stay unnamed while the paper is in review.
+        # Double-blind venues stay unnamed while the paper is in review;
+        # a dagger points at the footnote under the section.
         if venue and not paper.get("venue_double_blind"):
             ref += f" at {venue}"
-        ref += "}."
+        ref += "}"
+        if paper.get("venue_double_blind"):
+            ref += "\\textsuperscript{\\dag}"
+        ref += "."
     elif venue:
         venue_tex = venue if standalone else f"\\emph{{{venue}}}"
         if paper.get("selected"):
@@ -288,6 +293,9 @@ def render_publications(data):
         for i, paper in enumerate(group):
             parts.append(_render_pub_item(paper, n - i))
         parts.append("\\end{cvlist}")
+    if any(p.get("status") and p.get("venue_double_blind") for p in pubs):
+        parts.append("\\smallskip\\noindent{\\footnotesize\\textsuperscript{\\dag} "
+                     "Venue withheld while under double-blind review.}")
     return "\n".join(parts)
 
 
@@ -311,7 +319,7 @@ def render_research(data):
         # Advisor on the left, location pushed to the right margin.
         loc = f"\\hfill\\emph{{{tex_escape(r['location'])}}}" if r.get("location") else ""
         if r.get("advisor"):
-            body += f"\\\\ Advisor: {_tex_with_links(r['advisor'])}{loc}"
+            body += f"\\\\ Advisor: {tex_linkify_names(_tex_with_links(r['advisor']))}{loc}"
         elif loc:
             body += f"\\\\ {loc}"
         parts.append(_entry(r, _month_range(r.get('start_date'), r.get('end_date')), body))

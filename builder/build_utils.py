@@ -178,8 +178,21 @@ def load_data():
             print(f"Error: {path} has invalid YAML: {e}", file=sys.stderr)
             sys.exit(1)
     _normalize_publications(data)
+    _normalize_sections(data)
     set_author_pool((data.get("authors") or {}).get("authors") or {})
     return data
+
+
+def _normalize_sections(data):
+    """Hoist the data/meta groups of education / experience / research
+    (and teaching, if it adopts the layout) into flat fields."""
+    for section in ("education", "experience", "research", "teaching"):
+        for item in (data.get(section) or {}).get(section) or []:
+            for group in ("data", "meta"):
+                g = item.pop(group, None)
+                if isinstance(g, dict):
+                    for k, v in g.items():
+                        item.setdefault(k, v)
 
 
 def _sentence_case(title, proper):
@@ -262,6 +275,8 @@ def _normalize_publications(data):
             paper.setdefault("venue_link", link)
         if (entry or {}).get("double_blind"):
             paper["venue_double_blind"] = True
+        if "selected" not in paper and (entry or {}).get("selected"):
+            paper["selected"] = True
 
         if not paper.get("venue_short"):
             if spec.get("short"):
@@ -288,6 +303,23 @@ def set_author_pool(pool):
 
 def get_author_pool():
     return _AUTHOR_POOL
+
+
+def get_name_links():
+    """Full name -> link, for advisor strings ("Prof. Dr. Sinan Kalkan")."""
+    return {v["name"]: v["link"] for v in _AUTHOR_POOL.values() if v.get("name")}
+
+
+def linkify_names_html(html):
+    """Wrap pool full names in plain anchors. Input is already-escaped
+    HTML that contains no anchors of its own."""
+    for name, url in get_name_links().items():
+        needle = esc(name)
+        if needle in html:
+            html = html.replace(
+                needle,
+                f'<a href="{esc(url)}" target="_blank" rel="noopener noreferrer">{needle}</a>')
+    return html
 
 
 def _linkify_authors_html(text):

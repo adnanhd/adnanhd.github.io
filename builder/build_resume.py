@@ -42,6 +42,19 @@ def _tex_with_links(text):
     return "".join(out)
 
 
+def tex_linkify_names(text):
+    """Wrap pool full names (advisor strings) in coloured links. Input is
+    already-escaped LaTeX without links of its own."""
+    from .build_utils import get_name_links
+    for name, url in get_name_links().items():
+        needle = tex_escape(name)
+        if needle in text:
+            text = text.replace(
+                needle,
+                f"\\href{{{tex_url(url)}}}{{\\textcolor{{linkblue}}{{{needle}}}}}")
+    return text
+
+
 # Skill name (lowercased) -> Simple Icons slug for a brand glyph prefix.
 # Items not listed (incl. research interests) render as plain text.
 _SKILL_ICONS = {
@@ -206,7 +219,7 @@ def render_education(data):
                 t = f"\\href{{{tex_url(thesis['link'])}}}{{\\textcolor{{linkblue}}{{{t}}}}}"
             sub.append(f"\\textbf{{Thesis:}} {t}")
         if edu.get("advisor"):
-            sub.append(f"\\textbf{{Advisor:}} {_tex_with_links(edu['advisor'])}")
+            sub.append(f"\\textbf{{Advisor:}} {tex_linkify_names(_tex_with_links(edu['advisor']))}")
         if sub:
             parts.append("      \\resumeItemListStart")
             for s in sub:
@@ -224,7 +237,7 @@ def render_experience(data):
         # small type; names carry inline Scholar links.
         position = tex_escape(exp.get("position", ""))
         if exp.get("advisor"):
-            position += f"\\quad\\textmd{{\\footnotesize (Supervisor: {_tex_with_links(exp['advisor'])})}}"
+            position += f"\\quad\\textmd{{\\footnotesize (Supervisor: {tex_linkify_names(_tex_with_links(exp['advisor']))})}}"
         parts.append(
             f"    \\resumeSubheading"
             f"{{{position}}}"

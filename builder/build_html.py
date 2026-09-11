@@ -15,7 +15,7 @@ from .build_config import (
     SECONDARY_CATEGORIES,
     URL_TEMPLATES,
 )
-from .build_utils import esc, format_date, highlight_author, highlight_author_span, parse_date, slugify
+from .build_utils import esc, format_date, highlight_author, highlight_author_span, linkify_names_html, parse_date, slugify
 
 
 # ---------------------------------------------------------------------------
@@ -594,7 +594,7 @@ def _render_resume_item(title, subtitle, date, description="", logo=None,
         parts.append(f'<div class="resume-thesis"><strong>Thesis:</strong> {t}</div>')
 
     if advisor and str(advisor).strip():
-        parts.append(f'<div class="resume-advisor"><strong>{esc(advisor_label)}:</strong> {_md_to_html(advisor)}</div>')
+        parts.append(f'<div class="resume-advisor"><strong>{esc(advisor_label)}:</strong> {linkify_names_html(_md_to_html(advisor))}</div>')
 
     if description:
         parts.append(f"<p>{esc(description)}</p>")
