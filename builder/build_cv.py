@@ -231,12 +231,10 @@ def _render_pub_item(paper, number):
         ref += "."
     elif venue:
         venue_tex = venue if standalone else f"\\emph{{{venue}}}"
+        # Selected venues are bold italic; colour and links stay on the
+        # site, the reference list keeps plain ink.
         if paper.get("selected"):
             venue_tex = f"\\textbf{{{venue_tex}}}"
-            if paper.get("venue_link"):
-                venue_tex = f"\\textcolor{{linkblue}}{{{venue_tex}}}"
-        if paper.get("venue_link"):
-            venue_tex = f"\\href{{{paper['venue_link'].replace('%', chr(92)+'%')}}}{{{venue_tex}}}"
         # Only the venue name is italic; the "In Eds.," prefix and the
         # series/volume/pages detail stay plain (APA).
         if paper.get("venue_prefix"):

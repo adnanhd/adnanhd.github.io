@@ -193,6 +193,10 @@ def _normalize_sections(data):
                 if isinstance(g, dict):
                     for k, v in g.items():
                         item.setdefault(k, v)
+            # A co-advisor folds into the advisor line everywhere.
+            if item.get("co_advisor"):
+                item["advisor"] = (
+                    f"{item.get('advisor', '')}, Co-advisor: {item.pop('co_advisor')}".lstrip(", "))
 
 
 def _sentence_case(title, proper):

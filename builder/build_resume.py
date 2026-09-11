@@ -114,19 +114,13 @@ def is_standalone(paper):
 
 
 def tex_bold_author(text):
-    """Bold the author's name in an already-escaped LaTeX string, and link
-    pool authors (data/authors.yaml) to their pages."""
-    from .build_utils import get_author_pool
+    """Bold the author's name in an already-escaped LaTeX string. Pool
+    author links stay a site feature: reference lists in the PDFs keep
+    plain co-author names."""
     for name in (AUTHOR_NAME, AUTHOR_NAME_ALT):
         escaped = tex_escape(name)
         if escaped in text:
             text = text.replace(escaped, r'\textbf{' + tex_escape(AUTHOR_NAME_APA) + '}')
-    for apa, info in get_author_pool().items():
-        escaped = tex_escape(apa)
-        if escaped in text:
-            text = text.replace(
-                escaped,
-                f"\\href{{{tex_url(info['link'])}}}{{\\textcolor{{linkblue}}{{{escaped}}}}}")
     return text
 
 
@@ -284,14 +278,10 @@ def render_publications(data):
         # unless the title already carries the italics (standalone work).
         if venue and not status:
             venue_tex = venue if standalone else f"\\emph{{{venue}}}"
-            # `selected: true` papers get a bold-italic venue; blue only
-            # when a `venue_link` also makes it clickable.
+            # `selected: true` venues stand out as bold italic; venue
+            # links are a site-only affordance.
             if paper.get("selected"):
                 venue_tex = f"\\textbf{{{venue_tex}}}"
-                if paper.get("venue_link"):
-                    venue_tex = f"\\textcolor{{linkblue}}{{{venue_tex}}}"
-            if paper.get("venue_link"):
-                venue_tex = f"\\href{{{tex_url(paper['venue_link'])}}}{{{venue_tex}}}"
             ref += f" {venue_tex}."
         if status:
             ref += f" \\textcolor{{statusamber}}{{[{tex_escape(status)}]}}"
