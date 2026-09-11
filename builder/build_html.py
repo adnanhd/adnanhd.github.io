@@ -591,7 +591,7 @@ def _render_resume_item(title, subtitle, date, description="", logo=None,
         if thesis.get("link"):
             t = (f'<a href="{esc(thesis["link"])}" target="_blank" '
                  f'rel="noopener noreferrer">{t}</a>')
-        parts.append(f'<div class="resume-thesis"><strong>Thesis:</strong> {t}</div>')
+        parts.append(f'<div class="resume-thesis"><strong>{esc(thesis.get("label", "Thesis"))}:</strong> {t}</div>')
 
     if advisor and str(advisor).strip():
         parts.append(f'<div class="resume-advisor"><strong>{esc(advisor_label)}:</strong> {linkify_names_html(_md_to_html(advisor))}</div>')

@@ -211,7 +211,7 @@ def render_education(data):
             t = tex_escape(thesis["title"])
             if thesis.get("link"):
                 t = f"\\href{{{tex_url(thesis['link'])}}}{{\\textcolor{{linkblue}}{{{t}}}}}"
-            sub.append(f"\\textbf{{Thesis:}} {t}")
+            sub.append(f"\\textbf{{{tex_escape(thesis.get('label', 'Thesis'))}:}} {t}")
         if edu.get("advisor"):
             sub.append(f"\\textbf{{Advisor:}} {tex_linkify_names(_tex_with_links(edu['advisor']))}")
         if sub:

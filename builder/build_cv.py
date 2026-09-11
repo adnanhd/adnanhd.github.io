@@ -119,16 +119,20 @@ def render_education(data):
     for edu in items:
         body = f"\\textbf{{{tex_escape(edu.get('degree', ''))}}}, {_tex_with_links(edu.get('institution', ''))}"
         loc = f"\\hfill\\emph{{{tex_escape(edu['location'])}}}" if edu.get("location") else ""
+        thesis = edu.get("thesis") or {}
         if edu.get("advisor"):
             body += f"\\\\ Advisor: {tex_linkify_names(_tex_with_links(edu['advisor']))}{loc}"
-        elif loc:
-            body += f"\\\\ {loc}"
-        thesis = edu.get("thesis") or {}
+            loc = ""
         if thesis.get("title"):
             t = tex_escape(thesis["title"])
             if thesis.get("link"):
                 t = _href(thesis["link"], t)
-            body += f"\\\\ Thesis: {t}"
+            # The location rides on this line when no advisor line took it,
+            # so no left-empty line appears.
+            body += f"\\\\ {tex_escape(thesis.get('label', 'Thesis'))}: {t}{loc}"
+            loc = ""
+        if loc:
+            body += f"\\\\ {loc}"
         parts.append(_entry(edu, _year_range(edu.get('start_date'), edu.get('end_date')), body))
     return "\n".join(parts)
 
