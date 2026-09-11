@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Adnan Harun Dogan - Blog</title>
+    <title>Adnan Harun Doğan - Blog</title>
     <link>https://adnanhd.github.io/?tab=blogs</link>
-    <description>Adnan Harun Dogan - Graduate Research &amp; Teaching Assistant at Middle East Technical University. Research in differentiable optimization and deep learning for computer vision.</description>
+    <description>Adnan Harun Doğan - Graduate Research &amp; Teaching Assistant at Middle East Technical University. Research in differentiable optimization and deep learning for computer vision.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 11 Sep 2026 16:32:15 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 11 Sep 2026 16:38:48 +0000</lastBuildDate>
     <atom:link href="https://adnanhd.github.io/feed.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Reinforcement Learning</title>
