@@ -220,7 +220,8 @@ def _render_pub_item(paper, number):
     status = _status_label(paper.get("status"))
     if status:
         ref += f" \\textcolor{{statusamber}}{{{tex_escape(status)}"
-        if venue:
+        # Double-blind venues stay unnamed while the paper is in review.
+        if venue and not paper.get("venue_double_blind"):
             ref += f" at {venue}"
         ref += "}."
     elif venue:

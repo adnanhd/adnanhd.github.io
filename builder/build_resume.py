@@ -101,11 +101,19 @@ def is_standalone(paper):
 
 
 def tex_bold_author(text):
-    """Bold the author's name in an already-escaped LaTeX string, converting to APA format."""
+    """Bold the author's name in an already-escaped LaTeX string, and link
+    pool authors (data/authors.yaml) to their pages."""
+    from .build_utils import get_author_pool
     for name in (AUTHOR_NAME, AUTHOR_NAME_ALT):
         escaped = tex_escape(name)
         if escaped in text:
             text = text.replace(escaped, r'\textbf{' + tex_escape(AUTHOR_NAME_APA) + '}')
+    for apa, info in get_author_pool().items():
+        escaped = tex_escape(apa)
+        if escaped in text:
+            text = text.replace(
+                escaped,
+                f"\\href{{{tex_url(info['link'])}}}{{\\textcolor{{linkblue}}{{{escaped}}}}}")
     return text
 
 

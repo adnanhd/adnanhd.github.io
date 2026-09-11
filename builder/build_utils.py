@@ -39,13 +39,14 @@ def slugify(text):
 def highlight_author(text):
     """Bold the author's name in a text string. Input should already be escaped."""
     pattern = re.escape(esc(AUTHOR_NAME)) + "|" + re.escape(esc(AUTHOR_NAME_ALT))
-    return re.sub(pattern, f"<strong>{esc(AUTHOR_NAME)}</strong>", text)
+    return _linkify_authors_html(re.sub(pattern, f"<strong>{esc(AUTHOR_NAME)}</strong>", text))
 
 
 def highlight_author_span(text):
     """Wrap author name in span.author-me. Input should already be escaped."""
     pattern = re.escape(esc(AUTHOR_NAME)) + "|" + re.escape(esc(AUTHOR_NAME_ALT))
-    return re.sub(pattern, f'<span class="author-me">{esc(AUTHOR_NAME)}</span>', text)
+    return _linkify_authors_html(
+        re.sub(pattern, f'<span class="author-me">{esc(AUTHOR_NAME)}</span>', text))
 
 
 # ---------------------------------------------------------------------------
@@ -158,7 +159,7 @@ def parse_date(date_str):
 YAML_FILES = [
     "bio", "education", "teaching", "experience",
     "research", "extracurricular", "news", "publications",
-    "blogs", "works", "social_posts",
+    "blogs", "works", "social_posts", "venues", "authors",
 ]
 
 
@@ -176,4 +177,127 @@ def load_data():
         except yaml.YAMLError as e:
             print(f"Error: {path} has invalid YAML: {e}", file=sys.stderr)
             sys.exit(1)
+    _normalize_publications(data)
+    set_author_pool((data.get("authors") or {}).get("authors") or {})
     return data
+
+
+def _sentence_case(title, proper):
+    """APA sentence case: lowercase everything except the first word, the
+    word after a colon, acronyms / mixed-case words (EEG, CoFINN), and
+    the proper nouns listed in publications.yaml."""
+    out, cap_next = [], True
+    for tok in str(title).split(" "):
+        parts = []
+        for part in tok.split("-"):
+            core = re.sub(r"[^\w]", "", part)
+            if core in proper or any(c.isupper() for c in core[1:]):
+                parts.append(part)
+            else:
+                parts.append(part.lower())
+        w = "-".join(parts)
+        if cap_next and w:
+            w = w[0].upper() + w[1:]
+        cap_next = w.endswith(":")
+        out.append(w)
+    return " ".join(out)
+
+
+def _join_authors(names):
+    """["A, B.", "C, D."] -> "A, B., & C, D." (APA ampersand form)."""
+    names = [str(n) for n in names]
+    if len(names) <= 1:
+        return "".join(names)
+    return ", ".join(names[:-1]) + ", & " + names[-1]
+
+
+def _normalize_publications(data):
+    """Expand the two-layer publication schema into the flat fields the
+    renderers consume: hoist `meta` keys, join the author list, derive
+    the sentence-case APA title, and resolve `venue` (a pool key, or a
+    dict of id/name/volume/detail/prefix/short/link) against
+    data/venues.yaml into venue / venue_short / venue_link /
+    venue_prefix / venue_detail."""
+    pool = (data.get("venues") or {}).get("venues") or {}
+    proper = set((data.get("publications") or {}).get("proper_nouns") or [])
+    pages = (data.get("publications") or {}).get("pages") or {}
+    for paper in (data.get("publications") or {}).get("papers") or []:
+        page = pages.get(paper.get("id")) or pages.get(paper.get("title"))
+        if page:
+            paper.setdefault("body", page)
+        elif paper.get("abstract"):  # legacy inline field
+            paper.setdefault("body", paper["abstract"])
+        record = paper.pop("data", None)
+        if isinstance(record, dict):
+            for k, v in record.items():
+                paper.setdefault(k, v)
+        authors = paper.get("authors")
+        if isinstance(authors, list):
+            paper["authors"] = _join_authors(authors)
+        elif isinstance(authors, str) and ";" in authors:
+            paper["authors"] = _join_authors([a.strip() for a in authors.split(";") if a.strip()])
+        if paper.get("title"):
+            paper.setdefault("title_apa", _sentence_case(paper["title"], proper))
+        meta = paper.pop("meta", None)
+        if isinstance(meta, dict):
+            for k, v in meta.items():
+                paper.setdefault(k, v)
+
+        raw = paper.get("venue")
+        spec = raw if isinstance(raw, dict) else {}
+        key = spec.get("id") if spec else raw
+        entry = pool.get(key) if isinstance(key, str) else None
+
+        name = spec.get("name") or (entry or {}).get("name") or (key if isinstance(key, str) else "")
+        if spec.get("volume"):
+            name = f"{name}, {spec['volume']}"
+        if name:
+            paper["venue"] = name
+        if spec.get("prefix"):
+            paper["venue_prefix"] = spec["prefix"]
+        if spec.get("detail"):
+            paper["venue_detail"] = spec["detail"]
+        link = spec.get("link") or (entry or {}).get("link")
+        if link:
+            paper.setdefault("venue_link", link)
+        if (entry or {}).get("double_blind"):
+            paper["venue_double_blind"] = True
+
+        if not paper.get("venue_short"):
+            if spec.get("short"):
+                paper["venue_short"] = spec["short"]
+            elif entry and entry.get("short"):
+                yy = str(paper.get("date", ""))[:4][-2:]
+                if entry.get("short_year") is False or not yy:
+                    paper["venue_short"] = entry["short"]
+                else:
+                    paper["venue_short"] = f"{entry['short']}'{yy}"
+
+
+# ---------------------------------------------------------------------------
+# Author pool - names in `authors` strings that should carry links
+# ---------------------------------------------------------------------------
+
+_AUTHOR_POOL = {}
+
+
+def set_author_pool(pool):
+    global _AUTHOR_POOL
+    _AUTHOR_POOL = {k: v for k, v in pool.items() if isinstance(v, dict) and v.get("link")}
+
+
+def get_author_pool():
+    return _AUTHOR_POOL
+
+
+def _linkify_authors_html(text):
+    """Wrap pool author names (already-escaped text) in understated links."""
+    for apa, info in _AUTHOR_POOL.items():
+        needle = esc(apa)
+        if needle in text:
+            text = text.replace(
+                needle,
+                f'<a href="{esc(info["link"])}" class="author-link" '
+                f'target="_blank" rel="noopener noreferrer">{needle}</a>',
+            )
+    return text

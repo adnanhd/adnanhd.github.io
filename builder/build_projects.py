@@ -3,7 +3,8 @@
 Called by the main build (`python -m builder`) - depends only on in-repo YAML.
 One blog-styled page per selected publication and per open-source work, written
 to projects/<slug>/index.html; titles on the About page link here. Optional
-`abstract:` (papers) / `body:` (works) fields are rendered as page content.
+`body:` fields (papers: the top-level `pages:` map in publications.yaml;
+works: inline) are rendered as page content.
 """
 
 import re
@@ -188,7 +189,7 @@ def generate_project_pages(data):
             f'<img class="project-image" src="../../{esc(p["image"])}" '
             f'alt="{esc(p["title"])}" />' if p.get("image") else ""
         )
-        body = _render_summary(p.get("abstract"))
+        body = _render_summary(p.get("body"))
         _write(slugify(p["title"]), title=p["title"], meta=meta,
                description=p.get("venue", ""),
                back="../../index.html?tab=about#selected-works",

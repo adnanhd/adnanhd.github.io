@@ -363,6 +363,7 @@ def _venue_color(venue_short):
         return None
     s = re.sub(r"^(IEEE|ACM)/", "", str(venue_short).strip().upper())
     token = s.split()[0] if s else ""
+    token = re.sub(r"'\d+$", "", token)  # "ECCV'24" -> "ECCV"
     return _VENUE_COLORS.get(token)
 
 
