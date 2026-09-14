@@ -5,7 +5,7 @@
     <link>https://adnanhd.github.io/?tab=blogs</link>
     <description>Adnan Harun Doğan - Graduate Research &amp; Teaching Assistant at Middle East Technical University. Research in differentiable optimization and deep learning for computer vision.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 14 Sep 2026 13:16:08 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 14 Sep 2026 13:21:59 +0000</lastBuildDate>
     <atom:link href="https://adnanhd.github.io/feed.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>torchestrator</title>
@@ -14,6 +14,8 @@
       <pubDate>Fri, 21 Aug 2026 00:00:00 +0000</pubDate>
       <description>A Dockerfile-like declarative runner for PyTorch training pipelines: torchfile DSL, registry roster, content-addressed run hub.</description>
       <category>software</category>
+      <category>training-infrastructure</category>
+      <category>design-patterns</category>
     </item>
     <item>
       <title>registry-pattern</title>
@@ -22,6 +24,7 @@
       <pubDate>Fri, 14 Aug 2026 00:00:00 +0000</pubDate>
       <description>Name-based type and function registries with a recursive build/serialize factory for Python projects.</description>
       <category>software</category>
+      <category>design-patterns</category>
     </item>
     <item>
       <title>observer-pattern</title>
@@ -30,6 +33,7 @@
       <pubDate>Sun, 09 Aug 2026 00:00:00 +0000</pubDate>
       <description>Observable/Eventful event model with topic-keyed message queues, competing consumers, and queue-RPC.</description>
       <category>software</category>
+      <category>design-patterns</category>
     </item>
     <item>
       <title>torchdatasets</title>
@@ -38,6 +42,7 @@
       <pubDate>Tue, 07 Jul 2026 00:00:00 +0000</pubDate>
       <description>PyTorch Dataset and IterableDataset extensions with a composable transform pipeline.</description>
       <category>software</category>
+      <category>datasets</category>
     </item>
     <item>
       <title>Policy Gradients: REINFORCE, Baselines, and Generalized Advantage Estimation</title>
@@ -92,6 +97,7 @@
       <pubDate>Sat, 23 May 2026 00:00:00 +0000</pubDate>
       <description>A monorepo of from-scratch PyTorch reproductions of machine learning papers.</description>
       <category>software</category>
+      <category>training-infrastructure</category>
     </item>
     <item>
       <title>CNN Object Detection: From LeNet and AlexNet to Modern Detector Backbones</title>
