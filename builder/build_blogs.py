@@ -133,6 +133,10 @@ def _assemble(spec):
         raw = src.read_text()
         section = _strip_noise(_extract_section(raw, spec.section_prefix))
         if not section:
+            # Notes that never introduce a "Related Work" heading are
+            # survey material end to end: take the whole body.
+            section = _strip_noise(re.sub(r"^#\+\w+:.*$", "", raw, flags=re.M)).strip()
+        if not section:
             continue
         section = _namespace_footnotes(section, f"s{i}")
         if multi:

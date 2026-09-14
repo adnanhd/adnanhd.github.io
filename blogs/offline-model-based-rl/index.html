@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="Conservative Q-learning, the decision transformer, direct preference optimization, and world-model agents." />
+        <title>Offline and Model-Based RL: CQL, Decision Transformer, DPO, and World Models - Adnan Harun Dogan</title>
+        <link rel="canonical" href="https://adnanhd.github.io/blogs/offline-model-based-rl/" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="Offline and Model-Based RL: CQL, Decision Transformer, DPO, and World Models" />
+        <meta property="og:description" content="Conservative Q-learning, the decision transformer, direct preference optimization, and world-model agents." />
+        <meta property="og:url" content="https://adnanhd.github.io/blogs/offline-model-based-rl/" />
+        <meta property="og:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Offline and Model-Based RL: CQL, Decision Transformer, DPO, and World Models" />
+        <meta name="twitter:description" content="Conservative Q-learning, the decision transformer, direct preference optimization, and world-model agents." />
+        <meta name="twitter:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Offline and Model-Based RL: CQL, Decision Transformer, DPO, and World Models",
+  "description": "Conservative Q-learning, the decision transformer, direct preference optimization, and world-model agents.",
+  "url": "https://adnanhd.github.io/blogs/offline-model-based-rl/",
+  "image": "https://adnanhd.github.io/assets/img/profile.jpeg",
+  "author": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan",
+    "url": "https://adnanhd.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan"
+  },
+  "mainEntityOfPage": "https://adnanhd.github.io/blogs/offline-model-based-rl/",
+  "datePublished": "2026-04-20T10:38"
+}
+        </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html?tab=blogs" class="blog-back">&larr; Back to blogs</a>
+            <h1>Offline and Model-Based RL: CQL, Decision Transformer, DPO, and World Models</h1>
+            <div class="blog-meta">Offline RL, sequence models, preference optimization, world models</div>
+            <article class="blog-body">
+<p><u>Every method in this chapter is an answer to the same question: if
+the environment is gone, what stands in for it?</u> The policy-gradient foundations chapter
+surveys the methods that still have an environment to query, and the trust-region chapter narrows to how a
+single update is bounded. This chapter takes the methods that give the
+environment up. Two substitutes are on offer and the split organises the
+whole literature: a <strong>fixed dataset</strong>, which the offline
+and preference-based methods learn from without ever collecting another
+transition, and a <strong>learned model</strong>, which the model-based
+methods roll forward in place of the simulator. The two look unrelated
+on the page and fail for one reason, so the table below is sorted by
+substitute and read for the column that matters, which is the last
+one.</p>
+<div class="blog-table"><table id="tbl:offline-model-based-leaderboard">
+<caption>The methods of this chapter sorted by what replaces the
+environment. The columns are design axes rather than scores, and the
+omission is deliberate: the offline rows are normally reported as D4RL
+scores, the preference rows as win rates against a reference model, and
+the model-based rows as Atari or MuJoCo returns, so a shared number
+column would invite a comparison none of these papers support.
+<em>Constraint</em> names what stops the policy leaving the region its
+substitute is valid on. <em>Critic</em> records whether a learned value
+function is required, which is the cleanest structural divide among the
+offline methods. The final column states where each substitute stops
+being trustworthy, and it is the column this chapter is organised
+around.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>Year</th>
+<th>Stands in for the environment</th>
+<th>Constraint on the policy</th>
+<th>Critic</th>
+<th>Where the region ends</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CQL <span class="citation"
+data-cites="kumar_conservative_2020">(Kumar et al. 2020)</span></td>
+<td>2020</td>
+<td>fixed dataset</td>
+<td>conservative penalty pushing
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Q</mi><annotation encoding="application/x-tex">Q</annotation></semantics></math>
+down off the data support</td>
+<td>yes</td>
+<td>the Bellman target keeps querying actions nobody collected, so on
+narrow or expert-only data the penalty suppresses good actions along
+with unseen ones</td>
+</tr>
+<tr>
+<td>IQL <span class="citation"
+data-cites="kostrikov_offline_2022">(Kostrikov et al. 2022)</span></td>
+<td>2022</td>
+<td>fixed dataset</td>
+<td>expectile regression on in-sample actions only</td>
+<td>yes</td>
+<td>never evaluates an unseen action, so it cannot exceed the best
+behaviour the dataset already contains</td>
+</tr>
+<tr>
+<td>Decision Transformer <span
+class="citation" data-cites="chen_decision_2021">(Chen et al.
+2021)</span></td>
+<td>2021</td>
+<td>fixed dataset</td>
+<td>none; return-conditioned sequence prediction</td>
+<td>no</td>
+<td>no <a href="wiki:Bellman_equation">Bellman</a> backup means no
+stitching, so two mediocre trajectories cannot be recombined into a
+better one</td>
+</tr>
+<tr>
+<td>Trajectory Transformer <span class="citation"
+data-cites="janner_trajectory_2021">(Janner et al. 2021)</span></td>
+<td>2021</td>
+<td>fixed dataset</td>
+<td>beam search over predicted trajectories</td>
+<td>no</td>
+<td>search quality is bounded by the sequence model, and compounding
+error grows with the planning horizon</td>
+</tr>
+<tr>
+<td>RLHF with PPO <span class="citation"
+data-cites="ouyang_training_2022">(Ouyang et al. 2022)</span></td>
+<td>2022</td>
+<td>preference dataset via a learned reward model</td>
+<td>KL penalty against the reference policy</td>
+<td>yes</td>
+<td>the reward model is itself fit on finite preferences and is
+over-optimised where they run out</td>
+</tr>
+<tr>
+<td>DPO <span class="citation"
+data-cites="rafailov_direct_2024">(Rafailov et al. 2023)</span></td>
+<td>2023</td>
+<td>preference dataset directly</td>
+<td>implicit reward as a log-ratio to the reference</td>
+<td>no</td>
+<td>drifts in KL toward regions the preference set never covered, with
+no reward model to price the drift</td>
+</tr>
+<tr>
+<td>World Models <span class="citation"
+data-cites="ha_world_2018">(Ha and Schmidhuber 2018)</span></td>
+<td>2018</td>
+<td>learned model (VAE plus MDN-RNN)</td>
+<td>controller trained inside the rollout</td>
+<td>no</td>
+<td>the VAE bottleneck is fit for reconstruction, so it discards detail
+that is small in pixels and large in reward</td>
+</tr>
+<tr>
+<td>MuZero <span class="citation"
+data-cites="schrittwieser_mastering_2020">(Schrittwieser et al.
+2020)</span></td>
+<td>2020</td>
+<td>learned latent model</td>
+<td>MCTS over the learned dynamics</td>
+<td>yes</td>
+<td>the latent predicts reward, value and policy accurately while
+corresponding to nothing inside the simulator</td>
+</tr>
+<tr>
+<td>DreamerV3 <span class="citation"
+data-cites="hafner_mastering_2023">(Hafner et al. 2023)</span></td>
+<td>2023</td>
+<td>learned latent model</td>
+<td>actor-critic trained on imagined rollouts</td>
+<td>yes</td>
+<td>imagination compounds model error with horizon, which is why the
+rollout length is a tuned quantity rather than a free one</td>
+</tr>
+<tr>
+<td>Episodic Planning
+Networks <span class="citation"
+data-cites="ritter_rapid_2021">(Ritter et al. 2021)</span></td>
+<td>2021</td>
+<td>episodic memory of the current task</td>
+<td>attention over stored transitions</td>
+<td>no</td>
+<td>memory is scoped to one task, so nothing transfers once the episode
+boundary is crossed</td>
+</tr>
+</tbody>
+</table></div>
+<p><u>Read down the last column and the two halves of the chapter stop
+looking like two literatures.</u> CQL and World Models are solving the
+same problem in different notation. Both accept a substitute that is
+accurate on the region their data covers, both degrade silently rather
+than loudly outside it, and neither has a mechanism that reports when
+the boundary has been crossed. This is why the offline methods are
+characterised by support and the model-based methods by horizon: support
+is where a dataset stops being informative, horizon is where a model
+stops being accurate, and they are the same failure measured along
+different axes.</p>
+<p>The column that separates the methods structurally is the critic.
+<u>The methods without one are the ones that gave up on improvement over
+their data.</u> Decision Transformer, Trajectory Transformer and DPO all
+replace value estimation with conditional sequence prediction, which
+buys stability and the entire transformer toolchain, and costs the
+ability to do better than what was demonstrated. The methods with a
+critic keep that ability and pay for it with the off-support query that
+CQL's penalty and IQL's expectile are both built to survive. The
+chapter's comparison table revisits
+this split with the implementation detail attached, and the closing Reward-Is-Enough section asks whether any
+of it is more than instrumental.</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-chen_decision_2021" class="csl-entry" role="listitem">
+Chen, Lili, Kevin Lu, Aravind Rajeswaran, et al. 2021. <em>Decision
+<span>Transformer</span>: <span>Reinforcement</span>
+<span>Learning</span> via <span>Sequence</span>
+<span>Modeling</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2106.01345">https://doi.org/10.48550/arXiv.2106.01345</a>.
+</div>
+<div id="ref-ha_world_2018" class="csl-entry" role="listitem">
+Ha, David, and Jürgen Schmidhuber. 2018. <span>"Recurrent World Models
+Facilitate Policy Evolution."</span> <em>Advances in Neural Information
+Processing Systems (NeurIPS)</em>. <a
+href="https://arxiv.org/abs/1809.01999">https://arxiv.org/abs/1809.01999</a>.
+</div>
+<div id="ref-hafner_mastering_2023" class="csl-entry" role="listitem">
+Hafner, Danijar, Jurgis Pasukonis, Jimmy Ba, and Timothy Lillicrap.
+2023. <em>Mastering <span>Diverse</span> <span>Domains</span> Through
+<span>World</span> <span>Models</span></em>. arXiv. <a
+href="http://arxiv.org/abs/2301.04104">http://arxiv.org/abs/2301.04104</a>.
+</div>
+<div id="ref-janner_trajectory_2021" class="csl-entry" role="listitem">
+Janner, Michael, Qiyang Li, and Sergey Levine. 2021. <span>"Offline
+Reinforcement Learning as One Big Sequence Modeling Problem."</span>
+<em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a
+href="https://arxiv.org/abs/2106.02039">https://arxiv.org/abs/2106.02039</a>.
+</div>
+<div id="ref-kostrikov_offline_2022" class="csl-entry" role="listitem">
+Kostrikov, Ilya, Ashvin Nair, and Sergey Levine. 2022. <span>"Offline
+<span>Reinforcement</span> <span>Learning</span> with
+<span>Implicit</span> <span>Q</span>-<span>Learning</span>."</span>
+<em>International Conference on Learning Representations</em>. <a
+href="http://arxiv.org/abs/2110.06169">http://arxiv.org/abs/2110.06169</a>.
+</div>
+<div id="ref-kumar_conservative_2020" class="csl-entry" role="listitem">
+Kumar, Aviral, Aurick Zhou, George Tucker, and Sergey Levine. 2020.
+<em>Conservative <span>Q</span>-<span>Learning</span> for
+<span>Offline</span> <span>Reinforcement</span>
+<span>Learning</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2006.04779">https://doi.org/10.48550/arXiv.2006.04779</a>.
+</div>
+<div id="ref-ouyang_training_2022" class="csl-entry" role="listitem">
+Ouyang, Long, Jeffrey Wu, Xu Jiang, et al. 2022. <span>"Training
+Language Models to Follow Instructions with Human Feedback."</span>
+<em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a
+href="https://arxiv.org/abs/2203.02155">https://arxiv.org/abs/2203.02155</a>.
+</div>
+<div id="ref-rafailov_direct_2024" class="csl-entry" role="listitem">
+Rafailov, Rafael, Archit Sharma, Eric Mitchell, Stefano Ermon,
+Christopher D. Manning, and Chelsea Finn. 2023. <span>"Direct
+<span>Preference</span> <span>Optimization</span>: <span>Your</span>
+<span>Language</span> <span>Model</span> Is <span>Secretly</span> a
+<span>Reward</span> <span>Model</span>."</span> <em>Advances in Neural
+Information Processing Systems (NeurIPS)</em>, July. <a
+href="https://doi.org/10.48550/arXiv.2305.18290">https://doi.org/10.48550/arXiv.2305.18290</a>.
+</div>
+<div id="ref-ritter_rapid_2021" class="csl-entry" role="listitem">
+Ritter, Sam, Ryan Faulkner, Laurent Sartran, Adam Santoro, Matt
+Botvinick, and David Raposo. 2021. <em>Rapid
+<span>Task</span>-<span>Solving</span> in <span>Novel</span>
+<span>Environments</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2006.03662">https://doi.org/10.48550/arXiv.2006.03662</a>.
+</div>
+<div id="ref-schrittwieser_mastering_2020" class="csl-entry"
+role="listitem">
+Schrittwieser, Julian, Ioannis Antonoglou, Thomas Hubert, et al. 2020.
+<span>"Mastering <span>Atari</span>, <span>Go</span>, <span>Chess</span>
+and <span>Shogi</span> by <span>Planning</span> with a
+<span>Learned</span> <span>Model</span>."</span> <em>Nature</em> 588
+(7839): 604-9. <a
+href="https://doi.org/10.1038/s41586-020-03051-4">https://doi.org/10.1038/s41586-020-03051-4</a>.
+</div>
+</div>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>
