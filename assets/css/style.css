@@ -671,7 +671,11 @@ a:hover {
 
 /* News - simple one-liner per entry; whole row jumps to a Timeline anchor. */
 .news-list {
-    list-style: none;
+    list-style: disc outside;
+    padding-left: 18px;
+}
+.news-list li::marker {
+    color: var(--text-tertiary);
 }
 
 .news-list li {
@@ -681,10 +685,7 @@ a:hover {
 }
 
 .news-row {
-    display: grid;
-    grid-template-columns: 100px 1fr auto;
-    align-items: baseline;
-    gap: 12px;
+    display: block;
     color: inherit;
     text-decoration: none;
     padding: 2px 6px;
@@ -705,22 +706,22 @@ a:hover {
 .news-date {
     font-weight: 700;
     color: var(--text-tertiary);
-    font-size: 0.85em;
-    white-space: nowrap;
     font-variant-numeric: tabular-nums;
+    text-decoration: underline;
 }
 
 .news-content {
     color: var(--text-secondary);
     min-width: 0;
 }
+.news-content strong {
+    color: var(--text-primary);
+}
 
 .news-link {
-    font-size: 0.88em;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--accent-color);
     text-decoration: none;
-    margin-left: 4px;
 }
 
 .news-link:hover {
@@ -805,6 +806,19 @@ a:hover {
 /* Month ticks on the rail - small dashes between year labels, like a
    ruler. Placement is per-band (variable year-band heights), computed
    in Python as fractions of each band's height. */
+.timeline-month-label {
+    position: absolute;
+    left: calc(var(--rail-x) - 34px);
+    width: 26px;
+    text-align: right;
+    transform: translateY(-50%);
+    font-size: 0.58em;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+    pointer-events: none;
+    z-index: 0;
+}
+
 .timeline-month-tick {
     position: absolute;
     left: var(--rail-x);
@@ -835,12 +849,20 @@ a:hover {
 
 .timeline-item {
     position: absolute;
-    padding: 12px 16px;
+    padding: 10px 12px;
     background: var(--bg-primary);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
     z-index: 1;
+}
+
+/* Position / degree cards are line-like context markers, not boxes:
+   the publications are the primary entities of the timeline. */
+.timeline-plain {
+    background: transparent;
+    border: none;
+    padding: 2px 8px;
 }
 
 .timeline-item:target,
@@ -940,6 +962,148 @@ a:hover {
     right: calc(100% - var(--rail-x) + 7px);
     width: calc((var(--rail-gap) - 7px) + var(--lane-ratio) * (var(--left-side-w) + var(--lane-gap)));
 }
+/* Start-of-range marker: small hollow dot exactly at the start date,
+   no arm. */
+.rail-marker-startdot::after {
+    top: -5px;
+    width: 10px;
+    height: 10px;
+    margin-left: -5px;
+}
+.rail-marker-startdot::before { content: none; }
+
+/* Coloured span along the rail between an event's two end dots. */
+.rail-span {
+    position: absolute;
+    left: var(--rail-x);
+    width: 2px;
+    margin-left: -1px;
+}
+/* Left- and right-side spans sit on opposite flanks of the rail so
+   concurrent events don't overpaint each other. */
+.rail-span-left  { margin-left: -4px; }
+.rail-span-right { margin-left: 2px; }
+.rail-span {
+    background: color-mix(in srgb, var(--dot-color, var(--accent-color)) 45%, transparent);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Process-card titles link to the lab page: quiet, no underline. */
+.timeline-title a {
+    color: inherit;
+    text-decoration: none;
+}
+.timeline-title a:hover {
+    color: var(--accent-color);
+}
+
+/* Atomic news moments on the timeline: dated one-liners. */
+.timeline-newsitem {
+    background: transparent;
+    border: none;
+    padding: 4px 8px;
+}
+.timeline-newsline {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 0.74em;
+    line-height: 1.45;
+    color: var(--text-secondary);
+}
+.timeline-newsline .timeline-logo {
+    width: 15px;
+    height: 15px;
+    align-self: center;
+}
+
+/* Meta rows under a publication card: Supervisor / Laboratory / Employment */
+.timeline-meta {
+    font-size: 0.66em;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+    line-height: 1.45;
+}
+.timeline-meta a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted var(--text-muted);
+}
+.timeline-meta a:hover {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+}
+
+.timeline-meta-label {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-size: 0.88em;
+    color: var(--text-muted);
+    margin-right: 2px;
+}
+
+/* Parallel position bars: one thin rounded bar per employment /
+   research span, fanned left of the rail, tooltip on hover. */
+.tl-posbar {
+    position: absolute;
+    width: 4px;
+    margin-left: -2px;
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--dot-color, var(--accent-color)) 55%, transparent);
+    z-index: 0;
+    cursor: help;
+}
+.tl-posbar:hover,
+.tl-posbar.pos-hot {
+    background: var(--dot-color, var(--accent-color));
+    width: 6px;
+}
+
+/* Publication cards wear their position's colour on the left edge. */
+.timeline-publication[data-pos] {
+    border-left: 2px solid var(--dot-color, var(--accent-color));
+}
+.timeline-item.pos-hot {
+    /* Outline instead of border so plain (border-less) process and
+       news cards light up too; kept quiet - a thin tinted ring. */
+    outline: 1px solid color-mix(in srgb, var(--dot-color, var(--accent-color)) 55%, transparent);
+    outline-offset: 2px;
+}
+.rail-marker.pos-hot::after {
+    background: var(--dot-color, var(--accent-color));
+}
+
+/* Invisible hit disc over the dot: the marker itself ignores the
+   pointer, so only the circle is hoverable. Hovering it lights the
+   single corresponding card (pair-hot), not the whole colour group. */
+.rail-marker .rail-dot-hit {
+    position: absolute;
+    top: 18px;
+    left: var(--rail-x);
+    margin-left: -7px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    pointer-events: auto;
+    z-index: 3;
+}
+.rail-marker-startdot .rail-dot-hit {
+    top: -5px;
+    width: 10px;
+    height: 10px;
+    margin-left: -5px;
+}
+.rail-marker.pair-hot::after {
+    background: var(--dot-color, var(--accent-color));
+}
+.timeline-item.pair-hot {
+    z-index: 2;
+    border-color: var(--dot-color, var(--accent-color));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--dot-color, var(--accent-color)) 25%, transparent);
+}
+
 .timeline-item:hover + .rail-marker::after,
 .timeline-item:target + .rail-marker::after {
     background: var(--dot-color, var(--accent-color));
@@ -1059,7 +1223,7 @@ a:hover {
 
 .timeline-date {
     display: block;
-    font-size: 0.74em;
+    font-size: 0.62em;
     font-weight: 600;
     letter-spacing: 0.02em;
     text-transform: uppercase;
@@ -1074,18 +1238,18 @@ a:hover {
 .timeline-title {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 1em;
+    gap: 6px;
+    font-size: 0.78em;
     font-weight: 600;
-    line-height: 1.35;
+    line-height: 1.25;
     color: var(--text-primary);
-    margin: 0 0 3px;
+    margin: 0 0 1px;
 }
 
 .timeline-logo {
     flex-shrink: 0;
-    width: 22px;
-    height: 22px;
+    width: 16px;
+    height: 16px;
     object-fit: contain;
     border-radius: 4px;
     background: #fff;
@@ -1094,12 +1258,12 @@ a:hover {
 
 .timeline-org,
 .timeline-authors {
-    font-size: 0.85em;
+    font-size: 0.68em;
     color: var(--text-secondary);
 }
 
 .timeline-venue {
-    font-size: 0.82em;
+    font-size: 0.7em;
     color: var(--text-tertiary);
     margin-top: 1px;
 }
@@ -1112,20 +1276,22 @@ a:hover {
 }
 
 .timeline-link {
-    padding: 2px 9px;
-    border: 1px solid var(--border-color);
-    border-radius: 999px;
+    /* Plain text link, not a pill: quieter, more academic. */
     text-decoration: none;
     font-size: 0.72em;
     font-weight: 600;
-    color: var(--text-secondary);
-    transition: all 0.2s ease;
+    color: var(--link-color);
+    transition: color 0.2s ease;
+}
+.timeline-link + .timeline-link::before {
+    content: "\00b7\00a0";
+    color: var(--text-muted);
+    font-weight: 400;
 }
 
 .timeline-link:hover {
-    border-color: var(--accent-color);
-    color: #fff;
-    background-color: var(--accent-color);
+    color: var(--accent-color);
+    text-decoration: underline;
 }
 
 .paper-links {
@@ -1368,32 +1534,33 @@ a:hover {
    picks up the parent's dot colour. */
 .nested-pub {
     margin-top: 8px;
-    padding: 6px 8px;
-    background: var(--bg-secondary);
+    padding: 9px 11px;
+    background: var(--bg-primary);
     border: 1px solid var(--border-color);
     border-left: 3px solid var(--dot-color, var(--accent-color));
-    border-radius: 5px;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     line-height: 1.25;
     box-sizing: border-box;
 }
 .nested-pub-line-1 {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-    white-space: nowrap;
+    /* Flowing line: [venue] title, wrapping up to two lines instead of
+       an ellipsis after the first word in narrow lanes. */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
     overflow: hidden;
 }
 .nested-pub-line-1 .nested-pub-title {
-    font-size: 0.86em;
+    font-size: 0.88em;
     font-weight: 600;
     color: var(--text-primary);
-    flex: 1 1 auto;
-    overflow: hidden;
-    text-overflow: ellipsis;
     min-width: 0;
 }
 .nested-pub-venue-tag {
-    flex: 0 0 auto;
+    display: inline-block;
+    white-space: nowrap;
+    margin-right: 4px;
     font-size: 0.65em;
     font-weight: 600;
     text-transform: uppercase;
@@ -1413,12 +1580,13 @@ a:hover {
     letter-spacing: 0.02em;
 }
 .nested-pub-line-2 {
-    font-size: 0.72em;
+    font-size: 0.68em;
     color: var(--text-secondary);
     margin-top: 1px;
-    white-space: nowrap;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
     overflow: hidden;
-    text-overflow: ellipsis;
 }
 .nested-pub .timeline-links {
     margin-top: 4px;
@@ -2208,7 +2376,13 @@ footer {
         break-inside: avoid;
     }
     .rail-marker,
-    .timeline-month-tick { display: none !important; }
+    .tl-posbar,
+    .timeline-month-tick,
+    .timeline-month-label,
+    .timeline-controls { display: none !important; }
+    .timeline-meta a,
+    .author-link { border-bottom: none !important; color: #000 !important; }
+    .timeline-publication[data-pos] { border-left: none !important; }
     .timeline::before { display: none !important; }
     .timeline-year-label {
         background: none !important;

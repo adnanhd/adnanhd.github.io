@@ -150,6 +150,41 @@ function initImageLightbox() {
   });
 }
 
+// Hovering any element tied to a position (a publication card, a news
+// line, a rail dot, the position bar itself) lights up every element
+// of that position: card, dot and bar glow together.
+function initTimelinePosHover() {
+  // Dot <-> card pairing: hovering a rail dot highlights only its own
+  // card (and vice versa via the CSS sibling rule), never the group.
+  document.querySelectorAll(".rail-marker .rail-dot-hit").forEach(function (hit) {
+    var marker = hit.parentElement;
+    var card = marker.previousElementSibling;
+    if (!card || !card.classList.contains("timeline-item")) card = null;
+    hit.addEventListener("mouseenter", function () {
+      marker.classList.add("pair-hot");
+      if (card) card.classList.add("pair-hot");
+    });
+    hit.addEventListener("mouseleave", function () {
+      marker.classList.remove("pair-hot");
+      if (card) card.classList.remove("pair-hot");
+    });
+  });
+  var nodes = document.querySelectorAll("[data-pos]:not(.rail-marker)");
+  nodes.forEach(function (el) {
+    var pid = el.getAttribute("data-pos");
+    el.addEventListener("mouseenter", function () {
+      document.querySelectorAll('[data-pos="' + pid + '"]').forEach(function (m) {
+        m.classList.add("pos-hot");
+      });
+    });
+    el.addEventListener("mouseleave", function () {
+      document.querySelectorAll('[data-pos="' + pid + '"]').forEach(function (m) {
+        m.classList.remove("pos-hot");
+      });
+    });
+  });
+}
+
 function initLinkableHeaders() {
   document.querySelectorAll(".content-section h2").forEach(function (h2) {
     var section = h2.closest(".content-section");
@@ -163,6 +198,19 @@ function initLinkableHeaders() {
     h2.addEventListener("click", function () {
       history.replaceState(null, "", anchor);
       container.scrollIntoView({ behavior: "smooth" });
+    });
+  });
+}
+
+function initTimelineAnchors() {
+  // Year pills and month labels are deep-linkable: clicking one puts
+  // ?tab=timeline#<id> in the address bar, same as the section headers.
+  document.querySelectorAll(".timeline-year-label[id], .timeline-month-label[id]").forEach(function (el) {
+    el.style.cursor = "pointer";
+    el.title = "Copy link to this point";
+    el.addEventListener("click", function () {
+      history.replaceState(null, "", "?tab=timeline#" + el.id);
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
     });
   });
 }
@@ -436,6 +484,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initCategoryToggles();
   initImageLightbox();
   initLinkableHeaders();
+  initTimelinePosHover();
+  initTimelineAnchors();
   initBlogFilter();
   initTimelineFilter();
   initLinkableBoxes();
