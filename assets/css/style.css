@@ -2195,7 +2195,9 @@ footer {
         gap: 6pt;
         align-items: flex-start;
     }
-    .resume-details { flex: 1 1 auto; min-width: 0; }
+    /* max-width keeps the flex item from ballooning past the page,
+       which made Firefox shrink the whole CV onto a single sheet. */
+    .resume-details { flex: 1 1 auto; min-width: 0; max-width: 100%; }
 
     /* Only print the section the visitor is actually on. Note: no
        break-inside: avoid here - we WANT long sections (Publications,
