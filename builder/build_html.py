@@ -1679,7 +1679,7 @@ def render_blogs(blogs_data, selected_only=False):
         )
         parts.append(
             f'<li class="blog-item" data-tags="{esc(data_tags)}" data-search="{esc(search)}">'
-            f'<span class="blog-date">{esc(format_date(str(blog.get("date", "")).split(" ")[0], short=True))}</span>'
+            f'<span class="blog-date">{esc(format_date(blog.get("date", ""), short=True))}</span>'
             f': <a href="{esc(blog["path"])}" class="blog-link">{esc(blog["title"])}</a>'
             f' {inline_tags}</li>'
         )
