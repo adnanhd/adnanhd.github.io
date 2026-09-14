@@ -225,7 +225,7 @@ BLOG_SHELL = """<!doctype html>
     </head>
     <body>
         <div class="blog-page">
-            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <a href="../../index.html?tab=blogs" class="blog-back">&larr; Back to blogs</a>
             <h1>{title}</h1>
             <div class="blog-meta">{meta}</div>
             <article class="blog-body">
