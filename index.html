@@ -63,8 +63,8 @@
         </script>
         <!-- Self-hosted fonts + subsetted icons (no third-party requests). -->
         <link rel="stylesheet" href="assets/css/vendor.css?v=4bbc1d8d" />
-        <link rel="stylesheet" href="assets/css/style.css?v=f62ad38c" />
-        <script defer src="assets/js/data.js?v=413024db"></script>
+        <link rel="stylesheet" href="assets/css/style.css?v=28a4008b" />
+        <script defer src="assets/js/data.js?v=74979bef"></script>
     </head>
     <body>
         <noscript>
@@ -131,7 +131,7 @@
                 <section id="about" class="page-section active" aria-label="About" tabindex="-1">
                     <div class="content-section">
                         <h2>About Me</h2>
-                        <div class="bio-description"><p>I am a Master's graduate in Computer Engineering from <a href="https://ceng.metu.edu.tr" target="_blank" rel="noopener noreferrer">Middle East Technical University (METU)</a>,
+                        <div id="about-me" class="bio-description"><p>I am a Master's graduate in Computer Engineering from <a href="https://ceng.metu.edu.tr" target="_blank" rel="noopener noreferrer">Middle East Technical University (METU)</a>,
 working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/" target="_blank" rel="noopener noreferrer">Prof. Dr. Sinan Kalkan</a> and <a href="http://user.ceng.metu.edu.tr/~emre/" target="_blank" rel="noopener noreferrer">Assist. Prof. Dr. Emre Akbas</a> at the
 <a href="https://image.ceng.metu.edu.tr/" target="_blank" rel="noopener noreferrer">Image Processing and Pattern Recognition Laboratory (ImageLab)</a>.</p>
 <p>My research is on differentiable optimization: making discrete and constrained solvers usable as layers of deep networks. When a model contains a ranking, matching, or assignment step, its derivatives are zero or undefined, and training needs a replacement; I study how such surrogate gradients can be constructed in a principled way and how that choice shapes what the network learns, from ranking-based losses and optimal transport formulations in object detection to surrogate Jacobians that preserve the constraint geometry of the underlying solver. My master's thesis studied one instance of this problem, incorporating piecewise linear functions with constant regions in backpropagation.</p>
@@ -140,13 +140,13 @@ working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/
 
                     <div class="content-section">
                         <h2>News</h2>
-                        <ul class="news-list"><li><div class="news-row"><span class="news-date">Jun 2026</span><span class="news-content">Our paper &quot;<a href="https://arxiv.org/abs/2606.02251" class="news-link" target="_blank" rel="noopener noreferrer">Frequency-Weighted Neural Kalman Filters</a>&quot; accepted at IEEE/ICRA 2026 in Vienna</span></div></li>
-<li><div class="news-row"><span class="news-date">Mar 2025</span><span class="news-content">Our paper &quot;<a href="https://doi.org/10.1109/TVCG.2025.3549132" class="news-link" target="_blank" rel="noopener noreferrer">Beyond Subjectivity</a>&quot; on EEG-based cybersickness detection accepted at IEEE/TVCG</span></div></li>
-<li><div class="news-row"><span class="news-date">Jan 2025</span><span class="news-content">Started a research internship at <a href="https://siplab.org/" class="news-link" target="_blank" rel="noopener noreferrer">SIPLab</a>, ETH Zürich, with Prof. Christian Holz</span></div></li>
-<li><div class="news-row"><span class="news-date">Jan 2025</span><span class="news-content">Defended my <a href="https://avesis.ncc.metu.edu.tr/yonetilen-tez/3bb95a8c-7b3c-4899-91ec-f78be5a6e17a/incorporating-piecewise-linear-functions-with-constant-regions-in-backpropagation" class="news-link" target="_blank" rel="noopener noreferrer">M.Sc. thesis</a> on piecewise linear functions in backpropagation at METU</span></div></li>
-<li><div class="news-row"><span class="news-date">Aug 2024</span><span class="news-content">Our paper &quot;<a href="https://arxiv.org/abs/2407.14204" class="news-link" target="_blank" rel="noopener noreferrer">Bucketed Ranking Losses</a>&quot; on efficient detector training accepted at ECCV 2024 in Milan</span></div></li>
-<li><div class="news-row"><span class="news-date">Sep 2022</span><span class="news-content">Received the <a href="https://doi.org/10.1109/SRMC57347.2022.00007" class="news-link" target="_blank" rel="noopener noreferrer">Best Paper Award</a> at IEEE/SRMC&#x27;22 for our container IDS study</span></div></li>
-<li><div class="news-row"><span class="news-date">Sep 2022</span><span class="news-content">Started my M.Sc. in Computer Engineering at METU with Prof. Sinan Kalkan and Prof. Emre Akbas</span></div></li></ul>
+                        <ul id="news" class="news-list"><li><div class="news-row"><span class="news-date">Jun 2026:</span> <span class="news-content">Our paper &quot;<a href="https://arxiv.org/abs/2606.02251" class="news-link" target="_blank" rel="noopener noreferrer">Frequency-Weighted Neural Kalman Filters</a>&quot; accepted at <strong>IEEE/ICRA 2026</strong> in Vienna</span></div></li>
+<li><div class="news-row"><span class="news-date">Mar 2025:</span> <span class="news-content">Our paper &quot;<a href="https://doi.org/10.1109/TVCG.2025.3549132" class="news-link" target="_blank" rel="noopener noreferrer">Beyond Subjectivity</a>&quot; on EEG-based cybersickness detection accepted at <strong>IEEE/TVCG 2025</strong> in Saint-Malo</span></div></li>
+<li><div class="news-row"><span class="news-date">Jan 2025:</span> <span class="news-content">Defended my <a href="https://avesis.ncc.metu.edu.tr/yonetilen-tez/3bb95a8c-7b3c-4899-91ec-f78be5a6e17a/incorporating-piecewise-linear-functions-with-constant-regions-in-backpropagation" class="news-link" target="_blank" rel="noopener noreferrer">M.Sc. thesis</a> on piecewise linear functions in backpropagation at METU</span></div></li>
+<li><div class="news-row"><span class="news-date">Jan 2025:</span> <span class="news-content">Started a research internship at <a href="https://siplab.org/" class="news-link" target="_blank" rel="noopener noreferrer">SIPLab</a>, ETH Zürich, with Prof. Christian Holz</span></div></li>
+<li><div class="news-row"><span class="news-date">Aug 2024:</span> <span class="news-content">Our paper &quot;<a href="https://arxiv.org/abs/2407.14204" class="news-link" target="_blank" rel="noopener noreferrer">Bucketed Ranking Losses</a>&quot; on efficient detector training accepted at <strong>ECCV 2024</strong> in Milan</span></div></li>
+<li><div class="news-row"><span class="news-date">Sep 2022:</span> <span class="news-content">Received the <a href="https://doi.org/10.1109/SRMC57347.2022.00007" class="news-link" target="_blank" rel="noopener noreferrer">Best Paper Award</a> at IEEE/SRMC&#x27;22 for our container IDS study</span></div></li>
+<li><div class="news-row"><span class="news-date">Sep 2022:</span> <span class="news-content">Started my M.Sc. in Computer Engineering at <a href="https://image.ceng.metu.edu.tr/" class="news-link" target="_blank" rel="noopener noreferrer">ImageLab</a>, METU, with Prof. Sinan Kalkan and Prof. Emre Akbas</span></div></li></ul>
                         <p class="see-all-link"><a href="?tab=timeline" class="nav-link-inline">see all timeline &rarr;</a></p>
                     </div>
 
@@ -163,7 +163,7 @@ working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/
 <div class="publication-content">
 <div class="publication-title"><a href="projects/frequency-weighted-neural-kalman-filters/index.html" class="project-link">Frequency-Weighted Neural Kalman Filters</a></div>
 <div class="publication-authors"><span class="author-me">Dogan, A. H.</span>, Demirel, B. U., &amp; <a href="https://scholar.google.com/citations?user=OfXP9jMAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Holz, C.</a></div>
-<div class="publication-venue">International Conference on Robotics and Automation (IEEE ICRA), 2026</div>
+<div class="publication-venue">International Conference on Robotics and Automation (IEEE ICRA), June 2026</div>
 
 <div class="publication-links">
 <a href="https://github.com/eth-siplab/Frequency-weighted-neural-Kalman-filters/" class="pub-link" target="_blank" rel="noopener noreferrer">GitHub</a>
@@ -179,7 +179,7 @@ working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/
 <div class="publication-content">
 <div class="publication-title"><a href="projects/beyond-subjectivity-continuous-cybersickness-detection-using-eeg-based-multitaper-spectrum-estimation/index.html" class="project-link">Beyond subjectivity: Continuous cybersickness detection using EEG-based multitaper spectrum estimation</a></div>
 <div class="publication-authors">Demirel, B. U., <span class="author-me">Dogan, A. H.</span>, Rossie, J., Möbus, M., &amp; <a href="https://scholar.google.com/citations?user=OfXP9jMAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Holz, C.</a></div>
-<div class="publication-venue">IEEE Transactions on Visualization and Computer Graphics (IEEE TVCG), 31(5), 2525-2534, 2025</div>
+<div class="publication-venue">IEEE Transactions on Visualization and Computer Graphics (IEEE TVCG), 31(5), 2525-2534, May 2025</div>
 
 <div class="publication-links">
 <a href="https://doi.org/10.1109/TVCG.2025.3549132" class="pub-link" target="_blank" rel="noopener noreferrer">DOI</a>
@@ -195,7 +195,7 @@ working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/
 <div class="publication-content">
 <div class="publication-title"><a href="projects/bucketed-ranking-based-losses-for-efficient-training-of-object-detectors/index.html" class="project-link">Bucketed Ranking-Based Losses for Efficient Training of Object Detectors</a></div>
 <div class="publication-authors">Yavuz, F., Cam, B. C., <span class="author-me">Dogan, A. H.</span>, <a href="https://scholar.google.com/citations?user=nWHRjrkAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Oksuz, K.</a>, <a href="https://scholar.google.com/citations?user=yiAWeIAAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Kalkan, S.</a>, &amp; <a href="https://scholar.google.com/citations?user=HeXAdnEAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Akbas, E.</a></div>
-<div class="publication-venue">European Conference on Computer Vision (ECCV), Lecture Notes in Computer Science, vol 15117, pp. 93-109, 2024</div>
+<div class="publication-venue">European Conference on Computer Vision (ECCV), Lecture Notes in Computer Science, vol 15117, pp. 93-109, October 2024</div>
 
 <div class="publication-links">
 <a href="https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/7634_ECCV_2024_paper.php" class="pub-link" target="_blank" rel="noopener noreferrer">ECVA</a>
@@ -310,7 +310,7 @@ working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/
 </div>
 <div class="publication-item-compact">
 <div class="pub-compact-body">
-<div class="pub-compact-reference"><strong>Dogan, A. H.</strong>, Demirel, B. U., &amp; <a href="https://scholar.google.com/citations?user=OfXP9jMAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Holz, C.</a> (2026). Frequency-weighted neural Kalman filters. <em><a href="https://2026.ieee-icra.org/" class="venue-link" target="_blank" rel="noopener noreferrer">IEEE/ICRA&#x27;26</a></em>.</div>
+<div class="pub-compact-reference"><strong>Dogan, A. H.</strong>, Demirel, B. U., &amp; <a href="https://scholar.google.com/citations?user=OfXP9jMAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Holz, C.</a> (June 2026). Frequency-weighted neural Kalman filters. <em><a href="https://2026.ieee-icra.org/" class="venue-link" target="_blank" rel="noopener noreferrer">IEEE/ICRA&#x27;26</a></em>.</div>
 
 </div>
 <div class="publication-links">
@@ -321,7 +321,7 @@ working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/
 </div>
 <div class="publication-item-compact">
 <div class="pub-compact-body">
-<div class="pub-compact-reference">Demirel, B. U., <strong>Dogan, A. H.</strong>, Rossie, J., Möbus, M., &amp; <a href="https://scholar.google.com/citations?user=OfXP9jMAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Holz, C.</a> (2025). Beyond subjectivity: Continuous cybersickness detection using EEG-based multitaper spectrum estimation. <em><a href="https://www.computer.org/csdl/journal/tg" class="venue-link" target="_blank" rel="noopener noreferrer">IEEE/TVCG&#x27;25</a></em>.</div>
+<div class="pub-compact-reference">Demirel, B. U., <strong>Dogan, A. H.</strong>, Rossie, J., Möbus, M., &amp; <a href="https://scholar.google.com/citations?user=OfXP9jMAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Holz, C.</a> (May 2025). Beyond subjectivity: Continuous cybersickness detection using EEG-based multitaper spectrum estimation. <em><a href="https://www.computer.org/csdl/journal/tg" class="venue-link" target="_blank" rel="noopener noreferrer">IEEE/TVCG&#x27;25</a></em>.</div>
 
 </div>
 <div class="publication-links">
@@ -332,7 +332,7 @@ working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/
 </div>
 <div class="publication-item-compact">
 <div class="pub-compact-body">
-<div class="pub-compact-reference">Yavuz, F., Cam, B. C., <strong>Dogan, A. H.</strong>, <a href="https://scholar.google.com/citations?user=nWHRjrkAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Oksuz, K.</a>, <a href="https://scholar.google.com/citations?user=yiAWeIAAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Kalkan, S.</a>, &amp; <a href="https://scholar.google.com/citations?user=HeXAdnEAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Akbas, E.</a> (2024). Bucketed ranking-based losses for efficient training of object detectors. <em><a href="https://eccv.ecva.net/" class="venue-link" target="_blank" rel="noopener noreferrer">ECCV&#x27;24</a></em>.</div>
+<div class="pub-compact-reference">Yavuz, F., Cam, B. C., <strong>Dogan, A. H.</strong>, <a href="https://scholar.google.com/citations?user=nWHRjrkAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Oksuz, K.</a>, <a href="https://scholar.google.com/citations?user=yiAWeIAAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Kalkan, S.</a>, &amp; <a href="https://scholar.google.com/citations?user=HeXAdnEAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Akbas, E.</a> (October 2024). Bucketed ranking-based losses for efficient training of object detectors. <em><a href="https://eccv.ecva.net/" class="venue-link" target="_blank" rel="noopener noreferrer">ECCV&#x27;24</a></em>.</div>
 
 </div>
 <div class="publication-links">
@@ -354,7 +354,7 @@ working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/
 </div>
 <div class="publication-item-compact">
 <div class="pub-compact-body">
-<div class="pub-compact-reference"><a href="https://scholar.google.com/citations?user=u3r3gJIAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Karagoz, P.</a>, Cekinel, R. F., <strong>Dogan, A. H.</strong>, Oktay, B., Ozturk, A. U., Tonay, T. S., &amp; Tuncel, B. M. (2023). Enhancing underground built heritage analysis with text mining: A case study on Cappadocia. In M. Akkar Ercan &amp; K. Aydiner (Eds.), <em>Valorising Underground Built Heritage in Cappadocia</em> (pp. 61-92). CNR Edizioni. ISBN 978-88-8080-605-9.</div>
+<div class="pub-compact-reference"><a href="https://scholar.google.com/citations?user=u3r3gJIAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Karagoz, P.</a>, Cekinel, R. F., <strong>Dogan, A. H.</strong>, Oktay, B., Ozturk, A. U., Tonay, T. S., &amp; Tuncel, B. M. (December 2023). Enhancing underground built heritage analysis with text mining: A case study on Cappadocia. In M. Akkar Ercan &amp; K. Aydiner (Eds.), <em>Valorising Underground Built Heritage in Cappadocia</em> (pp. 61-92). CNR Edizioni. ISBN 978-88-8080-605-9.</div>
 
 </div>
 <div class="publication-links">
@@ -384,7 +384,7 @@ working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/
 </div>
 <div class="publication-item-compact">
 <div class="pub-compact-body">
-<div class="pub-compact-reference">Demirel, B. U., <strong>Dogan, A. H.</strong>, &amp; <a href="https://scholar.google.com/citations?user=ejWHC-cAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Al-Faruque, M. A.</a> (2021). Two might do: A beat-by-beat classification of cardiac abnormalities using deep learning and domain-specific features. <em><a href="https://www.cinc.org/" class="venue-link" target="_blank" rel="noopener noreferrer">CinC&#x27;21</a></em>.</div>
+<div class="pub-compact-reference">Demirel, B. U., <strong>Dogan, A. H.</strong>, &amp; <a href="https://scholar.google.com/citations?user=ejWHC-cAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Al-Faruque, M. A.</a> (September 2021). Two might do: A beat-by-beat classification of cardiac abnormalities using deep learning and domain-specific features. <em><a href="https://www.cinc.org/" class="venue-link" target="_blank" rel="noopener noreferrer">CinC&#x27;21</a></em>.</div>
 
 </div>
 <div class="publication-links">
@@ -408,7 +408,7 @@ working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/
                         <h2>Experience</h2>
                         <div id="experience-list"><div class="resume-item">
 <div class="resume-logo">
-<a href="https://siplab.org/" target="_blank" rel="noopener noreferrer"><img src="assets/img/logos/eth.png" alt="Sensing, Interaction, &amp; Perception Laboratory ([SIPLab](https://siplab.org/)), ETH Zürich" loading="lazy" width="40" height="40" /></a>
+<a href="https://siplab.org/" target="_blank" rel="noopener noreferrer"><img src="assets/img/logos/eth.png" alt="Sensing, Interaction, &amp; Perception Laboratory (SIPLab), ETH Zürich" loading="lazy" width="40" height="40" /></a>
 </div>
 <div class="resume-details">
 <div class="resume-header"><strong>Intern</strong><span class="date">January 2025 - October 2025</span></div>
@@ -426,7 +426,7 @@ working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/
 </div></div>
 <div class="resume-item">
 <div class="resume-logo">
-<a href="https://image.ceng.metu.edu.tr/" target="_blank" rel="noopener noreferrer"><img src="assets/img/logos/imagelab.png" alt="Image Processing and Pattern Recognition Laboratory ([ImageLab](https://image.ceng.metu.edu.tr/)), METU" loading="lazy" width="40" height="40" /></a>
+<a href="https://image.ceng.metu.edu.tr/" target="_blank" rel="noopener noreferrer"><img src="assets/img/logos/imagelab.png" alt="Image Processing and Pattern Recognition Laboratory (ImageLab), METU" loading="lazy" width="40" height="40" /></a>
 </div>
 <div class="resume-details">
 <div class="resume-header"><strong>Research Assistant</strong><span class="date">February 2023 - Present</span></div>
@@ -444,7 +444,7 @@ working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/
 </div></div>
 <div class="resume-item">
 <div class="resume-logo">
-<a href="http://romer.metu.edu.tr" target="_blank" rel="noopener noreferrer"><img src="assets/img/logos/romer.png" alt="Center for Artificial Intelligence and Robotics ([ROMER](http://romer.metu.edu.tr)), METU" loading="lazy" width="40" height="40" /></a>
+<a href="http://romer.metu.edu.tr" target="_blank" rel="noopener noreferrer"><img src="assets/img/logos/romer.png" alt="Center for Artificial Intelligence and Robotics (ROMER), METU" loading="lazy" width="40" height="40" /></a>
 </div>
 <div class="resume-details">
 <div class="resume-header"><strong>Intern</strong><span class="date">October 2021 - February 2022</span></div>
@@ -461,7 +461,7 @@ working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/
 </div></div>
 <div class="resume-item">
 <div class="resume-logo">
-<a href="https://aicps.eng.uci.edu/" target="_blank" rel="noopener noreferrer"><img src="assets/img/logos/uci.png" alt="Cyber-Physical Systems Laboratory ([AICPS](https://aicps.eng.uci.edu/)), University of California, Irvine" loading="lazy" width="40" height="40" /></a>
+<a href="https://aicps.eng.uci.edu/" target="_blank" rel="noopener noreferrer"><img src="assets/img/logos/uci.png" alt="Cyber-Physical Systems Laboratory (AICPS), University of California, Irvine" loading="lazy" width="40" height="40" /></a>
 </div>
 <div class="resume-details">
 <div class="resume-header"><strong>Intern</strong><span class="date">June 2021 - September 2021</span></div>
@@ -483,11 +483,11 @@ working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/
                         <h2>Research Internships</h2>
                         <div id="research-list"><div class="resume-item">
 <div class="resume-logo">
-<a href="https://image.ceng.metu.edu.tr/" target="_blank" rel="noopener noreferrer"><img src="assets/img/logos/imagelab.png" alt="Image Processing and Pattern Recognition Laboratory (ImageLab), METU" loading="lazy" width="40" height="40" /></a>
+<a href="https://image.ceng.metu.edu.tr/" target="_blank" rel="noopener noreferrer"><img src="assets/img/logos/imagelab.png" alt="Undergraduate Research Project" loading="lazy" width="40" height="40" /></a>
 </div>
 <div class="resume-details">
-<div class="resume-header"><strong>Undergraduate Research Project</strong><span class="date">January 2020 - June 2022</span></div>
-<div class="resume-subheader"><span>Image Processing and Pattern Recognition Laboratory (ImageLab), METU</span>
+<div class="resume-header"><strong>Image Processing and Pattern Recognition Laboratory (ImageLab), METU</strong><span class="date">January 2020 - June 2022</span></div>
+<div class="resume-subheader"><span>Undergraduate Research Project</span>
 </div>
 <div class="resume-advisor"><strong>Supervisor:</strong> Assist. Prof. Dr. <a href="https://scholar.google.com/citations?user=c4jozc8AAAAJ" target="_blank" rel="noopener noreferrer">Hande Alemdar</a>, Assist. Prof. Dr. <a href="https://scholar.google.com/citations?user=s7AP0ygAAAAJ" target="_blank" rel="noopener noreferrer">Ozgur Ugras Baran</a></div>
 <p>CNNFOIL: Approximating HLLC Riemann solver for flow prediction around airfoils via encoder-decoder neural networks. Engineered state-of-the-art neural network models achieving 4.4% performance improvement in predicting critical flow field parameters around airfoil geometries.</p>
@@ -500,11 +500,11 @@ working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/
 </div></div>
 <div class="resume-item">
 <div class="resume-logo">
-<a href="https://user.ceng.metu.edu.tr/~pangin/Tubitak3501/index.html" target="_blank" rel="noopener noreferrer"><img src="assets/img/logos/tubitak.png" alt="High Performance Intrusion Detection and Prevention for Software-Defined Container Networks in the Cloud, METU" loading="lazy" width="40" height="40" /></a>
+<a href="https://user.ceng.metu.edu.tr/~pangin/Tubitak3501/index.html" target="_blank" rel="noopener noreferrer"><img src="assets/img/logos/tubitak.png" alt="Undergraduate Research Project" loading="lazy" width="40" height="40" /></a>
 </div>
 <div class="resume-details">
-<div class="resume-header"><strong>Undergraduate Research Project</strong><span class="date">September 2021 - June 2022</span></div>
-<div class="resume-subheader"><span>High Performance Intrusion Detection and Prevention for Software-Defined Container Networks in the Cloud, METU</span>
+<div class="resume-header"><strong>High Performance Intrusion Detection and Prevention for Software-Defined Container Networks in the Cloud, METU</strong><span class="date">September 2021 - June 2022</span></div>
+<div class="resume-subheader"><span>Undergraduate Research Project</span>
 <span class="resume-commitment">6 hours/week</span>
 </div>
 <div class="resume-advisor"><strong>Supervisor:</strong> Assoc. Prof. Dr. <a href="https://scholar.google.com/citations?user=PgwZYeoAAAAJ" target="_blank" rel="noopener noreferrer">Pelin Angin</a></div>
@@ -521,11 +521,11 @@ working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/
 </div></div>
 <div class="resume-item">
 <div class="resume-logo">
-<a href="http://teghub.ceng.metu.edu.tr" target="_blank" rel="noopener noreferrer"><img src="assets/img/logos/teghub.png" alt="Textual Event Graph HUB (TEGHub), METU" loading="lazy" width="40" height="40" /></a>
+<a href="http://teghub.ceng.metu.edu.tr" target="_blank" rel="noopener noreferrer"><img src="assets/img/logos/teghub.png" alt="Undergraduate Research Project" loading="lazy" width="40" height="40" /></a>
 </div>
 <div class="resume-details">
-<div class="resume-header"><strong>Undergraduate Research Project</strong><span class="date">October 2020 - October 2021</span></div>
-<div class="resume-subheader"><span>Textual Event Graph HUB (TEGHub), METU</span>
+<div class="resume-header"><strong>Textual Event Graph HUB (TEGHub), METU</strong><span class="date">October 2020 - October 2021</span></div>
+<div class="resume-subheader"><span>Undergraduate Research Project</span>
 <span class="resume-commitment">6 hours/week</span>
 </div>
 <div class="resume-advisor"><strong>Supervisor:</strong> Prof. Dr. <a href="https://scholar.google.com/citations?user=u3r3gJIAAAAJ" target="_blank" rel="noopener noreferrer">Pinar Karagoz</a></div>
@@ -539,11 +539,11 @@ working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/
 </div></div>
 <div class="resume-item">
 <div class="resume-logo">
-<a href="https://medicine.ku.edu.tr/" target="_blank" rel="noopener noreferrer"><img src="assets/img/logos/koc.png" alt="School of Medicine, Koç University" loading="lazy" width="40" height="40" /></a>
+<a href="https://medicine.ku.edu.tr/" target="_blank" rel="noopener noreferrer"><img src="assets/img/logos/koc.png" alt="Undergraduate Research Project" loading="lazy" width="40" height="40" /></a>
 </div>
 <div class="resume-details">
-<div class="resume-header"><strong>Undergraduate Research Project</strong><span class="date">February 2020 - June 2021</span></div>
-<div class="resume-subheader"><span>School of Medicine, Koç University</span>
+<div class="resume-header"><strong>School of Medicine, Koç University</strong><span class="date">February 2020 - June 2021</span></div>
+<div class="resume-subheader"><span>Undergraduate Research Project</span>
 <span class="resume-commitment">6 hours/week × 60 weeks</span>
 </div>
 <div class="resume-advisor"><strong>Supervisor:</strong> Assist. Prof. Dr. <a href="https://scholar.google.com/citations?user=1nngWO8AAAAJ" target="_blank" rel="noopener noreferrer">Ozge Karanfil</a></div>
@@ -666,137 +666,246 @@ working under the supervision of <a href="http://user.ceng.metu.edu.tr/~skalkan/
                 <!-- Timeline Page (reached only via News links - no nav entry) -->
                 <section id="timeline" class="page-section" aria-label="Timeline" tabindex="-1">
                     <div class="content-section">
-                        <div id="timeline-container"><div class="timeline-controls"><button class="timeline-filter active" data-tl-type="">All</button><button class="timeline-filter" data-tl-type="experience">Experience</button><button class="timeline-filter" data-tl-type="research">Research</button><button class="timeline-filter" data-tl-type="publication">Publications</button><button class="timeline-filter" data-tl-type="degree">Education</button></div><div class="timeline" style="height: 1836px; --n-left: 3; --n-right: 1; --n-total: 4; --total-recip: 0.250000;">
-<div class="timeline-month-tick" style="top: 12.6px"></div>
-<div class="timeline-month-tick" style="top: 25.2px"></div>
-<div class="timeline-month-tick" style="top: 37.8px"></div>
-<div class="timeline-month-tick" style="top: 50.3px"></div>
-<div class="timeline-month-tick" style="top: 62.9px"></div>
-<div class="timeline-month-tick" style="top: 75.5px"></div>
-<div class="timeline-month-tick" style="top: 88.1px"></div>
-<div class="timeline-month-tick" style="top: 100.7px"></div>
-<div class="timeline-month-tick" style="top: 113.2px"></div>
-<div class="timeline-month-tick" style="top: 125.8px"></div>
-<div class="timeline-month-tick" style="top: 138.4px"></div>
-<div class="timeline-month-tick" style="top: 158.5px"></div>
-<div class="timeline-month-tick" style="top: 166.0px"></div>
-<div class="timeline-month-tick" style="top: 173.5px"></div>
-<div class="timeline-month-tick" style="top: 181.0px"></div>
-<div class="timeline-month-tick" style="top: 188.5px"></div>
-<div class="timeline-month-tick" style="top: 196.0px"></div>
-<div class="timeline-month-tick" style="top: 203.5px"></div>
-<div class="timeline-month-tick" style="top: 211.0px"></div>
-<div class="timeline-month-tick" style="top: 218.5px"></div>
-<div class="timeline-month-tick" style="top: 226.0px"></div>
-<div class="timeline-month-tick" style="top: 233.5px"></div>
-<div class="timeline-month-tick" style="top: 266.0px"></div>
-<div class="timeline-month-tick" style="top: 291.0px"></div>
+                        <div id="timeline-container"><div class="timeline-controls"><button class="timeline-filter active" data-tl-type="">All</button><button class="timeline-filter" data-tl-type="experience">Experience</button><button class="timeline-filter" data-tl-type="research">Research</button><button class="timeline-filter" data-tl-type="publication">Publications</button><button class="timeline-filter" data-tl-type="degree">Education</button></div><div class="timeline" style="height: 3192px; --n-left: 1.25; --n-right: 1; --n-total: 2.25; --total-recip: 0.444444;">
+<div class="timeline-month-tick" style="top: 20.0px"></div>
+<div id="2026-12" class="timeline-month-label" style="top: 20.0px">Dec</div>
+<div class="timeline-month-tick" style="top: 36.0px"></div>
+<div id="2026-11" class="timeline-month-label" style="top: 36.0px">Nov</div>
+<div class="timeline-month-tick" style="top: 52.0px"></div>
+<div id="2026-10" class="timeline-month-label" style="top: 52.0px">Oct</div>
+<div class="timeline-month-tick" style="top: 68.0px"></div>
+<div id="2026-09" class="timeline-month-label" style="top: 68.0px">Sep</div>
+<div class="timeline-month-tick" style="top: 84.0px"></div>
+<div id="2026-08" class="timeline-month-label" style="top: 84.0px">Aug</div>
+<div class="timeline-month-tick" style="top: 100.0px"></div>
+<div id="2026-07" class="timeline-month-label" style="top: 100.0px">Jul</div>
+<div class="timeline-month-tick" style="top: 116.0px"></div>
+<div id="2026-06" class="timeline-month-label" style="top: 116.0px">Jun</div>
+<div class="timeline-month-tick" style="top: 132.0px"></div>
+<div id="2026-05" class="timeline-month-label" style="top: 132.0px">May</div>
+<div class="timeline-month-tick" style="top: 148.0px"></div>
+<div id="2026-04" class="timeline-month-label" style="top: 148.0px">Apr</div>
+<div class="timeline-month-tick" style="top: 164.0px"></div>
+<div id="2026-03" class="timeline-month-label" style="top: 164.0px">Mar</div>
+<div class="timeline-month-tick" style="top: 180.0px"></div>
+<div id="2026-02" class="timeline-month-label" style="top: 180.0px">Feb</div>
+<div class="timeline-month-tick" style="top: 220.0px"></div>
+<div id="2025-12" class="timeline-month-label" style="top: 220.0px">Dec</div>
+<div class="timeline-month-tick" style="top: 236.0px"></div>
+<div id="2025-11" class="timeline-month-label" style="top: 236.0px">Nov</div>
+<div class="timeline-month-tick" style="top: 252.0px"></div>
+<div id="2025-10" class="timeline-month-label" style="top: 252.0px">Oct</div>
+<div class="timeline-month-tick" style="top: 268.0px"></div>
+<div id="2025-09" class="timeline-month-label" style="top: 268.0px">Sep</div>
+<div class="timeline-month-tick" style="top: 284.0px"></div>
+<div id="2025-08" class="timeline-month-label" style="top: 284.0px">Aug</div>
+<div class="timeline-month-tick" style="top: 300.0px"></div>
+<div id="2025-07" class="timeline-month-label" style="top: 300.0px">Jul</div>
 <div class="timeline-month-tick" style="top: 316.0px"></div>
-<div class="timeline-month-tick" style="top: 341.0px"></div>
-<div class="timeline-month-tick" style="top: 366.0px"></div>
-<div class="timeline-month-tick" style="top: 391.0px"></div>
-<div class="timeline-month-tick" style="top: 416.0px"></div>
-<div class="timeline-month-tick" style="top: 441.0px"></div>
-<div class="timeline-month-tick" style="top: 466.0px"></div>
-<div class="timeline-month-tick" style="top: 491.0px"></div>
-<div class="timeline-month-tick" style="top: 516.0px"></div>
-<div class="timeline-month-tick" style="top: 549.9px"></div>
-<div class="timeline-month-tick" style="top: 558.8px"></div>
-<div class="timeline-month-tick" style="top: 567.7px"></div>
-<div class="timeline-month-tick" style="top: 576.6px"></div>
-<div class="timeline-month-tick" style="top: 585.4px"></div>
-<div class="timeline-month-tick" style="top: 594.3px"></div>
-<div class="timeline-month-tick" style="top: 603.2px"></div>
-<div class="timeline-month-tick" style="top: 612.1px"></div>
-<div class="timeline-month-tick" style="top: 621.0px"></div>
-<div class="timeline-month-tick" style="top: 629.9px"></div>
-<div class="timeline-month-tick" style="top: 638.8px"></div>
-<div class="timeline-month-tick" style="top: 656.6px"></div>
-<div class="timeline-month-tick" style="top: 665.4px"></div>
-<div class="timeline-month-tick" style="top: 674.3px"></div>
-<div class="timeline-month-tick" style="top: 683.2px"></div>
-<div class="timeline-month-tick" style="top: 692.1px"></div>
-<div class="timeline-month-tick" style="top: 701.0px"></div>
-<div class="timeline-month-tick" style="top: 709.9px"></div>
-<div class="timeline-month-tick" style="top: 718.8px"></div>
-<div class="timeline-month-tick" style="top: 727.7px"></div>
-<div class="timeline-month-tick" style="top: 736.5px"></div>
-<div class="timeline-month-tick" style="top: 745.4px"></div>
-<div class="timeline-month-tick" style="top: 779.3px"></div>
-<div class="timeline-month-tick" style="top: 804.3px"></div>
-<div class="timeline-month-tick" style="top: 829.3px"></div>
-<div class="timeline-month-tick" style="top: 854.3px"></div>
-<div class="timeline-month-tick" style="top: 879.3px"></div>
-<div class="timeline-month-tick" style="top: 904.3px"></div>
-<div class="timeline-month-tick" style="top: 929.3px"></div>
-<div class="timeline-month-tick" style="top: 954.3px"></div>
-<div class="timeline-month-tick" style="top: 979.3px"></div>
-<div class="timeline-month-tick" style="top: 1004.3px"></div>
-<div class="timeline-month-tick" style="top: 1029.3px"></div>
-<div class="timeline-month-tick" style="top: 1079.3px"></div>
-<div class="timeline-month-tick" style="top: 1104.3px"></div>
-<div class="timeline-month-tick" style="top: 1129.3px"></div>
-<div class="timeline-month-tick" style="top: 1154.3px"></div>
-<div class="timeline-month-tick" style="top: 1179.3px"></div>
-<div class="timeline-month-tick" style="top: 1204.3px"></div>
-<div class="timeline-month-tick" style="top: 1229.3px"></div>
-<div class="timeline-month-tick" style="top: 1254.3px"></div>
-<div class="timeline-month-tick" style="top: 1279.3px"></div>
-<div class="timeline-month-tick" style="top: 1304.3px"></div>
-<div class="timeline-month-tick" style="top: 1329.3px"></div>
-<div class="timeline-month-tick" style="top: 1376.2px"></div>
-<div class="timeline-month-tick" style="top: 1398.0px"></div>
-<div class="timeline-month-tick" style="top: 1419.9px"></div>
-<div class="timeline-month-tick" style="top: 1441.7px"></div>
-<div class="timeline-month-tick" style="top: 1463.6px"></div>
-<div class="timeline-month-tick" style="top: 1485.5px"></div>
-<div class="timeline-month-tick" style="top: 1507.3px"></div>
-<div class="timeline-month-tick" style="top: 1529.2px"></div>
+<div id="2025-06" class="timeline-month-label" style="top: 316.0px">Jun</div>
+<div class="timeline-month-tick" style="top: 332.0px"></div>
+<div id="2025-05" class="timeline-month-label" style="top: 332.0px">May</div>
+<div class="timeline-month-tick" style="top: 348.0px"></div>
+<div id="2025-04" class="timeline-month-label" style="top: 348.0px">Apr</div>
+<div class="timeline-month-tick" style="top: 364.0px"></div>
+<div id="2025-03" class="timeline-month-label" style="top: 364.0px">Mar</div>
+<div class="timeline-month-tick" style="top: 380.0px"></div>
+<div id="2025-02" class="timeline-month-label" style="top: 380.0px">Feb</div>
+<div class="timeline-month-tick" style="top: 420.0px"></div>
+<div id="2024-12" class="timeline-month-label" style="top: 420.0px">Dec</div>
+<div class="timeline-month-tick" style="top: 436.0px"></div>
+<div id="2024-11" class="timeline-month-label" style="top: 436.0px">Nov</div>
+<div class="timeline-month-tick" style="top: 452.0px"></div>
+<div id="2024-10" class="timeline-month-label" style="top: 452.0px">Oct</div>
+<div class="timeline-month-tick" style="top: 809.0px"></div>
+<div id="2024-09" class="timeline-month-label" style="top: 809.0px">Sep</div>
+<div class="timeline-month-tick" style="top: 825.0px"></div>
+<div id="2024-08" class="timeline-month-label" style="top: 825.0px">Aug</div>
+<div class="timeline-month-tick" style="top: 841.0px"></div>
+<div id="2024-07" class="timeline-month-label" style="top: 841.0px">Jul</div>
+<div class="timeline-month-tick" style="top: 857.0px"></div>
+<div id="2024-06" class="timeline-month-label" style="top: 857.0px">Jun</div>
+<div class="timeline-month-tick" style="top: 873.0px"></div>
+<div id="2024-05" class="timeline-month-label" style="top: 873.0px">May</div>
+<div class="timeline-month-tick" style="top: 889.0px"></div>
+<div id="2024-04" class="timeline-month-label" style="top: 889.0px">Apr</div>
+<div class="timeline-month-tick" style="top: 1040.0px"></div>
+<div id="2024-03" class="timeline-month-label" style="top: 1040.0px">Mar</div>
+<div class="timeline-month-tick" style="top: 1056.0px"></div>
+<div id="2024-02" class="timeline-month-label" style="top: 1056.0px">Feb</div>
+<div class="timeline-month-tick" style="top: 1096.0px"></div>
+<div id="2023-12" class="timeline-month-label" style="top: 1096.0px">Dec</div>
+<div class="timeline-month-tick" style="top: 1271.0px"></div>
+<div id="2023-11" class="timeline-month-label" style="top: 1271.0px">Nov</div>
+<div class="timeline-month-tick" style="top: 1287.0px"></div>
+<div id="2023-10" class="timeline-month-label" style="top: 1287.0px">Oct</div>
+<div class="timeline-month-tick" style="top: 1303.0px"></div>
+<div id="2023-09" class="timeline-month-label" style="top: 1303.0px">Sep</div>
+<div class="timeline-month-tick" style="top: 1319.0px"></div>
+<div id="2023-08" class="timeline-month-label" style="top: 1319.0px">Aug</div>
+<div class="timeline-month-tick" style="top: 1335.0px"></div>
+<div id="2023-07" class="timeline-month-label" style="top: 1335.0px">Jul</div>
+<div class="timeline-month-tick" style="top: 1351.0px"></div>
+<div id="2023-06" class="timeline-month-label" style="top: 1351.0px">Jun</div>
+<div class="timeline-month-tick" style="top: 1503.0px"></div>
+<div id="2023-05" class="timeline-month-label" style="top: 1503.0px">May</div>
+<div class="timeline-month-tick" style="top: 1519.0px"></div>
+<div id="2023-04" class="timeline-month-label" style="top: 1519.0px">Apr</div>
+<div class="timeline-month-tick" style="top: 1535.0px"></div>
+<div id="2023-03" class="timeline-month-label" style="top: 1535.0px">Mar</div>
 <div class="timeline-month-tick" style="top: 1551.0px"></div>
-<div class="timeline-month-tick" style="top: 1572.9px"></div>
-<div class="timeline-month-tick" style="top: 1594.7px"></div>
-<div class="timeline-month-tick" style="top: 1624.1px"></div>
-<div class="timeline-month-tick" style="top: 1631.6px"></div>
-<div class="timeline-month-tick" style="top: 1639.1px"></div>
-<div class="timeline-month-tick" style="top: 1646.6px"></div>
-<div class="timeline-month-tick" style="top: 1654.1px"></div>
-<div class="timeline-month-tick" style="top: 1661.6px"></div>
-<div class="timeline-month-tick" style="top: 1669.1px"></div>
-<div class="timeline-month-tick" style="top: 1676.6px"></div>
-<div class="timeline-month-tick" style="top: 1684.1px"></div>
-<div class="timeline-month-tick" style="top: 1691.6px"></div>
-<div class="timeline-month-tick" style="top: 1699.1px"></div>
-<div class="timeline-month-tick" style="top: 1714.1px"></div>
-<div class="timeline-month-tick" style="top: 1721.6px"></div>
-<div class="timeline-month-tick" style="top: 1729.1px"></div>
-<div class="timeline-month-tick" style="top: 1736.6px"></div>
-<div class="timeline-month-tick" style="top: 1744.1px"></div>
-<div class="timeline-month-tick" style="top: 1751.6px"></div>
-<div class="timeline-month-tick" style="top: 1759.1px"></div>
-<div class="timeline-month-tick" style="top: 1766.6px"></div>
-<div class="timeline-month-tick" style="top: 1774.1px"></div>
-<div class="timeline-month-tick" style="top: 1781.6px"></div>
-<div class="timeline-month-tick" style="top: 1789.1px"></div>
-<div class="timeline-year-label" style="top: 0.0px">2028</div>
-<div class="timeline-year-label" style="top: 151.0px">2027</div>
-<div class="timeline-year-label" style="top: 241.0px">2026</div>
-<div class="timeline-year-label" style="top: 541.0px">2025</div>
-<div class="timeline-year-label" style="top: 647.7px">2024</div>
-<div class="timeline-year-label" style="top: 754.3px">2023</div>
-<div class="timeline-year-label" style="top: 1054.3px">2022</div>
-<div class="timeline-year-label" style="top: 1354.3px">2021</div>
-<div class="timeline-year-label" style="top: 1616.6px">2020</div>
-<div class="timeline-year-label" style="top: 1706.6px">2019</div>
-<div class="timeline-year-label" style="top: 1796.6px">2018</div>
-<div id="tl-variational-surrogate-jacobians-a-framework-for-constrained-gradient-propagation" class="timeline-item timeline-publication timeline-left timeline-slim" style="top: 8.0px; --dot-color: #10b981; --lane: 0; --lanes: 3; --lane-recip: 0.333333; min-height: 143.0px;"><span class="timeline-date">2027</span><h4 class="timeline-title"><span>Variational Surrogate Jacobians: A Framework for Constrained Gradient Propagation</span></h4><div class="timeline-authors"><strong>Dogan, A. H.</strong>, Arasli, D., <a href="https://scholar.google.com/citations?user=nWHRjrkAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Oksuz, K.</a>, <a href="https://scholar.google.com/citations?user=HeXAdnEAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Akbas, E.</a>, &amp; <a href="https://scholar.google.com/citations?user=yiAWeIAAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Kalkan, S.</a></div><div class="timeline-venue"><em>ICLR&#x27;27</em></div></div><div class="rail-marker rail-marker-left timeline-publication" aria-hidden="true" style="top: 8.0px; --lane-ratio: 0.000000; --dot-color: #10b981;"></div>
-<div id="tl-research-assistant" class="timeline-item timeline-experience timeline-left" style="top: 181.0px; --dot-color: #2aa198; --lane: 0; --lanes: 3; --lane-recip: 0.333333; min-height: 564.4px;"><span class="timeline-date">February 2023 <span class="timeline-dash">-</span> Present</span><h4 class="timeline-title"><img class="timeline-logo" src="assets/img/logos/imagelab.png" alt="" loading="lazy" width="22" height="22" /><span>Research Assistant</span></h4><div class="timeline-org">Image Processing and Pattern Recognition Laboratory ([ImageLab](https://image.ceng.metu.edu.tr/)), METU</div><div class="entry-awards"><div class="entry-award"><a href="https://tubitak.gov.tr/en/scholarships/degree-associate-degree/scholarship-programs/2247-c-star-intern-researcher-scholarship-programme" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-award" aria-hidden="true"></i> <span class="award-name">TUBITAK 2247-C STAR&#x27;23 Scholarship</span> <span class="award-org">- The Scientific and Technological Research Institution of Turkey (TUBITAK)</span></a></div></div><div class="nested-pub" title="Bucketed Ranking-Based Losses for Efficient Training of Object Detectors"><div class="nested-pub-line-1"><span class="nested-pub-venue-tag">ECCV&#x27;24</span><span class="nested-pub-title">Bucketed Ranking-Based Losses for Efficient Training of Object Detectors</span><span class="nested-pub-date">2024</span></div><div class="nested-pub-line-2">Yavuz, F., Cam, B. C., <strong>Dogan, A. H.</strong>, <a href="https://scholar.google.com/citations?user=nWHRjrkAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Oksuz, K.</a>, <a href="https://scholar.google.com/citations?user=yiAWeIAAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Kalkan, S.</a>, &amp; <a href="https://scholar.google.com/citations?user=HeXAdnEAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Akbas, E.</a></div><div class="timeline-links"><a href="https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/7634_ECCV_2024_paper.php" target="_blank" rel="noopener noreferrer" class="timeline-link">ECVA</a><a href="https://doi.org/10.1007/978-3-031-73202-7_6" target="_blank" rel="noopener noreferrer" class="timeline-link">DOI</a><a href="https://arxiv.org/abs/2407.14204" target="_blank" rel="noopener noreferrer" class="timeline-link">arXiv</a><a href="https://github.com/blisgard/BucketedRankingBasedLosses" target="_blank" rel="noopener noreferrer" class="timeline-link">GitHub</a></div></div></div><div class="rail-marker rail-marker-left timeline-experience" aria-hidden="true" style="top: 181.0px; --lane-ratio: 0.000000; --dot-color: #2aa198;"></div>
-<div id="tl-intern" class="timeline-item timeline-experience timeline-left" style="top: 316.0px; --dot-color: #2aa198; --lane: 1; --lanes: 3; --lane-recip: 0.333333; min-height: 303.0px;"><span class="timeline-date">January 2025 <span class="timeline-dash">-</span> October 2025</span><h4 class="timeline-title"><img class="timeline-logo" src="assets/img/logos/eth.png" alt="" loading="lazy" width="22" height="22" /><span>Intern</span></h4><div class="timeline-org">Sensing, Interaction, &amp; Perception Laboratory ([SIPLab](https://siplab.org/)), ETH Zürich</div><div class="nested-pub" title="Frequency-Weighted Neural Kalman Filters"><div class="nested-pub-line-1"><span class="nested-pub-venue-tag">IEEE/ICRA&#x27;26</span><span class="nested-pub-title">Frequency-Weighted Neural Kalman Filters</span><span class="nested-pub-date">2026</span></div><div class="nested-pub-line-2"><strong>Dogan, A. H.</strong>, Demirel, B. U., &amp; <a href="https://scholar.google.com/citations?user=OfXP9jMAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Holz, C.</a></div><div class="timeline-links"><a href="https://github.com/eth-siplab/Frequency-weighted-neural-Kalman-filters/" target="_blank" rel="noopener noreferrer" class="timeline-link">GitHub</a><a href="https://arxiv.org/abs/2606.02251" target="_blank" rel="noopener noreferrer" class="timeline-link">arXiv</a><a href="https://static.siplab.org/papers/icra2026_fwnkf.pdf" target="_blank" rel="noopener noreferrer" class="timeline-link">PDF</a></div></div><div class="nested-pub" title="Beyond subjectivity: Continuous cybersickness detection using EEG-based multitaper spectrum estimation"><div class="nested-pub-line-1"><span class="nested-pub-venue-tag">IEEE/TVCG&#x27;25</span><span class="nested-pub-title">Beyond subjectivity: Continuous cybersickness detection using EEG-based multitaper spectrum estimation</span><span class="nested-pub-date">2025</span></div><div class="nested-pub-line-2">Demirel, B. U., <strong>Dogan, A. H.</strong>, Rossie, J., Möbus, M., &amp; <a href="https://scholar.google.com/citations?user=OfXP9jMAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Holz, C.</a></div><div class="timeline-links"><a href="https://doi.org/10.1109/TVCG.2025.3549132" target="_blank" rel="noopener noreferrer" class="timeline-link">DOI</a><a href="https://arxiv.org/abs/2503.22024" target="_blank" rel="noopener noreferrer" class="timeline-link">arXiv</a><a href="https://github.com/eth-siplab/EEG_Cybersickness_Estimation_VR-Beyond_Subjectivity" target="_blank" rel="noopener noreferrer" class="timeline-link">GitHub</a></div></div></div><div class="rail-marker rail-marker-left timeline-experience" aria-hidden="true" style="top: 316.0px; --lane-ratio: 0.333333; --dot-color: #2aa198;"></div>
-<div id="tl-master-of-science-in-computer-engineering" class="timeline-item timeline-degree timeline-right" style="top: 533.6px; --dot-color: #6c71c4; --lane: 0; --lanes: 1; --lane-recip: 1.000000; min-height: 311.7px;"><span class="timeline-date">September 12, 2022 <span class="timeline-dash">-</span> January 10, 2025</span><h4 class="timeline-title"><img class="timeline-logo" src="assets/img/logos/metu.png" alt="" loading="lazy" width="22" height="22" /><span>Master of Science in Computer Engineering</span></h4><div class="timeline-org">Middle East Technical University (METU)</div><div class="timeline-links"><a href="https://avesis.ncc.metu.edu.tr/yonetilen-tez/3bb95a8c-7b3c-4899-91ec-f78be5a6e17a/incorporating-piecewise-linear-functions-with-constant-regions-in-backpropagation" target="_blank" rel="noopener noreferrer" class="timeline-link">Link</a></div><div class="nested-pub" title="Incorporating Piecewise Linear Functions with Constant Regions in Backpropagation"><div class="nested-pub-line-1"><span class="nested-pub-venue-tag">M.Sc. Thesis 2025</span><span class="nested-pub-title">Incorporating Piecewise Linear Functions with Constant Regions in Backpropagation</span><span class="nested-pub-date">Jan 2025</span></div><div class="nested-pub-line-2"><strong>Dogan, A. H.</strong></div><div class="timeline-links"><a href="https://avesis.ncc.metu.edu.tr/yonetilen-tez/3bb95a8c-7b3c-4899-91ec-f78be5a6e17a/incorporating-piecewise-linear-functions-with-constant-regions-in-backpropagation" target="_blank" rel="noopener noreferrer" class="timeline-link">Thesis</a></div></div></div><div class="rail-marker rail-marker-right timeline-degree" aria-hidden="true" style="top: 533.6px; --lane-ratio: 0.000000; --dot-color: #6c71c4;"></div>
-<div id="tl-bachelor-of-science-in-computer-engineering" class="timeline-item timeline-degree timeline-right" style="top: 891.2px; --dot-color: #6c71c4; --lane: 0; --lanes: 1; --lane-recip: 1.000000; min-height: 843.2px;"><span class="timeline-date">September 10, 2018 <span class="timeline-dash">-</span> July 17, 2022</span><h4 class="timeline-title"><img class="timeline-logo" src="assets/img/logos/metu.png" alt="" loading="lazy" width="22" height="22" /><span>Bachelor of Science in Computer Engineering</span></h4><div class="timeline-org">Middle East Technical University (METU)</div></div><div class="rail-marker rail-marker-right timeline-degree" aria-hidden="true" style="top: 891.2px; --lane-ratio: 0.000000; --dot-color: #6c71c4;"></div>
-<div id="tl-undergraduate-research-project" class="timeline-item timeline-research timeline-left" style="top: 929.3px; --dot-color: #2aa198; --lane: 0; --lanes: 3; --lane-recip: 0.333333; min-height: 687.3px;"><span class="timeline-date">January 2020 <span class="timeline-dash">-</span> June 2022</span><h4 class="timeline-title"><img class="timeline-logo" src="assets/img/logos/imagelab.png" alt="" loading="lazy" width="22" height="22" /><span>Undergraduate Research Project</span></h4><div class="timeline-org">Image Processing and Pattern Recognition Laboratory (ImageLab), METU</div></div><div class="rail-marker rail-marker-left timeline-research" aria-hidden="true" style="top: 929.3px; --lane-ratio: 0.000000; --dot-color: #2aa198;"></div>
-<div id="tl-undergraduate-research-project" class="timeline-item timeline-research timeline-left" style="top: 929.3px; --dot-color: #2aa198; --lane: 2; --lanes: 3; --lane-recip: 0.333333; min-height: 443.0px;"><span class="timeline-date">September 2021 <span class="timeline-dash">-</span> June 2022</span><h4 class="timeline-title"><img class="timeline-logo" src="assets/img/logos/tubitak.png" alt="" loading="lazy" width="22" height="22" /><span>Undergraduate Research Project</span></h4><div class="timeline-org">High Performance Intrusion Detection and Prevention for Software-Defined Container Networks in the Cloud, METU</div><div class="entry-awards"><div class="entry-award"><a href="https://tubitak.gov.tr/en/scholarships/degree-associate-degree/scholarship-programs/2247-c-star-intern-researcher-scholarship-programme" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-award" aria-hidden="true"></i> <span class="award-name">TUBITAK 2247-C STAR&#x27;22 Scholarship</span> <span class="award-org">- The Scientific and Technological Research Institution of Turkey (TUBITAK)</span></a></div></div><div class="nested-pub" title="Misuse Detection and Response for Orchestrated Microservices Based Software"><div class="nested-pub-line-1"><span class="nested-pub-venue-tag">AINA&#x27;24</span><span class="nested-pub-title">Misuse Detection and Response for Orchestrated Microservices Based Software</span><span class="nested-pub-date">Apr 2024</span></div><div class="nested-pub-line-2">Amin, M. A., <strong>Dogan, A. H.</strong>, Kuru, E. S., Sever, Y., &amp; <a href="https://scholar.google.com/citations?user=PgwZYeoAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Angin, P.</a></div><div class="timeline-links"><a href="https://www.kaggle.com/datasets/yigitsever/misuse-detection-in-containers-dataset/" target="_blank" rel="noopener noreferrer" class="timeline-link">KAGGLE</a><a href="https://doi.org/10.1007/978-3-031-57942-4_22" target="_blank" rel="noopener noreferrer" class="timeline-link">DOI</a></div></div><div class="nested-pub" title="A Kubernetes dataset for misuse detection"><div class="nested-pub-line-1"><span class="nested-pub-venue-tag">ITU J-FET&#x27;23</span><span class="nested-pub-title">A Kubernetes dataset for misuse detection</span><span class="nested-pub-date">Jun 2023</span></div><div class="nested-pub-line-2">Sever, Y., &amp; <strong>Dogan, A. H.</strong></div><div class="timeline-links"><a href="https://doi.org/10.52953/fplr8631" target="_blank" rel="noopener noreferrer" class="timeline-link">DOI</a><a href="https://www.itu.int/dms_pub/itu-s/opb/jnl/S-JNL-VOL4.ISSUE2-2023-A26-PDF-E.pdf" target="_blank" rel="noopener noreferrer" class="timeline-link">Paper</a><a href="https://github.com/yigitsever/kubernetes-dataset" target="_blank" rel="noopener noreferrer" class="timeline-link">GitHub</a></div></div><div class="nested-pub" title="An Empirical Analysis of IDS Approaches in Container Security"><div class="nested-pub-line-1"><span class="nested-pub-venue-tag">IEEE/SRMC&#x27;22</span><span class="nested-pub-title">An Empirical Analysis of IDS Approaches in Container Security</span><span class="nested-pub-date">Sep 2022</span></div><div class="nested-pub-line-2">Sever, Y., Ekinci, G., <strong>Dogan, A. H.</strong>, Alparslan, B., Gurbuz, A. S., Jabrayilov, V., &amp; <a href="https://scholar.google.com/citations?user=PgwZYeoAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Angin, P.</a></div><div class="entry-awards"><div class="entry-award"><a href="https://doi.org/10.1109/SRMC57347.2022.00007" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-award" aria-hidden="true"></i> <span class="award-name">Best Paper Award</span> <span class="award-org">- IEEE/SRMC&#x27;22</span></a></div></div><div class="timeline-links"><a href="https://doi.org/10.1109/SRMC57347.2022.00007" target="_blank" rel="noopener noreferrer" class="timeline-link">DOI</a></div></div></div><div class="rail-marker rail-marker-left timeline-research" aria-hidden="true" style="top: 929.3px; --lane-ratio: 0.666667; --dot-color: #2aa198;"></div>
-<div id="tl-undergraduate-research-project" class="timeline-item timeline-research timeline-left" style="top: 1129.3px; --dot-color: #2aa198; --lane: 1; --lanes: 3; --lane-recip: 0.333333; min-height: 290.6px;"><span class="timeline-date">October 2020 <span class="timeline-dash">-</span> October 2021</span><h4 class="timeline-title"><img class="timeline-logo" src="assets/img/logos/teghub.png" alt="" loading="lazy" width="22" height="22" /><span>Undergraduate Research Project</span></h4><div class="timeline-org">Textual Event Graph HUB (TEGHub), METU</div><div class="nested-pub" title="Enhancing Underground Built Heritage Analysis with Text Mining: A Case Study on Cappadocia"><div class="nested-pub-line-1"><span class="nested-pub-venue-tag">CNR Edizioni 2023</span><span class="nested-pub-title">Enhancing Underground Built Heritage Analysis with Text Mining: A Case Study on Cappadocia</span><span class="nested-pub-date">2023</span></div><div class="nested-pub-line-2"><a href="https://scholar.google.com/citations?user=u3r3gJIAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Karagoz, P.</a>, Cekinel, R. F., <strong>Dogan, A. H.</strong>, Oktay, B., Ozturk, A. U., Tonay, T. S., &amp; Tuncel, B. M.</div><div class="timeline-links"><a href="https://www.ismed.cnr.it/valorising-underground/" target="_blank" rel="noopener noreferrer" class="timeline-link">ISBN</a><a href="https://www.cnr.it/sites/default/files/public/media/attivita/editoria/collana_heritage_community_identity/9788880806059_Heritage%20and%20Community%20Identity%205_2023.pdf#page=83" target="_blank" rel="noopener noreferrer" class="timeline-link">PDF</a></div></div><div class="nested-pub" title="Explainability in Irony Detection"><div class="nested-pub-line-1"><span class="nested-pub-venue-tag">DaWaK&#x27;21</span><span class="nested-pub-title">Explainability in Irony Detection</span><span class="nested-pub-date">Sep 2021</span></div><div class="nested-pub-line-2">Buyukbas, E. B., <strong>Dogan, A. H.</strong>, Ozturk, A. U., &amp; <a href="https://scholar.google.com/citations?user=u3r3gJIAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Karagoz, P.</a></div><div class="timeline-links"><a href="https://doi.org/10.1007/978-3-030-86534-4_14" target="_blank" rel="noopener noreferrer" class="timeline-link">DOI</a></div></div></div><div class="rail-marker rail-marker-left timeline-research" aria-hidden="true" style="top: 1129.3px; --lane-ratio: 0.333333; --dot-color: #2aa198;"></div>
-<div id="tl-intern" class="timeline-item timeline-experience timeline-left" style="top: 1396.3px; --dot-color: #2aa198; --lane: 2; --lanes: 3; --lane-recip: 0.333333; min-height: 235.0px;"><span class="timeline-date">June 2021 <span class="timeline-dash">-</span> September 2021</span><h4 class="timeline-title"><img class="timeline-logo" src="assets/img/logos/uci.png" alt="" loading="lazy" width="22" height="22" /><span>Intern</span></h4><div class="timeline-org">Cyber-Physical Systems Laboratory ([AICPS](https://aicps.eng.uci.edu/)), University of California, Irvine</div><div class="nested-pub" title="Two Might Do: A Beat-by-Beat Classification of Cardiac Abnormalities using Deep Learning and Domain-Specific Features"><div class="nested-pub-line-1"><span class="nested-pub-venue-tag">CinC&#x27;21</span><span class="nested-pub-title">Two Might Do: A Beat-by-Beat Classification of Cardiac Abnormalities using Deep Learning and Domain-Specific Features</span><span class="nested-pub-date">2021</span></div><div class="nested-pub-line-2">Demirel, B. U., <strong>Dogan, A. H.</strong>, &amp; <a href="https://scholar.google.com/citations?user=ejWHC-cAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Al-Faruque, M. A.</a></div><div class="timeline-links"><a href="https://github.com/Berken-demirel/Two_Might_Do" target="_blank" rel="noopener noreferrer" class="timeline-link">GitHub</a><a href="https://www.cinc.org/2021/Program/accepted/33_Preprint.pdf" target="_blank" rel="noopener noreferrer" class="timeline-link">PAPER</a><a href="https://doi.org/10.23919/cinc53138.2021.9662935" target="_blank" rel="noopener noreferrer" class="timeline-link">DOI</a></div></div></div><div class="rail-marker rail-marker-left timeline-experience" aria-hidden="true" style="top: 1396.3px; --lane-ratio: 0.666667; --dot-color: #2aa198;"></div>
+<div id="2023-02" class="timeline-month-label" style="top: 1551.0px">Feb</div>
+<div class="timeline-month-tick" style="top: 1591.0px"></div>
+<div id="2022-12" class="timeline-month-label" style="top: 1591.0px">Dec</div>
+<div class="timeline-month-tick" style="top: 1607.0px"></div>
+<div id="2022-11" class="timeline-month-label" style="top: 1607.0px">Nov</div>
+<div class="timeline-month-tick" style="top: 1623.0px"></div>
+<div id="2022-10" class="timeline-month-label" style="top: 1623.0px">Oct</div>
+<div class="timeline-month-tick" style="top: 1639.0px"></div>
+<div id="2022-09" class="timeline-month-label" style="top: 1639.0px">Sep</div>
+<div class="timeline-month-tick" style="top: 1700.0px"></div>
+<div id="2022-08" class="timeline-month-label" style="top: 1700.0px">Aug</div>
+<div class="timeline-month-tick" style="top: 1716.0px"></div>
+<div id="2022-07" class="timeline-month-label" style="top: 1716.0px">Jul</div>
+<div class="timeline-month-tick" style="top: 1758.0px"></div>
+<div id="2022-06" class="timeline-month-label" style="top: 1758.0px">Jun</div>
+<div class="timeline-month-tick" style="top: 1948.0px"></div>
+<div id="2022-05" class="timeline-month-label" style="top: 1948.0px">May</div>
+<div class="timeline-month-tick" style="top: 1964.0px"></div>
+<div id="2022-04" class="timeline-month-label" style="top: 1964.0px">Apr</div>
+<div class="timeline-month-tick" style="top: 1980.0px"></div>
+<div id="2022-03" class="timeline-month-label" style="top: 1980.0px">Mar</div>
+<div class="timeline-month-tick" style="top: 1996.0px"></div>
+<div id="2022-02" class="timeline-month-label" style="top: 1996.0px">Feb</div>
+<div class="timeline-month-tick" style="top: 2036.0px"></div>
+<div id="2021-12" class="timeline-month-label" style="top: 2036.0px">Dec</div>
+<div class="timeline-month-tick" style="top: 2052.0px"></div>
+<div id="2021-11" class="timeline-month-label" style="top: 2052.0px">Nov</div>
+<div class="timeline-month-tick" style="top: 2068.0px"></div>
+<div id="2021-10" class="timeline-month-label" style="top: 2068.0px">Oct</div>
+<div class="timeline-month-tick" style="top: 2084.0px"></div>
+<div id="2021-09" class="timeline-month-label" style="top: 2084.0px">Sep</div>
+<div class="timeline-month-tick" style="top: 2428.0px"></div>
+<div id="2021-08" class="timeline-month-label" style="top: 2428.0px">Aug</div>
+<div class="timeline-month-tick" style="top: 2444.0px"></div>
+<div id="2021-07" class="timeline-month-label" style="top: 2444.0px">Jul</div>
+<div class="timeline-month-tick" style="top: 2460.0px"></div>
+<div id="2021-06" class="timeline-month-label" style="top: 2460.0px">Jun</div>
+<div class="timeline-month-tick" style="top: 2476.0px"></div>
+<div id="2021-05" class="timeline-month-label" style="top: 2476.0px">May</div>
+<div class="timeline-month-tick" style="top: 2492.0px"></div>
+<div id="2021-04" class="timeline-month-label" style="top: 2492.0px">Apr</div>
+<div class="timeline-month-tick" style="top: 2508.0px"></div>
+<div id="2021-03" class="timeline-month-label" style="top: 2508.0px">Mar</div>
+<div class="timeline-month-tick" style="top: 2524.0px"></div>
+<div id="2021-02" class="timeline-month-label" style="top: 2524.0px">Feb</div>
+<div class="timeline-month-tick" style="top: 2564.0px"></div>
+<div id="2020-12" class="timeline-month-label" style="top: 2564.0px">Dec</div>
+<div class="timeline-month-tick" style="top: 2580.0px"></div>
+<div id="2020-11" class="timeline-month-label" style="top: 2580.0px">Nov</div>
+<div class="timeline-month-tick" style="top: 2596.0px"></div>
+<div id="2020-10" class="timeline-month-label" style="top: 2596.0px">Oct</div>
+<div class="timeline-month-tick" style="top: 2612.0px"></div>
+<div id="2020-09" class="timeline-month-label" style="top: 2612.0px">Sep</div>
+<div class="timeline-month-tick" style="top: 2628.0px"></div>
+<div id="2020-08" class="timeline-month-label" style="top: 2628.0px">Aug</div>
+<div class="timeline-month-tick" style="top: 2644.0px"></div>
+<div id="2020-07" class="timeline-month-label" style="top: 2644.0px">Jul</div>
+<div class="timeline-month-tick" style="top: 2660.0px"></div>
+<div id="2020-06" class="timeline-month-label" style="top: 2660.0px">Jun</div>
+<div class="timeline-month-tick" style="top: 2676.0px"></div>
+<div id="2020-05" class="timeline-month-label" style="top: 2676.0px">May</div>
+<div class="timeline-month-tick" style="top: 2692.0px"></div>
+<div id="2020-04" class="timeline-month-label" style="top: 2692.0px">Apr</div>
+<div class="timeline-month-tick" style="top: 2708.0px"></div>
+<div id="2020-03" class="timeline-month-label" style="top: 2708.0px">Mar</div>
+<div class="timeline-month-tick" style="top: 2724.0px"></div>
+<div id="2020-02" class="timeline-month-label" style="top: 2724.0px">Feb</div>
+<div class="timeline-month-tick" style="top: 2764.0px"></div>
+<div id="2019-12" class="timeline-month-label" style="top: 2764.0px">Dec</div>
+<div class="timeline-month-tick" style="top: 2780.0px"></div>
+<div id="2019-11" class="timeline-month-label" style="top: 2780.0px">Nov</div>
+<div class="timeline-month-tick" style="top: 2796.0px"></div>
+<div id="2019-10" class="timeline-month-label" style="top: 2796.0px">Oct</div>
+<div class="timeline-month-tick" style="top: 2812.0px"></div>
+<div id="2019-09" class="timeline-month-label" style="top: 2812.0px">Sep</div>
+<div class="timeline-month-tick" style="top: 2828.0px"></div>
+<div id="2019-08" class="timeline-month-label" style="top: 2828.0px">Aug</div>
+<div class="timeline-month-tick" style="top: 2844.0px"></div>
+<div id="2019-07" class="timeline-month-label" style="top: 2844.0px">Jul</div>
+<div class="timeline-month-tick" style="top: 2860.0px"></div>
+<div id="2019-06" class="timeline-month-label" style="top: 2860.0px">Jun</div>
+<div class="timeline-month-tick" style="top: 2876.0px"></div>
+<div id="2019-05" class="timeline-month-label" style="top: 2876.0px">May</div>
+<div class="timeline-month-tick" style="top: 2892.0px"></div>
+<div id="2019-04" class="timeline-month-label" style="top: 2892.0px">Apr</div>
+<div class="timeline-month-tick" style="top: 2908.0px"></div>
+<div id="2019-03" class="timeline-month-label" style="top: 2908.0px">Mar</div>
+<div class="timeline-month-tick" style="top: 2924.0px"></div>
+<div id="2019-02" class="timeline-month-label" style="top: 2924.0px">Feb</div>
+<div class="timeline-month-tick" style="top: 2964.0px"></div>
+<div id="2018-12" class="timeline-month-label" style="top: 2964.0px">Dec</div>
+<div class="timeline-month-tick" style="top: 2980.0px"></div>
+<div id="2018-11" class="timeline-month-label" style="top: 2980.0px">Nov</div>
+<div class="timeline-month-tick" style="top: 2996.0px"></div>
+<div id="2018-10" class="timeline-month-label" style="top: 2996.0px">Oct</div>
+<div class="timeline-month-tick" style="top: 3012.0px"></div>
+<div id="2018-09" class="timeline-month-label" style="top: 3012.0px">Sep</div>
+<div class="timeline-month-tick" style="top: 3028.0px"></div>
+<div id="2018-08" class="timeline-month-label" style="top: 3028.0px">Aug</div>
+<div class="timeline-month-tick" style="top: 3044.0px"></div>
+<div id="2018-07" class="timeline-month-label" style="top: 3044.0px">Jul</div>
+<div class="timeline-month-tick" style="top: 3060.0px"></div>
+<div id="2018-06" class="timeline-month-label" style="top: 3060.0px">Jun</div>
+<div class="timeline-month-tick" style="top: 3076.0px"></div>
+<div id="2018-05" class="timeline-month-label" style="top: 3076.0px">May</div>
+<div class="timeline-month-tick" style="top: 3092.0px"></div>
+<div id="2018-04" class="timeline-month-label" style="top: 3092.0px">Apr</div>
+<div class="timeline-month-tick" style="top: 3108.0px"></div>
+<div id="2018-03" class="timeline-month-label" style="top: 3108.0px">Mar</div>
+<div class="timeline-month-tick" style="top: 3124.0px"></div>
+<div id="2018-02" class="timeline-month-label" style="top: 3124.0px">Feb</div>
+<div id="2027" class="timeline-year-label" style="top: 0.0px">2027</div>
+<div id="2026" class="timeline-year-label" style="top: 200.0px">2026</div>
+<div id="2025" class="timeline-year-label" style="top: 400.0px">2025</div>
+<div id="2024" class="timeline-year-label" style="top: 1076.0px">2024</div>
+<div id="2023" class="timeline-year-label" style="top: 1571.0px">2023</div>
+<div id="2022" class="timeline-year-label" style="top: 2016.0px">2022</div>
+<div id="2021" class="timeline-year-label" style="top: 2544.0px">2021</div>
+<div id="2020" class="timeline-year-label" style="top: 2744.0px">2020</div>
+<div id="2019" class="timeline-year-label" style="top: 2944.0px">2019</div>
+<div id="2018" class="timeline-year-label" style="top: 3144.0px">2018</div>
+<div class="tl-posbar timeline-experience" data-pos="metu-imagelab-kalkan-akbas" title="Image Processing and Pattern Recognition Laboratory (ImageLab), METU - Research Assistant (Feb 2023 - Present)" style="top: 68.0px; height: 1483.0px; left: calc(var(--rail-x) + 14px); --dot-color: #6c71c4;"></div>
+<div class="tl-posbar timeline-experience" data-pos="eth-siplab-cholz" title="Sensing, Interaction, &amp; Perception Laboratory (SIPLab), ETH Zürich - Intern (Jan 2025 - Oct 2025)" style="top: 252.0px; height: 148.0px; left: calc(var(--rail-x) + 21px); --dot-color: #cb4b16;"></div>
+<div class="tl-posbar timeline-degree" data-pos="master-of-science-in-computer-engineering" title="Middle East Technical University (METU) - Master of Science in Computer Engineering (Sep 2022 - Jan 2025)" style="top: 400.0px; height: 1244.8px; left: calc(var(--rail-x) + 21px); --dot-color: #268bd2;"></div>
+<div class="tl-posbar timeline-degree" data-pos="bachelor-of-science-in-computer-engineering" title="Middle East Technical University (METU) - Bachelor of Science in Computer Engineering (Sep 2018 - Jul 2022)" style="top: 1724.4px; height: 1292.3px; left: calc(var(--rail-x) + 14px); --dot-color: #2aa198;"></div>
+<div class="tl-posbar timeline-research" data-pos="metu-imagelab-alemdar-ugras" title="Image Processing and Pattern Recognition Laboratory (ImageLab), METU - Undergraduate Research Project (Jan 2020 - Jun 2022)" style="top: 1758.0px; height: 986.0px; left: calc(var(--rail-x) + 21px); --dot-color: #d33682;"></div>
+<div class="tl-posbar timeline-research" data-pos="metu-cysec-pangin" title="High Performance Intrusion Detection and Prevention for Software-Defined Container Networks in the Cloud, METU - Undergraduate Research Project (Sep 2021 - Jun 2022)" style="top: 1758.0px; height: 326.0px; left: calc(var(--rail-x) + 28px); --dot-color: #b58900;"></div>
+<div class="tl-posbar timeline-experience" data-pos="metu-romer-sahin-koku" title="Center for Artificial Intelligence and Robotics (ROMER), METU - Intern (Oct 2021 - Feb 2022)" style="top: 1996.0px; height: 72.0px; left: calc(var(--rail-x) + 35px); --dot-color: #dc322f;"></div>
+<div class="tl-posbar timeline-research" data-pos="metu-teghub-pkaragoz" title="Textual Event Graph HUB (TEGHub), METU - Undergraduate Research Project (Oct 2020 - Oct 2021)" style="top: 2068.0px; height: 528.0px; left: calc(var(--rail-x) + 28px); --dot-color: #0f766e;"></div>
+<div class="tl-posbar timeline-experience" data-pos="uci-cps-malfaruque" title="Cyber-Physical Systems Laboratory (AICPS), University of California, Irvine - Intern (Jun 2021 - Sep 2021)" style="top: 2084.0px; height: 376.0px; left: calc(var(--rail-x) + 35px); --dot-color: #859900;"></div>
+<div class="tl-posbar timeline-research" data-pos="koc-med-okaranfil" title="School of Medicine, Koç University - Undergraduate Research Project (Feb 2020 - Jun 2021)" style="top: 2460.0px; height: 264.0px; left: calc(var(--rail-x) + 35px); --dot-color: #5b7eb0;"></div>
+<div id="tl-image-processing-and-pattern-recognition-laboratory-imagelab-metu" class="timeline-item timeline-experience timeline-right timeline-plain" data-pos="metu-imagelab-kalkan-akbas" style="top: 43.0px; --dot-color: #6c71c4; --lane: 0; --lanes: 1; --lane-recip: 1.000000;"><span class="timeline-date">February 2023 <span class="timeline-dash">-</span> Present</span><h4 class="timeline-title"><img class="timeline-logo" src="assets/img/logos/imagelab.png" alt="" loading="lazy" width="22" height="22" /><span><a href="https://image.ceng.metu.edu.tr/" target="_blank" rel="noopener noreferrer">Image Processing and Pattern Recognition Laboratory (ImageLab), METU</a></span></h4><div class="timeline-org">Research Assistant</div></div><div class="rail-marker rail-marker-right timeline-experience" data-pos="metu-imagelab-kalkan-akbas" aria-hidden="true" style="top: 43.0px; --lane-ratio: 0.000000; --dot-color: #6c71c4;"><i class="rail-dot-hit"></i></div>
+<div id="tl-frequency-weighted-neural-kalman-filters" class="timeline-item timeline-publication timeline-left" data-pos="eth-siplab-cholz" style="top: 91.0px; --dot-color: #cb4b16; --lane: 0; --lanes: 1; --lane-recip: 1.000000;"><span class="timeline-date">June 2026</span><h4 class="timeline-title"><span>Frequency-Weighted Neural Kalman Filters</span></h4><div class="timeline-authors"><strong>Dogan, A. H.</strong>, Demirel, B. U., &amp; <a href="https://scholar.google.com/citations?user=OfXP9jMAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Holz, C.</a></div><div class="timeline-venue"><em>IEEE/ICRA&#x27;26</em></div><div class="timeline-meta"><span class="timeline-meta-label">Supervisor</span> Prof. Dr. <a href="https://scholar.google.com/citations?user=OfXP9jMAAAAJ" target="_blank" rel="noopener noreferrer">Christian Holz</a></div><div class="timeline-meta"><span class="timeline-meta-label">Laboratory</span> Sensing, Interaction, &amp; Perception Laboratory (<a href="https://siplab.org/" target="_blank" rel="noopener noreferrer">SIPLab</a>), ETH Zürich</div><div class="timeline-meta"><span class="timeline-meta-label">Employment</span> Intern, Jan 2025 - Oct 2025</div><div class="timeline-links"><a href="https://github.com/eth-siplab/Frequency-weighted-neural-Kalman-filters/" target="_blank" rel="noopener noreferrer" class="timeline-link">GitHub</a><a href="https://arxiv.org/abs/2606.02251" target="_blank" rel="noopener noreferrer" class="timeline-link">arXiv</a><a href="https://static.siplab.org/papers/icra2026_fwnkf.pdf" target="_blank" rel="noopener noreferrer" class="timeline-link">PDF</a></div></div><div class="rail-marker rail-marker-left timeline-publication" data-pos="eth-siplab-cholz" aria-hidden="true" style="top: 91.0px; --lane-ratio: 0.000000; --dot-color: #cb4b16;"><i class="rail-dot-hit"></i></div>
+<div id="tl-sensing-interaction-perception-laboratory-siplab-eth-zürich" class="timeline-item timeline-experience timeline-right timeline-plain" data-pos="eth-siplab-cholz" style="top: 227.0px; --dot-color: #cb4b16; --lane: 0; --lanes: 1; --lane-recip: 1.000000;"><span class="timeline-date">January 2025 <span class="timeline-dash">-</span> October 2025</span><h4 class="timeline-title"><img class="timeline-logo" src="assets/img/logos/eth.png" alt="" loading="lazy" width="22" height="22" /><span><a href="https://siplab.org/" target="_blank" rel="noopener noreferrer">Sensing, Interaction, &amp; Perception Laboratory (SIPLab), ETH Zürich</a></span></h4><div class="timeline-org">Intern</div></div><div class="rail-marker rail-marker-right timeline-experience" data-pos="eth-siplab-cholz" aria-hidden="true" style="top: 227.0px; --lane-ratio: 0.000000; --dot-color: #cb4b16;"><i class="rail-dot-hit"></i></div>
+<div id="tl-beyond-subjectivity-continuous-cybersickness-detection-using-eeg-based-multitaper-spectrum-estimation" class="timeline-item timeline-publication timeline-left" data-pos="eth-siplab-cholz" style="top: 307.0px; --dot-color: #cb4b16; --lane: 0; --lanes: 1; --lane-recip: 1.000000;"><span class="timeline-date">May 2025</span><h4 class="timeline-title"><span>Beyond subjectivity: Continuous cybersickness detection using EEG-based multitaper spectrum estimation</span></h4><div class="timeline-authors">Demirel, B. U., <strong>Dogan, A. H.</strong>, Rossie, J., Möbus, M., &amp; <a href="https://scholar.google.com/citations?user=OfXP9jMAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Holz, C.</a></div><div class="timeline-venue"><em>IEEE/TVCG&#x27;25</em></div><div class="timeline-meta"><span class="timeline-meta-label">Supervisor</span> Prof. Dr. <a href="https://scholar.google.com/citations?user=OfXP9jMAAAAJ" target="_blank" rel="noopener noreferrer">Christian Holz</a></div><div class="timeline-meta"><span class="timeline-meta-label">Laboratory</span> Sensing, Interaction, &amp; Perception Laboratory (<a href="https://siplab.org/" target="_blank" rel="noopener noreferrer">SIPLab</a>), ETH Zürich</div><div class="timeline-meta"><span class="timeline-meta-label">Employment</span> Intern, Jan 2025 - Oct 2025</div><div class="timeline-links"><a href="https://doi.org/10.1109/TVCG.2025.3549132" target="_blank" rel="noopener noreferrer" class="timeline-link">DOI</a><a href="https://arxiv.org/abs/2503.22024" target="_blank" rel="noopener noreferrer" class="timeline-link">arXiv</a><a href="https://github.com/eth-siplab/EEG_Cybersickness_Estimation_VR-Beyond_Subjectivity" target="_blank" rel="noopener noreferrer" class="timeline-link">GitHub</a></div></div><div class="rail-marker rail-marker-left timeline-publication" data-pos="eth-siplab-cholz" aria-hidden="true" style="top: 307.0px; --lane-ratio: 0.000000; --dot-color: #cb4b16;"><i class="rail-dot-hit"></i></div>
+<div id="tl-master-of-science-in-computer-engineering" class="timeline-item timeline-degree timeline-right timeline-plain" data-pos="master-of-science-in-computer-engineering" style="top: 375.0px; --dot-color: #268bd2; --lane: 0; --lanes: 1; --lane-recip: 1.000000;"><span class="timeline-date">September 12, 2022 <span class="timeline-dash">-</span> January 10, 2025</span><h4 class="timeline-title"><img class="timeline-logo" src="assets/img/logos/metu.png" alt="" loading="lazy" width="22" height="22" /><span>Master of Science in Computer Engineering</span></h4><div class="timeline-org">Middle East Technical University (METU)</div><div class="timeline-links"><a href="https://avesis.ncc.metu.edu.tr/yonetilen-tez/3bb95a8c-7b3c-4899-91ec-f78be5a6e17a/incorporating-piecewise-linear-functions-with-constant-regions-in-backpropagation" target="_blank" rel="noopener noreferrer" class="timeline-link">Link</a></div></div><div class="rail-marker rail-marker-right timeline-degree" data-pos="master-of-science-in-computer-engineering" aria-hidden="true" style="top: 375.0px; --lane-ratio: 0.000000; --dot-color: #268bd2;"><i class="rail-dot-hit"></i></div>
+<div id="tl-started-a-research-internship-at-siplab-eth-zürich-with-pr" class="timeline-item timeline-experience timeline-right timeline-newsitem" data-pos="eth-siplab-cholz" style="top: 496.0px; --dot-color: #cb4b16; --lane: 0; --lanes: 1; --lane-recip: 1.000000;"><span class="timeline-date">January 2025</span><div class="timeline-newsline"><img class="timeline-logo" src="assets/img/logos/eth.png" alt="" loading="lazy" width="22" height="22" /><span>Started a research internship at <a href="https://siplab.org/" class="news-link" target="_blank" rel="noopener noreferrer">SIPLab</a>, ETH Zürich, with Prof. Christian Holz</span></div></div><div class="rail-marker rail-marker-right timeline-experience" data-pos="eth-siplab-cholz" aria-hidden="true" style="top: 496.0px; --lane-ratio: 0.000000; --dot-color: #cb4b16;"></div>
+<div id="tl-defended-my-msc-thesis-on-piecewise-linear-functions-in-ba" class="timeline-item timeline-degree timeline-right timeline-newsitem" data-pos="master-of-science-in-computer-engineering" style="top: 583.0px; --dot-color: #268bd2; --lane: 0; --lanes: 1; --lane-recip: 1.000000;"><span class="timeline-date">January 2025</span><div class="timeline-newsline"><img class="timeline-logo" src="assets/img/logos/metu.png" alt="" loading="lazy" width="22" height="22" /><span>Defended my <a href="https://avesis.ncc.metu.edu.tr/yonetilen-tez/3bb95a8c-7b3c-4899-91ec-f78be5a6e17a/incorporating-piecewise-linear-functions-with-constant-regions-in-backpropagation" class="news-link" target="_blank" rel="noopener noreferrer">M.Sc. thesis</a> on piecewise linear functions in backpropagation at METU</span></div></div><div class="rail-marker rail-marker-right timeline-degree" data-pos="master-of-science-in-computer-engineering" aria-hidden="true" style="top: 583.0px; --lane-ratio: 0.000000; --dot-color: #268bd2;"></div>
+<div id="tl-incorporating-piecewise-linear-functions-with-constant-regions-in-backpropagation" class="timeline-item timeline-publication timeline-left" data-pos="master-of-science-in-computer-engineering" style="top: 538.0px; --dot-color: #268bd2; --lane: 0; --lanes: 1; --lane-recip: 1.000000;"><span class="timeline-date">January 2025</span><h4 class="timeline-title"><span>Incorporating Piecewise Linear Functions with Constant Regions in Backpropagation</span></h4><div class="timeline-authors"><strong>Dogan, A. H.</strong></div><div class="timeline-venue"><em>M.Sc. Thesis 2025</em></div><div class="timeline-meta"><span class="timeline-meta-label">Supervisor</span> Prof. Dr. <a href="https://scholar.google.com/citations?user=yiAWeIAAAAAJ" target="_blank" rel="noopener noreferrer">Sinan Kalkan</a>, Co-advisor: Assoc. Prof. Dr. <a href="https://scholar.google.com/citations?user=HeXAdnEAAAAJ" target="_blank" rel="noopener noreferrer">Emre Akbas</a></div><div class="timeline-meta"><span class="timeline-meta-label">Institution</span> <a href="https://ceng.metu.edu.tr" target="_blank" rel="noopener noreferrer">Middle East Technical University (METU)</a></div><div class="timeline-meta"><span class="timeline-meta-label">Programme</span> Master of Science in Computer Engineering, Sep 2022 - Jan 2025</div><div class="timeline-links"><a href="https://avesis.ncc.metu.edu.tr/yonetilen-tez/3bb95a8c-7b3c-4899-91ec-f78be5a6e17a/incorporating-piecewise-linear-functions-with-constant-regions-in-backpropagation" target="_blank" rel="noopener noreferrer" class="timeline-link">Thesis</a></div></div><div class="rail-marker rail-marker-left timeline-publication" data-pos="master-of-science-in-computer-engineering" aria-hidden="true" style="top: 538.0px; --lane-ratio: 0.000000; --dot-color: #268bd2;"><i class="rail-dot-hit"></i></div>
+<div id="tl-bucketed-ranking-based-losses-for-efficient-training-of-object-detectors" class="timeline-item timeline-publication timeline-left" data-pos="metu-imagelab-kalkan-akbas" style="top: 768.0px; --dot-color: #6c71c4; --lane: 0; --lanes: 1; --lane-recip: 1.000000;"><span class="timeline-date">October 2024</span><h4 class="timeline-title"><span>Bucketed Ranking-Based Losses for Efficient Training of Object Detectors</span></h4><div class="timeline-authors">Yavuz, F., Cam, B. C., <strong>Dogan, A. H.</strong>, <a href="https://scholar.google.com/citations?user=nWHRjrkAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Oksuz, K.</a>, <a href="https://scholar.google.com/citations?user=yiAWeIAAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Kalkan, S.</a>, &amp; <a href="https://scholar.google.com/citations?user=HeXAdnEAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Akbas, E.</a></div><div class="timeline-venue"><em>ECCV&#x27;24</em></div><div class="timeline-meta"><span class="timeline-meta-label">Supervisor</span> Prof. Dr. <a href="https://scholar.google.com/citations?user=yiAWeIAAAAAJ" target="_blank" rel="noopener noreferrer">Sinan Kalkan</a>, Assoc. Prof. Dr. <a href="https://scholar.google.com/citations?user=HeXAdnEAAAAJ" target="_blank" rel="noopener noreferrer">Emre Akbas</a></div><div class="timeline-meta"><span class="timeline-meta-label">Laboratory</span> Image Processing and Pattern Recognition Laboratory (<a href="https://image.ceng.metu.edu.tr/" target="_blank" rel="noopener noreferrer">ImageLab</a>), METU</div><div class="timeline-meta"><span class="timeline-meta-label">Employment</span> Research Assistant, Feb 2023 - Present</div><div class="timeline-links"><a href="https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/7634_ECCV_2024_paper.php" target="_blank" rel="noopener noreferrer" class="timeline-link">ECVA</a><a href="https://doi.org/10.1007/978-3-031-73202-7_6" target="_blank" rel="noopener noreferrer" class="timeline-link">DOI</a><a href="https://arxiv.org/abs/2407.14204" target="_blank" rel="noopener noreferrer" class="timeline-link">arXiv</a><a href="https://github.com/blisgard/BucketedRankingBasedLosses" target="_blank" rel="noopener noreferrer" class="timeline-link">GitHub</a></div></div><div class="rail-marker rail-marker-left timeline-publication" data-pos="metu-imagelab-kalkan-akbas" aria-hidden="true" style="top: 768.0px; --lane-ratio: 0.000000; --dot-color: #6c71c4;"><i class="rail-dot-hit"></i></div>
+<div id="tl-misuse-detection-and-response-for-orchestrated-microservices-based-software" class="timeline-item timeline-publication timeline-left" data-pos="metu-cysec-pangin" style="top: 999.0px; --dot-color: #b58900; --lane: 0; --lanes: 1; --lane-recip: 1.000000;"><span class="timeline-date">April 2024</span><h4 class="timeline-title"><span>Misuse Detection and Response for Orchestrated Microservices Based Software</span></h4><div class="timeline-authors">Amin, M. A., <strong>Dogan, A. H.</strong>, Kuru, E. S., Sever, Y., &amp; <a href="https://scholar.google.com/citations?user=PgwZYeoAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Angin, P.</a></div><div class="timeline-venue"><em>AINA&#x27;24</em></div><div class="timeline-meta"><span class="timeline-meta-label">Supervisor</span> Assoc. Prof. Dr. <a href="https://scholar.google.com/citations?user=PgwZYeoAAAAJ" target="_blank" rel="noopener noreferrer">Pelin Angin</a></div><div class="timeline-meta"><span class="timeline-meta-label">Project</span> <a href="https://user.ceng.metu.edu.tr/~pangin/Tubitak3501/index.html" target="_blank" rel="noopener noreferrer">High Performance Intrusion Detection and Prevention for Software-Defined Container Networks in the Cloud, METU</a></div><div class="timeline-meta"><span class="timeline-meta-label">Position</span> Undergraduate Research Project, Sep 2021 - Jun 2022</div><div class="timeline-links"><a href="https://www.kaggle.com/datasets/yigitsever/misuse-detection-in-containers-dataset/" target="_blank" rel="noopener noreferrer" class="timeline-link">KAGGLE</a><a href="https://doi.org/10.1007/978-3-031-57942-4_22" target="_blank" rel="noopener noreferrer" class="timeline-link">DOI</a></div></div><div class="rail-marker rail-marker-left timeline-publication" data-pos="metu-cysec-pangin" aria-hidden="true" style="top: 999.0px; --lane-ratio: 0.000000; --dot-color: #b58900;"><i class="rail-dot-hit"></i></div>
+<div id="tl-enhancing-underground-built-heritage-analysis-with-text-mining-a-case-study-on-cappadocia" class="timeline-item timeline-publication timeline-left" data-pos="metu-teghub-pkaragoz" style="top: 1230.0px; --dot-color: #0f766e; --lane: 0; --lanes: 1; --lane-recip: 1.000000;"><span class="timeline-date">December 2023</span><h4 class="timeline-title"><span>Enhancing Underground Built Heritage Analysis with Text Mining: A Case Study on Cappadocia</span></h4><div class="timeline-authors"><a href="https://scholar.google.com/citations?user=u3r3gJIAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Karagoz, P.</a>, Cekinel, R. F., <strong>Dogan, A. H.</strong>, Oktay, B., Ozturk, A. U., Tonay, T. S., &amp; Tuncel, B. M.</div><div class="timeline-venue"><em>CNR Edizioni 2023</em></div><div class="timeline-meta"><span class="timeline-meta-label">Supervisor</span> Prof. Dr. <a href="https://scholar.google.com/citations?user=u3r3gJIAAAAJ" target="_blank" rel="noopener noreferrer">Pinar Karagoz</a></div><div class="timeline-meta"><span class="timeline-meta-label">Project</span> <a href="http://teghub.ceng.metu.edu.tr" target="_blank" rel="noopener noreferrer">Textual Event Graph HUB (TEGHub), METU</a></div><div class="timeline-meta"><span class="timeline-meta-label">Position</span> Undergraduate Research Project, Oct 2020 - Oct 2021</div><div class="timeline-links"><a href="https://www.ismed.cnr.it/valorising-underground/" target="_blank" rel="noopener noreferrer" class="timeline-link">ISBN</a><a href="https://www.cnr.it/sites/default/files/public/media/attivita/editoria/collana_heritage_community_identity/9788880806059_Heritage%20and%20Community%20Identity%205_2023.pdf#page=83" target="_blank" rel="noopener noreferrer" class="timeline-link">PDF</a></div></div><div class="rail-marker rail-marker-left timeline-publication" data-pos="metu-teghub-pkaragoz" aria-hidden="true" style="top: 1230.0px; --lane-ratio: 0.000000; --dot-color: #0f766e;"><i class="rail-dot-hit"></i></div>
+<div id="tl-a-kubernetes-dataset-for-misuse-detection" class="timeline-item timeline-publication timeline-left" data-pos="metu-cysec-pangin" style="top: 1462.0px; --dot-color: #b58900; --lane: 0; --lanes: 1; --lane-recip: 1.000000;"><span class="timeline-date">June 2023</span><h4 class="timeline-title"><span>A Kubernetes dataset for misuse detection</span></h4><div class="timeline-authors">Sever, Y., &amp; <strong>Dogan, A. H.</strong></div><div class="timeline-venue"><em>ITU J-FET&#x27;23</em></div><div class="timeline-meta"><span class="timeline-meta-label">Supervisor</span> Assoc. Prof. Dr. <a href="https://scholar.google.com/citations?user=PgwZYeoAAAAJ" target="_blank" rel="noopener noreferrer">Pelin Angin</a></div><div class="timeline-meta"><span class="timeline-meta-label">Project</span> <a href="https://user.ceng.metu.edu.tr/~pangin/Tubitak3501/index.html" target="_blank" rel="noopener noreferrer">High Performance Intrusion Detection and Prevention for Software-Defined Container Networks in the Cloud, METU</a></div><div class="timeline-meta"><span class="timeline-meta-label">Position</span> Undergraduate Research Project, Sep 2021 - Jun 2022</div><div class="timeline-links"><a href="https://doi.org/10.52953/fplr8631" target="_blank" rel="noopener noreferrer" class="timeline-link">DOI</a><a href="https://www.itu.int/dms_pub/itu-s/opb/jnl/S-JNL-VOL4.ISSUE2-2023-A26-PDF-E.pdf" target="_blank" rel="noopener noreferrer" class="timeline-link">Paper</a><a href="https://github.com/yigitsever/kubernetes-dataset" target="_blank" rel="noopener noreferrer" class="timeline-link">GitHub</a></div></div><div class="rail-marker rail-marker-left timeline-publication" data-pos="metu-cysec-pangin" aria-hidden="true" style="top: 1462.0px; --lane-ratio: 0.000000; --dot-color: #b58900;"><i class="rail-dot-hit"></i></div>
+<div id="tl-started-my-msc-in-computer-engineering-at-imagelab-metu" class="timeline-item timeline-degree timeline-right timeline-newsitem" data-pos="master-of-science-in-computer-engineering" style="top: 1614.0px; --dot-color: #268bd2; --lane: 0; --lanes: 1; --lane-recip: 1.000000;"><span class="timeline-date">September 2022</span><div class="timeline-newsline"><img class="timeline-logo" src="assets/img/logos/metu.png" alt="" loading="lazy" width="22" height="22" /><span>Started my M.Sc. in Computer Engineering at <a href="https://image.ceng.metu.edu.tr/" class="news-link" target="_blank" rel="noopener noreferrer">ImageLab</a>, METU, with Prof. Sinan Kalkan and Prof. Emre Akbas</span></div></div><div class="rail-marker rail-marker-right timeline-degree" data-pos="master-of-science-in-computer-engineering" aria-hidden="true" style="top: 1614.0px; --lane-ratio: 0.000000; --dot-color: #268bd2;"></div>
+<div id="tl-an-empirical-analysis-of-ids-approaches-in-container-security" class="timeline-item timeline-publication timeline-left" data-pos="metu-cysec-pangin" style="top: 1659.0px; --dot-color: #b58900; --lane: 0; --lanes: 1; --lane-recip: 1.000000;"><span class="timeline-date">September 2022</span><h4 class="timeline-title"><span>An Empirical Analysis of IDS Approaches in Container Security</span></h4><div class="timeline-authors">Sever, Y., Ekinci, G., <strong>Dogan, A. H.</strong>, Alparslan, B., Gurbuz, A. S., Jabrayilov, V., &amp; <a href="https://scholar.google.com/citations?user=PgwZYeoAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Angin, P.</a></div><div class="timeline-venue"><em>IEEE/SRMC&#x27;22</em></div><div class="entry-awards"><div class="entry-award"><a href="https://doi.org/10.1109/SRMC57347.2022.00007" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-award" aria-hidden="true"></i> <span class="award-name">Best Paper Award</span></a></div></div><div class="timeline-meta"><span class="timeline-meta-label">Supervisor</span> Assoc. Prof. Dr. <a href="https://scholar.google.com/citations?user=PgwZYeoAAAAJ" target="_blank" rel="noopener noreferrer">Pelin Angin</a></div><div class="timeline-meta"><span class="timeline-meta-label">Project</span> <a href="https://user.ceng.metu.edu.tr/~pangin/Tubitak3501/index.html" target="_blank" rel="noopener noreferrer">High Performance Intrusion Detection and Prevention for Software-Defined Container Networks in the Cloud, METU</a></div><div class="timeline-meta"><span class="timeline-meta-label">Position</span> Undergraduate Research Project, Sep 2021 - Jun 2022</div><div class="timeline-links"><a href="https://doi.org/10.1109/SRMC57347.2022.00007" target="_blank" rel="noopener noreferrer" class="timeline-link">DOI</a></div></div><div class="rail-marker rail-marker-left timeline-publication" data-pos="metu-cysec-pangin" aria-hidden="true" style="top: 1659.0px; --lane-ratio: 0.000000; --dot-color: #b58900;"><i class="rail-dot-hit"></i></div>
+<div id="tl-bachelor-of-science-in-computer-engineering" class="timeline-item timeline-degree timeline-right timeline-plain" data-pos="bachelor-of-science-in-computer-engineering" style="top: 1717.0px; --dot-color: #2aa198; --lane: 0; --lanes: 1; --lane-recip: 1.000000;"><span class="timeline-date">September 10, 2018 <span class="timeline-dash">-</span> July 17, 2022</span><h4 class="timeline-title"><img class="timeline-logo" src="assets/img/logos/metu.png" alt="" loading="lazy" width="22" height="22" /><span>Bachelor of Science in Computer Engineering</span></h4><div class="timeline-org">Middle East Technical University (METU)</div></div><div class="rail-marker rail-marker-right timeline-degree" data-pos="bachelor-of-science-in-computer-engineering" aria-hidden="true" style="top: 1717.0px; --lane-ratio: 0.000000; --dot-color: #2aa198;"><i class="rail-dot-hit"></i></div>
+<div id="tl-image-processing-and-pattern-recognition-laboratory-imagelab-metu" class="timeline-item timeline-research timeline-right timeline-plain" data-pos="metu-imagelab-alemdar-ugras" style="top: 1812.0px; --dot-color: #d33682; --lane: 0; --lanes: 1; --lane-recip: 1.000000;"><span class="timeline-date">January 2020 <span class="timeline-dash">-</span> June 2022</span><h4 class="timeline-title"><img class="timeline-logo" src="assets/img/logos/imagelab.png" alt="" loading="lazy" width="22" height="22" /><span><a href="https://image.ceng.metu.edu.tr/" target="_blank" rel="noopener noreferrer">Image Processing and Pattern Recognition Laboratory (ImageLab), METU</a></span></h4><div class="timeline-org">Undergraduate Research Project</div></div><div class="rail-marker rail-marker-right timeline-research" data-pos="metu-imagelab-alemdar-ugras" aria-hidden="true" style="top: 1812.0px; --lane-ratio: 0.000000; --dot-color: #d33682;"><i class="rail-dot-hit"></i></div>
+<div id="tl-high-performance-intrusion-detection-and-prevention-for-software-defined-container-networks-in-the-cloud-metu" class="timeline-item timeline-research timeline-right timeline-plain" data-pos="metu-cysec-pangin" style="top: 1907.0px; --dot-color: #b58900; --lane: 0; --lanes: 1; --lane-recip: 1.000000;"><span class="timeline-date">September 2021 <span class="timeline-dash">-</span> June 2022</span><h4 class="timeline-title"><img class="timeline-logo" src="assets/img/logos/tubitak.png" alt="" loading="lazy" width="22" height="22" /><span><a href="https://user.ceng.metu.edu.tr/~pangin/Tubitak3501/index.html" target="_blank" rel="noopener noreferrer">High Performance Intrusion Detection and Prevention for Software-Defined Container Networks in the Cloud, METU</a></span></h4><div class="timeline-org">Undergraduate Research Project</div></div><div class="rail-marker rail-marker-right timeline-research" data-pos="metu-cysec-pangin" aria-hidden="true" style="top: 1907.0px; --lane-ratio: 0.000000; --dot-color: #b58900;"><i class="rail-dot-hit"></i></div>
+<div id="tl-textual-event-graph-hub-teghub-metu" class="timeline-item timeline-research timeline-right timeline-plain" data-pos="metu-teghub-pkaragoz" style="top: 2043.0px; --dot-color: #0f766e; --lane: 0; --lanes: 1; --lane-recip: 1.000000;"><span class="timeline-date">October 2020 <span class="timeline-dash">-</span> October 2021</span><h4 class="timeline-title"><img class="timeline-logo" src="assets/img/logos/teghub.png" alt="" loading="lazy" width="22" height="22" /><span><a href="http://teghub.ceng.metu.edu.tr" target="_blank" rel="noopener noreferrer">Textual Event Graph HUB (TEGHub), METU</a></span></h4><div class="timeline-org">Undergraduate Research Project</div></div><div class="rail-marker rail-marker-right timeline-research" data-pos="metu-teghub-pkaragoz" aria-hidden="true" style="top: 2043.0px; --lane-ratio: 0.000000; --dot-color: #0f766e;"><i class="rail-dot-hit"></i></div>
+<div id="tl-cyber-physical-systems-laboratory-aicps-university-of-california-irvine" class="timeline-item timeline-experience timeline-right timeline-plain" data-pos="uci-cps-malfaruque" style="top: 2138.0px; --dot-color: #859900; --lane: 0; --lanes: 1; --lane-recip: 1.000000;"><span class="timeline-date">June 2021 <span class="timeline-dash">-</span> September 2021</span><h4 class="timeline-title"><img class="timeline-logo" src="assets/img/logos/uci.png" alt="" loading="lazy" width="22" height="22" /><span><a href="https://aicps.eng.uci.edu/" target="_blank" rel="noopener noreferrer">Cyber-Physical Systems Laboratory (AICPS), University of California, Irvine</a></span></h4><div class="timeline-org">Intern</div></div><div class="rail-marker rail-marker-right timeline-experience" data-pos="uci-cps-malfaruque" aria-hidden="true" style="top: 2138.0px; --lane-ratio: 0.000000; --dot-color: #859900;"><i class="rail-dot-hit"></i></div>
+<div id="tl-two-might-do-a-beat-by-beat-classification-of-cardiac-abnormalities-using-deep-learning-and-domain-specific-features" class="timeline-item timeline-publication timeline-left" data-pos="uci-cps-malfaruque" style="top: 2138.0px; --dot-color: #859900; --lane: 0; --lanes: 1; --lane-recip: 1.000000;"><span class="timeline-date">September 2021</span><h4 class="timeline-title"><span>Two Might Do: A Beat-by-Beat Classification of Cardiac Abnormalities using Deep Learning and Domain-Specific Features</span></h4><div class="timeline-authors">Demirel, B. U., <strong>Dogan, A. H.</strong>, &amp; <a href="https://scholar.google.com/citations?user=ejWHC-cAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Al-Faruque, M. A.</a></div><div class="timeline-venue"><em>CinC&#x27;21</em></div><div class="timeline-meta"><span class="timeline-meta-label">Supervisor</span> Prof. Dr. <a href="https://scholar.google.com/citations?user=ejWHC-cAAAAJ" target="_blank" rel="noopener noreferrer">Mohammad Abdullah Al-Faruque</a></div><div class="timeline-meta"><span class="timeline-meta-label">Laboratory</span> Cyber-Physical Systems Laboratory (<a href="https://aicps.eng.uci.edu/" target="_blank" rel="noopener noreferrer">AICPS</a>), University of California, Irvine</div><div class="timeline-meta"><span class="timeline-meta-label">Employment</span> Intern, Jun 2021 - Sep 2021</div><div class="timeline-links"><a href="https://github.com/Berken-demirel/Two_Might_Do" target="_blank" rel="noopener noreferrer" class="timeline-link">GitHub</a><a href="https://www.cinc.org/2021/Program/accepted/33_Preprint.pdf" target="_blank" rel="noopener noreferrer" class="timeline-link">PAPER</a><a href="https://doi.org/10.23919/cinc53138.2021.9662935" target="_blank" rel="noopener noreferrer" class="timeline-link">DOI</a></div></div><div class="rail-marker rail-marker-left timeline-publication" data-pos="uci-cps-malfaruque" aria-hidden="true" style="top: 2138.0px; --lane-ratio: 0.000000; --dot-color: #859900;"><i class="rail-dot-hit"></i></div>
+<div id="tl-explainability-in-irony-detection" class="timeline-item timeline-publication timeline-left" data-pos="metu-teghub-pkaragoz" style="top: 2387.0px; --dot-color: #0f766e; --lane: 0; --lanes: 1; --lane-recip: 1.000000;"><span class="timeline-date">September 2021</span><h4 class="timeline-title"><span>Explainability in Irony Detection</span></h4><div class="timeline-authors">Buyukbas, E. B., <strong>Dogan, A. H.</strong>, Ozturk, A. U., &amp; <a href="https://scholar.google.com/citations?user=u3r3gJIAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Karagoz, P.</a></div><div class="timeline-venue"><em>DaWaK&#x27;21</em></div><div class="timeline-meta"><span class="timeline-meta-label">Supervisor</span> Prof. Dr. <a href="https://scholar.google.com/citations?user=u3r3gJIAAAAJ" target="_blank" rel="noopener noreferrer">Pinar Karagoz</a></div><div class="timeline-meta"><span class="timeline-meta-label">Project</span> <a href="http://teghub.ceng.metu.edu.tr" target="_blank" rel="noopener noreferrer">Textual Event Graph HUB (TEGHub), METU</a></div><div class="timeline-meta"><span class="timeline-meta-label">Position</span> Undergraduate Research Project, Oct 2020 - Oct 2021</div><div class="timeline-links"><a href="https://doi.org/10.1007/978-3-030-86534-4_14" target="_blank" rel="noopener noreferrer" class="timeline-link">DOI</a></div></div><div class="rail-marker rail-marker-left timeline-publication" data-pos="metu-teghub-pkaragoz" aria-hidden="true" style="top: 2387.0px; --lane-ratio: 0.000000; --dot-color: #0f766e;"><i class="rail-dot-hit"></i></div>
 </div></div>
                     </div>
                 </section>
