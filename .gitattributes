@@ -1,1 +1,2 @@
 data/** filter=git-crypt diff=git-crypt
+data/README.md !filter !diff
