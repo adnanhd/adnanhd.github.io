@@ -704,10 +704,8 @@ a:hover {
 }
 
 .news-date {
-    font-weight: 700;
     color: var(--text-tertiary);
     font-variant-numeric: tabular-nums;
-    text-decoration: underline;
 }
 
 .news-content {
