@@ -1,0 +1,812 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="Forward and reverse diffusion, noise schedules, DDIM sampling, the score-based view, and scalable diffusion transformers." />
+        <title>Diffusion Models and DiT: Noise Schedules, DDIM, and Scalable Transformers - Adnan Harun Dogan</title>
+        <link rel="canonical" href="https://adnanhd.github.io/blogs/diffusion-transformers/" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="Diffusion Models and DiT: Noise Schedules, DDIM, and Scalable Transformers" />
+        <meta property="og:description" content="Forward and reverse diffusion, noise schedules, DDIM sampling, the score-based view, and scalable diffusion transformers." />
+        <meta property="og:url" content="https://adnanhd.github.io/blogs/diffusion-transformers/" />
+        <meta property="og:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Diffusion Models and DiT: Noise Schedules, DDIM, and Scalable Transformers" />
+        <meta name="twitter:description" content="Forward and reverse diffusion, noise schedules, DDIM sampling, the score-based view, and scalable diffusion transformers." />
+        <meta name="twitter:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Diffusion Models and DiT: Noise Schedules, DDIM, and Scalable Transformers",
+  "description": "Forward and reverse diffusion, noise schedules, DDIM sampling, the score-based view, and scalable diffusion transformers.",
+  "url": "https://adnanhd.github.io/blogs/diffusion-transformers/",
+  "image": "https://adnanhd.github.io/assets/img/profile.jpeg",
+  "author": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan",
+    "url": "https://adnanhd.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan"
+  },
+  "mainEntityOfPage": "https://adnanhd.github.io/blogs/diffusion-transformers/",
+  "datePublished": "2026-04-14"
+}
+        </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Diffusion Models and DiT: Noise Schedules, DDIM, and Scalable Transformers</h1>
+            <div class="blog-meta">Denoising diffusion and transformer backbones for generation</div>
+            <article class="blog-body">
+<p>A diffusion system is five separable parts. A perceptual compressor
+maps pixels into the space the model works in. A probability path and
+its training objective say what the network regresses at each noise
+level. A backbone computes that regression. A sampler integrates the
+learned field back to data. A conditioning path carries the class label,
+the prompt, or the control image into the backbone. The literature in
+this chapter is almost entirely a record of papers that change
+<em>one</em> of these and hold the others fixed, and that is why its
+numbers can be compared at all. DDIM changes only the sampler and reuses
+the DDPM weights untouched. Flow matching changes only the loss and
+reuses the EDM U-Net unchanged. DiT changes only the backbone and
+inherits LDM's frozen VAE. ControlNet, Video LDM and AnimateDiff change
+only the conditioning path and freeze the image model underneath. Table
+<a href="tbl:dit-what-changed">tbl:dit-what-changed</a> indexes the
+milestones by which part each one moved, and Table <a
+href="tab:diffusion-sota">tab:diffusion-sota</a> gives the reported
+quality, scale and sampling cost of the same lineage. Read together they
+answer a question a leaderboard alone cannot, which is not which model
+is best but which component the gain came from.</p>
+<div class="blog-table"><table id="tbl:dit-what-changed">
+<caption>The chapter's spine. Each milestone is placed by which of the
+five components it changes and what it holds fixed. The last column
+names the comparison the isolation makes possible. Works appearing in
+more than one row change more than one component, and those are the
+papers whose reported gains are hardest to attribute.</caption>
+<thead>
+<tr>
+<th>Work</th>
+<th>Component changed</th>
+<th>Held fixed</th>
+<th>What the isolation buys</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DDIM <span class="citation" data-cites="song_denoising_2022">(Song
+et al. 2021)</span></td>
+<td>sampler</td>
+<td>weights, objective</td>
+<td>speedup attributable to integration alone, no retraining</td>
+</tr>
+<tr>
+<td>DPM-Solver++ <span class="citation"
+data-cites="lu_dpm-solver_2022">(Lu et al. 2022)</span></td>
+<td>sampler (solver order)</td>
+<td>weights, objective</td>
+<td>solver order versus step count at fixed model</td>
+</tr>
+<tr>
+<td>Consistency distill. <span class="citation"
+data-cites="song_consistency_2023">(Song et al. 2023)</span></td>
+<td>sampler folded into weights</td>
+<td>teacher, data</td>
+<td>cost of collapsing the step ladder into one forward pass</td>
+</tr>
+<tr>
+<td>EDM <span class="citation"
+data-cites="karras_elucidating_2022">(Karras et al. 2022)</span></td>
+<td>objective weighting, preconditioning</td>
+<td>architecture, data</td>
+<td>parameterization choice shown to be moot under preconditioning</td>
+</tr>
+<tr>
+<td>Flow matching <span class="citation"
+data-cites="lipman_flow_2023">(Lipman et al. 2023)</span></td>
+<td>probability path (loss)</td>
+<td>EDM U-Net, data</td>
+<td>same model, different loss, so path is the only variable</td>
+</tr>
+<tr>
+<td>Improved DDPM <span class="citation"
+data-cites="nichol_improved_2021">(Nichol and Dhariwal 2021)</span></td>
+<td>noise schedule, learned
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Σ</mi><annotation encoding="application/x-tex">\Sigma</annotation></semantics></math></td>
+<td>architecture family</td>
+<td>schedule shape separated from capacity</td>
+</tr>
+<tr>
+<td>LDM <span class="citation"
+data-cites="rombach_high-resolution_2022">(Rombach et al.
+2022)</span></td>
+<td>perceptual compressor</td>
+<td>objective, U-Net family</td>
+<td>compute saved by compression, at a decoder-imposed quality
+ceiling</td>
+</tr>
+<tr>
+<td>DiT <span class="citation"
+data-cites="peebles_scalable_2023">(Peebles and Xie 2023)</span></td>
+<td>backbone</td>
+<td>frozen SD VAE,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>-objective</td>
+<td>FID as a function of backbone compute, nothing else moving</td>
+</tr>
+<tr>
+<td>U-ViT <span class="citation" data-cites="bao_all_2023">(Bao et al.
+2023)</span></td>
+<td>backbone (skips, token cond.)</td>
+<td>frozen VAE, objective</td>
+<td>skip connections versus specialized conditioning</td>
+</tr>
+<tr>
+<td>MM-DiT <span class="citation" data-cites="esser_scaling_2024">(Esser
+et al. 2024)</span></td>
+<td>backbone <em>and</em> path</td>
+<td>none of the two</td>
+<td>gains not separable between architecture and rectified flow</td>
+</tr>
+<tr>
+<td>DALL-E 3 <span class="citation"
+data-cites="betker_improving_2023">(Betker et al. 2023)</span></td>
+<td>training captions</td>
+<td>architecture undisclosed</td>
+<td>data quality isolated from every other lever</td>
+</tr>
+<tr>
+<td>ControlNet <span class="citation"
+data-cites="zhang_adding_2023">(Zhang et al. 2023)</span></td>
+<td>conditioning path</td>
+<td>frozen base denoiser</td>
+<td>control added with the base model provably unbroken</td>
+</tr>
+<tr>
+<td>Video LDM, SVD <span class="citation"
+data-cites="blattmann_align_2023">(Blattmann, Rombach, et al.
+2023)</span></td>
+<td>conditioning (temporal layers)</td>
+<td>frozen image LDM</td>
+<td>temporal coherence priced separately from image quality</td>
+</tr>
+<tr>
+<td>AnimateDiff <span class="citation"
+data-cites="guo_animatediff_2024">(Guo et al. 2024)</span></td>
+<td>conditioning (motion module)</td>
+<td>frozen personalized SD</td>
+<td>motion prior shown to be independent of appearance prior</td>
+</tr>
+</tbody>
+</table></div>
+<div class="blog-table"><table id="tab:diffusion-sota">
+<caption>Selected diffusion / flow / transformer milestones on standard
+benchmarks. FID rows mix ImageNet 256×256 (class-conditional), CIFAR-10
+(unconditional), and zero-shot MS-COCO (text-to-image) at the resolution
+called out by each paper. FVD covers UCF-101 zero-shot text-to-video.
+NFE = inference function evaluations at the reported FID. Citations
+point to the original sources cataloged in subsequent sections. The
+ImageNet 256 rows are quoted from the common re-benchmark in the DiT
+paper's Table 2 rather than from each original paper, so they are
+commensurable with each other. Two figures often mis-quoted at this
+resolution are corrected here. BigGAN's widely repeated 7.4 FID is its
+128×128 number, and at 256×256 BigGAN-deep is 6.95. ADM's 2.97 is
+ImageNet 128×128 with classifier guidance, and the ADM cascade at
+256×256 is 3.94.</caption>
+<thead>
+<tr>
+<th>Model</th>
+<th>Year</th>
+<th>Backbone</th>
+<th>Resolution / Task</th>
+<th>FID</th>
+<th>NFE</th>
+<th>Params</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BigGAN-deep (GAN base.) <span class="citation"
+data-cites="brock_large_2019">(Brock et al. 2019)</span></td>
+<td>2018</td>
+<td>GAN</td>
+<td>ImageNet 256</td>
+<td>6.95</td>
+<td>1</td>
+<td>158M</td>
+</tr>
+<tr>
+<td>DDPM <span class="citation" data-cites="ho_denoising_2020">(Ho et
+al. 2020)</span></td>
+<td>2020</td>
+<td>U-Net</td>
+<td>CIFAR-10 uncond</td>
+<td>3.17</td>
+<td>1000</td>
+<td>36M</td>
+</tr>
+<tr>
+<td>DDIM <span class="citation" data-cites="song_denoising_2022">(Song
+et al. 2021)</span></td>
+<td>2021</td>
+<td>U-Net</td>
+<td>CIFAR-10 (S=50)</td>
+<td>4.67</td>
+<td>50</td>
+<td>36M</td>
+</tr>
+<tr>
+<td>Improved DDPM <span class="citation"
+data-cites="nichol_improved_2021">(Nichol and Dhariwal 2021)</span></td>
+<td>2021</td>
+<td>U-Net</td>
+<td>ImageNet 64 (bpd 2.94)</td>
+<td>-</td>
+<td>250</td>
+<td>100M</td>
+</tr>
+<tr>
+<td>ADM-G <span class="citation"
+data-cites="dhariwal_diffusion_2021">(Dhariwal and Nichol
+2021)</span></td>
+<td>2021</td>
+<td>U-Net</td>
+<td>ImageNet 256 cls-cond</td>
+<td>4.59</td>
+<td>250</td>
+<td>554M</td>
+</tr>
+<tr>
+<td>ADM-G + ADM-U <span class="citation"
+data-cites="dhariwal_diffusion_2021">(Dhariwal and Nichol
+2021)</span></td>
+<td>2021</td>
+<td>U-Net casc.</td>
+<td>ImageNet 256 cls-cond</td>
+<td>3.94</td>
+<td>~ 250</td>
+<td>~1.0B</td>
+</tr>
+<tr>
+<td>EDM <span class="citation"
+data-cites="karras_elucidating_2022">(Karras et al. 2022)</span></td>
+<td>2022</td>
+<td>U-Net</td>
+<td>CIFAR-10 uncond</td>
+<td>1.79</td>
+<td>35</td>
+<td>56M</td>
+</tr>
+<tr>
+<td>LDM-4-G <span class="citation"
+data-cites="rombach_high-resolution_2022">(Rombach et al.
+2022)</span></td>
+<td>2022</td>
+<td>U-Net</td>
+<td>ImageNet 256 (cfg=1.5)</td>
+<td>3.60</td>
+<td>250</td>
+<td>400M</td>
+</tr>
+<tr>
+<td>GLIDE <span class="citation" data-cites="nichol_glide_2022">(Nichol
+et al. 2022)</span></td>
+<td>2022</td>
+<td>U-Net</td>
+<td>MS-COCO zero-shot</td>
+<td>12.2</td>
+<td>250</td>
+<td>3.5B</td>
+</tr>
+<tr>
+<td>Imagen <span class="citation"
+data-cites="saharia_photorealistic_2022">(Saharia et al.
+2022)</span></td>
+<td>2022</td>
+<td>U-Net casc.</td>
+<td>MS-COCO zero-shot</td>
+<td>7.27</td>
+<td>~ 256</td>
+<td>~7.6B</td>
+</tr>
+<tr>
+<td>DALL-E 2 <span class="citation"
+data-cites="ramesh_hierarchical_2022">(Ramesh et al. 2022)</span></td>
+<td>2022</td>
+<td>U-Net casc.</td>
+<td>MS-COCO zero-shot</td>
+<td>10.4</td>
+<td>~ 250</td>
+<td>4.5B</td>
+</tr>
+<tr>
+<td>eDiff-I <span class="citation"
+data-cites="balaji_ediff-i_2023">(Balaji et al. 2023)</span></td>
+<td>2023</td>
+<td>U-Net casc.</td>
+<td>MS-COCO zero-shot</td>
+<td>6.95</td>
+<td>~ 250</td>
+<td>~9B</td>
+</tr>
+<tr>
+<td>DiT-XL/2 <span class="citation"
+data-cites="peebles_scalable_2023">(Peebles and Xie 2023)</span></td>
+<td>2023</td>
+<td>DiT</td>
+<td>ImageNet 256 (cfg=1.5)</td>
+<td>2.27</td>
+<td>250</td>
+<td>675M</td>
+</tr>
+<tr>
+<td>U-ViT <span class="citation" data-cites="bao_all_2023">(Bao et al.
+2023)</span></td>
+<td>2023</td>
+<td>U-ViT</td>
+<td>ImageNet 256 cls-cond</td>
+<td>2.29</td>
+<td>250</td>
+<td>501M</td>
+</tr>
+<tr>
+<td>SDXL <span class="citation" data-cites="podell_sdxl_2023">(Podell et
+al. 2023)</span></td>
+<td>2023</td>
+<td>U-Net</td>
+<td>T2I 1024 (PartiPrompt)</td>
+<td>n/a</td>
+<td>50</td>
+<td>2.6B</td>
+</tr>
+<tr>
+<td>PixArt-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+<span class="citation" data-cites="chen_pixart-_2023">(Chen et al.
+2023)</span></td>
+<td>2023</td>
+<td>DiT</td>
+<td>T2I 1024 (DrawBench)</td>
+<td>n/a</td>
+<td>20</td>
+<td>600M</td>
+</tr>
+<tr>
+<td>DALL-E 3 <span class="citation"
+data-cites="betker_improving_2023">(Betker et al. 2023)</span></td>
+<td>2023</td>
+<td>LDM</td>
+<td>DrawBench GPT-4V judge</td>
+<td>n/a</td>
+<td>~ 50</td>
+<td>undisc.</td>
+</tr>
+<tr>
+<td>Consistency D. <span class="citation"
+data-cites="song_consistency_2023">(Song et al. 2023)</span></td>
+<td>2023</td>
+<td>EDM-init</td>
+<td>CIFAR-10 (1 step)</td>
+<td>3.55</td>
+<td>1</td>
+<td>56M</td>
+</tr>
+<tr>
+<td>Flow Matching <span class="citation"
+data-cites="lipman_flow_2023">(Lipman et al. 2023)</span></td>
+<td>2023</td>
+<td>EDM-net</td>
+<td>ImageNet 64 (bpd 3.31)</td>
+<td>-</td>
+<td>142</td>
+<td>62M</td>
+</tr>
+<tr>
+<td>SD3 (MM-DiT) <span class="citation"
+data-cites="esser_scaling_2024">(Esser et al. 2024)</span></td>
+<td>2024</td>
+<td>MM-DiT</td>
+<td>T2I 1024 (GenEval)</td>
+<td>n/a</td>
+<td>28</td>
+<td>8B</td>
+</tr>
+<tr>
+<td>SVD <span class="citation"
+data-cites="blattmann_stable_2023">(Blattmann, Dockhorn, et al.
+2023)</span></td>
+<td>2023</td>
+<td>LDM+temp.</td>
+<td>UCF-101 zero-shot (FVD)</td>
+<td>242</td>
+<td>25</td>
+<td>1.5B</td>
+</tr>
+</tbody>
+</table></div>
+<p><u>Diffusion models have emerged as the dominant paradigm for
+generative modeling</u>, surpassing GANs in image quality while offering
+stable training and mode coverage. The foundational work on Denoising
+Diffusion Probabilistic Models (DDPM) <span class="citation"
+data-cites="ho_denoising_2020">(Ho et al. 2020)</span> demonstrated that
+iteratively denoising samples from Gaussian noise produces high-quality
+images, achieving state-of-the-art FID scores on CIFAR-10 (3.17) and
+competitive results on LSUN.[fn:s0-ddpm-impl] This work established the
+connection between diffusion models and denoising score matching, providing both theoretical
+grounding and practical training recipes.</p>
+<p>Subsequent work focused on accelerating sampling, which originally
+required 1000+ steps. Denoising Diffusion Implicit
+Models (DDIM) <span class="citation"
+data-cites="song_denoising_2022">(Song et al. 2021)</span> introduced a
+non-Markovian formulation enabling 10-50× faster sampling by treating
+the reverse process as solving an
+ODE rather than simulating an SDE. Improved DDPM <span class="citation"
+data-cites="nichol_improved_2021">(Nichol and Dhariwal 2021)</span>
+showed that learning the variance schedule and using fewer steps
+maintains quality while reducing computation. DPM-Solver++ <span
+class="citation" data-cites="lu_dpm-solver_2022">(Lu et al. 2022)</span>
+further improved sampling efficiency through high-order ODE solvers
+specifically designed for guided diffusion, enabling 15-20 step
+generation.</p>
+<p><u>The architecture evolution moved from U-Net to Transformer
+backbones.</u> Diffusion Models Beat GANs <span class="citation"
+data-cites="dhariwal_diffusion_2021">(Dhariwal and Nichol 2021)</span>
+demonstrated that architectural improvements (attention at multiple
+resolutions, adaptive group normalization) and classifier guidance
+enable diffusion models to surpass BigGAN on ImageNet. The EDM framework
+<span class="citation" data-cites="karras_elucidating_2022">(Karras et
+al. 2022)</span> unified the design space, achieving SOTA FID of 1.79 on
+CIFAR-10 through careful analysis of noise schedules, preconditioning,
+and sampling.</p>
+<p>The Diffusion Transformer (DiT) <span
+class="citation" data-cites="peebles_scalable_2023">(Peebles and Xie
+2023)</span> replaced U-Net with a Vision Transformer operating on
+latent patches, demonstrating clean scaling laws: higher compute
+(GFLOPs) consistently yields lower FID. DiT-XL/2 achieved 2.27 FID on
+ImageNet 256×256, establishing transformers as viable diffusion
+backbones. U-ViT <span class="citation"
+data-cites="bao_all_2023">(Bao et al. 2023)</span> showed that
+<u>treating time, condition, and image patches uniformly as tokens with
+long skip connections achieves comparable results with simpler
+architecture</u>.</p>
+<p>Text-to-image synthesis scaled these techniques dramatically. Latent Diffusion Models (LDM) <span
+class="citation" data-cites="rombach_high-resolution_2022">(Rombach et
+al. 2022)</span> <u>moved diffusion to the latent space of a pretrained
+autoencoder, reducing computation by 4-16× while maintaining
+quality</u>. GLIDE <span class="citation"
+data-cites="nichol_glide_2022">(Nichol et al. 2022)</span> demonstrated
+classifier-free guidance outperforms CLIP guidance for photorealism.
+Imagen <span class="citation"
+data-cites="saharia_photorealistic_2022">(Saharia et al. 2022)</span>
+showed that scaling the text encoder (T5-XXL) matters more than scaling
+the image model, achieving breakthrough text-image alignment. DALL-E 2
+<span class="citation" data-cites="ramesh_hierarchical_2022">(Ramesh et
+al. 2022)</span> used a two-stage approach: CLIP prior generating image
+embeddings, then diffusion decoder.</p>
+<p>The Stable Diffusion family
+democratized text-to-image. SDXL <span class="citation"
+data-cites="podell_sdxl_2023">(Podell et al. 2023)</span> scaled to 3×
+larger U-Net with dual text encoders, achieving quality competitive with
+closed-source models.
+PixArt-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+<span class="citation" data-cites="chen_pixart-_2023">(Chen et al.
+2023)</span> demonstrated efficient training by decomposing into stages
+(pixel dependency, text alignment, aesthetics), requiring only 10.8% of
+Stable Diffusion's training compute. Stable Diffusion 3 <span
+class="citation" data-cites="esser_scaling_2024">(Esser et al.
+2024)</span> introduced the MM-DiT architecture
+with separate weights for image and text modalities and rectified flow
+formulation.</p>
+<p><u>Video generation extended these techniques temporally.</u> The
+mechanism is the same in all four papers below. A frame-wise image
+denoiser already exists and works, so the video model keeps it and
+inserts an operator that mixes information <em>across</em> frames at
+each spatial position. What separates the papers is where that operator
+sits, what is trainable, and how the model is stretched past its
+training window. Video Diffusion Models <span class="citation"
+data-cites="ho_video_2022">(Ho, Salimans, et al. 2022)</span> added 3D
+attention for temporal coherence, training the whole stack jointly on a
+mixture of images and clips. Imagen Video <span class="citation"
+data-cites="ho_imagen_2022">(Ho, Chan, et al. 2022)</span> used cascaded
+diffusion with spatial and temporal super-resolution, so temporal mixing
+is spread over seven separately trained models. Video LDM <span
+class="citation" data-cites="blattmann_align_2023">(Blattmann, Rombach,
+et al. 2023)</span> inserted temporal layers into pretrained image LDMs
+and trained only those layers, freezing the spatial weights. Stable
+Video Diffusion <span class="citation"
+data-cites="blattmann_stable_2023">(Blattmann, Dockhorn, et al.
+2023)</span> kept that recipe and moved the variable to the data,
+demonstrating the importance of curation for video quality. AnimateDiff
+<span class="citation" data-cites="guo_animatediff_2024">(Guo et al.
+2024)</span> pushed the separation furthest and showed motion modules
+can animate any personalized text-to-image model without retraining,
+which is the claim that motion and appearance are learned in disjoint
+parameter sets.</p>
+<p>Flow matching <span class="citation"
+data-cites="lipman_flow_2023">(Lipman et al. 2023)</span> provided an
+alternative training paradigm for continuous normalizing flows. <u>Instead of
+learning a score function, flow matching directly regresses a velocity
+field that transports noise to data</u>; the score
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>∇</mi><mi>x</mi></msub><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>p</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\nabla_x \log p_t(x)</annotation></semantics></math>
+is replaced by a learned velocity
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">v_\theta(x, t)</annotation></semantics></math>
+generating a probability path
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>p</mi><mi>t</mi></msub><annotation encoding="application/x-tex">p_t</annotation></semantics></math>
+interpolating between noise
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>0</mn></msub><mo>=</mo><mi mathvariant="script">𝒩</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><mi>I</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p_0 = \mathcal{N}(0, I)</annotation></semantics></math>
+and data
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo>=</mo><msub><mi>p</mi><mtext mathvariant="normal">data</mtext></msub></mrow><annotation encoding="application/x-tex">p_1 = p_{\text{data}}</annotation></semantics></math>.
+The conditional flow matching (CFM) objective is:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">ℒ</mi><mtext mathvariant="normal">CFM</mtext><mo>=</mo><mi mathvariant="double-struck">𝔼</mi><mrow><mi>t</mi><mo>,</mo><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><msub><mi>x</mi><mi>t</mi></msub></mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>v</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>t</mi></msub><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>u</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">|</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\begin{equation}
+\mathcal{L}{\text{CFM}} = \mathbb{E}{t, x_1, x_t} \|v_\theta(x_t, t) - u_t(x_t | x_1)\|^2
+\end{equation}</annotation></semantics></math> where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">|</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">u_t(x_t | x_1)</annotation></semantics></math>
+is the target velocity for the conditional path
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>t</mi></msub><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><msub><mi>x</mi><mn>0</mn></msub><mo>+</mo><mi>t</mi><msub><mi>x</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">x_t = (1-t)x_0 + t x_1</annotation></semantics></math>
+(linear interpolation with OT paths). Compared to score matching, CFM
+yields straighter trajectories that require fewer integration steps at
+inference (typically 20-50 NFEs vs. 100-1000 for standard diffusion).
+The OT variant uses
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>t</mi></msub><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>σ</mi><mi mathvariant="normal">min</mi></msub><mo stretchy="false" form="postfix">)</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><msub><mi>x</mi><mn>0</mn></msub><mo>+</mo><mi>t</mi><msub><mi>x</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">x_t = (1-(1-\sigma_{\min})t)x_0 + tx_1</annotation></semantics></math>,
+producing nearly straight paths that can be sampled with Euler
+integration in as few as 5 steps. Consistency models <span
+class="citation" data-cites="song_consistency_2023">(Song et al.
+2023)</span> learn to directly map any noisy
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>t</mi></msub><annotation encoding="application/x-tex">x_t</annotation></semantics></math>
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mn>0</mn></msub><annotation encoding="application/x-tex">x_0</annotation></semantics></math>
+via a self-consistency constraint
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>t</mi></msub><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>f</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><msup><mi>t</mi><mo>′</mo></msup></msub><mo>,</mo><msup><mi>t</mi><mo>′</mo></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f_\theta(x_t, t) = f_\theta(x_{t&#39;}, t&#39;)</annotation></semantics></math>
+for all
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>,</mo><msup><mi>t</mi><mo>′</mo></msup></mrow><annotation encoding="application/x-tex">t, t&#39;</annotation></semantics></math>
+on the same trajectory, enabling one-step generation.</p>
+<p><u>Controllable generation became practical with ControlNet</u> <span
+class="citation" data-cites="zhang_adding_2023">(Zhang et al.
+2023)</span>, which adds spatial conditioning (edges, depth, pose) to
+pretrained models via trainable copies of encoder blocks connected with
+zero convolutions. InstructPix2Pix <span class="citation"
+data-cites="brooks_instructpix2pix_2023">(Brooks et al. 2023)</span>
+enabled instruction-based editing by training on synthetic edit pairs.
+Prompt-to-Prompt <span class="citation"
+data-cites="hertz_prompt--prompt_2022">(Hertz et al. 2022)</span> showed
+that manipulating cross-attention maps enables localized editing without
+retraining.</p>
+<p>Sora <span class="citation"
+data-cites="noauthor_sora_2024">(<em><span>SORA</span></em> 2024)</span>
+carries the same separation into video at scale, keeping the DiT
+backbone and replacing image patches with spacetime patches. It
+generates minute-long clips with 3D consistency and object permanence
+that nobody wrote a prior for, which is the observation behind the
+<em>world simulator</em> phrasing. The phrasing is a claim about
+emergent behaviour under scale, not a demonstration that physics was
+learned, and OpenAI's own report lists the counterexamples: glass that
+shatters wrongly, a bitten cookie with no bite mark, hands with the
+wrong finger count. Section Sora
+takes those failures up in detail.</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-balaji_ediff-i_2023" class="csl-entry" role="listitem">
+Balaji, Yogesh, Seungjun Nah, Xun Huang, et al. 2023. <em><span
+class="nocase">eDiff</span>-<span>I</span>:
+<span>Text</span>-to-<span>Image</span> <span>Diffusion</span>
+<span>Models</span> with an <span>Ensemble</span> of <span>Expert</span>
+<span>Denoisers</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2211.01324">https://doi.org/10.48550/arXiv.2211.01324</a>.
+</div>
+<div id="ref-bao_all_2023" class="csl-entry" role="listitem">
+Bao, Fan, Shen Nie, Kaiwen Xue, et al. 2023. <em>All Are
+<span>Worth</span> <span>Words</span>: <span>A</span> <span>ViT</span>
+<span>Backbone</span> for <span>Diffusion</span>
+<span>Models</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2209.12152">https://doi.org/10.48550/arXiv.2209.12152</a>.
+</div>
+<div id="ref-betker_improving_2023" class="csl-entry" role="listitem">
+Betker, James, Gabriel Goh, Li Jing, et al. 2023. <em>Improving
+<span>Image</span> <span>Generation</span> with <span>Better</span>
+<span>Captions</span></em>.
+</div>
+<div id="ref-blattmann_stable_2023" class="csl-entry" role="listitem">
+Blattmann, Andreas, Tim Dockhorn, Sumith Kulal, et al. 2023. <em>Stable
+<span>Video</span> <span>Diffusion</span>: <span>Scaling</span>
+<span>Latent</span> <span>Video</span> <span>Diffusion</span>
+<span>Models</span> to <span>Large</span> <span>Datasets</span></em>.
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2311.15127">https://doi.org/10.48550/arXiv.2311.15127</a>.
+</div>
+<div id="ref-blattmann_align_2023" class="csl-entry" role="listitem">
+Blattmann, Andreas, Robin Rombach, Huan Ling, et al. 2023. <em>Align
+Your <span>Latents</span>: <span>High</span>-<span>Resolution</span>
+<span>Video</span> <span>Synthesis</span> with <span>Latent</span>
+<span>Diffusion</span> <span>Models</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2304.08818">https://doi.org/10.48550/arXiv.2304.08818</a>.
+</div>
+<div id="ref-brock_large_2019" class="csl-entry" role="listitem">
+Brock, Andrew, Jeff Donahue, and Karen Simonyan. 2019. <span>"Large
+<span>Scale</span> <span>GAN</span> <span>Training</span> for
+<span>High</span> <span>Fidelity</span> <span>Natural</span>
+<span>Image</span> <span>Synthesis</span>."</span> <em>International
+Conference on Learning Representations</em>, February. <a
+href="https://doi.org/10.48550/arXiv.1809.11096">https://doi.org/10.48550/arXiv.1809.11096</a>.
+</div>
+<div id="ref-brooks_instructpix2pix_2023" class="csl-entry"
+role="listitem">
+Brooks, Tim, Aleksander Holynski, and Alexei A. Efros. 2023.
+<em><span>InstructPix2Pix</span>: <span>Learning</span> to
+<span>Follow</span> <span>Image</span> <span>Editing</span>
+<span>Instructions</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2211.09800">https://doi.org/10.48550/arXiv.2211.09800</a>.
+</div>
+<div id="ref-chen_pixart-_2023" class="csl-entry" role="listitem">
+Chen, Junsong, Jincheng Yu, Chongjian Ge, et al. 2023.
+<em><span>PixArt</span>-$α$: <span>Fast</span> <span>Training</span> of
+<span>Diffusion</span> <span>Transformer</span> for
+<span>Photorealistic</span> <span>Text</span>-to-<span>Image</span>
+<span>Synthesis</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2310.00426">https://doi.org/10.48550/arXiv.2310.00426</a>.
+</div>
+<div id="ref-dhariwal_diffusion_2021" class="csl-entry" role="listitem">
+Dhariwal, Prafulla, and Alex Nichol. 2021. <em>Diffusion
+<span>Models</span> <span>Beat</span> <span>GANs</span> on
+<span>Image</span> <span>Synthesis</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2105.05233">https://doi.org/10.48550/arXiv.2105.05233</a>.
+</div>
+<div id="ref-esser_scaling_2024" class="csl-entry" role="listitem">
+Esser, Patrick, Sumith Kulal, Andreas Blattmann, et al. 2024.
+<em>Scaling <span>Rectified</span> <span>Flow</span>
+<span>Transformers</span> for <span>High</span>-<span>Resolution</span>
+<span>Image</span> <span>Synthesis</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2403.03206">https://doi.org/10.48550/arXiv.2403.03206</a>.
+</div>
+<div id="ref-guo_animatediff_2024" class="csl-entry" role="listitem">
+Guo, Yuwei, Ceyuan Yang, Anyi Rao, et al. 2024.
+<em><span>AnimateDiff</span>: <span>Animate</span> <span>Your</span>
+<span>Personalized</span> <span>Text</span>-to-<span>Image</span>
+<span>Diffusion</span> <span>Models</span> Without <span>Specific</span>
+<span>Tuning</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2307.04725">https://doi.org/10.48550/arXiv.2307.04725</a>.
+</div>
+<div id="ref-hertz_prompt--prompt_2022" class="csl-entry"
+role="listitem">
+Hertz, Amir, Ron Mokady, Jay Tenenbaum, Kfir Aberman, Yael Pritch, and
+Daniel Cohen-Or. 2022. <em>Prompt-to-<span>Prompt</span>
+<span>Image</span> <span>Editing</span> with <span>Cross</span>
+<span>Attention</span> <span>Control</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2208.01626">https://doi.org/10.48550/arXiv.2208.01626</a>.
+</div>
+<div id="ref-ho_imagen_2022" class="csl-entry" role="listitem">
+Ho, Jonathan, William Chan, Chitwan Saharia, et al. 2022. <em>Imagen
+<span>Video</span>: <span>High</span> <span>Definition</span>
+<span>Video</span> <span>Generation</span> with <span>Diffusion</span>
+<span>Models</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2210.02303">https://doi.org/10.48550/arXiv.2210.02303</a>.
+</div>
+<div id="ref-ho_denoising_2020" class="csl-entry" role="listitem">
+Ho, Jonathan, Ajay Jain, and Pieter Abbeel. 2020. <span>"Denoising
+<span>Diffusion</span> <span>Probabilistic</span>
+<span>Models</span>."</span> <em>Advances in Neural Information
+Processing Systems</em>, December. <a
+href="https://doi.org/10.48550/arXiv.2006.11239">https://doi.org/10.48550/arXiv.2006.11239</a>.
+</div>
+<div id="ref-ho_video_2022" class="csl-entry" role="listitem">
+Ho, Jonathan, Tim Salimans, Alexey Gritsenko, William Chan, Mohammad
+Norouzi, and David J. Fleet. 2022. <em>Video <span>Diffusion</span>
+<span>Models</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2204.03458">https://doi.org/10.48550/arXiv.2204.03458</a>.
+</div>
+<div id="ref-karras_elucidating_2022" class="csl-entry" role="listitem">
+Karras, Tero, Miika Aittala, Timo Aila, and Samuli Laine. 2022.
+<em>Elucidating the <span>Design</span> <span>Space</span> of
+<span>Diffusion</span>-<span>Based</span> <span>Generative</span>
+<span>Models</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2206.00364">https://doi.org/10.48550/arXiv.2206.00364</a>.
+</div>
+<div id="ref-lipman_flow_2023" class="csl-entry" role="listitem">
+Lipman, Yaron, Ricky T. Q. Chen, Heli Ben-Hamu, Maximilian Nickel, and
+Matt Le. 2023. <em>Flow <span>Matching</span> for
+<span>Generative</span> <span>Modeling</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2210.02747">https://doi.org/10.48550/arXiv.2210.02747</a>.
+</div>
+<div id="ref-lu_dpm-solver_2022" class="csl-entry" role="listitem">
+Lu, Cheng, Yuhao Zhou, Fan Bao, Jianfei Chen, Chongxuan Li, and Jun Zhu.
+2022. <span>"<span>DPM</span>-<span>Solver</span>++: <span>Fast</span>
+<span>Solver</span> for <span>Guided</span> <span>Sampling</span> of
+<span>Diffusion</span> <span>Probabilistic</span>
+<span>Models</span>."</span> <em>Machine Intelligence Research</em> 22
+(4): 730-51. <a
+href="https://doi.org/10.1007/s11633-025-1562-4">https://doi.org/10.1007/s11633-025-1562-4</a>.
+</div>
+<div id="ref-nichol_improved_2021" class="csl-entry" role="listitem">
+Nichol, Alex, and Prafulla Dhariwal. 2021. <em>Improved
+<span>Denoising</span> <span>Diffusion</span> <span>Probabilistic</span>
+<span>Models</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2102.09672">https://doi.org/10.48550/arXiv.2102.09672</a>.
+</div>
+<div id="ref-nichol_glide_2022" class="csl-entry" role="listitem">
+Nichol, Alex, Prafulla Dhariwal, Aditya Ramesh, et al. 2022.
+<em><span>GLIDE</span>: <span>Towards</span> <span>Photorealistic</span>
+<span>Image</span> <span>Generation</span> and <span>Editing</span> with
+<span>Text</span>-<span>Guided</span> <span>Diffusion</span>
+<span>Models</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2112.10741">https://doi.org/10.48550/arXiv.2112.10741</a>.
+</div>
+<div id="ref-peebles_scalable_2023" class="csl-entry" role="listitem">
+Peebles, William, and Saining Xie. 2023. <em>Scalable
+<span>Diffusion</span> <span>Models</span> with
+<span>Transformers</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2212.09748">https://doi.org/10.48550/arXiv.2212.09748</a>.
+</div>
+<div id="ref-podell_sdxl_2023" class="csl-entry" role="listitem">
+Podell, Dustin, Zion English, Kyle Lacey, et al. 2023.
+<em><span>SDXL</span>: <span>Improving</span> <span>Latent</span>
+<span>Diffusion</span> <span>Models</span> for
+<span>High</span>-<span>Resolution</span> <span>Image</span>
+<span>Synthesis</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2307.01952">https://doi.org/10.48550/arXiv.2307.01952</a>.
+</div>
+<div id="ref-ramesh_hierarchical_2022" class="csl-entry"
+role="listitem">
+Ramesh, Aditya, Prafulla Dhariwal, Alex Nichol, Casey Chu, and Mark
+Chen. 2022. <em>Hierarchical <span>Text</span>-<span>Conditional</span>
+<span>Image</span> <span>Generation</span> with <span>CLIP</span>
+<span>Latents</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2204.06125">https://doi.org/10.48550/arXiv.2204.06125</a>.
+</div>
+<div id="ref-rombach_high-resolution_2022" class="csl-entry"
+role="listitem">
+Rombach, Robin, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and
+Björn Ommer. 2022. <em>High-<span>Resolution</span> <span>Image</span>
+<span>Synthesis</span> with <span>Latent</span> <span>Diffusion</span>
+<span>Models</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2112.10752">https://doi.org/10.48550/arXiv.2112.10752</a>.
+</div>
+<div id="ref-saharia_photorealistic_2022" class="csl-entry"
+role="listitem">
+Saharia, Chitwan, William Chan, Saurabh Saxena, et al. 2022.
+<em>Photorealistic <span>Text</span>-to-<span>Image</span>
+<span>Diffusion</span> <span>Models</span> with <span>Deep</span>
+<span>Language</span> <span>Understanding</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2205.11487">https://doi.org/10.48550/arXiv.2205.11487</a>.
+</div>
+<div id="ref-song_denoising_2022" class="csl-entry" role="listitem">
+Song, Jiaming, Chenlin Meng, and Stefano Ermon. 2021. <span>"Denoising
+<span>Diffusion</span> <span>Implicit</span>
+<span>Models</span>."</span> <em>International Conference on Learning
+Representations</em>, October. <a
+href="https://doi.org/10.48550/arXiv.2010.02502">https://doi.org/10.48550/arXiv.2010.02502</a>.
+</div>
+<div id="ref-song_consistency_2023" class="csl-entry" role="listitem">
+Song, Yang, Prafulla Dhariwal, Mark Chen, and Ilya Sutskever. 2023.
+<em>Consistency <span>Models</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2303.01469">https://doi.org/10.48550/arXiv.2303.01469</a>.
+</div>
+<div id="ref-noauthor_sora_2024" class="csl-entry" role="listitem">
+<em><span>SORA</span>: <span>Video</span> Generation Models as World
+Simulators</em>. 2024. <a
+href="https://openai.com/index/video-generation-models-as-world-simulators/">https://openai.com/index/video-generation-models-as-world-simulators/</a>.
+</div>
+<div id="ref-zhang_adding_2023" class="csl-entry" role="listitem">
+Zhang, Lvmin, Anyi Rao, and Maneesh Agrawala. 2023. <em>Adding
+<span>Conditional</span> <span>Control</span> to
+<span>Text</span>-to-<span>Image</span> <span>Diffusion</span>
+<span>Models</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2302.05543">https://doi.org/10.48550/arXiv.2302.05543</a>.
+</div>
+</div>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

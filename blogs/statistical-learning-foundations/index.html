@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="Empirical risk minimization, maximum likelihood as M-estimation, capacity control, and the classical uniform-convergence toolkit." />
+        <title>Classical Statistical Learning: ERM, Capacity Control, and Uniform Convergence - Adnan Harun Dogan</title>
+        <link rel="canonical" href="https://adnanhd.github.io/blogs/statistical-learning-foundations/" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="Classical Statistical Learning: ERM, Capacity Control, and Uniform Convergence" />
+        <meta property="og:description" content="Empirical risk minimization, maximum likelihood as M-estimation, capacity control, and the classical uniform-convergence toolkit." />
+        <meta property="og:url" content="https://adnanhd.github.io/blogs/statistical-learning-foundations/" />
+        <meta property="og:image" content="https://adnanhd.github.io/blogs/statistical-learning-foundations/og-image.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Classical Statistical Learning: ERM, Capacity Control, and Uniform Convergence" />
+        <meta name="twitter:description" content="Empirical risk minimization, maximum likelihood as M-estimation, capacity control, and the classical uniform-convergence toolkit." />
+        <meta name="twitter:image" content="https://adnanhd.github.io/blogs/statistical-learning-foundations/og-image.png" />
+        <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Classical Statistical Learning: ERM, Capacity Control, and Uniform Convergence",
+  "description": "Empirical risk minimization, maximum likelihood as M-estimation, capacity control, and the classical uniform-convergence toolkit.",
+  "url": "https://adnanhd.github.io/blogs/statistical-learning-foundations/",
+  "image": "https://adnanhd.github.io/blogs/statistical-learning-foundations/og-image.png",
+  "author": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan",
+    "url": "https://adnanhd.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan"
+  },
+  "mainEntityOfPage": "https://adnanhd.github.io/blogs/statistical-learning-foundations/",
+  "datePublished": "2026-01-13"
+}
+        </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Classical Statistical Learning: ERM, Capacity Control, and Uniform Convergence</h1>
+            <div class="blog-meta">The classical generalization theory deep learning inherited</div>
+            <article class="blog-body">
+<p>This chapter catalogs the references covered in Part I, grouping them
+by topic and cross-linking to the chapter where each is discussed in
+detail. The goal is to make the prerequisite structure explicit: a
+reader who has seen, for instance, the Hoeffding inequality in passing
+can skip the concentration chapter; a reader who has not should follow
+the link before tackling VC/Rademacher bounds.</p>
+<p>The unifying thread of Part I is the <strong>uniform-convergence
+paradigm</strong>: relate the population risk of the ERM hypothesis to
+its empirical risk via a capacity term that depends on the hypothesis
+class, then choose a class whose capacity is provably small. Every paper
+below contributes either a capacity measure (VC dimension, Rademacher
+complexity, fat-shattering dimension, margin), a tail inequality that
+turns expectations into high-probability statements (Hoeffding,
+Bernstein, McDiarmid), or a concrete algorithm whose generalization can
+be analyzed inside the framework (SVM, AdaBoost, kernel ridge
+regression). <u>The later Parts of the book will show how each of these
+components either breaks or bends when the hypothesis class becomes a
+deep neural network trained by SGD.</u></p>
+<h2 id="lineage-of-the-classical-theory">Lineage of the classical
+theory</h2>
+<p>The statistical reading of supervised learning begins with the
+uniform convergence theorem of <span class="citation"
+data-cites="vapnik_chervonenkis_1971">(Vapnik and Chervonenkis
+1971)</span>, which bounds the gap between empirical and population
+error uniformly over a hypothesis class and, in the same stroke,
+introduces the growth function and the VC dimension as the first general
+capacity measures; this is the result on which the VC / Rademacher chapter is built.
+<span class="citation" data-cites="vapnik_nature_1995">(Vapnik
+1995)</span> later organizes these bounds for both classification and
+regression into the Structural Risk Minimization programme, the
+prescription to trade empirical fit against capacity by minimizing over
+a nested family of classes; that programme frames both the ERM and MLE and VC / Rademacher chapters. The modern
+textbook synthesis of this uniform-convergence view (Rademacher
+complexity, VC, margin bounds, kernels) is <span class="citation"
+data-cites="mohri_foundations_2018">(Mohri et al. 2018)</span>, used as
+the standing reference throughout ERM,
+VC, kernels, SVM,
+and boosting.</p>
+<p>The capacity side of the theory was then sharpened in two directions.
+<span class="citation" data-cites="bartlett_mendelson_2002">(Bartlett
+and Mendelson 2002)</span> replaces the distribution-free VC dimension
+with the data-dependent Rademacher and Gaussian complexities and proves
+the symmetrization bound that is now standard, yielding estimates that
+adapt to the sample rather than to the worst case. In parallel, the
+capacity of neural networks specifically was estimated first by <span
+class="citation" data-cites="baum_haussler_1989">(Baum and Haussler
+1989)</span>, whose VC-based sample-complexity count for threshold
+feed-forward networks is the earliest such result, and then collected
+with the pseudo-dimension and fat-shattering refinements in the
+monograph of <span class="citation"
+data-cites="anthony_bartlett_1999">(Anthony and Bartlett 1999)</span>;
+all three feed the VC /
+Rademacher chapter.</p>
+<p>Underneath every such bound sits a tail inequality that converts an
+expectation into a high-probability statement. <span class="citation"
+data-cites="boucheron_concentration_2013">(Boucheron et al. 2013)</span>
+is the standard reference for this machinery (Hoeffding, Bernstein, the
+bounded-differences inequality, the entropy method, and log-Sobolev
+arguments), and <span class="citation"
+data-cites="murphy_pml_advanced_2023">(Murphy 2023)</span> gives the
+practitioner-oriented digest of the same tools as they feed PAC and
+PAC-Bayes analyses; both are treated in the Concentration chapter.</p>
+<p>A complementary, estimation-theoretic account of the same fitting
+procedures comes from classical asymptotics. <span class="citation"
+data-cites="vandervaart_asymptotic_1998">(Vaart 1998)</span> develops
+the consistency, the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mi>n</mi></msqrt><annotation encoding="application/x-tex">\sqrt{n}</annotation></semantics></math>
+rate, and the limiting normal law of M-estimators and the
+maximum-likelihood estimator, while <span class="citation"
+data-cites="murphy_pml_intro_2022">(Murphy 2022 Ch 5)</span> supplies
+the Bayesian-probabilistic framing in which ERM, MLE, and MAP differ
+only by their regularizer; both inform the ERM and MLE chapter.</p>
+<p>The kernel branch of the field gives the theory a function-space
+home. <span class="citation"
+data-cites="scholkopf_smola_2002">(Schölkopf and Smola 2002)</span> is
+the canonical account of positive-definite kernels, the
+reproducing-kernel Hilbert space, the representer theorem, and their use
+in the SVM and kernel PCA, and <span class="citation"
+data-cites="rasmussen_williams_2006">(Rasmussen and Williams
+2006)</span> is its Bayesian counterpart, developing Gaussian-process
+covariance functions, posterior inference, the marginal likelihood, and
+the equivalence to kernel ridge regression; the Kernels chapter draws on both.</p>
+<p>These pieces meet in the support vector machine, the algorithm that
+made the margin theory concrete. <span class="citation"
+data-cites="boser_guyon_vapnik_1992">(Boser et al. 1992)</span>
+introduces the <em>kernel trick</em> in the dual of the margin
+classifier, allowing nonlinear boundaries with no explicit feature map;
+<span class="citation" data-cites="cortes_vapnik_1995">(Cortes and
+Vapnik 1995)</span> adds the slack variables and the hinge loss of the
+<em>soft-margin</em> formulation, extending the method to non-separable
+data; and <span class="citation" data-cites="platt_smo_1999">(Platt
+1999)</span> makes it practical with Sequential Minimal Optimization, a
+pairwise coordinate-ascent scheme that solves the quadratic program
+without a general QP solver. The SVM
+chapter follows exactly this progression.</p>
+<p>Boosting supplies the other classical algorithm and, with it, the
+first clean case of benign overfitting. <span class="citation"
+data-cites="freund_schapire_1997">(Freund and Schapire 1997)</span>
+introduces AdaBoost and bounds its training error by the product of the
+per-round normalization constants, and <span class="citation"
+data-cites="schapire_margin_1998">(Schapire et al. 1998)</span> then
+explains the algorithm's most puzzling behavior, the continued
+improvement of test error after the training error reaches zero, with a
+bound that depends on the <em>margin distribution</em> rather than on
+the number of rounds; the Boosting
+chapter develops both. <u>That last observation, capacity controlled
+through a margin rather than through a parameter count, is precisely the
+thread the later Parts pick up once the classifier becomes an
+overparameterized network.</u></p>
+<h2 id="sota-table-classical-benchmarks">SoTA table: classical
+benchmarks</h2>
+<p><u>Classical learning theory crystallized around a handful of
+algorithm families on a stable benchmark suite (MNIST digits, USPS, UCI
+Letter, UCI Pima/Spambase).</u> Each family carries a <em>signature
+failure mode</em> that the uniform-convergence framework either explains
+or fails to explain, and these failures are exactly the entry points for
+the post-classical theory developed in Parts II-V. The leaderboard below
+catalogs the headline result for each family with hyperparameters in
+parentheses; the prose around it walks through the families
+chronologically and attaches footnote markers at the clause where each
+failure mode first becomes visible.</p>
+<p>The intro paragraph for Part I already framed <strong>uniform
+convergence</strong> as the central paradigm. Every component of the
+framework sits under it in the same shape. The component buys a
+guarantee, the guarantee rests on one assumption, and modern practice
+breaks that assumption. There are nine such components in the
+leaderboard, and the table below lays them out in that shape, with the
+footnote on each row carrying the arithmetic. <u>Reading the table by
+column rather than by row is the point of Part I: the middle column is
+what the classical theory delivers, and the right-hand column is the
+list of exits into Parts II to V.</u></p>
+<div class="blog-table"><table id="tbl:classical-assumption-breaks">
+<caption>The nine components of the uniform-convergence framework used
+in Part I, each with the guarantee it buys and the single assumption
+that modern practice violates. The Detail column points at the footnote
+that carries the numbers. Rows 1 to 8 are statistical limits; row 9 is a
+computational one, and it is the only entry that a larger machine rather
+than a new theorem could relax.</caption>
+<thead>
+<tr>
+<th>Component</th>
+<th>What it buys</th>
+<th>Assumption modern practice breaks</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>VC dimension</strong> <span class="citation"
+data-cites="vapnik_chervonenkis_1971">(Vapnik and Chervonenkis
+1971)</span></td>
+<td>sample complexity from combinatorial richness, not cardinality</td>
+<td>capacity is small against
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math></td>
+<td><a href="#fn1" class="footnote-ref" id="fnref1"
+role="doc-noteref"><sup>1</sup></a></td>
+</tr>
+<tr>
+<td><strong>Rademacher</strong> <span class="citation"
+data-cites="bartlett_mendelson_2002">(Bartlett and Mendelson
+2002)</span></td>
+<td>data-dependent capacity, provably tighter than VC</td>
+<td>the empirical Rademacher sits below its trivial upper bound</td>
+<td><a href="#fn2" class="footnote-ref" id="fnref2"
+role="doc-noteref"><sup>2</sup></a></td>
+</tr>
+<tr>
+<td><strong>Margin</strong>, boosting <span class="citation"
+data-cites="schapire_margin_1998">(Schapire et al. 1998)</span></td>
+<td>a bound in the margin distribution, not the round count</td>
+<td>margin mass keeps moving right as rounds accumulate</td>
+<td><a href="#fn3" class="footnote-ref" id="fnref3"
+role="doc-noteref"><sup>3</sup></a></td>
+</tr>
+<tr>
+<td><strong>Margin</strong>, kernel SVM <span class="citation"
+data-cites="cortes_vapnik_1995">(Cortes and Vapnik 1995)</span></td>
+<td>the same bound transported into a feature space</td>
+<td>the classifier separates that space with room to spare</td>
+<td><a href="#fn4" class="footnote-ref" id="fnref4"
+role="doc-noteref"><sup>4</sup></a></td>
+</tr>
+<tr>
+<td><strong>Kernel</strong> as <strong>inductive bias</strong> <span
+class="citation" data-cites="scholkopf_smola_2002">(Schölkopf and Smola
+2002 Ch 2)</span></td>
+<td>an explicit class with a known Mercer eigendecay</td>
+<td>the right kernel is picked before the data is seen</td>
+<td><a href="#fn5" class="footnote-ref" id="fnref5"
+role="doc-noteref"><sup>5</sup></a></td>
+</tr>
+<tr>
+<td><strong>ERM</strong> <span class="citation"
+data-cites="vapnik_nature_1995">(Vapnik 1995)</span></td>
+<td>population risk controlled by empirical risk</td>
+<td>the sample is i.i.d. from one fixed distribution</td>
+<td><a href="#fn6" class="footnote-ref" id="fnref6"
+role="doc-noteref"><sup>6</sup></a></td>
+</tr>
+<tr>
+<td><strong>Concentration</strong></td>
+<td>expectations converted into high-probability statements</td>
+<td>the loss is bounded, and its variance is small for the fast
+rate</td>
+<td><a href="#fn7" class="footnote-ref" id="fnref7"
+role="doc-noteref"><sup>7</sup></a></td>
+</tr>
+<tr>
+<td><strong>Capacity</strong> read in isolation</td>
+<td>a bound on the worst ERM minimizer in the class</td>
+<td>the optimizer that picked the hypothesis does not matter</td>
+<td><a href="#fn8" class="footnote-ref" id="fnref8"
+role="doc-noteref"><sup>8</sup></a></td>
+</tr>
+<tr>
+<td><strong>SMO</strong> <span class="citation"
+data-cites="platt_smo_1999">(Platt 1999)</span></td>
+<td>a trainable nonlinear SVM at 1999 dataset sizes</td>
+<td>the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>×</mo><mi>N</mi></mrow><annotation encoding="application/x-tex">N\times N</annotation></semantics></math>
+Gram matrix fits in memory</td>
+<td><a href="#fn9" class="footnote-ref" id="fnref9"
+role="doc-noteref"><sup>9</sup></a></td>
+</tr>
+</tbody>
+</table></div>
+<p>Two of the rows are the same mechanism seen twice. The margin bound
+was reformulated for boosting because AdaBoost kept improving after
+training error reached zero, and it transferred to the kernel SVM
+because both are large-margin classifiers in a possibly
+infinite-dimensional feature space. That shared mechanism is the one
+classical thread that survives into Part IV intact, which is why it is
+the only component here that appears twice.</p>
+<div class="blog-table"><table id="tbl:classical-sota">
+<caption>Classical SoTA leaderboard. Hypothesis class summarizes the
+algorithm's RKHS or model family. Loss / Algo cell uses (key=value) for
+headline hyperparameters. Data column lists the training set size where
+reported. MNIST / USPS / UCI Letter columns report test-error percent
+under the experimental protocol of the cited paper; protocols differ
+across papers, so cross-column differences within a couple of percent
+are not meaningful. Notes column flags scale or methodology caveats.
+Dashes mark unreported settings.</caption>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>MNIST</td>
+<td>USPS</td>
+<td>UCI Lett</td>
+<td></td>
+</tr>
+<tr>
+<td>Method</td>
+<td>Year</td>
+<td>Hypothesis class</td>
+<td>Loss / Algo</td>
+<td>Data</td>
+<td>err %</td>
+<td>err %</td>
+<td>err %</td>
+<td>Notes</td>
+</tr>
+<tr>
+<td>LeNet-1 <span
+class="citation" data-cites="cortes_vapnik_1995">(Cortes and Vapnik
+1995)</span></td>
+<td>1995</td>
+<td>CNN-feedforward</td>
+<td>SGD on softmax CE</td>
+<td>MNIST 60k</td>
+<td>1.70</td>
+<td>~5.0</td>
+<td> - </td>
+<td>baseline</td>
+</tr>
+<tr>
+<td>soft-margin SVM <span
+class="citation" data-cites="cortes_vapnik_1995">(Cortes and Vapnik
+1995)</span></td>
+<td>1995</td>
+<td>kernel-RKHS</td>
+<td>hinge SVM(C=10, poly d=4)</td>
+<td>MNIST 60k</td>
+<td>1.10</td>
+<td>4.00</td>
+<td> - </td>
+<td>dual QP</td>
+</tr>
+<tr>
+<td>hard-margin SVM <span
+class="citation" data-cites="boser_guyon_vapnik_1992">(Boser et al.
+1992)</span></td>
+<td>1992</td>
+<td>kernel-RKHS</td>
+<td>hinge
+SVM(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo>=</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">C{=}\infty</annotation></semantics></math>,
+poly d=2)</td>
+<td>OCR 7.3k</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td>sep-only</td>
+</tr>
+<tr>
+<td>Gaussian SVM <span
+class="citation" data-cites="scholkopf_smola_2002">(Schölkopf and Smola
+2002)</span></td>
+<td>2002</td>
+<td>kernel-RKHS</td>
+<td>hinge SVM(RBF,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>=2,
+C=10)</td>
+<td>MNIST 60k</td>
+<td>1.40</td>
+<td>4.20</td>
+<td> - </td>
+<td>bw tuned</td>
+</tr>
+<tr>
+<td>polynomial SVM d=9 <span
+class="citation" data-cites="scholkopf_smola_2002">(Schölkopf and Smola
+2002)</span></td>
+<td>2002</td>
+<td>kernel-RKHS</td>
+<td>hinge SVM(poly d=9, C=10)</td>
+<td>MNIST 60k</td>
+<td>1.10</td>
+<td> - </td>
+<td> - </td>
+<td>best-of</td>
+</tr>
+<tr>
+<td>logistic regression <span
+class="citation" data-cites="hastie_elements_2009">(Hastie et al. 2009
+Ch 4)</span></td>
+<td>2009</td>
+<td>linear-margin</td>
+<td>logit-CE(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ℓ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\ell_2</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>=1e-3)</td>
+<td>MNIST 60k</td>
+<td>7.60</td>
+<td>9.50</td>
+<td> - </td>
+<td>linear</td>
+</tr>
+<tr>
+<td>AdaBoost stumps <span
+class="citation" data-cites="freund_schapire_1997">(Freund and Schapire
+1997)</span></td>
+<td>1997</td>
+<td>boosted-trees</td>
+<td>AdaBoost(T=100, depth-1)</td>
+<td>UCI Letter</td>
+<td> - </td>
+<td> - </td>
+<td>6.60</td>
+<td>weak</td>
+</tr>
+<tr>
+<td>AdaBoost C4.5 <span
+class="citation" data-cites="freund_schapire_1997">(Freund and Schapire
+1997)</span></td>
+<td>1997</td>
+<td>boosted-trees</td>
+<td>AdaBoost(T=100, C4.5 base)</td>
+<td>UCI Letter</td>
+<td> - </td>
+<td> - </td>
+<td>3.10</td>
+<td>strong</td>
+</tr>
+<tr>
+<td>AdaBoost trees T=1000 <span
+class="citation" data-cites="schapire_margin_1998">(Schapire et al.
+1998)</span></td>
+<td>1998</td>
+<td>boosted-trees</td>
+<td>AdaBoost(T=1000, depth-1)</td>
+<td>UCI Letter</td>
+<td> - </td>
+<td> - </td>
+<td>3.10</td>
+<td>margin</td>
+</tr>
+<tr>
+<td>1-NN baseline <span
+class="citation" data-cites="hastie_elements_2009">(Hastie et al. 2009
+Ch 13)</span></td>
+<td>2009</td>
+<td>non-parametric</td>
+<td>1-NN Euclidean</td>
+<td>MNIST 60k</td>
+<td>3.09</td>
+<td>5.20</td>
+<td> - </td>
+<td>k=1</td>
+</tr>
+<tr>
+<td>k-NN k=3 <span
+class="citation" data-cites="hastie_elements_2009">(Hastie et al. 2009
+Ch 13)</span></td>
+<td>2009</td>
+<td>non-parametric</td>
+<td>k-NN(k=3, Euclidean)</td>
+<td>MNIST 60k</td>
+<td>2.83</td>
+<td>4.95</td>
+<td> - </td>
+<td>k=3</td>
+</tr>
+<tr>
+<td>2-hidden-layer MLP <span
+class="citation" data-cites="cortes_vapnik_1995">(Cortes and Vapnik
+1995)</span></td>
+<td>1995</td>
+<td>MLP</td>
+<td>SGD on softmax CE</td>
+<td>MNIST 60k</td>
+<td>3.05</td>
+<td> - </td>
+<td> - </td>
+<td>300+100</td>
+</tr>
+</tbody>
+</table></div>
+<p>The table groups the classical literature into five families
+(linear-margin, kernel-RKHS, boosted-trees, CNN-feedforward,
+non-parametric), walked through in chronological order. The
+<em>margin</em> cluster begins with Boser-Guyon-Vapnik's hard-margin
+formulation <span class="citation"
+data-cites="boser_guyon_vapnik_1992">(Boser et al. 1992)</span> which
+only applies to linearly separable data; <strong>Cortes and
+Vapnik</strong> <span class="citation"
+data-cites="cortes_vapnik_1995">(Cortes and Vapnik 1995)</span>
+introduced soft margins with slack variables and hinge loss, making SVMs
+applicable to the bulk of real benchmarks. The polynomial-kernel SVM at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">d=4</annotation></semantics></math>
+reaches 1.1% MNIST test error, narrowly beating the contemporary LeNet-1
+convnet baseline at 1.7%; this result was the headline selling point of
+kernel methods in the late 1990s. <strong>Gaussian-kernel</strong> SVMs
+<span class="citation" data-cites="scholkopf_smola_2002">(Schölkopf and
+Smola 2002)</span> achieve a comparable 1.4% on MNIST with
+cross-validated bandwidth, but the choice between polynomial and RBF
+reflects a kernel-design judgement rather than a principled criterion<a
+href="#fn10" class="footnote-ref" id="fnref10"
+role="doc-noteref"><sup>10</sup></a>. SMO <span class="citation"
+data-cites="platt_smo_1999">(Platt 1999)</span> made these results
+computationally tractable by avoiding a general QP solver, yet the
+underlying
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math>
+Gram-matrix scaling<a href="#fn11" class="footnote-ref" id="fnref11"
+role="doc-noteref"><sup>11</sup></a> put a hard ceiling on dataset size
+that has only been broken by random features and sketching methods (Part
+V).</p>
+<p>The <em>boosting</em> cluster begins with <strong>AdaBoost</strong>
+<span class="citation" data-cites="freund_schapire_1997">(Freund and
+Schapire 1997)</span>, whose training-error bound (the product of
+normalization constants) decays exponentially in the number of rounds.
+<u>The empirical surprise was that test error on UCI Letter kept
+improving from round 5 (training error already at 0) through round 1000,
+an apparent violation of any naive capacity-based bound</u><a
+href="#fn12" class="footnote-ref" id="fnref12"
+role="doc-noteref"><sup>12</sup></a>. <strong>Schapire et al.</strong>
+<span class="citation" data-cites="schapire_margin_1998">(Schapire et
+al. 1998)</span> resolved the puzzle by bounding test error in terms of
+the <em>margin distribution</em> rather than the round count: the
+cumulative fraction of training points with margin below a threshold
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+provides a class-capacity-times-Lipschitz bound that improves as the
+boosting iterates concentrate the margin mass to the right of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>.
+The mechanism is structurally similar to the SVM-margin analysis but
+operates over a randomized hypothesis class rather than a single
+max-margin classifier.</p>
+<figure id="fig:classical-trends">
+<img src="figures/classical-trends.svg" />
+<figcaption>Two-panel summary of the classical leaderboard. Left: MNIST
+test error vs publication year, colour-coded by family; the dotted line
+marks the rough human-estimate floor (~0.5%). Three observations match
+the table reading: (i) kernel SVMs and the LeNet-1 convnet land within
+0.6 percentage points of each other in 1995-2002, far below logistic
+regression and k-NN; (ii) the <em>best-of</em> kernel choice (polynomial
+vs Gaussian) shifts the headline by 0.3% which is within protocol noise;
+(iii) all classical methods plateau in the 1-3% band, leaving the gap to
+deep learning visible only on harder benchmarks (CIFAR, ImageNet).
+Right: AdaBoost test error on UCI Letter as a function of rounds
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+(log scale); training error reaches 0 around
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">T=5</annotation></semantics></math>
+yet test error continues falling through
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><mn>1000</mn></mrow><annotation encoding="application/x-tex">T=1000</annotation></semantics></math>,
+the empirical anomaly that motivated the margin-distribution bound<a
+href="#fn13" class="footnote-ref" id="fnref13"
+role="doc-noteref"><sup>13</sup></a>.</figcaption>
+</figure>
+<p>The table separates four eras: kernel-margin (1992-2002), boosting
+(1997-1998), the early-CNN baseline (1995, included for honest
+comparison), and the non-parametric reference points (1-NN, k-NN). Three
+readings frame the rest of the chapter. <u>First, on MNIST the
+kernel-SVM family and the early-CNN family converge to within roughly
+half a percentage point in the 1995-2002 window, which made the choice
+between them appear as a matter of inductive-bias preference rather than
+capacity.</u> Second, AdaBoost's behaviour on UCI Letter is a clean
+falsification of any pure round-count or pure capacity-count bound: the
+<strong>margin distribution</strong> explanation <span class="citation"
+data-cites="schapire_margin_1998">(Schapire et al. 1998)</span> is the
+historical bridge that connects boosting to the SVM-margin analysis and
+ultimately to the implicit-regularization story of Part IV. Third, every
+entry above relies on an <strong>i.i.d.</strong> sampling assumption<a
+href="#fn14" class="footnote-ref" id="fnref14"
+role="doc-noteref"><sup>14</sup></a> and a <strong>capacity</strong>
+notion that ignores the optimizer<a href="#fn15" class="footnote-ref"
+id="fnref15" role="doc-noteref"><sup>15</sup></a>; both assumptions
+break in modern deep learning, which is the entry point for Parts II
+(PAC-Bayes) and III (NTK / mean-field).</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-anthony_bartlett_1999" class="csl-entry" role="listitem">
+Anthony, Martin, and Peter L. Bartlett. 1999. <em>Neural Network
+Learning: Theoretical Foundations</em>. Cambridge University Press.
+</div>
+<div id="ref-bartlett_mendelson_2002" class="csl-entry" role="listitem">
+Bartlett, Peter L., and Shahar Mendelson. 2002. <span>"Rademacher and
+Gaussian Complexities: Risk Bounds and Structural Results."</span>
+<em>Journal of Machine Learning Research</em> 3: 463-82.
+</div>
+<div id="ref-baum_haussler_1989" class="csl-entry" role="listitem">
+Baum, Eric B., and David Haussler. 1989. <span>"What Size Net Gives
+Valid Generalization?"</span> <em>Neural Computation</em> 1 (1): 151-60.
+</div>
+<div id="ref-boser_guyon_vapnik_1992" class="csl-entry" role="listitem">
+Boser, Bernhard E., Isabelle M. Guyon, and Vladimir N. Vapnik. 1992.
+<span>"A Training Algorithm for Optimal Margin Classifiers."</span>
+<em>Proc. 5th Annual Workshop on Computational Learning Theory
+(COLT)</em>, 144-52.
+</div>
+<div id="ref-boucheron_concentration_2013" class="csl-entry"
+role="listitem">
+Boucheron, Stéphane, Gábor Lugosi, and Pascal Massart. 2013.
+<em>Concentration Inequalities: A Nonasymptotic Theory of
+Independence</em>. Oxford University Press.
+</div>
+<div id="ref-cortes_vapnik_1995" class="csl-entry" role="listitem">
+Cortes, Corinna, and Vladimir Vapnik. 1995. <span>"Support-Vector
+Networks."</span> <em>Machine Learning</em> 20 (3): 273-97.
+</div>
+<div id="ref-freund_schapire_1997" class="csl-entry" role="listitem">
+Freund, Yoav, and Robert E. Schapire. 1997. <span>"A Decision-Theoretic
+Generalization of on-Line Learning and an Application to
+Boosting."</span> <em>Journal of Computer and System Sciences</em> 55
+(1): 119-39.
+</div>
+<div id="ref-hastie_elements_2009" class="csl-entry" role="listitem">
+Hastie, Trevor, Robert Tibshirani, and Jerome Friedman. 2009. <em>The
+Elements of Statistical Learning: Data Mining, Inference, and
+Prediction</em>. Second. Springer.
+</div>
+<div id="ref-mohri_foundations_2018" class="csl-entry" role="listitem">
+Mohri, Mehryar, Afshin Rostamizadeh, and Ameet Talwalkar. 2018.
+<em>Foundations of Machine Learning</em>. Second. MIT Press.
+</div>
+<div id="ref-murphy_pml_intro_2022" class="csl-entry" role="listitem">
+Murphy, Kevin P. 2022. <em>Probabilistic Machine Learning: An
+Introduction</em>. MIT Press. <a
+href="https://probml.github.io/pml-book/book1.html">https://probml.github.io/pml-book/book1.html</a>.
+</div>
+<div id="ref-murphy_pml_advanced_2023" class="csl-entry"
+role="listitem">
+Murphy, Kevin P. 2023. <em>Probabilistic Machine Learning: Advanced
+Topics</em>. MIT Press. <a
+href="https://probml.github.io/pml-book/book2.html">https://probml.github.io/pml-book/book2.html</a>.
+</div>
+<div id="ref-platt_smo_1999" class="csl-entry" role="listitem">
+Platt, John C. 1999. <em>Fast Training of Support Vector Machines Using
+Sequential Minimal Optimization</em>. Microsoft Research.
+</div>
+<div id="ref-rasmussen_williams_2006" class="csl-entry" role="listitem">
+Rasmussen, Carl Edward, and Christopher K. I. Williams. 2006.
+<em>Gaussian Processes for Machine Learning</em>. MIT Press.
+</div>
+<div id="ref-schapire_margin_1998" class="csl-entry" role="listitem">
+Schapire, Robert E., Yoav Freund, Peter Bartlett, and Wee Sun Lee. 1998.
+<span>"Boosting the Margin: A New Explanation for the Effectiveness of
+Voting Methods."</span> <em>Annals of Statistics</em> 26 (5): 1651-86.
+</div>
+<div id="ref-scholkopf_smola_2002" class="csl-entry" role="listitem">
+Schölkopf, Bernhard, and Alexander J. Smola. 2002. <em>Learning with
+Kernels: Support Vector Machines, Regularization, Optimization, and
+Beyond</em>. MIT Press.
+</div>
+<div id="ref-vandervaart_asymptotic_1998" class="csl-entry"
+role="listitem">
+Vaart, Aad W. van der. 1998. <em>Asymptotic Statistics</em>. Cambridge
+University Press.
+</div>
+<div id="ref-vapnik_nature_1995" class="csl-entry" role="listitem">
+Vapnik, Vladimir N. 1995. <em>The Nature of Statistical Learning
+Theory</em>. Springer.
+</div>
+<div id="ref-vapnik_chervonenkis_1971" class="csl-entry"
+role="listitem">
+Vapnik, Vladimir N., and Alexey Ya. Chervonenkis. 1971. <span>"On the
+Uniform Convergence of Relative Frequencies of Events to Their
+Probabilities."</span> <em>Theory of Probability and Its
+Applications</em> 16 (2): 264-80.
+</div>
+</div>
+<section id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p><em>VC bound vacuity for deep nets</em>: capacity
+proxies (VC dimension, parameter count) overestimate the necessary
+sample size by orders of magnitude. A network with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mo>≈</mo><msup><mn>10</mn><mn>7</mn></msup></mrow><annotation encoding="application/x-tex">W \approx 10^7</annotation></semantics></math>
+parameters has Baum-Haussler VC of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mi>W</mi><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>W</mi><mo stretchy="false" form="postfix">)</mo><mo>≈</mo><msup><mn>10</mn><mn>8</mn></msup></mrow><annotation encoding="application/x-tex">O(W \log W) \approx 10^8</annotation></semantics></math>,
+implying
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>≳</mo><msup><mn>10</mn><mn>9</mn></msup></mrow><annotation encoding="application/x-tex">n \gtrsim 10^9</annotation></semantics></math>
+for non-vacuous bounds; ImageNet trains with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>≈</mo><msup><mn>10</mn><mn>6</mn></msup></mrow><annotation encoding="application/x-tex">n \approx 10^6</annotation></semantics></math>
+and generalizes anyway.<a href="#fnref1" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><em>Rademacher tightness gap</em>: data-dependent
+Rademacher complexity <span class="citation"
+data-cites="bartlett_mendelson_2002">(Bartlett and Mendelson
+2002)</span> is provably tighter than VC and removes the worst-case
+dependence on the input distribution, but on over-parameterized networks
+the empirical Rademacher remains close to its trivial upper bound
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mrow><mn>2</mn><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mn>2</mn><mi>/</mi><mi>n</mi></mrow></msqrt><annotation encoding="application/x-tex">\sqrt{2 \log 2 / n}</annotation></semantics></math>
+and the resulting generalization bound is still vacuous on standard
+image benchmarks.<a href="#fnref2" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p><em>Margin-vs-training-error trade-off</em>: AdaBoost's
+training error can reach 0 after 5-30 rounds while test error keeps
+falling for 1000 rounds; the round-count bound predicts overfitting that
+empirically never occurs. <span class="citation"
+data-cites="schapire_margin_1998">(Schapire et al. 1998)</span> resolved
+this by bounding test error in terms of the <em>margin
+distribution</em>, not the round count.<a href="#fnref3"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p><em>Margin-vs-training-error trade-off</em>: AdaBoost's
+training error can reach 0 after 5-30 rounds while test error keeps
+falling for 1000 rounds; the round-count bound predicts overfitting that
+empirically never occurs. <span class="citation"
+data-cites="schapire_margin_1998">(Schapire et al. 1998)</span> resolved
+this by bounding test error in terms of the <em>margin
+distribution</em>, not the round count.<a href="#fnref4"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p><em>Kernel design as inductive bias</em>: the choice of
+kernel (linear, polynomial, RBF, Matern) encodes the hypothesis class
+via its RKHS, yet there is no principled data-driven selection rule;
+cross-validation over a small grid is the practical default and
+conflates kernel choice with bandwidth tuning.<a href="#fnref5"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p><em>ERM iid assumption</em>: classical bounds assume the
+sample is drawn i.i.d. from a fixed distribution; the assumption fails
+for time-series, online learning, distribution shift, and
+covariate-shift settings, all of which require either domain-adaptation
+extensions or different proof techniques.<a href="#fnref6"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p><em>Concentration looseness for heavy tails</em>:
+Hoeffding gives a sub-Gaussian tail under boundedness alone; Bernstein
+and Bennett tighten this when the variance is small relative to the
+range. Most empirical loss surfaces in deep learning have heavy-tailed
+gradients and per-sample-loss values, so the variance term is large and
+the variance-aware bound is no improvement over Hoeffding.<a
+href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p><em>Capacity-vs-algorithm coupling</em>: classical
+theory bounds the worst-case ERM minimizer over a hypothesis class,
+treating the optimizer as black-box. The actual hypothesis returned by
+SGD on a non-convex loss is a function of the algorithm's geometry
+(initialization, learning-rate schedule, batch size,
+implicit-regularization direction), and the gap between worst-case ERM
+and SGD-output can be many orders of magnitude in the bound.<a
+href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn9"><p><em>SMO scaling</em>: kernel SVMs solve a quadratic
+program in the dual, and a chunking solver that keeps the Gram matrix in
+memory pays
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math>
+storage. SMO <span class="citation" data-cites="platt_smo_1999">(Platt
+1999)</span> avoids the general QP solver by pairwise coordinate ascent
+and its memory is linear in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>,
+but its measured time still runs at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><msup><mi>N</mi><mn>1.9</mn></msup></mrow><annotation encoding="application/x-tex">\sim N^{1.9}</annotation></semantics></math>
+for a linear kernel and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><msup><mi>N</mi><mn>2.1</mn></msup></mrow><annotation encoding="application/x-tex">\sim N^{2.1}</annotation></semantics></math>
+for a Gaussian one, against
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><msup><mi>N</mi><mn>3.1</mn></msup></mrow><annotation encoding="application/x-tex">\sim N^{3.1}</annotation></semantics></math>
+for chunking on the same machine. Linear memory is what removes the hard
+wall; the super-linear time is what still makes
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>≈</mo><msup><mn>10</mn><mn>5</mn></msup></mrow><annotation encoding="application/x-tex">N \approx 10^5</annotation></semantics></math>
+the practical ceiling, past which approximation methods (Nystrom, random
+features) become mandatory.<a href="#fnref9" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn10"><p><em>Kernel design as inductive bias</em>: the choice of
+kernel (linear, polynomial, RBF, Matern) encodes the hypothesis class
+via its RKHS, yet there is no principled data-driven selection rule;
+cross-validation over a small grid is the practical default and
+conflates kernel choice with bandwidth tuning.<a href="#fnref10"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn11"><p><em>SMO scaling</em>: kernel SVMs solve a quadratic
+program in the dual, and a chunking solver that keeps the Gram matrix in
+memory pays
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math>
+storage. SMO <span class="citation" data-cites="platt_smo_1999">(Platt
+1999)</span> avoids the general QP solver by pairwise coordinate ascent
+and its memory is linear in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>,
+but its measured time still runs at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><msup><mi>N</mi><mn>1.9</mn></msup></mrow><annotation encoding="application/x-tex">\sim N^{1.9}</annotation></semantics></math>
+for a linear kernel and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><msup><mi>N</mi><mn>2.1</mn></msup></mrow><annotation encoding="application/x-tex">\sim N^{2.1}</annotation></semantics></math>
+for a Gaussian one, against
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><msup><mi>N</mi><mn>3.1</mn></msup></mrow><annotation encoding="application/x-tex">\sim N^{3.1}</annotation></semantics></math>
+for chunking on the same machine. Linear memory is what removes the hard
+wall; the super-linear time is what still makes
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>≈</mo><msup><mn>10</mn><mn>5</mn></msup></mrow><annotation encoding="application/x-tex">N \approx 10^5</annotation></semantics></math>
+the practical ceiling, past which approximation methods (Nystrom, random
+features) become mandatory.<a href="#fnref11" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn12"><p><em>Margin-vs-training-error trade-off</em>: AdaBoost's
+training error can reach 0 after 5-30 rounds while test error keeps
+falling for 1000 rounds; the round-count bound predicts overfitting that
+empirically never occurs. <span class="citation"
+data-cites="schapire_margin_1998">(Schapire et al. 1998)</span> resolved
+this by bounding test error in terms of the <em>margin
+distribution</em>, not the round count.<a href="#fnref12"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn13"><p><em>Margin-vs-training-error trade-off</em>: AdaBoost's
+training error can reach 0 after 5-30 rounds while test error keeps
+falling for 1000 rounds; the round-count bound predicts overfitting that
+empirically never occurs. <span class="citation"
+data-cites="schapire_margin_1998">(Schapire et al. 1998)</span> resolved
+this by bounding test error in terms of the <em>margin
+distribution</em>, not the round count.<a href="#fnref13"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn14"><p><em>ERM iid assumption</em>: classical bounds assume
+the sample is drawn i.i.d. from a fixed distribution; the assumption
+fails for time-series, online learning, distribution shift, and
+covariate-shift settings, all of which require either domain-adaptation
+extensions or different proof techniques.<a href="#fnref14"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn15"><p><em>Capacity-vs-algorithm coupling</em>: classical
+theory bounds the worst-case ERM minimizer over a hypothesis class,
+treating the optimizer as black-box. The actual hypothesis returned by
+SGD on a non-convex loss is a function of the algorithm's geometry
+(initialization, learning-rate schedule, batch size,
+implicit-regularization direction), and the gap between worst-case ERM
+and SGD-output can be many orders of magnitude in the bound.<a
+href="#fnref15" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

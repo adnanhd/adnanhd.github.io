@@ -1,0 +1,1091 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="LeNet, AlexNet, VGG, ResNet, Inception, and the CNN object detection lineage built on them." />
+        <title>CNN Object Detection: From LeNet and AlexNet to Modern Detector Backbones - Adnan Harun Dogan</title>
+        <link rel="canonical" href="https://adnanhd.github.io/blogs/cnn-object-detection/" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="CNN Object Detection: From LeNet and AlexNet to Modern Detector Backbones" />
+        <meta property="og:description" content="LeNet, AlexNet, VGG, ResNet, Inception, and the CNN object detection lineage built on them." />
+        <meta property="og:url" content="https://adnanhd.github.io/blogs/cnn-object-detection/" />
+        <meta property="og:image" content="https://adnanhd.github.io/blogs/cnn-object-detection/og-image.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="CNN Object Detection: From LeNet and AlexNet to Modern Detector Backbones" />
+        <meta name="twitter:description" content="LeNet, AlexNet, VGG, ResNet, Inception, and the CNN object detection lineage built on them." />
+        <meta name="twitter:image" content="https://adnanhd.github.io/blogs/cnn-object-detection/og-image.png" />
+        <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "CNN Object Detection: From LeNet and AlexNet to Modern Detector Backbones",
+  "description": "LeNet, AlexNet, VGG, ResNet, Inception, and the CNN object detection lineage built on them.",
+  "url": "https://adnanhd.github.io/blogs/cnn-object-detection/",
+  "image": "https://adnanhd.github.io/blogs/cnn-object-detection/og-image.png",
+  "author": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan",
+    "url": "https://adnanhd.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan"
+  },
+  "mainEntityOfPage": "https://adnanhd.github.io/blogs/cnn-object-detection/",
+  "datePublished": "2026-05-20"
+}
+        </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>CNN Object Detection: From LeNet and AlexNet to Modern Detector Backbones</h1>
+            <div class="blog-meta">Convolutional backbones and CNN-based object detection</div>
+            <article class="blog-body">
+<p>Object detection localizes and classifies multiple objects in images
+via bounding boxes. Across roughly six years (2014-2020) the literature
+settled into five overlapping families; <strong>two-stage</strong>
+refinement, <strong>single-shot</strong> dense prediction,
+<strong>focal</strong>-loss balanced one-stage,
+<strong>anchor-free</strong> per-pixel and keypoint heads, and
+<strong>set-prediction</strong> transformers; each occupying a different
+point on the accuracy/speed/simplicity frontier. Each family also
+addressed a characteristic set of well-known problems (scale, imbalance,
+NMS heuristics, anchor design, slow convergence, etc.) walked through
+paragraph-by-paragraph after the SoTA leaderboard below.</p>
+<p><u>The historical context matters because the same problems recur
+under new names.</u> Pre-deep-learning detection plateaued near 33% mAP
+on PASCAL VOC under <a
+href="wiki:Histogram_of_oriented_gradients">HOG</a>-feature pipelines<a
+href="#fn1" class="footnote-ref" id="fnref1"
+role="doc-noteref"><sup>1</sup></a> <span class="citation"
+data-cites="dalal_histograms_2005">(Dalal and Triggs 2005)</span> and
+the deformable part model <span class="citation"
+data-cites="felzenszwalb_discriminatively_2008">(Felzenszwalb et al.
+2008)</span> (a sliding-window root + parts mixture trained with
+latent-SVM that defined the pre-CNN state of the art for almost a
+decade); R-CNN <span class="citation"
+data-cites="girshick_rich_2014">(Girshick et al. 2014)</span> (2014)
+lifted it to 53.3% by reusing ImageNet <span class="citation"
+data-cites="deng_imagenet_2009">(Deng et al. 2009)</span> pretrained CNN
+features on selective-search proposals, but at ~49 seconds per image.
+Fast R-CNN <span class="citation"
+data-cites="girshick_fast_2015">(Girshick 2015)</span> (2015) shared
+backbone computation across proposals for a
+213<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>
+speedup; Faster R-CNN <span class="citation"
+data-cites="ren_faster_2016">(Ren et al. 2015)</span> (2015) replaced
+the external proposal stage with a learned Region Proposal Network.
+Single-shot detectors emerged in parallel: YOLO <span class="citation"
+data-cites="redmon_you_2016">(Redmon et al. 2016)</span> (2016) reframed
+detection as direct regression on a
+7<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>7
+grid at 45 FPS, SSD <span class="citation"
+data-cites="liu_ssd_2016">(Liu et al. 2016)</span> (2016) added
+multi-scale feature maps. RetinaNet (2017) closed the
+one-stage/two-stage accuracy gap with focal
+loss <span class="citation" data-cites="lin_focal_2018">(Lin, Goyal,
+et al. 2017)</span>, while FPN <span
+class="citation" data-cites="lin_feature_2017">(Lin, Dollár, et al.
+2017)</span> became the universal neck. Anchor-free methods (CornerNet
+<span class="citation" data-cites="law_cornernet_2019">(Law and Deng
+2018)</span>, FCOS <span class="citation"
+data-cites="tian_fcos_2019">(Tian et al. 2019)</span>, CenterNet <span
+class="citation" data-cites="zhou_objects_2019">(Zhou et al.
+2019)</span>) eliminated the anchor-design hyperparameters in 2019; DETR
+<span class="citation" data-cites="carion_end--end_2020">(Carion et al.
+2020)</span> removed NMS via Hungarian matching in 2020 (covered in the
+transformer
+chapter).</p>
+<p>The five families differ on which problems they accept and which they
+engineer away. Two-stage detectors handle the foreground/background
+imbalance via balanced sampling at the RoI head, but inherit a complex
+multi-stage pipeline and slow inference. One-stage detectors face the
+imbalance directly through hard mining (SSD), focal loss (RetinaNet), or
+implicit balanced anchors (YOLO grid). Anchor-free heads sidestep the
+entire scale-and-aspect anchor-tuning enterprise but still need a
+label-assignment heuristic (smallest-area box, centerness, etc.).
+Set-prediction transformers bypass NMS at the cost of 500-epoch
+training. <strong>No family dominates</strong>: the COCO leaderboard top
+is a moving boundary between Cascade-style two-stage refinement,
+EfficientDet-style compound-scaled one-stage, and DINO-DETR-style
+transformers, and <u>the production-grade default depends on whether
+latency, throughput, or peak accuracy is the primary constraint</u><a
+href="#fn2" class="footnote-ref" id="fnref2"
+role="doc-noteref"><sup>2</sup></a><a href="#fn3" class="footnote-ref"
+id="fnref3" role="doc-noteref"><sup>3</sup></a>.</p>
+<div class="blog-table"><table id="tbl:cnn-detection-sota">
+<caption>CNN object-detection SoTA leaderboard. Method links to the
+chapter section, with citation attached. Year is the conference/arXiv
+year. Backbone is the canonical reported configuration; Head/Loss
+summarises the detection head and the canonical
+regression/classification loss with key hyperparameters in parentheses.
+Data names the training set (VOC07+12 trainval / COCO trainval <span
+class="citation" data-cites="lin_coco_2014">(Lin et al. 2014)</span> /
+OpenImages). VOC = PASCAL VOC 2007 test mAP at IoU=0.5. COCO columns: AP
+is the mean over IoU thresholds 0.5:0.05:0.95 on val2017 single-scale;
+AP50 at IoU=0.5; AP<sub>S</sub>, AP<sub>M</sub>, AP<sub>L</sub> are the
+standard small (&lt;32<sup>2</sup> px) / medium (32-96<sup>2</sup> px) /
+large (&gt;96<sup>2</sup> px) splits. FPS is the original paper's
+reported speed on its own GPU (K40, Titan X, V100, A100); cross-family
+comparisons unreliable (see fn ref in prose). Dashes mark unreported
+settings. RPN+RoI(softmax) denotes Faster-style two-stage
+classification; Focal denotes RetinaNet-style focal cross-entropy;
+Hungarian denotes DETR-style set matching.</caption>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>VOC</td>
+<td>COCO</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Speed</td>
+</tr>
+<tr>
+<td>Method</td>
+<td>Year</td>
+<td>Backbone</td>
+<td>Head/Loss</td>
+<td>Data</td>
+<td>mAP</td>
+<td>AP</td>
+<td>AP50</td>
+<td>AP<sub>S</sub></td>
+<td>AP<sub>M</sub></td>
+<td>AP<sub>L</sub></td>
+<td>FPS</td>
+</tr>
+<tr>
+<td>R-CNN <span class="citation"
+data-cites="girshick_rich_2014">(Girshick et al. 2014)</span></td>
+<td>2014</td>
+<td>AlexNet</td>
+<td>SVM+ridge-reg</td>
+<td>VOC07+12</td>
+<td>53.3</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td>0.05</td>
+</tr>
+<tr>
+<td>Fast R-CNN <span class="citation"
+data-cites="girshick_fast_2015">(Girshick 2015)</span></td>
+<td>2015</td>
+<td>VGG-16</td>
+<td>RoI(softmax)+sm-L1</td>
+<td>VOC07+12</td>
+<td>70.0</td>
+<td>19.7</td>
+<td>35.9</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>Faster R-CNN <span class="citation"
+data-cites="ren_faster_2016">(Ren et al. 2015)</span></td>
+<td>2015</td>
+<td>VGG-16</td>
+<td>RPN+RoI(softmax)+sm-L1</td>
+<td>VOC07+12</td>
+<td>73.2</td>
+<td>21.9</td>
+<td>42.7</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td>5</td>
+</tr>
+<tr>
+<td>YOLO v1 <span class="citation"
+data-cites="redmon_you_2016">(Redmon et al. 2016)</span></td>
+<td>2016</td>
+<td>Darknet (custom)</td>
+<td>grid-MSE(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\lambda_c</annotation></semantics></math>=5,<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mi>n</mi></msub><annotation encoding="application/x-tex">\lambda_n</annotation></semantics></math>=0.5)</td>
+<td>VOC07+12</td>
+<td>63.4</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td>45</td>
+</tr>
+<tr>
+<td>SSD-512 <span class="citation"
+data-cites="liu_ssd_2016">(Liu et al. 2016)</span></td>
+<td>2016</td>
+<td>VGG-16</td>
+<td>hard-mining(3:1)+sm-L1</td>
+<td>VOC07+12</td>
+<td>76.8</td>
+<td>28.8</td>
+<td>48.5</td>
+<td>10.9</td>
+<td>31.8</td>
+<td>43.5</td>
+<td>22</td>
+</tr>
+<tr>
+<td>FPN (Faster R-CNN) <span
+class="citation" data-cites="lin_feature_2017">(Lin, Dollár, et al.
+2017)</span></td>
+<td>2017</td>
+<td>ResNet-101</td>
+<td>RPN+RoI(softmax)+sm-L1</td>
+<td>COCO</td>
+<td> - </td>
+<td>36.2</td>
+<td>59.1</td>
+<td>18.2</td>
+<td>39.0</td>
+<td>48.2</td>
+<td>5</td>
+</tr>
+<tr>
+<td>Mask R-CNN <span class="citation"
+data-cites="he_mask_2018">(He et al. 2017)</span></td>
+<td>2017</td>
+<td>ResNet-101 + FPN</td>
+<td>RPN+RoI(softmax)+sm-L1+mask</td>
+<td>COCO</td>
+<td> - </td>
+<td>39.8</td>
+<td>62.3</td>
+<td>22.1</td>
+<td>43.2</td>
+<td>51.2</td>
+<td>5</td>
+</tr>
+<tr>
+<td>RetinaNet <span class="citation"
+data-cites="lin_focal_2018">(Lin, Goyal, et al. 2017)</span></td>
+<td>2017</td>
+<td>ResNet-101 + FPN</td>
+<td>Focal(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>=2,<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>=0.25)+sm-L1</td>
+<td>COCO</td>
+<td> - </td>
+<td>39.1</td>
+<td>59.1</td>
+<td>21.8</td>
+<td>42.7</td>
+<td>50.2</td>
+<td>5</td>
+</tr>
+<tr>
+<td>YOLO v3 <span class="citation"
+data-cites="redmon_yolov3_2018">(Redmon and Farhadi 2018)</span></td>
+<td>2018</td>
+<td>Darknet-53</td>
+<td>BCE(per-anchor obj)+sm-L1</td>
+<td>COCO</td>
+<td> - </td>
+<td>33.0</td>
+<td>57.9</td>
+<td>18.3</td>
+<td>35.4</td>
+<td>41.9</td>
+<td>35</td>
+</tr>
+<tr>
+<td>Cascade R-CNN <span class="citation"
+data-cites="cai_cascade_2017">(Cai and Vasconcelos 2018)</span></td>
+<td>2018</td>
+<td>ResNet-101 + FPN</td>
+<td>3-head cascade(0.5/0.6/0.7)</td>
+<td>COCO</td>
+<td> - </td>
+<td>42.8</td>
+<td>62.1</td>
+<td>23.7</td>
+<td>45.5</td>
+<td>55.2</td>
+<td>7</td>
+</tr>
+<tr>
+<td>PANet <span class="citation"
+data-cites="liu_path_2018">(Liu et al. 2018)</span></td>
+<td>2018</td>
+<td>ResNeXt-101</td>
+<td>PAFPN+RoI(softmax)+sm-L1</td>
+<td>COCO</td>
+<td> - </td>
+<td>47.4</td>
+<td>67.2</td>
+<td>27.2</td>
+<td>51.0</td>
+<td>60.0</td>
+<td>4</td>
+</tr>
+<tr>
+<td>CornerNet <span
+class="citation" data-cites="law_cornernet_2019">(Law and Deng
+2018)</span></td>
+<td>2019</td>
+<td>Hourglass-104</td>
+<td>Focal-heatmap+pull/push</td>
+<td>COCO</td>
+<td> - </td>
+<td>42.1</td>
+<td>57.8</td>
+<td>20.8</td>
+<td>44.8</td>
+<td>56.7</td>
+<td>4</td>
+</tr>
+<tr>
+<td>FCOS <span class="citation"
+data-cites="tian_fcos_2019">(Tian et al. 2019)</span></td>
+<td>2019</td>
+<td>ResNet-101 + FPN</td>
+<td>center-ness+GIoU+focal-cls</td>
+<td>COCO</td>
+<td> - </td>
+<td>41.5</td>
+<td>60.7</td>
+<td>24.4</td>
+<td>44.8</td>
+<td>51.6</td>
+<td>17</td>
+</tr>
+<tr>
+<td>CenterNet <span
+class="citation" data-cites="zhou_objects_2019">(Zhou et al.
+2019)</span></td>
+<td>2019</td>
+<td>Hourglass-104</td>
+<td>Gaussian-heatmap+L1(size)</td>
+<td>COCO</td>
+<td> - </td>
+<td>42.1</td>
+<td>61.1</td>
+<td>19.9</td>
+<td>43.0</td>
+<td>51.4</td>
+<td>7</td>
+</tr>
+<tr>
+<td>EfficientDet-D7 <span class="citation"
+data-cites="tan_efficientdet_2020">(Tan et al. 2020)</span></td>
+<td>2020</td>
+<td>EfficientNet-B6</td>
+<td>BiFPN+Focal+sm-L1</td>
+<td>COCO</td>
+<td> - </td>
+<td>53.7</td>
+<td>72.4</td>
+<td>35.8</td>
+<td>57.0</td>
+<td>66.3</td>
+<td>6</td>
+</tr>
+<tr>
+<td>YOLO v4 <span class="citation"
+data-cites="bochkovskiy_yolov4_2020">(Bochkovskiy et al.
+2020)</span></td>
+<td>2020</td>
+<td>CSPDarknet-53</td>
+<td>CIoU+BCE-obj+Mosaic-aug</td>
+<td>COCO</td>
+<td> - </td>
+<td>43.5</td>
+<td>65.7</td>
+<td>26.7</td>
+<td>46.7</td>
+<td>53.3</td>
+<td>65</td>
+</tr>
+<tr>
+<td>DETR <span class="citation"
+data-cites="carion_end--end_2020">(Carion et al. 2020)</span></td>
+<td>2020</td>
+<td>ResNet-101</td>
+<td>Hungarian+CE+L1+GIoU(5,2)</td>
+<td>COCO</td>
+<td> - </td>
+<td>44.9</td>
+<td>64.7</td>
+<td>23.7</td>
+<td>49.5</td>
+<td>62.3</td>
+<td>28</td>
+</tr>
+<tr>
+<td>Deformable DETR <span class="citation"
+data-cites="zhu_deformable_2021">(Zhu et al. 2021)</span></td>
+<td>2021</td>
+<td>ResNet-50</td>
+<td>Hungarian+CE+L1+GIoU+def-att</td>
+<td>COCO</td>
+<td> - </td>
+<td>46.2</td>
+<td>65.2</td>
+<td>28.8</td>
+<td>49.2</td>
+<td>61.7</td>
+<td>19</td>
+</tr>
+<tr>
+<td>DINO-DETR <span class="citation" data-cites="zhang_dino_2022">(Zhang
+et al. 2023)</span></td>
+<td>2022</td>
+<td>Swin-L</td>
+<td>Hungarian+denoising+contrast</td>
+<td>COCO+O365</td>
+<td> - </td>
+<td>58.5</td>
+<td>77.1</td>
+<td>41.5</td>
+<td>62.7</td>
+<td>74.0</td>
+<td>10</td>
+</tr>
+<tr>
+<td>Co-DETR <span class="citation" data-cites="zong_detrs_2023">(Zong et
+al. 2023)</span></td>
+<td>2023</td>
+<td>ViT-L (MAE)</td>
+<td>hybrid Hungarian+ATSS+Faster</td>
+<td>COCO+O365</td>
+<td> - </td>
+<td>66.0</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+</tr>
+</tbody>
+</table></div>
+<p>The leaderboard separates <strong>six eras</strong> and a
+<strong>speed column</strong> whose meaning differs from the accuracy
+columns. Reading the table from left to right gives the family-by-family
+progression (R-CNN
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>
+one-stage
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>
+Focal
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>
+anchor-free
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>
+compound-scaled
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>
+transformer); reading top-to-bottom by Year reveals the COCO AP
+trajectory from 19.7 (Fast R-CNN, 2015) to 66.0 (Co-DETR, 2023), a
+3.4<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>
+gain spread across backbone scaling<a href="#fn4" class="footnote-ref"
+id="fnref4" role="doc-noteref"><sup>4</sup></a>, pyramid
+sophistication<a href="#fn5" class="footnote-ref" id="fnref5"
+role="doc-noteref"><sup>5</sup></a>, and head redesign. Three
+diagnostics. First, <u>AP<sub>S</sub> almost always lags AP<sub>M</sub>
+and AP<sub>L</sub> by 15-25 points</u>, the single most persistent
+failure mode of CNN detectors<a href="#fn6" class="footnote-ref"
+id="fnref6" role="doc-noteref"><sup>6</sup></a>. Second, FPS within a
+family is reliable but cross-family comparisons span four GPU
+generations<a href="#fn7" class="footnote-ref" id="fnref7"
+role="doc-noteref"><sup>7</sup></a>. Third, <u>the gap between best
+two-stage and best one-stage inverted between 2018 and 2020</u>,
+eliminating the historical "two-stage = accuracy, one-stage = speed"
+dichotomy<a href="#fn8" class="footnote-ref" id="fnref8"
+role="doc-noteref"><sup>8</sup></a>.</p>
+<p>The <strong>two-stage R-CNN family</strong> defines the era. R-CNN
+ran 2000 selective-search proposals through an AlexNet/VGG forward pass
+each, so per-image inference at ~49s was untenable; Fast R-CNN shared a
+single backbone pass and replaced the per-class SVM cascade with a
+softmax + smooth-L1 multi-task head, while Faster R-CNN folded proposals
+into a learned RPN sliding 9 hand-tuned anchors per location<a
+href="#fn9" class="footnote-ref" id="fnref9"
+role="doc-noteref"><sup>9</sup></a>. Mask R-CNN extended the same
+scaffolding with a per-class binary mask branch and replaced quantising
+RoIPool with bilinear <strong>RoIAlign</strong>; the pixel-precise
+alignment matters far more at strict IoU thresholds<a href="#fn10"
+class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a>.
+Cascade R-CNN refines proposals through three heads at IoU thresholds
+0.5/0.6/0.7, exploiting the <strong>quality-mismatch</strong>
+observation that <u>a single head cannot simultaneously be accurate at
+all IoU regimes</u>; this is also where label assignment becomes
+structurally explicit<a href="#fn11" class="footnote-ref" id="fnref11"
+role="doc-noteref"><sup>11</sup></a>.</p>
+<p>The <strong>single-shot SSD/YOLO line</strong> trades the proposal
+stage for direct dense prediction. YOLO partitioned the image into a
+7<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>7
+grid where each cell predicts
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">B=2</annotation></semantics></math>
+boxes plus class probabilities at 45 FPS but only 63.4 VOC mAP, paying
+for speed in localization (19% of YOLO's error is localization vs Fast
+R-CNN's 8%); SSD recovered accuracy by attaching prediction heads to
+multiple feature-map resolutions
+(38<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>38
+through
+1<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>1)
+so that <u>small objects map to high-resolution layers and large objects
+to coarse layers</u>, a structurally different solution to <strong>scale
+variance</strong><a href="#fn12" class="footnote-ref" id="fnref12"
+role="doc-noteref"><sup>12</sup></a>. SSD also introduced 3:1 hard
+negative mining as its blunt-instrument response to
+<strong>foreground/background imbalance</strong><a href="#fn13"
+class="footnote-ref" id="fnref13" role="doc-noteref"><sup>13</sup></a>,
+and depends notoriously hard on data augmentation (74.3
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>
+65.5 mAP without augmentation). YOLOv3 added k-means anchor priors and
+FPN-style three-scale prediction; YOLOv4 split engineering into "Bag of
+Freebies" (Mosaic, CIoU, label smoothing) and "Bag of Specials" (Mish,
+DIoU-NMS, PANet neck), reaching 43.5 COCO AP at 65 FPS by combining many
+small recipes rather than one architectural insight.</p>
+<p><strong>RetinaNet + FPN</strong> closed the one-stage/two-stage
+accuracy gap with two orthogonal contributions. <strong>Focal
+loss</strong>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>p</mi><mi>t</mi></msub><msup><mo stretchy="false" form="postfix">)</mo><mi>γ</mi></msup><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>p</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex"> -(1-p_t)^\gamma \log p_t </annotation></semantics></math>
+with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>γ</mi><mo>=</mo><mn>2</mn><mo>,</mo><mi>α</mi><mo>=</mo><mn>0.25</mn></mrow><annotation encoding="application/x-tex">\gamma=2,\alpha=0.25</annotation></semantics></math>
+reweights cross-entropy by prediction confidence so that the cumulative
+loss from ~100k easy negatives no longer drowns ~100 hard positives<a
+href="#fn14" class="footnote-ref" id="fnref14"
+role="doc-noteref"><sup>14</sup></a>, and the classification head's bias
+is initialized to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>π</mi><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>π</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="0.222em"></mspace><mi>π</mi><mo>=</mo><mn>0.01</mn></mrow><annotation encoding="application/x-tex"> -\log((1-\pi)/\pi),\ \pi=0.01 </annotation></semantics></math>
+to make the initial logits match the empirical class prior. <u>Focal
+loss beat OHEM because it uses every negative with smooth down-weighting
+rather than a hard cutoff</u>. Crucially, RetinaNet sat on top of FPN <span class="citation"
+data-cites="lin_feature_2017">(Lin, Dollár, et al. 2017)</span>, whose
+top-down + lateral pathway propagates semantic strength to
+high-resolution feature levels at single-pass cost; AP<sub>S</sub> rose
+from 14.1 to 19.9 (+5.8) on COCO purely from FPN, and FPN became the
+universal neck across Faster R-CNN, Mask R-CNN, RetinaNet, FCOS, and
+EfficientDet<a href="#fn15" class="footnote-ref" id="fnref15"
+role="doc-noteref"><sup>15</sup></a>.</p>
+<figure id="fig:cnn-detection-timeline">
+<img src="figures/cnn-detection-timeline.svg" />
+<figcaption>CNN detection family evolution from 2015 R-CNN-era detectors
+to 2023 transformer-based DETR variants, tracking COCO AP vs publication
+year. Marker shape and colour encode family (two-stage / one-stage /
+anchor-free / transformer). Three structural observations match the
+table reading: (i) the two-stage and one-stage clusters stayed within 5
+AP of each other from 2017 onward; (ii) anchor-free detectors landed on
+the same Pareto-front in 2019 without delivering a step change,
+suggesting that anchor design was a hyperparameter inconvenience rather
+than a fundamental capacity limit; (iii) transformer-based
+set-prediction (DETR
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>
+Deformable
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>
+DINO
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>
+Co-DETR) opens a clear gap from 2022 onward, lifting COCO AP from 47
+(best CNN) to 66 (Co-DETR), a 19-AP improvement driven by larger
+backbones (Swin-L, ViT-L MAE) and richer training (denoising,
+contrastive auxiliaries).</figcaption>
+</figure>
+<p>The <strong>anchor-free</strong> turn (CornerNet, FCOS, CenterNet)
+made a structural rather than empirical case. FCOS predicts
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>l</mi><mo>,</mo><mi>t</mi><mo>,</mo><mi>r</mi><mo>,</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(l,t,r,b)</annotation></semantics></math>
+distances at every foreground pixel of the FPN levels and resolves
+multi-GT overlap by assigning to the <strong>smallest-area</strong> box;
+the only heuristic the paper retains<a href="#fn16" class="footnote-ref"
+id="fnref16" role="doc-noteref"><sup>16</sup></a>. The
+<strong>centerness</strong> branch
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mrow><mrow><mi mathvariant="normal">min</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>l</mi><mo>,</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mrow><mi mathvariant="normal">max</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>l</mi><mo>,</mo><mi>r</mi><mo stretchy="false" form="postfix">)</mo><mo>⋅</mo><mrow><mi mathvariant="normal">min</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>,</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mrow><mi mathvariant="normal">max</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>,</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow></msqrt><annotation encoding="application/x-tex"> \sqrt{\min(l,r)/\max(l,r) \cdot \min(t,b)/\max(t,b)} </annotation></semantics></math>
+suppresses low-quality peripheral predictions for +3.6 AP and is a cheap
+analogue of objectness. CornerNet detects top-left and bottom-right
+corner heatmaps with associative-embedding grouping, and CenterNet
+reduces this further to a single Gaussian-heatmap center per object plus
+a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>w</mi><mo>,</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(w,h)</annotation></semantics></math>
+regression. Anchor-free heads sidestepped hand-tuned anchor
+scales/ratios entirely<a href="#fn17" class="footnote-ref" id="fnref17"
+role="doc-noteref"><sup>17</sup></a> and proved that proper loss
+weighting plus per-level FPN assignment closes the gap; ATSS later
+showed that <strong>adaptive label assignment</strong> (mean+std of
+per-object IoU as the dynamic threshold) brings anchor-based and
+anchor-free recipes to within 0.1 AP, <u>confirming that the anchor
+itself was never the load-bearing piece</u><a href="#fn18"
+class="footnote-ref" id="fnref18"
+role="doc-noteref"><sup>18</sup></a>.</p>
+<p>The <strong>transformer set-prediction</strong> line, covered fully
+in the next
+chapter, starts with DETR replacing dense prediction + NMS with 100
+learned object queries and Hungarian bipartite matching against the
+ground-truth set. <u>NMS disappears because each query commits to one
+GT</u>, eliminating the threshold-sensitive greedy suppression heuristic
+that limits CNN detectors in dense crowds<a href="#fn19"
+class="footnote-ref" id="fnref19" role="doc-noteref"><sup>19</sup></a><a
+href="#fn20" class="footnote-ref" id="fnref20"
+role="doc-noteref"><sup>20</sup></a>. The cost was a 500-epoch
+convergence schedule (versus 12-24 for Faster R-CNN); Deformable DETR's
+sparse multi-scale attention reduced this to 50 epochs, DAB-DETR/DN-DETR
+added content-aware queries and denoising auxiliaries, and DINO-DETR
+with Swin-L plus contrastive denoising reaches 58.5 COCO AP<a
+href="#fn21" class="footnote-ref" id="fnref21"
+role="doc-noteref"><sup>21</sup></a>. Co-DETR closed the loop by
+<strong>re-introducing</strong> one-to-many auxiliary heads (ATSS,
+Faster R-CNN) alongside the one-to-one Hungarian head during training,
+lifting Swin-L COCO val from 58.5 to 59.5 and ViT-L COCO test-dev to
+66.0 AP, the current chapter ceiling.</p>
+<p><u>The closing reading is that detection has not so much "solved" any
+of the listed problems as redistributed them.</u> Scale variance moved
+from image pyramids into FPN; foreground/background imbalance moved from
+RPN sampling into focal loss into per-query bipartite assignment; anchor
+design was first adaptive (ATSS), then dropped (FCOS), then absent
+(DETR); NMS was softened (Soft-NMS, DIoU-NMS) and then removed (DETR).
+What remains stubborn is small-object AP (still 15-25 points below
+large-object AP across the entire table, even at Swin-L scale),
+<strong>cross-paper FPS comparability</strong> (every paper reports its
+own GPU)<a href="#fn22" class="footnote-ref" id="fnref22"
+role="doc-noteref"><sup>22</sup></a>, and <strong>ImageNet/Object365
+pretraining dependence</strong><a href="#fn23" class="footnote-ref"
+id="fnref23" role="doc-noteref"><sup>23</sup></a>; the latter starts to
+dissolve only with self-supervised backbones (MAE, DINO) trained at
+10<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mn>8</mn></msup><annotation encoding="application/x-tex">^8</annotation></semantics></math>+
+image scale<a href="#fn24" class="footnote-ref" id="fnref24"
+role="doc-noteref"><sup>24</sup></a>.</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-bochkovskiy_yolov4_2020" class="csl-entry" role="listitem">
+Bochkovskiy, Alexey, Chien-Yao Wang, and Hong-Yuan Mark Liao. 2020.
+<em><span>YOLOv4</span>: <span>Optimal</span> <span>Speed</span> and
+<span>Accuracy</span> of <span>Object</span>
+<span>Detection</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2004.10934">https://doi.org/10.48550/arXiv.2004.10934</a>.
+</div>
+<div id="ref-cai_cascade_2017" class="csl-entry" role="listitem">
+Cai, Zhaowei, and Nuno Vasconcelos. 2018. <span>"Cascade
+<span>R</span>-<span>CNN</span>: <span>Delving</span> into
+<span>High</span> <span>Quality</span> <span>Object</span>
+<span>Detection</span>."</span> <em>IEEE/CVF Conference on Computer
+Vision and Pattern Recognition (CVPR)</em>, December. <a
+href="https://doi.org/10.48550/arXiv.1712.00726">https://doi.org/10.48550/arXiv.1712.00726</a>.
+</div>
+<div id="ref-carion_end--end_2020" class="csl-entry" role="listitem">
+Carion, Nicolas, Francisco Massa, Gabriel Synnaeve, Nicolas Usunier,
+Alexander Kirillov, and Sergey Zagoruyko. 2020.
+<span>"End-to-<span>End</span> <span>Object</span>
+<span>Detection</span> with <span>Transformers</span>."</span>
+<em>European Conference on Computer Vision (ECCV)</em>, May. <a
+href="https://doi.org/10.48550/arXiv.2005.12872">https://doi.org/10.48550/arXiv.2005.12872</a>.
+</div>
+<div id="ref-dalal_histograms_2005" class="csl-entry" role="listitem">
+Dalal, Navneet, and Bill Triggs. 2005. <span>"Histograms of Oriented
+Gradients for Human Detection."</span> <em>IEEE Conference on Computer
+Vision and Pattern Recognition (CVPR)</em>. <a
+href="https://doi.org/10.1109/CVPR.2005.177">https://doi.org/10.1109/CVPR.2005.177</a>.
+</div>
+<div id="ref-deng_imagenet_2009" class="csl-entry" role="listitem">
+Deng, Jia, Wei Dong, Richard Socher, Li-Jia Li, Kai Li, and Li Fei-Fei.
+2009. <span>"ImageNet: A Large-Scale Hierarchical Image
+Database."</span> <em>IEEE Conference on Computer Vision and Pattern
+Recognition (CVPR)</em>. <a
+href="https://doi.org/10.1109/CVPR.2009.5206848">https://doi.org/10.1109/CVPR.2009.5206848</a>.
+</div>
+<div id="ref-donahue_decaf_2014" class="csl-entry" role="listitem">
+Donahue, Jeff, Yangqing Jia, Oriol Vinyals, et al. 2014. <span>"DeCAF: A
+Deep Convolutional Activation Feature for Generic Visual
+Recognition."</span> <em>International Conference on Machine Learning
+(ICML)</em>. <a
+href="https://arxiv.org/abs/1310.1531">https://arxiv.org/abs/1310.1531</a>.
+</div>
+<div id="ref-felzenszwalb_discriminatively_2008" class="csl-entry"
+role="listitem">
+Felzenszwalb, Pedro F., David McAllester, and Deva Ramanan. 2008.
+<span>"A Discriminatively Trained, Multiscale, Deformable Part
+Model."</span> <em>IEEE Conference on Computer Vision and Pattern
+Recognition (CVPR)</em>. <a
+href="https://doi.org/10.1109/CVPR.2008.4587597">https://doi.org/10.1109/CVPR.2008.4587597</a>.
+</div>
+<div id="ref-girshick_fast_2015" class="csl-entry" role="listitem">
+Girshick, Ross. 2015. <span>"Fast
+<span>R</span>-<span>CNN</span>."</span> <em>IEEE International
+Conference on Computer Vision (ICCV)</em>, September. <a
+href="https://doi.org/10.48550/arXiv.1504.08083">https://doi.org/10.48550/arXiv.1504.08083</a>.
+</div>
+<div id="ref-girshick_rich_2014" class="csl-entry" role="listitem">
+Girshick, Ross, Jeff Donahue, Trevor Darrell, and Jitendra Malik. 2014.
+<span>"Rich Feature Hierarchies for Accurate Object Detection and
+Semantic Segmentation."</span> <em>IEEE/CVF Conference on Computer
+Vision and Pattern Recognition (CVPR)</em>, October. <a
+href="https://doi.org/10.48550/arXiv.1311.2524">https://doi.org/10.48550/arXiv.1311.2524</a>.
+</div>
+<div id="ref-he_mask_2018" class="csl-entry" role="listitem">
+He, Kaiming, Georgia Gkioxari, Piotr Dollár, and Ross Girshick. 2017.
+<span>"Mask <span>R</span>-<span>CNN</span>."</span> <em>IEEE
+International Conference on Computer Vision (ICCV)</em>, January. <a
+href="https://doi.org/10.48550/arXiv.1703.06870">https://doi.org/10.48550/arXiv.1703.06870</a>.
+</div>
+<div id="ref-law_cornernet_2019" class="csl-entry" role="listitem">
+Law, Hei, and Jia Deng. 2018. <span>"<span>CornerNet</span>:
+<span>Detecting</span> <span>Objects</span> as <span>Paired</span>
+<span>Keypoints</span>."</span> <em>European Conference on Computer
+Vision (ECCV)</em>, March. <a
+href="https://doi.org/10.48550/arXiv.1808.01244">https://doi.org/10.48550/arXiv.1808.01244</a>.
+</div>
+<div id="ref-lin_feature_2017" class="csl-entry" role="listitem">
+Lin, Tsung-Yi, Piotr Dollár, Ross Girshick, Kaiming He, Bharath
+Hariharan, and Serge Belongie. 2017. <span>"Feature <span>Pyramid</span>
+<span>Networks</span> for <span>Object</span>
+<span>Detection</span>."</span> <em>IEEE/CVF Conference on Computer
+Vision and Pattern Recognition (CVPR)</em>, April. <a
+href="https://doi.org/10.48550/arXiv.1612.03144">https://doi.org/10.48550/arXiv.1612.03144</a>.
+</div>
+<div id="ref-lin_focal_2018" class="csl-entry" role="listitem">
+Lin, Tsung-Yi, Priya Goyal, Ross Girshick, Kaiming He, and Piotr Dollár.
+2017. <span>"Focal <span>Loss</span> for <span>Dense</span>
+<span>Object</span> <span>Detection</span>."</span> <em>IEEE
+International Conference on Computer Vision (ICCV)</em>, February. <a
+href="https://doi.org/10.48550/arXiv.1708.02002">https://doi.org/10.48550/arXiv.1708.02002</a>.
+</div>
+<div id="ref-lin_coco_2014" class="csl-entry" role="listitem">
+Lin, Tsung-Yi, Michael Maire, Serge Belongie, et al. 2014.
+<span>"Microsoft <span>COCO</span>: Common Objects in Context."</span>
+<em>European Conference on Computer Vision (ECCV)</em>. <a
+href="https://arxiv.org/abs/1405.0312">https://arxiv.org/abs/1405.0312</a>.
+</div>
+<div id="ref-liu_path_2018" class="csl-entry" role="listitem">
+Liu, Shu, Lu Qi, Haifang Qin, Jianping Shi, and Jiaya Jia. 2018.
+<span>"Path <span>Aggregation</span> <span>Network</span> for
+<span>Instance</span> <span>Segmentation</span>."</span> <em>IEEE/CVF
+Conference on Computer Vision and Pattern Recognition (CVPR)</em>,
+September. <a
+href="https://doi.org/10.48550/arXiv.1803.01534">https://doi.org/10.48550/arXiv.1803.01534</a>.
+</div>
+<div id="ref-liu_ssd_2016" class="csl-entry" role="listitem">
+Liu, Wei, Dragomir Anguelov, Dumitru Erhan, et al. 2016.
+<em><span>SSD</span>: <span>Single</span> <span>Shot</span>
+<span>MultiBox</span> <span>Detector</span></em>. Vol. 9905. <a
+href="https://doi.org/10.1007/978-3-319-46448-0_2">https://doi.org/10.1007/978-3-319-46448-0_2</a>.
+</div>
+<div id="ref-redmon_you_2016" class="csl-entry" role="listitem">
+Redmon, Joseph, Santosh Divvala, Ross Girshick, and Ali Farhadi. 2016.
+<span>"You <span>Only</span> <span>Look</span> <span>Once</span>:
+<span>Unified</span>, <span>Real</span>-<span>Time</span>
+<span>Object</span> <span>Detection</span>."</span> <em>IEEE/CVF
+Conference on Computer Vision and Pattern Recognition (CVPR)</em>, May.
+<a
+href="https://doi.org/10.48550/arXiv.1506.02640">https://doi.org/10.48550/arXiv.1506.02640</a>.
+</div>
+<div id="ref-redmon_yolov3_2018" class="csl-entry" role="listitem">
+Redmon, Joseph, and Ali Farhadi. 2018. <em><span>YOLOv3</span>:
+<span>An</span> <span>Incremental</span> <span>Improvement</span></em>.
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.1804.02767">https://doi.org/10.48550/arXiv.1804.02767</a>.
+</div>
+<div id="ref-ren_faster_2016" class="csl-entry" role="listitem">
+Ren, Shaoqing, Kaiming He, Ross Girshick, and Jian Sun. 2015.
+<span>"Faster <span>R</span>-<span>CNN</span>: <span>Towards</span>
+<span>Real</span>-<span>Time</span> <span>Object</span>
+<span>Detection</span> with <span>Region</span> <span>Proposal</span>
+<span>Networks</span>."</span> <em>Advances in Neural Information
+Processing Systems (NeurIPS)</em>, January. <a
+href="https://doi.org/10.48550/arXiv.1506.01497">https://doi.org/10.48550/arXiv.1506.01497</a>.
+</div>
+<div id="ref-tan_efficientdet_2020" class="csl-entry" role="listitem">
+Tan, Mingxing, Ruoming Pang, and Quoc V. Le. 2020.
+<span>"<span>EfficientDet</span>: <span>Scalable</span> and
+<span>Efficient</span> <span>Object</span>
+<span>Detection</span>."</span> <em>IEEE/CVF Conference on Computer
+Vision and Pattern Recognition (CVPR)</em>, July. <a
+href="https://doi.org/10.48550/arXiv.1911.09070">https://doi.org/10.48550/arXiv.1911.09070</a>.
+</div>
+<div id="ref-tian_fcos_2019" class="csl-entry" role="listitem">
+Tian, Zhi, Chunhua Shen, Hao Chen, and Tong He. 2019.
+<span>"<span>FCOS</span>: <span>Fully</span> <span>Convolutional</span>
+<span>One</span>-<span>Stage</span> <span>Object</span>
+<span>Detection</span>."</span> <em>IEEE International Conference on
+Computer Vision (ICCV)</em>, August. <a
+href="https://doi.org/10.48550/arXiv.1904.01355">https://doi.org/10.48550/arXiv.1904.01355</a>.
+</div>
+<div id="ref-zhang_dino_2022" class="csl-entry" role="listitem">
+Zhang, Hao, Feng Li, Shilong Liu, et al. 2023. <span>"<span>DINO</span>:
+<span>DETR</span> with <span>Improved</span> <span>DeNoising</span>
+<span>Anchor</span> <span>Boxes</span> for
+<span>End</span>-to-<span>End</span> <span>Object</span>
+<span>Detection</span>."</span> <em>International Conference on Learning
+Representations (ICLR)</em>, July. <a
+href="https://doi.org/10.48550/arXiv.2203.03605">https://doi.org/10.48550/arXiv.2203.03605</a>.
+</div>
+<div id="ref-zhou_objects_2019" class="csl-entry" role="listitem">
+Zhou, Xingyi, Dequan Wang, and Philipp Krähenbühl. 2019. <em>Objects as
+<span>Points</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1904.07850">https://doi.org/10.48550/arXiv.1904.07850</a>.
+</div>
+<div id="ref-zhu_deformable_2021" class="csl-entry" role="listitem">
+Zhu, Xizhou, Weijie Su, Lewei Lu, Bin Li, Xiaogang Wang, and Jifeng Dai.
+2021. <span>"Deformable <span>DETR</span>: <span>Deformable</span>
+<span>Transformers</span> for <span>End</span>-to-<span>End</span>
+<span>Object</span> <span>Detection</span>."</span> <em>International
+Conference on Learning Representations (ICLR)</em>, March. <a
+href="https://doi.org/10.48550/arXiv.2010.04159">https://doi.org/10.48550/arXiv.2010.04159</a>.
+</div>
+<div id="ref-zong_detrs_2023" class="csl-entry" role="listitem">
+Zong, Zhuofan, Guanglu Song, and Yu Liu. 2023. <span>"<span>DETRs</span>
+with <span>Collaborative</span> <span>Hybrid</span>
+<span>Assignments</span> <span>Training</span>."</span> <em>IEEE/CVF
+International Conference on Computer Vision (ICCV)</em>, August. <a
+href="https://doi.org/10.48550/arXiv.2211.12860">https://doi.org/10.48550/arXiv.2211.12860</a>.
+</div>
+</div>
+<section id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p><em>HOG descriptor parameters (Dalal and Triggs
+2005)</em>: gradient magnitudes and unsigned orientations (0-180°) are
+accumulated into 9-bin histograms over dense
+8<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>8-pixel
+cells; cells are grouped into overlapping
+2<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>2-cell
+blocks
+(16<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>16
+pixels), each block normalized by L2-Hys (clip magnitudes at 0.2,
+renormalize). The concatenated block descriptors form a feature vector
+of length 9 bins
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>
+4 cells/block
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>
+(block count per detection window); on the canonical
+64<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>128-pixel
+pedestrian detection window this gives a 3780-dimensional descriptor.
+Classification uses a linear SVM trained on the INRIA pedestrian
+dataset. The paper reports roughly 11% miss rate at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mrow><mi>−</mi><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">10^{-1}</annotation></semantics></math>
+false positives per image on INRIA test, at the time significantly
+better than prior Haar-wavelet-based methods. The 8-pixel cell, 16-pixel
+block, and 9-bin choices were each determined by systematic grid search
+on the INRIA training set; the paper notes that doubling cell size (to
+16<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>16)
+drops performance substantially because fine gradient structure at
+pedestrian limb boundaries is lost. HOG was the dominant pedestrian and
+general object descriptor until R-CNN (2014) replaced it.<a
+href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><em>Two-stage vs one-stage trade-off</em>: two-stage
+detectors filter proposals before classification, gaining accuracy on
+hard examples at the cost of inference latency; one-stage detectors
+predict densely in a single forward pass, paying for speed with the
+foreground/background imbalance problem. The "RetinaNet matches Faster
+R-CNN" result was the first empirical point at which one-stage stopped
+trading accuracy for speed; the EfficientDet line later pushed the
+Pareto frontier further.<a href="#fnref2" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p><em>Cross-paper FPS incomparability</em>: each detector
+paper reports throughput on its own hardware (K40, Titan X, V100, A100),
+test resolution, and batch size, with TensorRT/half-precision sometimes
+folded in. Within-family FPS comparisons are reliable; cross-family
+comparisons require re-benchmarking on a single platform, which the
+literature rarely provides.<a href="#fnref3" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p><em>ImageNet-pretrained backbone dependence</em>:
+detection pipelines are not trained from scratch; the entire family
+inherits ImageNet-pretrained ResNet/Swin features. The DeCAF result
+<span class="citation" data-cites="donahue_decaf_2014">(Donahue et al.
+2014)</span> was the first systematic demonstration that mid-layer
+activations of a supervised ImageNet CNN transfer as off-the-shelf
+features to downstream tasks, and that observation seeded the entire
+pretrain-then-finetune paradigm that detection inherits. Scratch
+training (Detectron2 GroupNorm recipe,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>×</mi><mn>6</mn></mrow><annotation encoding="application/x-tex">\times 6</annotation></semantics></math>
+schedule) closes the gap on COCO but at
+6<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>
+compute, and self-supervised backbones (MoCo v3, MAE) now match
+supervised pretraining for downstream detection.<a href="#fnref4"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p><em>Scale variance</em>: detection must localize objects
+spanning two orders of magnitude in pixel area within the same image (a
+30-pixel pedestrian and a 300-pixel bus). Single-scale prediction misses
+one extreme; image pyramids cost N-fold compute. Addressed by feature
+pyramids (FPN, PANet, BiFPN), multi-scale anchors (Faster R-CNN, SSD),
+per-level FCOS regression ranges, and dynamic multi-scale training
+(YOLOv3, EfficientDet).<a href="#fnref5" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p><em>Scale variance</em>: detection must localize objects
+spanning two orders of magnitude in pixel area within the same image (a
+30-pixel pedestrian and a 300-pixel bus). Single-scale prediction misses
+one extreme; image pyramids cost N-fold compute. Addressed by feature
+pyramids (FPN, PANet, BiFPN), multi-scale anchors (Faster R-CNN, SSD),
+per-level FCOS regression ranges, and dynamic multi-scale training
+(YOLOv3, EfficientDet).<a href="#fnref6" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p><em>Cross-paper FPS incomparability</em>: each detector
+paper reports throughput on its own hardware (K40, Titan X, V100, A100),
+test resolution, and batch size, with TensorRT/half-precision sometimes
+folded in. Within-family FPS comparisons are reliable; cross-family
+comparisons require re-benchmarking on a single platform, which the
+literature rarely provides.<a href="#fnref7" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p><em>Two-stage vs one-stage trade-off</em>: two-stage
+detectors filter proposals before classification, gaining accuracy on
+hard examples at the cost of inference latency; one-stage detectors
+predict densely in a single forward pass, paying for speed with the
+foreground/background imbalance problem. The "RetinaNet matches Faster
+R-CNN" result was the first empirical point at which one-stage stopped
+trading accuracy for speed; the EfficientDet line later pushed the
+Pareto frontier further.<a href="#fnref8" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn9"><p><em>Anchor design</em>: hand-tuned scale and
+aspect-ratio priors (Faster R-CNN's
+3<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>3
+= 9 anchors, SSD's per-level 4 or 6, RetinaNet's
+3<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>3
+across 5 levels). The choice transfers poorly across datasets and adds
+three hyperparameters per level. Anchor-free methods (FCOS, CornerNet,
+CenterNet) regress from a single per-pixel reference; YOLOv3 derives
+priors via k-means clustering on the dataset.<a href="#fnref9"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn10"><p><em>Scale variance</em>: detection must localize
+objects spanning two orders of magnitude in pixel area within the same
+image (a 30-pixel pedestrian and a 300-pixel bus). Single-scale
+prediction misses one extreme; image pyramids cost N-fold compute.
+Addressed by feature pyramids (FPN, PANet, BiFPN), multi-scale anchors
+(Faster R-CNN, SSD), per-level FCOS regression ranges, and dynamic
+multi-scale training (YOLOv3, EfficientDet).<a href="#fnref10"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn11"><p><em>Label assignment ambiguity</em>: which anchor (or
+per-pixel location) is responsible for which ground-truth box. Faster
+R-CNN uses IoU 0.7/0.3 thresholds; FCOS uses smallest-area box for
+overlapping GTs; ATSS adaptively picks the threshold per object via
+mean+std of candidate IoUs; OTA and DETR cast assignment as bipartite
+matching. The choice matters by 1-3 AP and remains an active research
+area.<a href="#fnref11" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn12"><p><em>Scale variance</em>: detection must localize
+objects spanning two orders of magnitude in pixel area within the same
+image (a 30-pixel pedestrian and a 300-pixel bus). Single-scale
+prediction misses one extreme; image pyramids cost N-fold compute.
+Addressed by feature pyramids (FPN, PANet, BiFPN), multi-scale anchors
+(Faster R-CNN, SSD), per-level FCOS regression ranges, and dynamic
+multi-scale training (YOLOv3, EfficientDet).<a href="#fnref12"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn13"><p><em>Foreground/background imbalance</em>: a
+600<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>800
+image with FPN produces ~100k anchor locations against ~10 ground-truth
+objects; the resulting ~1:1000 ratio means easy negatives dominate
+gradients under plain cross-entropy. Two-stage detectors filter via the
+RPN to ~1:3; SSD uses 3:1 hard negative mining; RetinaNet introduced
+focal loss to down-weight easy examples by
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>p</mi><mi>t</mi></msub><msup><mo stretchy="false" form="postfix">)</mo><mi>γ</mi></msup></mrow><annotation encoding="application/x-tex"> (1-p_t)^\gamma </annotation></semantics></math>.
+The classification-conv bias is initialized to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>π</mi><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>π</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="0.222em"></mspace><mi>π</mi><mo>=</mo><mn>0.01</mn></mrow><annotation encoding="application/x-tex"> -\log((1-\pi)/\pi),\ \pi=0.01 </annotation></semantics></math>
+so initial predictions match the empirical prior.<a href="#fnref13"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn14"><p><em>Foreground/background imbalance</em>: a
+600<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>800
+image with FPN produces ~100k anchor locations against ~10 ground-truth
+objects; the resulting ~1:1000 ratio means easy negatives dominate
+gradients under plain cross-entropy. Two-stage detectors filter via the
+RPN to ~1:3; SSD uses 3:1 hard negative mining; RetinaNet introduced
+focal loss to down-weight easy examples by
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>p</mi><mi>t</mi></msub><msup><mo stretchy="false" form="postfix">)</mo><mi>γ</mi></msup></mrow><annotation encoding="application/x-tex"> (1-p_t)^\gamma </annotation></semantics></math>.
+The classification-conv bias is initialized to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>π</mi><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>π</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="0.222em"></mspace><mi>π</mi><mo>=</mo><mn>0.01</mn></mrow><annotation encoding="application/x-tex"> -\log((1-\pi)/\pi),\ \pi=0.01 </annotation></semantics></math>
+so initial predictions match the empirical prior.<a href="#fnref14"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn15"><p><em>Scale variance</em>: detection must localize
+objects spanning two orders of magnitude in pixel area within the same
+image (a 30-pixel pedestrian and a 300-pixel bus). Single-scale
+prediction misses one extreme; image pyramids cost N-fold compute.
+Addressed by feature pyramids (FPN, PANet, BiFPN), multi-scale anchors
+(Faster R-CNN, SSD), per-level FCOS regression ranges, and dynamic
+multi-scale training (YOLOv3, EfficientDet).<a href="#fnref15"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn16"><p><em>Label assignment ambiguity</em>: which anchor (or
+per-pixel location) is responsible for which ground-truth box. Faster
+R-CNN uses IoU 0.7/0.3 thresholds; FCOS uses smallest-area box for
+overlapping GTs; ATSS adaptively picks the threshold per object via
+mean+std of candidate IoUs; OTA and DETR cast assignment as bipartite
+matching. The choice matters by 1-3 AP and remains an active research
+area.<a href="#fnref16" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn17"><p><em>Anchor design</em>: hand-tuned scale and
+aspect-ratio priors (Faster R-CNN's
+3<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>3
+= 9 anchors, SSD's per-level 4 or 6, RetinaNet's
+3<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>3
+across 5 levels). The choice transfers poorly across datasets and adds
+three hyperparameters per level. Anchor-free methods (FCOS, CornerNet,
+CenterNet) regress from a single per-pixel reference; YOLOv3 derives
+priors via k-means clustering on the dataset.<a href="#fnref17"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn18"><p><em>Label assignment ambiguity</em>: which anchor (or
+per-pixel location) is responsible for which ground-truth box. Faster
+R-CNN uses IoU 0.7/0.3 thresholds; FCOS uses smallest-area box for
+overlapping GTs; ATSS adaptively picks the threshold per object via
+mean+std of candidate IoUs; OTA and DETR cast assignment as bipartite
+matching. The choice matters by 1-3 AP and remains an active research
+area.<a href="#fnref18" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn19"><p><em>NMS heuristic</em>: hand-crafted greedy
+post-processing that suppresses overlapping detections by IoU.
+Threshold-sensitive, fails in dense crowds, and not differentiable.
+Soft-NMS, DIoU-NMS, and learned NMS soften it; DETR-style Hungarian
+matching removes it entirely by predicting a fixed-size set with
+one-to-one assignment.<a href="#fnref19" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn20"><p><em>Occlusion and crowding</em>: NMS suppresses
+overlapping detections of the same class even when they correspond to
+distinct instances. Soft-NMS preserves recall in crowded scenes;
+CrowdDet and Repulsion Loss explicitly model crowd density.
+Set-prediction transformers handle occlusion by construction since each
+query is one-to-one matched to one GT.<a href="#fnref20"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn21"><p><em>Slow convergence (DETR)</em>: the original DETR
+required 500 COCO epochs (versus 12-24 for Faster R-CNN) due to unstable
+Hungarian-matching gradients and the absence of explicit object priors.
+Deformable-DETR, DAB-DETR, and DN-DETR cut this to ~50 epochs by
+introducing reference points, content-aware queries, and denoising
+auxiliaries.<a href="#fnref21" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn22"><p><em>Cross-paper FPS incomparability</em>: each detector
+paper reports throughput on its own hardware (K40, Titan X, V100, A100),
+test resolution, and batch size, with TensorRT/half-precision sometimes
+folded in. Within-family FPS comparisons are reliable; cross-family
+comparisons require re-benchmarking on a single platform, which the
+literature rarely provides.<a href="#fnref22" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn23"><p><em>ImageNet-pretrained backbone dependence</em>:
+detection pipelines are not trained from scratch; the entire family
+inherits ImageNet-pretrained ResNet/Swin features. The DeCAF result
+<span class="citation" data-cites="donahue_decaf_2014">(Donahue et al.
+2014)</span> was the first systematic demonstration that mid-layer
+activations of a supervised ImageNet CNN transfer as off-the-shelf
+features to downstream tasks, and that observation seeded the entire
+pretrain-then-finetune paradigm that detection inherits. Scratch
+training (Detectron2 GroupNorm recipe,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>×</mi><mn>6</mn></mrow><annotation encoding="application/x-tex">\times 6</annotation></semantics></math>
+schedule) closes the gap on COCO but at
+6<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>
+compute, and self-supervised backbones (MoCo v3, MAE) now match
+supervised pretraining for downstream detection.<a href="#fnref23"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn24"><p><em>Long-tail class imbalance</em>: COCO is roughly
+balanced (80 classes), but production data and LVIS exhibit power-law
+distributions. Detector heads trained on balanced data fail on rare
+classes; recipes like Equalization Loss, Seesaw Loss, and decoupled
+classifier finetuning address this orthogonally to the
+foreground/background problem.<a href="#fnref24" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

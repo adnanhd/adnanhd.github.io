@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="Trust region policy optimization, proximal policy optimization, group relative policy optimization, and why implementation details matter." />
+        <title>Trust-Region Policy Methods: TRPO, PPO, and GRPO - Adnan Harun Dogan</title>
+        <link rel="canonical" href="https://adnanhd.github.io/blogs/trust-region-methods/" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="Trust-Region Policy Methods: TRPO, PPO, and GRPO" />
+        <meta property="og:description" content="Trust region policy optimization, proximal policy optimization, group relative policy optimization, and why implementation details matter." />
+        <meta property="og:url" content="https://adnanhd.github.io/blogs/trust-region-methods/" />
+        <meta property="og:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Trust-Region Policy Methods: TRPO, PPO, and GRPO" />
+        <meta name="twitter:description" content="Trust region policy optimization, proximal policy optimization, group relative policy optimization, and why implementation details matter." />
+        <meta name="twitter:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Trust-Region Policy Methods: TRPO, PPO, and GRPO",
+  "description": "Trust region policy optimization, proximal policy optimization, group relative policy optimization, and why implementation details matter.",
+  "url": "https://adnanhd.github.io/blogs/trust-region-methods/",
+  "image": "https://adnanhd.github.io/assets/img/profile.jpeg",
+  "author": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan",
+    "url": "https://adnanhd.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan"
+  },
+  "mainEntityOfPage": "https://adnanhd.github.io/blogs/trust-region-methods/",
+  "datePublished": "2026-06-08"
+}
+        </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Trust-Region Policy Methods: TRPO, PPO, and GRPO</h1>
+            <div class="blog-meta">Trust-region and proximal policy optimization</div>
+            <article class="blog-body">
+<p><u>The trust-region family is the longest-running active line in
+policy optimization</u>, persisting from Schulman's 2015 KL-constrained
+natural gradient through the clipped surrogate that defines today's RLHF
+pipelines. Where the broader RL leaderboard in the policy-gradient foundations chapter
+surveys foundations, off-policy actor-critics, distributed and
+model-based methods together, this chapter narrows to one design axis:
+how each variant enforces or approximates a <strong><a
+href="wiki:Trust_region">trust region</a></strong> on the policy update.
+TRPO enforces
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>D</mi><mrow><mi>K</mi><mi>L</mi></mrow></msub><mspace width="-0.167em"></mspace><mo>≤</mo><mspace width="-0.167em"></mspace><mi>δ</mi></mrow><annotation encoding="application/x-tex">D_{KL}\!\le\!\delta</annotation></semantics></math>
+exactly via line-search; PPO-KL adds
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mi>β</mi><msub><mi>D</mi><mrow><mi>K</mi><mi>L</mi></mrow></msub></mrow><annotation encoding="application/x-tex">-\beta D_{KL}</annotation></semantics></math>
+as a soft penalty with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
+adapted by target-KL feedback; PPO-clip drops the KL apparatus and clips
+the ratio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>t</mi></msub><mo>∈</mo><mo stretchy="false" form="prefix">[</mo><mn>1</mn><mo>−</mo><mi>ϵ</mi><mo>,</mo><mn>1</mn><mo>+</mo><mi>ϵ</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">r_t \in [1-\epsilon, 1+\epsilon]</annotation></semantics></math>
+(an empirically softer trust region whose measured KL routinely exceeds
+the bound
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+implies); ACKTR substitutes K-FAC for conjugate gradient; GRPO removes
+the critic entirely. The methods below differ on four dimensions covered
+in detail across the chapter: (1) how the KL bound is imposed (hard
+line-search, soft penalty, clipped ratio, or none), (2) the surrogate
+objective form, (3) whether a learned critic is required, and (4) the
+domain (MuJoCo locomotion, Atari, MOBA games, or LLM reasoning) where
+the variant was first deployed.</p>
+<div class="blog-table"><table id="tbl:trust-region-leaderboard">
+<caption>Trust-region method leaderboard, focused on this chapter. KL
+bound = how the trust region is enforced;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+is hard radius for line-search variants,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
+is the soft-penalty coefficient,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+the clip half-width. Surrogate type contrasts the importance-weighted
+advantage form
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>t</mi></msub><mover><mi>A</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">r_t \hat{A}</annotation></semantics></math>),
+its clipped composition, and the dual-clip three-way max. Critic
+indicates whether a learned value head is required. Reported reward
+gives the canonical headline number from each paper at the standard step
+budget; dashes mark unreported settings. Cross-domain numbers (MuJoCo
+HalfCheetah-v2 reward at 1M steps vs LLM MATH accuracy) are not directly
+comparable; the column reproduces what each paper reports rather than a
+shared metric.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>Year</th>
+<th>KL bound</th>
+<th>Surrogate type</th>
+<th>Critic</th>
+<th>Domain</th>
+<th>Reported reward</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TRPO <span class="citation"
+data-cites="schulman_trust_2017">(Schulman et al. 2015)</span></td>
+<td>2015</td>
+<td>hard,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>=0.01
+(CG+line-search)</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>t</mi></msub><mover><mi>A</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">r_t \hat{A}</annotation></semantics></math>
+(constrained max)</td>
+<td>yes (V)</td>
+<td>MuJoCo, Atari</td>
+<td>HalfCheetah ~4500 @ 1M steps</td>
+</tr>
+<tr>
+<td>GAE+TRPO <span class="citation"
+data-cites="schulman_high-dimensional_2018">(Schulman et al.
+2018)</span></td>
+<td>2016</td>
+<td>hard,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>=0.01</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>t</mi></msub><msup><mover><mi>A</mi><mo accent="true">̂</mo></mover><mrow><mi>G</mi><mi>A</mi><mi>E</mi><mo stretchy="false" form="prefix">(</mo><mi>λ</mi><mo>=</mo><mn>0.96</mn><mo stretchy="false" form="postfix">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">r_t \hat{A}^{GAE(\lambda=0.96)}</annotation></semantics></math></td>
+<td>yes (V, TR-clipped)</td>
+<td>MuJoCo</td>
+<td>HalfCheetah ~4800 @ 1M steps</td>
+</tr>
+<tr>
+<td>ACKTR <span class="citation" data-cites="wu_scalable_2017">(Wu et
+al. 2017)</span></td>
+<td>2017</td>
+<td>soft,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>=10<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mrow><mi>−</mi><mn>3</mn></mrow></msup><annotation encoding="application/x-tex">^{-3}</annotation></semantics></math>
+(K-FAC)</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>t</mi></msub><mover><mi>A</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">r_t \hat{A}</annotation></semantics></math>,
+K-FAC
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>F</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">F^{-1}</annotation></semantics></math></td>
+<td>yes (V)</td>
+<td>MuJoCo, Atari</td>
+<td>HalfCheetah ~4900 @ 1M steps</td>
+</tr>
+<tr>
+<td>PPO-clip <span class="citation"
+data-cites="schulman_proximal_2017">(Schulman et al. 2017)</span></td>
+<td>2017</td>
+<td>implicit,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>=0.2
+(clip)</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">min</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>r</mi><mi>t</mi></msub><mover><mi>A</mi><mo accent="true">̂</mo></mover><mo>,</mo><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">p</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>r</mi><mi>t</mi></msub><mo stretchy="false" form="postfix">)</mo><mover><mi>A</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\min(r_t\hat A, \mathrm{clip}(r_t)\hat A)</annotation></semantics></math></td>
+<td>yes (V)</td>
+<td>MuJoCo, Atari</td>
+<td>HalfCheetah ~5800 @ 1M steps</td>
+</tr>
+<tr>
+<td>PPO-KL <span class="citation"
+data-cites="schulman_proximal_2017">(Schulman et al. 2017)</span></td>
+<td>2017</td>
+<td>soft,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
+adaptive (target=0.01)</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>t</mi></msub><mover><mi>A</mi><mo accent="true">̂</mo></mover><mo>−</mo><mi>β</mi><msub><mi>D</mi><mrow><mi>K</mi><mi>L</mi></mrow></msub></mrow><annotation encoding="application/x-tex">r_t\hat A - \beta D_{KL}</annotation></semantics></math></td>
+<td>yes (V)</td>
+<td>MuJoCo</td>
+<td>HalfCheetah ~3800 @ 1M steps</td>
+</tr>
+<tr>
+<td>DPPO <span class="citation" data-cites="heess_emergence_2017">(Heess
+et al. 2017)</span></td>
+<td>2017</td>
+<td>soft,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
+asym (1.5/0.67)</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>t</mi></msub><mover><mi>A</mi><mo accent="true">̂</mo></mover><mo>−</mo><mi>β</mi><msub><mi>D</mi><mrow><mi>K</mi><mi>L</mi></mrow></msub></mrow><annotation encoding="application/x-tex">r_t\hat A - \beta D_{KL}</annotation></semantics></math>,
+sync-grad</td>
+<td>yes (V)</td>
+<td>MuJoCo terrain</td>
+<td>humanoid 80% asymp. @ 1B steps, 5d/128 workers</td>
+</tr>
+<tr>
+<td>Dual-clip PPO <span class="citation"
+data-cites="ye_mastering_2020">(Ye et al. 2020)</span></td>
+<td>2020</td>
+<td>implicit,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>=0.2,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>=3</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">max</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><mrow><mi mathvariant="normal">min</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>r</mi><mi>t</mi></msub><mover><mi>A</mi><mo accent="true">̂</mo></mover><mo>,</mo><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">p</mi></mrow><mover><mi>A</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mi>c</mi><mover><mi>A</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\max(\min(r_t\hat A,\mathrm{clip}\hat A), c\hat A)</annotation></semantics></math>
+when
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>A</mi><mo accent="true">̂</mo></mover><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\hat A&lt;0</annotation></semantics></math></td>
+<td>yes (V)</td>
+<td>Honor of Kings (MOBA)</td>
+<td>superhuman 1v1; divergence
+15%<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>3%</td>
+</tr>
+<tr>
+<td>GRPO <span class="citation"
+data-cites="shao_deepseekmath_2024">(Shao et al. 2024)</span></td>
+<td>2024</td>
+<td>soft,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>=0.04
+(unbiased est.)</td>
+<td>clip-PPO + group-relative
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>A</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat A</annotation></semantics></math></td>
+<td>none (group baseline)</td>
+<td>LLM math reasoning</td>
+<td>MATH 51.7% / GSM8K 88.2% (DeepSeekMath 7B)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Reading the table chronologically traces the trust-region trade-off
+curve. <u>TRPO 2015 sets the operational ceiling on KL enforcement</u>:
+a hard
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mo>=</mo><mn>0.01</mn></mrow><annotation encoding="application/x-tex">\delta = 0.01</annotation></semantics></math>
+bound enforced by conjugate gradient on the Fisher-vector product plus a
+backtracking line search, giving the monotonic-improvement guarantee at
+the cost of second-order machinery and ~10 CG iterations per update.
+ACKTR keeps the natural-gradient direction but replaces CG with K-FAC's
+block-diagonal Kronecker factorization, getting roughly 4900 HalfCheetah
+reward at comparable wall-clock to PPO. PPO-clip 2017 then drops the KL
+apparatus entirely in favor of a clipped ratio surrogate, and the
+empirical reality (already noted in <span class="citation"
+data-cites="engstrom_implementation_2020">(Engstrom et al. 2020)</span>)
+is that <strong>measured KL routinely exceeds what
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+would imply</strong>; what actually limits divergence is the small epoch
+count plus learning-rate annealing, with the clip acting as a soft
+attenuator on outlier gradients. PPO-KL is the original paper's
+adaptive-penalty variant; it underperforms the clip on standard MuJoCo
+and is rarely used outside the DPPO terrain-locomotion regime where the
+asymmetric
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
+feedback was load-bearing.</p>
+<p>The 2020+ rows extend the family to two new domains where vanilla
+clipping breaks. Dual-clip PPO addresses an off-policy-PPO failure mode
+at large importance ratios by adding a lower bound
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><msub><mover><mi>A</mi><mo accent="true">̂</mo></mover><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">c\hat{A}_t</annotation></semantics></math>
+when
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>A</mi><mo accent="true">̂</mo></mover><mi>t</mi></msub><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\hat{A}_t &lt; 0</annotation></semantics></math>,
+reducing divergence from roughly 15% to 3% of seeds in the JueWu Honor
+of Kings stack without changing final policy quality. GRPO eliminates
+the critic entirely by sampling
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>G</mi><mspace width="-0.167em"></mspace><mo>=</mo><mspace width="-0.167em"></mspace><mn>64</mn></mrow><annotation encoding="application/x-tex">G\!=\!64</annotation></semantics></math>
+outputs per prompt and using within-group reward normalization as the
+advantage estimate; this halves training memory for LLMs (where
+critic-of-policy-size is prohibitive) and uses an unbiased KL estimator
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mrow><mi>r</mi><mi>e</mi><mi>f</mi></mrow></msub><mi>/</mi><msub><mi>π</mi><mi>θ</mi></msub><mo>−</mo><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>π</mi><mrow><mi>r</mi><mi>e</mi><mi>f</mi></mrow></msub><mi>/</mi><msub><mi>π</mi><mi>θ</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\pi_{ref}/\pi_\theta - \log(\pi_{ref}/\pi_\theta) - 1</annotation></semantics></math>
+rather than the log-ratio form, becoming the de facto RLHF backbone for
+reasoning models. <u>The two-decade arc shows convergence on a single
+recipe</u>: clipped or KL-penalized <a
+href="wiki:Importance_sampling">importance-weighted</a> surrogates with
+code-level optimizations <span class="citation"
+data-cites="engstrom_implementation_2020">(Engstrom et al. 2020)</span>
+doing more empirical work than the algorithmic differences, and the
+chapter on implementation
+details covers which optimizations dominate.</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-engstrom_implementation_2020" class="csl-entry"
+role="listitem">
+Engstrom, Logan, Andrew Ilyas, Shibani Santurkar, et al. 2020.
+<em>Implementation <span>Matters</span> in <span>Deep</span>
+<span>Policy</span> <span>Gradients</span>: <span>A</span>
+<span>Case</span> <span>Study</span> on <span>PPO</span> and
+<span>TRPO</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2005.12729">https://doi.org/10.48550/arXiv.2005.12729</a>.
+</div>
+<div id="ref-heess_emergence_2017" class="csl-entry" role="listitem">
+Heess, Nicolas, Dhruva TB, Srinivasan Sriram, et al. 2017. <em>Emergence
+of <span>Locomotion</span> <span>Behaviours</span> in <span>Rich</span>
+<span>Environments</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1707.02286">https://doi.org/10.48550/arXiv.1707.02286</a>.
+</div>
+<div id="ref-schulman_trust_2017" class="csl-entry" role="listitem">
+Schulman, John, Sergey Levine, Philipp Moritz, Michael I. Jordan, and
+Pieter Abbeel. 2015. <em>Trust <span>Region</span> <span>Policy</span>
+<span>Optimization</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1502.05477">https://doi.org/10.48550/arXiv.1502.05477</a>.
+</div>
+<div id="ref-schulman_high-dimensional_2018" class="csl-entry"
+role="listitem">
+Schulman, John, Philipp Moritz, Sergey Levine, Michael Jordan, and
+Pieter Abbeel. 2018. <em>High-<span>Dimensional</span>
+<span>Continuous</span> <span>Control</span> <span>Using</span>
+<span>Generalized</span> <span>Advantage</span>
+<span>Estimation</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1506.02438">https://doi.org/10.48550/arXiv.1506.02438</a>.
+</div>
+<div id="ref-schulman_proximal_2017" class="csl-entry" role="listitem">
+Schulman, John, Filip Wolski, Prafulla Dhariwal, Alec Radford, and Oleg
+Klimov. 2017. <em>Proximal <span>Policy</span> <span>Optimization</span>
+<span>Algorithms</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1707.06347">https://doi.org/10.48550/arXiv.1707.06347</a>.
+</div>
+<div id="ref-shao_deepseekmath_2024" class="csl-entry" role="listitem">
+Shao, Zhihong, Peiyi Wang, Qihao Zhu, et al. 2024.
+<em><span>DeepSeekMath</span>: <span>Pushing</span> the
+<span>Limits</span> of <span>Mathematical</span> <span>Reasoning</span>
+in <span>Open</span> <span>Language</span> <span>Models</span></em>.
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2402.03300">https://doi.org/10.48550/arXiv.2402.03300</a>.
+</div>
+<div id="ref-wu_scalable_2017" class="csl-entry" role="listitem">
+Wu, Yuhuai, Elman Mansimov, Shun Liao, Roger Grosse, and Jimmy Ba. 2017.
+<em>Scalable Trust-Region Method for Deep Reinforcement Learning Using
+<span>Kronecker</span>-Factored Approximation</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1708.05144">https://doi.org/10.48550/arXiv.1708.05144</a>.
+</div>
+<div id="ref-ye_mastering_2020" class="csl-entry" role="listitem">
+Ye, Deheng, Zhao Liu, Mingfei Sun, et al. 2020. <span>"Mastering
+<span>Complex</span> <span>Control</span> in <span>MOBA</span>
+<span>Games</span> with <span>Deep</span> <span>Reinforcement</span>
+<span>Learning</span>."</span> <em>Proceedings of the <span>AAAI</span>
+Conference on Artificial Intelligence</em> 34: 6672-79. <a
+href="http://arxiv.org/abs/1912.09729">http://arxiv.org/abs/1912.09729</a>.
+</div>
+</div>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

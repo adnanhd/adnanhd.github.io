@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="Exact inference under structural constraints, why neural generality breeds intractability, and approximation as a necessity." />
+        <title>Probabilistic Deep Learning Foundations: Tractability versus Generality - Adnan Harun Dogan</title>
+        <link rel="canonical" href="https://adnanhd.github.io/blogs/probabilistic-dl-foundations/" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="Probabilistic Deep Learning Foundations: Tractability versus Generality" />
+        <meta property="og:description" content="Exact inference under structural constraints, why neural generality breeds intractability, and approximation as a necessity." />
+        <meta property="og:url" content="https://adnanhd.github.io/blogs/probabilistic-dl-foundations/" />
+        <meta property="og:image" content="https://adnanhd.github.io/blogs/probabilistic-dl-foundations/og-image.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Probabilistic Deep Learning Foundations: Tractability versus Generality" />
+        <meta name="twitter:description" content="Exact inference under structural constraints, why neural generality breeds intractability, and approximation as a necessity." />
+        <meta name="twitter:image" content="https://adnanhd.github.io/blogs/probabilistic-dl-foundations/og-image.png" />
+        <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Probabilistic Deep Learning Foundations: Tractability versus Generality",
+  "description": "Exact inference under structural constraints, why neural generality breeds intractability, and approximation as a necessity.",
+  "url": "https://adnanhd.github.io/blogs/probabilistic-dl-foundations/",
+  "image": "https://adnanhd.github.io/blogs/probabilistic-dl-foundations/og-image.png",
+  "author": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan",
+    "url": "https://adnanhd.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan"
+  },
+  "mainEntityOfPage": "https://adnanhd.github.io/blogs/probabilistic-dl-foundations/",
+  "datePublished": "2026-02-17"
+}
+        </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Probabilistic Deep Learning Foundations: Tractability versus Generality</h1>
+            <div class="blog-meta">Exact inference, intractability, and approximation</div>
+            <article class="blog-body">
+<blockquote>
+<p><strong>Thesis.</strong> Probabilistic inference cannot be separated
+from the learning algorithm and its scalability constraints. Classical
+graphical models (HMMs, Kalman filters, LDA) solve inference exactly,
+but only for special structures. When neural networks are used as model
+components, structural constraints dissolve and inference becomes
+intractable. That intractability is not a side-effect to be engineered
+away: it is the organizing pressure that forces variational objectives
+(the ELBO), approximate inference families (amortized encoders, score
+matching), and ultimately changes what "inference" even means. The field
+did not merely apply neural nets to probabilistic models; intractability
+reshaped the objectives and the notion of inference itself.</p>
+</blockquote>
+<p>The four families below follow the arc that pressure created:
+exact-but-structured (classical graphical models);
+general-but-intractable (neural model components);
+approximation-as-necessity (ELBO, variational families, score matching);
+and new objectives and meanings (amortized inference, implicit models,
+denoising).</p>
+<h2 id="exact-inference-under-structural-constraints">Exact Inference
+under Structural Constraints</h2>
+<p><u>The Bayesian formalism was systematized for data analysis by</u>
+<span class="citation" data-cites="gelman_bda_2013">(Gelman et al. 2013
+Ch 1-2)</span>, building on a philosophical foundation laid out by <span
+class="citation" data-cites="jaynes_probability_2003">(Jaynes
+2003)</span> that frames probability as extended logic rather than as
+long-run frequency. The contemporary pedagogical synthesis is <span
+class="citation" data-cites="murphy_pml_intro_2022">(Murphy 2022 Ch
+4-5)</span>, which unifies frequentist maximum-likelihood, MAP
+estimation, and fully Bayesian inference within a single
+probabilistic-graphical-model vocabulary. Earlier textbook treatments
+include <span class="citation" data-cites="bishop_prml_2006">(Bishop
+2006)</span> and <span class="citation"
+data-cites="mackay_itila_2003">(MacKay 2003)</span>; the latter is
+notable for weaving Bayesian inference, information theory, and coding
+theory into a single narrative.</p>
+<p><u>Structured probabilistic modeling was codified in</u> <span
+class="citation" data-cites="koller_friedman_pgm_2009">(Koller and
+Friedman 2009)</span>, which remains the canonical reference for
+directed and undirected graphical models, exact inference (variable
+elimination, junction trees), approximate inference (loopy belief
+propagation, MCMC), and learning. The dominant classical latent-variable
+models preceding deep learning are hidden Markov models, systematized
+for speech recognition by <span class="citation"
+data-cites="rabiner_hmm_1989">(Rabiner 1989)</span>; linear-Gaussian
+state-space models, introduced by <span class="citation"
+data-cites="kalman_1960">(Kalman 1960)</span> for linear filtering and
+control; and latent Dirichlet allocation, developed for document topic
+modeling by <span class="citation"
+data-cites="blei_ng_jordan_lda_2003">(Blei et al. 2003)</span>.
+Discriminative structured prediction is represented by conditional
+random fields <span class="citation"
+data-cites="lafferty_crf_2001">(Lafferty et al. 2001)</span>, which
+sidestep the locally-normalized exposure-bias issue of maximum-entropy
+Markov models.</p>
+<p>What these models share is a structural assumption that makes the
+posterior integral tractable: the chain topology for HMMs and Kalman
+filters (enabling forward-backward and Kalman recursion), and
+Dirichlet-Multinomial conjugacy for LDA (enabling closed-form
+coordinate-ascent VI). The inference algorithm and the model structure
+are inseparable. This inseparability is the constraint that the
+neural-network era dissolves, and that dissolution is what forces the
+rest of the arc.</p>
+<h2 id="neural-generality-and-the-emergence-of-intractability">Neural
+Generality and the Emergence of Intractability</h2>
+<p><u>The bridge from classical Bayesian statistics to neural networks
+was built in the early 1990s.</u> <span class="citation"
+data-cites="mackay1992practical">(MacKay 1992)</span> introduced the
+Laplace-approximation evidence framework, showing that weight-decay
+regularization has a principled Bayesian interpretation and that
+hyperparameters such as decay constants can themselves be optimized by
+maximizing the marginal likelihood. <span class="citation"
+data-cites="neal_bayesian_1996">(Neal 1996)</span> extended this to
+full-posterior inference via Hamiltonian Monte Carlo and, in the same
+monograph, proved that a one-hidden-layer network with Gaussian weights
+converges to a Gaussian process in the infinite-width limit. This result
+anchors the modern NNGP/NTK literature and is revisited in the
+Bayesian-deep-learning part of this book.</p>
+<p>The problem is visible immediately in MacKay's and Neal's settings:
+the posterior over neural-network weights is no longer Gaussian, the
+Hessian is no longer positive-definite by construction, and the marginal
+likelihood integral
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∫</mo><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi mathvariant="script">𝒟</mi><mo>∣</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mi>d</mi><mi>θ</mi></mrow><annotation encoding="application/x-tex">\int p(\mathcal{D} \mid \theta) p(\theta) d\theta</annotation></semantics></math>
+has no closed form for nonlinear activation functions. MacKay used the
+Laplace approximation as a stand-in; Neal used HMC on networks with at
+most a few hundred parameters. Neither scales to modern architectures.
+Generality was purchased at the exact price of tractability, and what
+followed was a decades-long search for the right currency with which to
+pay that price.</p>
+<p>Deep variants of the classical graphical-model archetypes (deep
+belief networks <span class="citation"
+data-cites="hinton_dbn_2006">(Hinton et al. 2006)</span>, deep Boltzmann
+machines <span class="citation"
+data-cites="salakhutdinov_dbm_2009">(Salakhutdinov and Hinton
+2009)</span>, and structured-prediction energy networks, SPENs, <span
+class="citation" data-cites="belanger_spen_2016">(Belanger and McCallum
+2016)</span>) encountered the same barrier. Replacing the compatibility
+function of a CRF with a neural energy (SPEN) makes exact
+partition-function computation intractable; the SPEN performs inference
+by gradient descent on the energy instead. Replacing the Gaussian
+emissions of an RBM with deeper nonlinear layers (DBM) destroys the
+bipartite block-Gibbs tractability and forces mean-field variational
+approximations for the positive phase. In each case the neural component
+was the source of generality and the source of intractability
+simultaneously.</p>
+<h2
+id="approximation-as-necessity-elbo-variational-families-score-matching">Approximation
+as Necessity: ELBO, Variational Families, Score Matching</h2>
+<p><u>The unifying response to intractability was the evidence lower
+bound.</u> <span class="citation"
+data-cites="dempster_em_1977">(Dempster et al. 1977)</span> unified a
+scattered collection of iterative maximum-likelihood procedures (the
+Baum-Welch algorithm for hidden Markov models, Lindley and Smith's
+variance-component estimation, Hartley's incomplete-data MLE) under a
+single expectation-maximization (EM) scheme and proved monotone ascent
+of the incomplete-data log-likelihood. <span class="citation"
+data-cites="neal_hinton_em_1998">(Neal and Hinton 1998)</span>
+subsequently recast EM as coordinate ascent on a free-energy
+functional:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>q</mi><mo>,</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi mathvariant="double-struck">𝔼</mi><mrow><mi>q</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><mo stretchy="false" form="prefix">[</mo><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>z</mi><mo>∣</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mo>+</mo><mi mathvariant="double-struck">ℍ</mi><mo stretchy="false" form="prefix">[</mo><mi>q</mi><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>∣</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>q</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mo stretchy="false" form="postfix">∥</mo><mspace width="0.167em"></mspace><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo>∣</mo><mi>x</mi><mo>,</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}
+\label{eq:rw-elbo}
+F(q, \theta) = \mathbb{E}_{q(z)}[\log p(x, z \mid \theta)] + \mathbb{H}[q] = \log p(x \mid \theta) - \mathrm{KL}(q(z) \,\|\, p(z \mid x, \theta)),
+\end{equation}</annotation></semantics></math></p>
+<p>which is tight when
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>
+equals the true posterior and is a lower bound on the log-evidence
+otherwise. This free-energy lens subsumes wake-sleep <span
+class="citation" data-cites="hinton_wake_sleep_1995">(Hinton et al.
+1995)</span>, variational Bayes <span class="citation"
+data-cites="attias_variational_1999">(Attias 1999)</span>, mean-field VI
+for graphical models <span class="citation"
+data-cites="jordan1999introduction">(Jordan et al. 1999)</span>, and the
+review of modern variational methods in <span class="citation"
+data-cites="blei2017variational">(Blei et al. 2017)</span>. The ELBO is
+not merely one of many inference techniques; it is the universal
+surrogate that becomes necessary precisely when the posterior integral
+in Bayes' theorem has no closed form.</p>
+<p><u>A parallel response to the partition-function problem in
+undirected models is score matching.</u> <span class="citation"
+data-cites="hyvarinen_score_2005">(Hyvärinen 2005)</span> proposed
+minimizing the expected squared difference between the model score
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>∇</mi><mi>x</mi></msub><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>p</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\nabla_x \log p_\theta(x)</annotation></semantics></math>
+and the data score, thereby bypassing the partition function
+entirely:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi mathvariant="double-struck">𝔼</mi><msub><mi>p</mi><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">a</mi></mrow></msub></msub><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">[</mo><mstyle displaystyle="false"><mfrac><mn>1</mn><mn>2</mn></mfrac></mstyle><mo stretchy="false" form="postfix">∥</mo><msub><mi>∇</mi><mi>x</mi></msub><mi mathvariant="normal">log</mi><msub><mi>p</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup><mo>+</mo><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="prefix">(</mo><msubsup><mi>∇</mi><mi>x</mi><mn>2</mn></msubsup><mi mathvariant="normal">log</mi><msub><mi>p</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo stretchy="true" form="postfix">]</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">\begin{equation}
+\label{eq:rw-score-matching}
+J(\theta) = \mathbb{E}_{p_{\mathrm{data}}}\!\left[\tfrac{1}{2}\|\nabla_x \log p_\theta(x)\|^2 + \mathrm{tr}(\nabla_x^2 \log p_\theta(x))\right].
+\end{equation}</annotation></semantics></math></p>
+<p>The minimizer of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">J(\theta)</annotation></semantics></math>
+equals the true model score under the data distribution whenever
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>p</mi><mi>θ</mi></msub><annotation encoding="application/x-tex">p_\theta</annotation></semantics></math>
+and the data density share support, with no requirement to compute or
+approximate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Z(\theta)</annotation></semantics></math>.
+Score matching is the direct conceptual ancestor of denoising score
+matching and modern diffusion generative models, which train a neural
+score network
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>≈</mo><msub><mi>∇</mi><mi>x</mi></msub><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">s_\theta(x) \approx \nabla_x \log p(x)</annotation></semantics></math>
+by denoising rather than by evaluating the partition-function
+gradient.</p>
+<h2 id="new-objectives-and-new-meanings-of-inference">New Objectives and
+New Meanings of Inference</h2>
+<p><u>The ELBO and score matching do not merely approximate classical
+inference; they change its meaning.</u> In the amortized variational
+inference (VAE) framework of <span class="citation"
+data-cites="kingma_vae_2014">(Kingma and Welling 2014)</span>, the
+E-step of EM is replaced by a neural encoder
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo>∣</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">q_\phi(z \mid x)</annotation></semantics></math>
+that outputs variational parameters in a single forward pass, shared
+across all data points. Inference is no longer per-datum optimization;
+it is a function learned jointly with the model. The meaning of
+"posterior" shifts from "the exact posterior under this model" to "the
+variational approximation that maximizes the ELBO under this encoder
+family." These are not the same object, and the amortization gap (the
+residual optimality gap between the amortized
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo>∣</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">q_\phi(z \mid x)</annotation></semantics></math>
+and the per-datum optimal
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>q</mi><mo>⋆</mo></msup><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">q^\star(z)</annotation></semantics></math>)
+is a concrete measure of how far the new definition departs from the old
+one.</p>
+<p>Score-based implicit models make the departure more radical. When a
+model is defined only through its score function
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>∇</mi><mi>x</mi></msub><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>p</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">s_\theta(x) = \nabla_x \log p_\theta(x)</annotation></semantics></math>,
+there is no explicit density, no partition function, and no marginal
+likelihood to lower-bound. The concept of "inference" in this setting
+refers to sampling via Langevin dynamics
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>x</mi><mi>t</mi></msub><mo>+</mo><mi>ϵ</mi><msub><mi>s</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>t</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msqrt><mrow><mn>2</mn><mi>ϵ</mi></mrow></msqrt><mspace width="0.167em"></mspace><msub><mi>ξ</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">x_{t+1} = x_t + \epsilon s_\theta(x_t) + \sqrt{2\epsilon}\, \xi_t</annotation></semantics></math>
+rather than computing a posterior. The model family, the inference
+procedure, and the training objective are inseparable in a way that has
+no counterpart in the classical graphical-model view.</p>
+<p><u>The competitive landscape, summarized below, shows that by the
+mid-2010s purely discriminative deep classifiers surpassed generative
+graphical-model approaches on standard benchmarks</u>, though the latter
+retained advantages in small-data, interpretable, or structured-output
+settings that motivate the renewed interest in probabilistic deep
+learning covered in the remainder of this book.</p>
+<h2
+id="inference-tractability-vs-model-generality-the-landscape">Inference
+Tractability vs Model Generality: The Landscape</h2>
+<figure id="fig:inference-tractability-landscape">
+<img src="figures/inference-tractability-landscape.svg" />
+<figcaption>Inference tractability versus model generality for the
+probabilistic model families covered in this book. The horizontal axis
+runs from structurally constrained models (conjugate priors,
+chain-topology graphical models) toward architecturally unconstrained
+neural models; the vertical axis runs from exact closed-form posteriors
+downward through deterministic approximations to stochastic and implicit
+inference. The green region (top-left) holds models whose exact
+posteriors follow from exponential-family conjugacy or from
+dynamic-programming recursions on restricted graph topologies: conjugate
+Bayesian updates, the Kalman filter, the HMM forward-backward algorithm,
+and LDA's Dirichlet-Multinomial mean-field coordinate ascent. The blue
+band (middle) holds models where the posterior is approximated
+deterministically: MacKay's Laplace BNN replaces the intractable
+Gaussian weight posterior with a second-order Taylor expansion; the DBM
+uses mean-field plus persistent contrastive divergence; Neal's HMC BNN
+is exact up to Monte Carlo error but requires O(parameter-count)
+gradient evaluations per sample. The orange region (bottom-right) holds
+models where inference is inherently approximate or implicit: the VAE
+replaces the E-step with an amortized encoder network, normalizing flows
+define inference through an invertible change of variables, and
+score-based / diffusion models define the model only through its score
+function and sample via Langevin dynamics, bypassing the partition
+function entirely. The two diagonal arrows mark the historical pressure
+that drove each transition: neural generality dissolved the structural
+constraints that made exact inference tractable, and the resulting
+intractability forced the field to develop new objectives (the ELBO,
+score matching) and new meanings of inference (amortized,
+implicit).</figcaption>
+</figure>
+<h2
+id="state-of-the-art-table-inference-mechanisms-across-model-families">State-of-the-Art
+Table: Inference Mechanisms Across Model Families</h2>
+<p>The following table organises the model families along the arc above,
+making explicit for each family whether inference is exact or
+approximate, what approximation is used when inference is intractable,
+and how scalability is achieved. Citations outside cells per
+convention.</p>
+<div class="blog-table"><table id="tbl:prob-foundations-sota">
+<caption>Probabilistic model families ordered along the
+exact-to-approximate arc. "Inference" reports whether the posterior or
+partition function is tractable. "Approximation used" names the
+surrogate when inference is intractable. "Scalability" describes the
+practical scaling bottleneck or the technique that overcomes it.
+Citations: HMM <span class="citation"
+data-cites="rabiner_hmm_1989">(Rabiner 1989)</span>; Kalman <span
+class="citation" data-cites="kalman_1960">(Kalman 1960)</span>; LDA
+<span class="citation" data-cites="blei_ng_jordan_lda_2003">(Blei et al.
+2003)</span>; CRF <span class="citation"
+data-cites="lafferty_crf_2001">(Lafferty et al. 2001)</span>; MacKay BNN
+<span class="citation" data-cites="mackay1992practical">(MacKay
+1992)</span>; Neal HMC BNN <span class="citation"
+data-cites="neal_bayesian_1996">(Neal 1996)</span>; DBN <span
+class="citation" data-cites="hinton_dbn_2006">(Hinton et al.
+2006)</span>; DBM <span class="citation"
+data-cites="salakhutdinov_dbm_2009">(Salakhutdinov and Hinton
+2009)</span>; SPEN <span class="citation"
+data-cites="belanger_spen_2016">(Belanger and McCallum 2016)</span>; VAE
+<span class="citation" data-cites="kingma_vae_2014">(Kingma and Welling
+2014)</span>; score matching <span class="citation"
+data-cites="hyvarinen_score_2005">(Hyvärinen 2005)</span>.</caption>
+<thead>
+<tr>
+<th>Model family</th>
+<th>Inference (exact/approx.)</th>
+<th>Approximation used</th>
+<th>Scalability</th>
+<th>Arc position</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HMM</td>
+<td>Exact (forward-backward)</td>
+<td>None needed</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><msup><mi>K</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(TK^2)</annotation></semantics></math>;
+scales to hundreds of states</td>
+<td>Exact, chain-structured</td>
+</tr>
+<tr>
+<td>Kalman / linear-Gaussian</td>
+<td>Exact (Gaussian filter)</td>
+<td>None needed</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><msubsup><mi>d</mi><mi>z</mi><mn>3</mn></msubsup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(Td_z^3)</annotation></semantics></math>;
+diagonal/low-rank variants</td>
+<td>Exact, linear-Gaussian</td>
+</tr>
+<tr>
+<td>LDA (mean-field VB)</td>
+<td>Approx. (variational)</td>
+<td>Mean-field ELBO; closed-form coord. asc.</td>
+<td>Stochastic VI scales to 100M docs</td>
+<td>Approx., conjugate structure</td>
+</tr>
+<tr>
+<td>Linear-chain CRF</td>
+<td>Exact marginals
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Z(x)</annotation></semantics></math>)</td>
+<td>None for marginals; approx. for decoding</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><msup><mi>K</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(TK^2)</annotation></semantics></math>
+forward-backward</td>
+<td>Exact, discriminative</td>
+</tr>
+<tr>
+<td>MacKay Laplace BNN</td>
+<td>Approx. (Laplace)</td>
+<td>Second-order Taylor at MAP; GGN Hessian</td>
+<td>KFAC / last-layer approximation</td>
+<td>Approx., tractable at small scale</td>
+</tr>
+<tr>
+<td>Neal HMC BNN</td>
+<td>Stochastic
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≤</mo><annotation encoding="application/x-tex">\leq</annotation></semantics></math>
+MC err.)</td>
+<td>HMC trajectory; leapfrog integrator</td>
+<td>Intractable beyond
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>1k
+params</td>
+<td>Stochastic, exact in limit</td>
+</tr>
+<tr>
+<td>DBM + mean-field</td>
+<td>Approx. (mean-field + PCD)</td>
+<td>Factored Bernoulli MF; persistent chain</td>
+<td>Requires PCD; fragile training</td>
+<td>Approx. undirected</td>
+</tr>
+<tr>
+<td>SPEN</td>
+<td>Approx. (gradient descent)</td>
+<td>Gradient descent on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>;
+SSVM loss</td>
+<td>Scales in label-space dim., not seq. len</td>
+<td>Approx., neural energy</td>
+</tr>
+<tr>
+<td>VAE (amortized VI)</td>
+<td>Approx. (ELBO + encoder)</td>
+<td>Amortized
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo>∣</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">q_\phi(z \mid x)</annotation></semantics></math>;
+reparam.</td>
+<td>Scales to large datasets / dim. latents</td>
+<td>Amortized, new meaning</td>
+</tr>
+<tr>
+<td>Score matching / EBM</td>
+<td>Implicit (no density)</td>
+<td>Score matching / NCE; Langevin sampling</td>
+<td>Scales via denoising (diffusion)</td>
+<td>Implicit, partition-free</td>
+</tr>
+</tbody>
+</table></div>
+<p>The table makes four structural points. First, exact inference is
+available only when graph topology (chain for HMM/Kalman/CRF) or
+algebraic structure (Gaussian-Gaussian, Dirichlet-Multinomial) provides
+closed-form posteriors; introducing a single neural component into any
+of these models destroys closure. Second, the Laplace approximation
+(MacKay) and mean-field VI (LDA, DBM) are the two classical
+deterministic surrogates, differing in whether the posterior is
+approximated by a Gaussian at the mode or by a factorized product.
+Third, amortized inference (VAE) shifts the computational burden from
+per-datum optimization to an encoder training cost, paid once and
+amortized across all data. Fourth, score matching and diffusion models
+bypass the posterior concept entirely: inference is sampling, not
+density evaluation, and the training objective does not require
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>Z</mi><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log Z(\theta)</annotation></semantics></math>
+at any step. Each row represents a response to the limitation of the row
+above it.</p>
+<h2
+id="empirical-benchmark-classical-and-deep-models-on-mnist">Empirical
+Benchmark: Classical and Deep Models on MNIST</h2>
+<p>The inference-mechanism table above is qualitative; the quantitative
+companion below records where each family actually landed on a common
+benchmark (MNIST) alongside its native task. It carries the empirical
+fact that drove the renewed interest in probabilistic deep learning: by
+the mid-2010s purely discriminative deep networks had overtaken
+generative graphical-model approaches on raw test error, while the
+generative models kept their edge in small-data, interpretable, and
+structured-output regimes.</p>
+<div class="blog-table"><table id="tbl:prob-foundations-benchmark">
+<caption>Classical-to-deep probabilistic models on MNIST and their
+native tasks. "MNIST err." is classification test error where the model
+was used discriminatively; "Gen. NLL" is generative negative
+log-likelihood in nats as given in the source; "n/r" marks a benchmark
+not reported in the primary reference because the model was not
+evaluated on it. Citations: HMM <span class="citation"
+data-cites="rabiner_hmm_1989">(Rabiner 1989)</span>; Kalman <span
+class="citation" data-cites="kalman_1960">(Kalman 1960)</span>; LDA
+<span class="citation" data-cites="blei_ng_jordan_lda_2003">(Blei et al.
+2003)</span>; CRF <span class="citation"
+data-cites="lafferty_crf_2001">(Lafferty et al. 2001)</span>; DBN <span
+class="citation" data-cites="hinton_dbn_2006">(Hinton et al.
+2006)</span>; DBM <span class="citation"
+data-cites="salakhutdinov_dbm_2009">(Salakhutdinov and Hinton
+2009)</span>; SPEN <span class="citation"
+data-cites="belanger_spen_2016">(Belanger and McCallum 2016)</span>; MLP
+and CNN <span class="citation"
+data-cites="murphy_pml_intro_2022">(Murphy 2022)</span>.</caption>
+<thead>
+<tr>
+<th>Model family</th>
+<th>Year</th>
+<th>Native task</th>
+<th>MNIST err.</th>
+<th>Gen. NLL (nats)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HMM (discrete-state, Gaussian obs.)</td>
+<td>1989</td>
+<td>Speech phoneme seq.</td>
+<td>n/r</td>
+<td>n/r</td>
+</tr>
+<tr>
+<td>Kalman filter (linear-Gaussian SSM)</td>
+<td>1960</td>
+<td>Control, tracking</td>
+<td>n/r</td>
+<td>n/r</td>
+</tr>
+<tr>
+<td>LDA (100 topics, batch VB)</td>
+<td>2003</td>
+<td>Text topic discovery</td>
+<td>n/r</td>
+<td>n/r</td>
+</tr>
+<tr>
+<td>Linear-chain CRF</td>
+<td>2001</td>
+<td>POS tagging, NER</td>
+<td>n/r</td>
+<td>n/r</td>
+</tr>
+<tr>
+<td>Deep Belief Net (500-500-2000)</td>
+<td>2006</td>
+<td>Gen. digit model</td>
+<td>1.25 %</td>
+<td>~86</td>
+</tr>
+<tr>
+<td>Deep Boltzmann Machine (500-1000)</td>
+<td>2009</td>
+<td>Gen. digit model</td>
+<td>0.95 %</td>
+<td>~85</td>
+</tr>
+<tr>
+<td>SPEN (deep energy, gradient inference)</td>
+<td>2016</td>
+<td>Multi-label / seq.</td>
+<td>n/r</td>
+<td>n/r</td>
+</tr>
+<tr>
+<td>Feed-forward MLP (ReLU, dropout)</td>
+<td>2012</td>
+<td>Discriminative</td>
+<td>0.79 %</td>
+<td>n/r</td>
+</tr>
+<tr>
+<td>CNN (LeNet-5 style)</td>
+<td>1998</td>
+<td>Discriminative</td>
+<td>0.95 %</td>
+<td>n/r</td>
+</tr>
+</tbody>
+</table></div>
+<p>This benchmark makes the point the inference-mechanism table cannot.
+The deep generative graphical models (DBN, DBM) reach competitive MNIST
+classification once their learned features are fine-tuned with a
+discriminative head (1.25 % and 0.95 %), yet they are edged out on raw
+test error by a purely discriminative network (the MLP at 0.79 %). The
+CRF-to-SPEN and HMM-to-DBM transitions are the same move in two
+settings: replace a hand-designed compatibility or energy function with
+a neural network, keeping the probabilistic semantics while gaining
+representational capacity. The classical latent-variable models (HMM,
+Kalman, LDA, CRF) carry "n/r" because they target distinct problem
+shapes (time series, topic discovery, sequence labeling) and were never
+evaluated as MNIST classifiers.</p>
+<p>The remainder of this chapter develops each row in order, following
+the historical sequence rather than the table ordering, culminating in
+the deep variants that motivate the rest of the book.</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-attias_variational_1999" class="csl-entry" role="listitem">
+Attias, Hagai. 1999. <span>"Inferring Parameters and Structure of Latent
+Variable Models by Variational Bayes."</span> <em>UAI</em>, 21-30.
+</div>
+<div id="ref-belanger_spen_2016" class="csl-entry" role="listitem">
+Belanger, David, and Andrew McCallum. 2016. <span>"Structured Prediction
+Energy Networks."</span> <em>ICML</em>, 983-92.
+</div>
+<div id="ref-bishop_prml_2006" class="csl-entry" role="listitem">
+Bishop, Christopher M. 2006. <em>Pattern Recognition and Machine
+Learning</em>. Springer.
+</div>
+<div id="ref-blei2017variational" class="csl-entry" role="listitem">
+Blei, David M., Alp Kucukelbir, and Jon D. McAuliffe. 2017.
+<span>"Variational Inference: A Review for Statisticians."</span>
+<em>Journal of the American Statistical Association</em> 112 (518):
+859-77.
+</div>
+<div id="ref-blei_ng_jordan_lda_2003" class="csl-entry" role="listitem">
+Blei, David M., Andrew Y. Ng, and Michael I. Jordan. 2003. <span>"Latent
+Dirichlet Allocation."</span> <em>Journal of Machine Learning
+Research</em> 3: 993-1022.
+</div>
+<div id="ref-dempster_em_1977" class="csl-entry" role="listitem">
+Dempster, A. P., N. M. Laird, and D. B. Rubin. 1977. <span>"Maximum
+Likelihood from Incomplete Data via the EM Algorithm."</span>
+<em>Journal of the Royal Statistical Society, Series B</em> 39 (1):
+1-38.
+</div>
+<div id="ref-gelman_bda_2013" class="csl-entry" role="listitem">
+Gelman, Andrew, John B. Carlin, Hal S. Stern, David B. Dunson, Aki
+Vehtari, and Donald B. Rubin. 2013. <em>Bayesian Data Analysis</em>.
+Third. Chapman; Hall/CRC.
+</div>
+<div id="ref-hinton_wake_sleep_1995" class="csl-entry" role="listitem">
+Hinton, Geoffrey E., Peter Dayan, Brendan J. Frey, and Radford M. Neal.
+1995. <span>"The Wake-Sleep Algorithm for Unsupervised Neural
+Networks."</span> <em>Science</em> 268 (5214): 1158-61.
+</div>
+<div id="ref-hinton_dbn_2006" class="csl-entry" role="listitem">
+Hinton, Geoffrey E., Simon Osindero, and Yee-Whye Teh. 2006. <span>"A
+Fast Learning Algorithm for Deep Belief Nets."</span> <em>Neural
+Computation</em> 18 (7): 1527-54.
+</div>
+<div id="ref-hyvarinen_score_2005" class="csl-entry" role="listitem">
+Hyvärinen, Aapo. 2005. <span>"Estimation of Non-Normalized Statistical
+Models by Score Matching."</span> <em>Journal of Machine Learning
+Research</em> 6: 695-709.
+</div>
+<div id="ref-jaynes_probability_2003" class="csl-entry" role="listitem">
+Jaynes, E. T. 2003. <em>Probability Theory: The Logic of Science</em>.
+Edited by G. Larry Bretthorst. Cambridge University Press.
+</div>
+<div id="ref-jordan1999introduction" class="csl-entry" role="listitem">
+Jordan, Michael I., Zoubin Ghahramani, Tommi S. Jaakkola, and Lawrence
+K. Saul. 1999. <span>"An Introduction to Variational Methods for
+Graphical Models."</span> <em>Machine Learning</em> 37 (2): 183-233.
+</div>
+<div id="ref-kalman_1960" class="csl-entry" role="listitem">
+Kalman, R. E. 1960. <span>"A New Approach to Linear Filtering and
+Prediction Problems."</span> <em>Journal of Basic Engineering</em> 82
+(1): 35-45.
+</div>
+<div id="ref-kingma_vae_2014" class="csl-entry" role="listitem">
+Kingma, Diederik P., and Max Welling. 2014. <span>"Auto-Encoding
+Variational Bayes."</span> <em>ICLR</em>.
+</div>
+<div id="ref-koller_friedman_pgm_2009" class="csl-entry"
+role="listitem">
+Koller, Daphne, and Nir Friedman. 2009. <em>Probabilistic Graphical
+Models: Principles and Techniques</em>. MIT Press.
+</div>
+<div id="ref-lafferty_crf_2001" class="csl-entry" role="listitem">
+Lafferty, John D., Andrew McCallum, and Fernando C. N. Pereira. 2001.
+<span>"Conditional Random Fields: Probabilistic Models for Segmenting
+and Labeling Sequence Data."</span> <em>Proceedings of the Eighteenth
+International Conference on Machine Learning (ICML)</em>, 282-89.
+</div>
+<div id="ref-mackay1992practical" class="csl-entry" role="listitem">
+MacKay, David J. C. 1992. <span>"A Practical Bayesian Framework for
+Backpropagation Networks."</span> <em>Neural Computation</em> 4 (3):
+448-72.
+</div>
+<div id="ref-mackay_itila_2003" class="csl-entry" role="listitem">
+MacKay, David J. C. 2003. <em>Information Theory, Inference, and
+Learning Algorithms</em>. Cambridge University Press.
+</div>
+<div id="ref-murphy_pml_intro_2022" class="csl-entry" role="listitem">
+Murphy, Kevin P. 2022. <em>Probabilistic Machine Learning: An
+Introduction</em>. MIT Press. <a
+href="https://probml.github.io/pml-book/book1.html">https://probml.github.io/pml-book/book1.html</a>.
+</div>
+<div id="ref-neal_bayesian_1996" class="csl-entry" role="listitem">
+Neal, Radford M. 1996. <em>Bayesian Learning for Neural Networks</em>.
+Springer.
+</div>
+<div id="ref-neal_hinton_em_1998" class="csl-entry" role="listitem">
+Neal, Radford M., and Geoffrey E. Hinton. 1998. <span>"A View of the EM
+Algorithm That Justifies Incremental, Sparse, and Other
+Variants."</span> In <em>Learning in Graphical Models</em>. Kluwer
+Academic Publishers.
+</div>
+<div id="ref-rabiner_hmm_1989" class="csl-entry" role="listitem">
+Rabiner, Lawrence R. 1989. <span>"A Tutorial on Hidden Markov Models and
+Selected Applications in Speech Recognition."</span> <em>Proceedings of
+the IEEE</em> 77 (2): 257-86.
+</div>
+<div id="ref-salakhutdinov_dbm_2009" class="csl-entry" role="listitem">
+Salakhutdinov, Ruslan, and Geoffrey E. Hinton. 2009. <span>"Deep
+Boltzmann Machines."</span> <em>AISTATS</em>, 448-55.
+</div>
+</div>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

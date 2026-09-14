@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="Gaussian process surrogates, posterior inference, covariance functions, and hyperparameter learning for black-box optimization." />
+        <title>Bayesian Optimization with Gaussian Process Surrogates - Adnan Harun Dogan</title>
+        <link rel="canonical" href="https://adnanhd.github.io/blogs/bayesian-optimization/" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="Bayesian Optimization with Gaussian Process Surrogates" />
+        <meta property="og:description" content="Gaussian process surrogates, posterior inference, covariance functions, and hyperparameter learning for black-box optimization." />
+        <meta property="og:url" content="https://adnanhd.github.io/blogs/bayesian-optimization/" />
+        <meta property="og:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Bayesian Optimization with Gaussian Process Surrogates" />
+        <meta name="twitter:description" content="Gaussian process surrogates, posterior inference, covariance functions, and hyperparameter learning for black-box optimization." />
+        <meta name="twitter:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Bayesian Optimization with Gaussian Process Surrogates",
+  "description": "Gaussian process surrogates, posterior inference, covariance functions, and hyperparameter learning for black-box optimization.",
+  "url": "https://adnanhd.github.io/blogs/bayesian-optimization/",
+  "image": "https://adnanhd.github.io/assets/img/profile.jpeg",
+  "author": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan",
+    "url": "https://adnanhd.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan"
+  },
+  "mainEntityOfPage": "https://adnanhd.github.io/blogs/bayesian-optimization/",
+  "datePublished": "2026-03-04"
+}
+        </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Bayesian Optimization with Gaussian Process Surrogates</h1>
+            <div class="blog-meta">GP posteriors, covariance functions, acquisition strategies</div>
+            <article class="blog-body">
+<p>The foundations of Bayesian optimization trace
+back to work on efficient global optimization (EGO) <span
+class="citation" data-cites="jones_efficient_1998">(Jones et al.
+1998)</span>, which introduced expected improvement as an acquisition
+function for response surface optimization. The theoretical framework
+using Gaussian processes draws heavily from the comprehensive treatment
+in <span class="citation"
+data-cites="rasmussen_gaussian_2006">(Rasmussen and Williams
+2006)</span>.</p>
+<p>Modern tutorials <span class="citation"
+data-cites="brochu_tutorial_2010 frazier_tutorial_2018">(Brochu et al.
+2010; Frazier 2018)</span> provide accessible introductions to the
+field, while <span class="citation"
+data-cites="shahriari_taking_2016">(Shahriari et al. 2016)</span> offers
+an extensive review covering methodological advances and applications.
+The GP-UCB algorithm <span class="citation"
+data-cites="srinivas_gaussian_2012">(Srinivas et al. 2012)</span>
+established regret bounds connecting Bayesian optimization to the bandit
+literature.</p>
+<p>Practical Bayesian optimization for machine learning hyperparameter
+tuning was demonstrated by <span class="citation"
+data-cites="snoek_practical_2012">(Snoek et al. 2012)</span>, showing
+that careful GP prior design leads to state-of-the-art performance.
+High-dimensional extensions include random embeddings <span
+class="citation" data-cites="wang_bayesian_2016">(Wang et al.
+2016)</span>, local trust regions <span class="citation"
+data-cites="eriksson_scalable_2019">(Eriksson et al. 2019)</span>, and
+sparse axis-aligned subspaces <span class="citation"
+data-cites="eriksson_high-dimensional_2021">(Eriksson and Jankowiak
+2021)</span>.</p>
+<p>Information-theoretic acquisition functions <span class="citation"
+data-cites="hernandez-lobato_predictive_2014">(Hernández-Lobato et al.
+2014)</span> provide principled approaches to exploration, while
+portfolio methods <span class="citation"
+data-cites="brochu_portfolio_2011">(Brochu et al. 2011)</span> combine
+multiple acquisition strategies. Multi-fidelity methods <span
+class="citation"
+data-cites="kandasamy_multi-fidelity_2017 li_multi-fidelity_2020 swersky_freeze-thaw_2014">(Kandasamy
+et al. 2017; Li et al. 2020; Swersky et al. 2014)</span> leverage cheap
+approximations to accelerate optimization. Transfer learning <span
+class="citation"
+data-cites="feurer_practical_2022 swersky_multi-task_2013">(Feurer et
+al. 2022; Swersky et al. 2013)</span> enables knowledge transfer across
+related optimization tasks.</p>
+<p>Scalable Gaussian process inference <span class="citation"
+data-cites="snelson_sparse_2006 titsias_variational_2009 matthews_sparse_2015">(Snelson
+and Ghahramani 2006; Titsias 2009; Matthews et al. 2016)</span>
+underpins practical BO implementations, with GPyTorch <span
+class="citation" data-cites="gardner_gpytorch_2021">(Gardner et al.
+2018)</span> providing efficient GPU-accelerated computation.
+Applications span neural architecture search <span class="citation"
+data-cites="kandasamy_neural_2019 falkner_bohb_2018">(Kandasamy et al.
+2018; Falkner et al. 2018)</span>, biological sequence design <span
+class="citation" data-cites="stanton_accelerating_2022">(Stanton et al.
+2022)</span>, and safe exploration <span class="citation"
+data-cites="sui_safe_2015">(Sui et al. 2015)</span>.</p>
+<p>Read as a list of names that is a heap. It becomes a chapter once one
+question is put to every row: <u>where does the GP posterior stop paying
+for itself, and what does this method give up to buy that place
+back?</u> EGO and GP-UCB pay nothing and work only where the posterior
+is already cheap and accurate, in low dimension with few observations.
+Sparse and variational GPs give up exactness of the posterior to survive
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>∼</mo><msup><mn>10</mn><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">n \sim 10^4</annotation></semantics></math>.
+REMBO, TuRBO and SAASBO give up the assumption that the posterior is a
+single global object, respectively by projecting, by localising, and by
+zeroing most coordinates. Multi-fidelity and freeze-thaw methods give up
+the requirement that every evaluation be the true objective. Transfer
+methods give up the requirement that every observation come from the
+current task. Safe and constrained BO give up free access to the design
+space. The table below records that trade for each row: <em>Regime</em>
+is where the posterior still pays, <em>Headline result</em> is what the
+trade bought.</p>
+<p>The following leaderboard summarises the methods this chapter
+dissects, organised by the regime each one targets. Read the table
+top-down as exploitation/exploration first, then scalability, then
+dimensionality, then setting-specific extensions.</p>
+<div class="blog-table"><table id="tbl:bo-related-work-leaderboard">
+<caption>Leaderboard of canonical BO methods organised by regime.
+<em>Surrogate</em> records the inference primitive; <em>Acq.</em>
+records the acquisition rule; <em>Regime</em> records when the method is
+the right default; <em>Headline</em> records a representative empirical
+result. The chapter weaves each row into prose with full
+citations.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>Surrogate</th>
+<th>Acq.</th>
+<th>Regime</th>
+<th>Headline result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>EGO <span class="citation" data-cites="jones_efficient_1998">(Jones
+et al. 1998)</span></td>
+<td>Kriging</td>
+<td>EI</td>
+<td>low-D smooth deterministic</td>
+<td>first BO convergence proof, 14 yr predates regret bounds</td>
+</tr>
+<tr>
+<td>GP-UCB <span class="citation"
+data-cites="srinivas_gaussian_2012">(Srinivas et al. 2012)</span></td>
+<td>exact GP</td>
+<td>UCB</td>
+<td>bandit-style with regret bound</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>R</mi><mi>T</mi></msub><mo>=</mo><msup><mi>O</mi><mo>*</mo></msup><mo stretchy="false" form="prefix">(</mo><msqrt><mrow><mi>T</mi><msub><mi>β</mi><mi>T</mi></msub><msub><mi>γ</mi><mi>T</mi></msub></mrow></msqrt><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">R_T = O^*(\sqrt{T \beta_T \gamma_T})</annotation></semantics></math>
+sublinear</td>
+</tr>
+<tr>
+<td>PES <span class="citation"
+data-cites="hernandez-lobato_predictive_2014">(Hernández-Lobato et al.
+2014)</span></td>
+<td>exact GP + EP</td>
+<td>PES</td>
+<td>low-D, very expensive evals</td>
+<td>20-30 percent over EI on Branin and Hartmann-6</td>
+</tr>
+<tr>
+<td>GP-Hedge <span class="citation"
+data-cites="brochu_portfolio_2011">(Brochu et al. 2011)</span></td>
+<td>exact GP</td>
+<td>portfolio</td>
+<td>unknown landscape, kernel uncertainty</td>
+<td>beats best-individual on 28/32 synthetic benchmarks</td>
+</tr>
+<tr>
+<td>Spearmint <span class="citation"
+data-cites="snoek_practical_2012">(Snoek et al. 2012)</span></td>
+<td>MCMC GP</td>
+<td>EI per sec</td>
+<td>ML hyperparameter tuning</td>
+<td>14.98 percent CIFAR-10 vs 18 percent hand-tuned</td>
+</tr>
+<tr>
+<td>q-EI-SGA <span class="citation"
+data-cites="wang_parallel_2019">(Wang et al. 2020)</span></td>
+<td>exact GP</td>
+<td>q-EI</td>
+<td>parallel batch, q up to 50</td>
+<td>7x speedup at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mo>=</mo><mn>8</mn></mrow><annotation encoding="application/x-tex">q = 8</annotation></semantics></math>
+on ATO simulator</td>
+</tr>
+<tr>
+<td>SPGP / FITC <span class="citation"
+data-cites="snelson_sparse_2006">(Snelson and Ghahramani
+2006)</span></td>
+<td>sparse GP</td>
+<td>any</td>
+<td>mid-data
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>∼</mo><msup><mn>10</mn><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">N \sim 10^4</annotation></semantics></math></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>50</mn></mrow><annotation encoding="application/x-tex">M = 50</annotation></semantics></math>
+inducing points reach 95 percent of full GP</td>
+</tr>
+<tr>
+<td>VFE <span class="citation"
+data-cites="titsias_variational_2009">(Titsias 2009)</span></td>
+<td>variational GP</td>
+<td>any</td>
+<td>mid-data, hyperparameter-safe</td>
+<td>bound monotone in inducing set</td>
+</tr>
+<tr>
+<td>BBMM (GPyTorch) <span class="citation"
+data-cites="gardner_gpytorch_2021">(Gardner et al. 2018)</span></td>
+<td>exact GP via CG</td>
+<td>any</td>
+<td>large-data
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>∼</mo><msup><mn>10</mn><mn>6</mn></msup></mrow><annotation encoding="application/x-tex">N \sim 10^6</annotation></semantics></math></td>
+<td>exact GP on 1M points in 6 min on V100</td>
+</tr>
+<tr>
+<td>REMBO <span class="citation" data-cites="wang_bayesian_2016">(Wang
+et al. 2016)</span></td>
+<td>low-D GP</td>
+<td>EI</td>
+<td>low effective dim,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>d</mi><mtext mathvariant="normal">eff</mtext></msub><mspace width="-0.167em"></mspace><mo>≪</mo><mspace width="-0.167em"></mspace><mi>D</mi></mrow><annotation encoding="application/x-tex">d_{\text{eff}}\!\ll\! D</annotation></semantics></math></td>
+<td>3-5x sample efficiency on 69D MIP-tuning</td>
+</tr>
+<tr>
+<td>TuRBO <span class="citation"
+data-cites="eriksson_scalable_2019">(Eriksson et al. 2019)</span></td>
+<td>local GPs</td>
+<td>TS</td>
+<td>high-D rough, up to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>D</mi><mo>=</mo><mn>200</mn></mrow><annotation encoding="application/x-tex">D = 200</annotation></semantics></math></td>
+<td>wins on 200D Ackley, beats CMA-ES on 60D Rover</td>
+</tr>
+<tr>
+<td>SAASBO <span class="citation"
+data-cites="eriksson_high-dimensional_2021">(Eriksson and Jankowiak
+2021)</span></td>
+<td>NUTS GP horseshoe</td>
+<td>EI</td>
+<td>high-D sparse, expensive evals</td>
+<td>best on 124D Mopta08 and 388D SVM at equal budget</td>
+</tr>
+<tr>
+<td>Add-GP <span class="citation"
+data-cites="duvenaud_additive_2011">(Duvenaud et al. 2011)</span></td>
+<td>additive GP</td>
+<td>EI/UCB</td>
+<td>low-order interactions</td>
+<td>dominates SE on 9 of 11 UCI regression sets</td>
+</tr>
+<tr>
+<td>BOCA <span class="citation"
+data-cites="kandasamy_multi-fidelity_2017">(Kandasamy et al.
+2017)</span></td>
+<td>MF-GP</td>
+<td>cost-UCB</td>
+<td>continuous fidelity</td>
+<td>7x speedup on neural-net tuning, 10x on supernova LL</td>
+</tr>
+<tr>
+<td>DNN-MFBO <span class="citation"
+data-cites="li_multi-fidelity_2020">(Li et al. 2020)</span></td>
+<td>cascaded BNN</td>
+<td>MES</td>
+<td>discrete fidelity, deep models</td>
+<td>60 vs 200 samples on 8D 3-fidelity FEM</td>
+</tr>
+<tr>
+<td>Freeze-thaw <span class="citation"
+data-cites="swersky_freeze-thaw_2014">(Swersky et al. 2014)</span></td>
+<td>curve-kernel GP</td>
+<td>per-action ES</td>
+<td>training-curve fidelity</td>
+<td>3x wall-clock vs Spearmint on PMF/MovieLens-10M</td>
+</tr>
+<tr>
+<td>Multi-task GP <span class="citation"
+data-cites="swersky_multi-task_2013">(Swersky et al. 2013)</span></td>
+<td>ICM joint GP</td>
+<td>cost-ES</td>
+<td>warm-start from related tasks</td>
+<td>10 vs 30 target evals on small-MNIST to MNIST</td>
+</tr>
+<tr>
+<td>RGPE <span class="citation"
+data-cites="feurer_practical_2022">(Feurer et al. 2022)</span></td>
+<td>source-GP ensemble</td>
+<td>EI</td>
+<td>hyperparameter-free transfer</td>
+<td>3-5x wall-clock saved across 2086 OpenML tasks</td>
+</tr>
+<tr>
+<td>PESC <span class="citation"
+data-cites="hernandez-lobato_general_2016">(Hernández-Lobato et al.
+2016)</span></td>
+<td>constraint GPs</td>
+<td>PESC</td>
+<td>active black-box constraints</td>
+<td>5x regret gap vs EIC on Hartmann6-C1</td>
+</tr>
+<tr>
+<td>SafeOpt <span class="citation" data-cites="sui_safe_2015">(Sui et
+al. 2015)</span></td>
+<td>exact GP + Lipschitz</td>
+<td>max-var</td>
+<td>safety-critical online</td>
+<td>99.4 percent safe rate on MovieLens-3.5</td>
+</tr>
+<tr>
+<td>NASBOT <span class="citation"
+data-cites="kandasamy_neural_2019">(Kandasamy et al. 2018)</span></td>
+<td>OTMANN-kernel GP</td>
+<td>TS</td>
+<td>neural architecture search</td>
+<td>11.07 percent CIFAR-10 in 200 evals</td>
+</tr>
+<tr>
+<td>BOHB <span class="citation" data-cites="falkner_bohb_2018">(Falkner
+et al. 2018)</span></td>
+<td>TPE per budget</td>
+<td>density-ratio</td>
+<td>Hyperband-augmented HPO</td>
+<td>2x BO and 1.5x Hyperband on CartPole PPO</td>
+</tr>
+<tr>
+<td>LaMBO <span class="citation"
+data-cites="stanton_accelerating_2022">(Stanton et al. 2022)</span></td>
+<td>latent-space MTGP</td>
+<td>NEHVI</td>
+<td>discrete biological sequences</td>
+<td>40 percent over GA on GFP at 500 rounds</td>
+</tr>
+<tr>
+<td>Policy-search BO <span class="citation"
+data-cites="letham_bayesian_2019">(Letham and Bakshy 2019)</span></td>
+<td>rank-1 ICM</td>
+<td>TS</td>
+<td>online + offline policy search</td>
+<td>5+50 vs 25+ online evals at Facebook</td>
+</tr>
+<tr>
+<td>FBO <span class="citation" data-cites="ha_bayesian_2019">(Ha et al.
+2019)</span></td>
+<td>exact GP</td>
+<td>EI + box test</td>
+<td>unknown search bounds</td>
+<td>40 vs 200+ evals on log-scale SVM hyperparameters</td>
+</tr>
+</tbody>
+</table></div>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-brochu_tutorial_2010" class="csl-entry" role="listitem">
+Brochu, Eric, Vlad M. Cora, and Nando de Freitas. 2010. <em>A
+<span>Tutorial</span> on <span>Bayesian</span> <span>Optimization</span>
+of <span>Expensive</span> <span>Cost</span> <span>Functions</span>, with
+<span>Application</span> to <span>Active</span> <span>User</span>
+<span>Modeling</span> and <span>Hierarchical</span>
+<span>Reinforcement</span> <span>Learning</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1012.2599">https://doi.org/10.48550/arXiv.1012.2599</a>.
+</div>
+<div id="ref-brochu_portfolio_2011" class="csl-entry" role="listitem">
+Brochu, Eric, Matthew W. Hoffman, and Nando de Freitas. 2011.
+<em>Portfolio <span>Allocation</span> for <span>Bayesian</span>
+<span>Optimization</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1009.5419">https://doi.org/10.48550/arXiv.1009.5419</a>.
+</div>
+<div id="ref-duvenaud_additive_2011" class="csl-entry" role="listitem">
+Duvenaud, David, Hannes Nickisch, and Carl Edward Rasmussen. 2011.
+<em>Additive <span>Gaussian</span> <span>Processes</span></em>. arXiv.
+<a
+href="https://doi.org/10.48550/arXiv.1112.4394">https://doi.org/10.48550/arXiv.1112.4394</a>.
+</div>
+<div id="ref-eriksson_high-dimensional_2021" class="csl-entry"
+role="listitem">
+Eriksson, David, and Martin Jankowiak. 2021.
+<em>High-<span>Dimensional</span> <span>Bayesian</span>
+<span>Optimization</span> with <span>Sparse</span>
+<span>Axis</span>-<span>Aligned</span> <span>Subspaces</span></em>.
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2103.00349">https://doi.org/10.48550/arXiv.2103.00349</a>.
+</div>
+<div id="ref-eriksson_scalable_2019" class="csl-entry" role="listitem">
+Eriksson, David, Michael Pearce, Jacob Gardner, Ryan D Turner, and
+Matthias Poloczek. 2019. <em>Scalable <span>Global</span>
+<span>Optimization</span> via <span>Local</span> <span>Bayesian</span>
+<span>Optimization</span></em>.
+</div>
+<div id="ref-falkner_bohb_2018" class="csl-entry" role="listitem">
+Falkner, Stefan, Aaron Klein, and Frank Hutter. 2018.
+<span>"<span>BOHB</span>: <span>Robust</span> and <span>Efficient</span>
+<span>Hyperparameter</span> <span>Optimization</span> at
+<span>Scale</span>."</span> <em>International Conference on Machine
+Learning (ICML)</em>, July. <a
+href="https://doi.org/10.48550/arXiv.1807.01774">https://doi.org/10.48550/arXiv.1807.01774</a>.
+</div>
+<div id="ref-feurer_practical_2022" class="csl-entry" role="listitem">
+Feurer, Matthias, Benjamin Letham, Frank Hutter, and Eytan Bakshy. 2022.
+<span>"Practical <span>Transfer</span> <span>Learning</span> for
+<span>Bayesian</span> <span>Optimization</span>."</span>
+<em>Transactions on Machine Learning Research (TMLR)</em>, ahead of
+print, October. <a
+href="https://doi.org/10.48550/arXiv.1802.02219">https://doi.org/10.48550/arXiv.1802.02219</a>.
+</div>
+<div id="ref-frazier_tutorial_2018" class="csl-entry" role="listitem">
+Frazier, Peter I. 2018. <em>A <span>Tutorial</span> on
+<span>Bayesian</span> <span>Optimization</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1807.02811">https://doi.org/10.48550/arXiv.1807.02811</a>.
+</div>
+<div id="ref-gardner_gpytorch_2021" class="csl-entry" role="listitem">
+Gardner, Jacob R., Geoff Pleiss, David Bindel, Kilian Q. Weinberger, and
+Andrew Gordon Wilson. 2018. <span>"<span>GPyTorch</span>:
+<span>Blackbox</span> <span>Matrix</span>-<span>Matrix</span>
+<span>Gaussian</span> <span>Process</span> <span>Inference</span> with
+<span>GPU</span> <span>Acceleration</span>."</span> <em>Advances in
+Neural Information Processing Systems (NeurIPS)</em>, June. <a
+href="https://doi.org/10.48550/arXiv.1809.11165">https://doi.org/10.48550/arXiv.1809.11165</a>.
+</div>
+<div id="ref-ha_bayesian_2019" class="csl-entry" role="listitem">
+Ha, Huong, Santu Rana, Sunil Gupta, Thanh Nguyen, Hung Tran-The, and
+Svetha Venkatesh. 2019. <em>Bayesian <span>Optimization</span> with
+<span>Unknown</span> <span>Search</span> <span>Space</span></em>. arXiv.
+<a
+href="https://doi.org/10.48550/arXiv.1910.13092">https://doi.org/10.48550/arXiv.1910.13092</a>.
+</div>
+<div id="ref-hernandez-lobato_general_2016" class="csl-entry"
+role="listitem">
+Hernández-Lobato, José Miguel, Michael A. Gelbart, Ryan P. Adams,
+Matthew W. Hoffman, and Zoubin Ghahramani. 2016. <span>"A
+<span>General</span> <span>Framework</span> for <span>Constrained</span>
+<span>Bayesian</span> <span>Optimization</span> Using
+<span>Information</span>-Based <span>Search</span>."</span> <em>Journal
+of Machine Learning Research (JMLR)</em>, ahead of print, September. <a
+href="https://doi.org/10.48550/arXiv.1511.09422">https://doi.org/10.48550/arXiv.1511.09422</a>.
+</div>
+<div id="ref-hernandez-lobato_predictive_2014" class="csl-entry"
+role="listitem">
+Hernández-Lobato, José Miguel, Matthew W. Hoffman, and Zoubin
+Ghahramani. 2014. <em>Predictive <span>Entropy</span>
+<span>Search</span> for <span>Efficient</span> <span>Global</span>
+<span>Optimization</span> of <span>Black</span>-Box
+<span>Functions</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1406.2541">https://doi.org/10.48550/arXiv.1406.2541</a>.
+</div>
+<div id="ref-jones_efficient_1998" class="csl-entry" role="listitem">
+Jones, Donald R., Matthias Schonlau, and William J. Welch. 1998.
+<span>"Efficient <span>Global</span> <span>Optimization</span> of
+<span>Expensive</span> <span>Black</span>-<span>Box</span>
+<span>Functions</span>."</span> <em>Journal of Global Optimization</em>
+13 (4): 455-92. <a
+href="https://doi.org/10.1023/A:1008306431147">https://doi.org/10.1023/A:1008306431147</a>.
+</div>
+<div id="ref-kandasamy_multi-fidelity_2017" class="csl-entry"
+role="listitem">
+Kandasamy, Kirthevasan, Gautam Dasarathy, Jeff Schneider, and Barnabas
+Poczos. 2017. <span>"Multi-Fidelity <span>Bayesian</span>
+<span>Optimisation</span> with <span>Continuous</span>
+<span>Approximations</span>."</span> <em>International Conference on
+Machine Learning (ICML)</em>, March. <a
+href="https://doi.org/10.48550/arXiv.1703.06240">https://doi.org/10.48550/arXiv.1703.06240</a>.
+</div>
+<div id="ref-kandasamy_neural_2019" class="csl-entry" role="listitem">
+Kandasamy, Kirthevasan, Willie Neiswanger, Jeff Schneider, Barnabas
+Poczos, and Eric Xing. 2018. <span>"Neural <span>Architecture</span>
+<span>Search</span> with <span>Bayesian</span> <span>Optimisation</span>
+and <span>Optimal</span> <span>Transport</span>."</span> <em>Advances in
+Neural Information Processing Systems (NeurIPS)</em>, March. <a
+href="https://doi.org/10.48550/arXiv.1802.07191">https://doi.org/10.48550/arXiv.1802.07191</a>.
+</div>
+<div id="ref-letham_bayesian_2019" class="csl-entry" role="listitem">
+Letham, Benjamin, and Eytan Bakshy. 2019. <span>"Bayesian
+<span>Optimization</span> for <span>Policy</span> <span>Search</span>
+via <span>Online</span>-<span>Oﬄine</span>
+<span>Experimentation</span>."</span> <em>Annals of Applied
+Statistics</em>.
+</div>
+<div id="ref-li_multi-fidelity_2020" class="csl-entry" role="listitem">
+Li, Shibo, Wei Xing, Mike Kirby, and Shandian Zhe. 2020.
+<span>"Multi-<span>Fidelity</span> <span>Bayesian</span>
+<span>Optimization</span> via <span>Deep</span> <span>Neural</span>
+<span>Networks</span>."</span> <em>Advances in Neural Information
+Processing Systems (NeurIPS)</em>, December. <a
+href="https://doi.org/10.48550/arXiv.2007.03117">https://doi.org/10.48550/arXiv.2007.03117</a>.
+</div>
+<div id="ref-matthews_sparse_2015" class="csl-entry" role="listitem">
+Matthews, Alexander G. de G., James Hensman, Richard E. Turner, and
+Zoubin Ghahramani. 2016. <span>"On <span>Sparse</span> Variational
+Methods and the <span>Kullback</span>-<span>Leibler</span> Divergence
+Between Stochastic Processes."</span> <em>International Conference on
+Artificial Intelligence and Statistics (AISTATS)</em>, December. <a
+href="https://doi.org/10.48550/arXiv.1504.07027">https://doi.org/10.48550/arXiv.1504.07027</a>.
+</div>
+<div id="ref-rasmussen_gaussian_2006" class="csl-entry" role="listitem">
+Rasmussen, Carl Edward, and Christopher K. I. Williams. 2006.
+<em>Gaussian Processes for Machine Learning</em>. Adaptive Computation
+and Machine Learning. MIT Press.
+</div>
+<div id="ref-shahriari_taking_2016" class="csl-entry" role="listitem">
+Shahriari, Bobak, Kevin Swersky, Ziyu Wang, Ryan P. Adams, and Nando de
+Freitas. 2016. <span>"Taking the <span>Human</span> <span>Out</span> of
+the <span>Loop</span>: <span>A</span> <span>Review</span> of
+<span>Bayesian</span> <span>Optimization</span>."</span> <em>Proceedings
+of the IEEE</em> 104 (1): 148-75. <a
+href="https://doi.org/10.1109/JPROC.2015.2494218">https://doi.org/10.1109/JPROC.2015.2494218</a>.
+</div>
+<div id="ref-snelson_sparse_2006" class="csl-entry" role="listitem">
+Snelson, Edward, and Zoubin Ghahramani. 2006. <span>"Sparse
+<span>Gaussian</span> <span>Processes</span> Using
+<span>Pseudo</span>-Inputs."</span> <em>Advances in Neural Information
+Processing Systems (NeurIPS)</em>.
+</div>
+<div id="ref-snoek_practical_2012" class="csl-entry" role="listitem">
+Snoek, Jasper, Hugo Larochelle, and Ryan P. Adams. 2012. <em>Practical
+<span>Bayesian</span> <span>Optimization</span> of <span>Machine</span>
+<span>Learning</span> <span>Algorithms</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1206.2944">https://doi.org/10.48550/arXiv.1206.2944</a>.
+</div>
+<div id="ref-srinivas_gaussian_2012" class="csl-entry" role="listitem">
+Srinivas, Niranjan, Andreas Krause, Sham M. Kakade, and Matthias Seeger.
+2012. <span>"Gaussian <span>Process</span> <span>Optimization</span> in
+the <span>Bandit</span> <span>Setting</span>: <span>No</span>
+<span>Regret</span> and <span>Experimental</span>
+<span>Design</span>."</span> <em>IEEE Transactions on Information
+Theory</em> 58 (5): 3250-65. <a
+href="https://doi.org/10.1109/TIT.2011.2182033">https://doi.org/10.1109/TIT.2011.2182033</a>.
+</div>
+<div id="ref-stanton_accelerating_2022" class="csl-entry"
+role="listitem">
+Stanton, Samuel, Wesley Maddox, Nate Gruver, et al. 2022.
+<em>Accelerating <span>Bayesian</span> <span>Optimization</span> for
+<span>Biological</span> <span>Sequence</span> <span>Design</span> with
+<span>Denoising</span> <span>Autoencoders</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2203.12742">https://doi.org/10.48550/arXiv.2203.12742</a>.
+</div>
+<div id="ref-sui_safe_2015" class="csl-entry" role="listitem">
+Sui, Yanan, Alkis Gotovos, Joel W Burdick, and Andreas Krause. 2015.
+<span>"Safe <span>Exploration</span> for <span>Optimization</span> with
+<span>Gaussian</span> <span>Processes</span>."</span> <em>International
+Conference on Machine Learning (ICML)</em>.
+</div>
+<div id="ref-swersky_multi-task_2013" class="csl-entry" role="listitem">
+Swersky, Kevin, Jasper Snoek, and Ryan P Adams. 2013.
+<span>"Multi-<span>Task</span> <span>Bayesian</span>
+<span>Optimization</span>."</span> <em>Advances in Neural Information
+Processing Systems (NeurIPS)</em>.
+</div>
+<div id="ref-swersky_freeze-thaw_2014" class="csl-entry"
+role="listitem">
+Swersky, Kevin, Jasper Snoek, and Ryan Prescott Adams. 2014.
+<em>Freeze-<span>Thaw</span> <span>Bayesian</span>
+<span>Optimization</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1406.3896">https://doi.org/10.48550/arXiv.1406.3896</a>.
+</div>
+<div id="ref-titsias_variational_2009" class="csl-entry"
+role="listitem">
+Titsias, Michalis K. 2009. <span>"Variational <span>Learning</span> of
+<span>Inducing</span> <span>Variables</span> in <span>Sparse</span>
+<span>Gaussian</span> <span>Processes</span>."</span> <em>International
+Conference on Artificial Intelligence and Statistics (AISTATS)</em>.
+</div>
+<div id="ref-wang_parallel_2019" class="csl-entry" role="listitem">
+Wang, Jialei, Scott C. Clark, Eric Liu, and Peter I. Frazier. 2020.
+<span>"Parallel <span>Bayesian</span> <span>Global</span>
+<span>Optimization</span> of <span>Expensive</span>
+<span>Functions</span>."</span> <em>Operations Research</em>, ahead of
+print, May. <a
+href="https://doi.org/10.48550/arXiv.1602.05149">https://doi.org/10.48550/arXiv.1602.05149</a>.
+</div>
+<div id="ref-wang_bayesian_2016" class="csl-entry" role="listitem">
+Wang, Ziyu, Masrour Zoghi, Frank Hutter, David Matheson, and Nando de
+Freitas. 2016. <span>"Bayesian <span>Optimization</span> in
+<span>High</span> <span>Dimensions</span> via <span>Random</span>
+<span>Embeddings</span>."</span> <em>Journal of Artificial Intelligence
+Research (JAIR)</em>.
+</div>
+</div>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

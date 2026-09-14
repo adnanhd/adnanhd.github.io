@@ -1,0 +1,906 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="The NTK definition and parameterization, the gradient-flow ODE, the convergence theorem, and where the kernel picture breaks." />
+        <title>The Neural Tangent Kernel and Infinite-Width Networks - Adnan Harun Dogan</title>
+        <link rel="canonical" href="https://adnanhd.github.io/blogs/ntk-infinite-width/" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="The Neural Tangent Kernel and Infinite-Width Networks" />
+        <meta property="og:description" content="The NTK definition and parameterization, the gradient-flow ODE, the convergence theorem, and where the kernel picture breaks." />
+        <meta property="og:url" content="https://adnanhd.github.io/blogs/ntk-infinite-width/" />
+        <meta property="og:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="The Neural Tangent Kernel and Infinite-Width Networks" />
+        <meta name="twitter:description" content="The NTK definition and parameterization, the gradient-flow ODE, the convergence theorem, and where the kernel picture breaks." />
+        <meta name="twitter:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "The Neural Tangent Kernel and Infinite-Width Networks",
+  "description": "The NTK definition and parameterization, the gradient-flow ODE, the convergence theorem, and where the kernel picture breaks.",
+  "url": "https://adnanhd.github.io/blogs/ntk-infinite-width/",
+  "image": "https://adnanhd.github.io/assets/img/profile.jpeg",
+  "author": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan",
+    "url": "https://adnanhd.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan"
+  },
+  "mainEntityOfPage": "https://adnanhd.github.io/blogs/ntk-infinite-width/",
+  "datePublished": "2025-12-30"
+}
+        </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>The Neural Tangent Kernel and Infinite-Width Networks</h1>
+            <div class="blog-meta">Gradient-flow ODEs, the NTK theorem, and its limits</div>
+            <article class="blog-body">
+<p>Part III's papers sit at the intersection of three older traditions.
+The kernel-methods lineage (Schölkopf-Smola, Rasmussen-Williams)
+supplies the mathematical apparatus (RKHS, positive-definite kernels,
+kernel ridge regression) that the NTK slots into. The
+Bayesian-neural-network lineage (MacKay 1992, Neal 1996, Graves 2011,
+Blundell et al. 2015) supplies the NNGP prior and the
+variational-inference toolkit that extends to finite-width
+approximations. The statistical-physics-of-learning lineage
+(Sompolinsky-Crisanti-Sommers 1988, Seung-Sompolinsky-Tishby 1992,
+Saad-Solla 1995) supplies the mean-field/replica toolkit that underpins
+<span class="citation" data-cites="mei_mean_field_2018">(Mei et al.
+2018)</span> and the effective theory of <span class="citation"
+data-cites="roberts_principles_2022">(Roberts et al. 2022)</span>.</p>
+<p>Within Part III's own papers, the intellectual dependency graph runs
+as follows. <span class="citation" data-cites="neal_priors_1996">(Neal
+1996)</span> sits at the root; it establishes the infinite-width-as-GP
+principle for single-layer networks. <span class="citation"
+data-cites="lee_nngp_2018">(Lee et al. 2018)</span> and <span
+class="citation" data-cites="matthews_gaussian_2018">(Matthews et al.
+2018)</span> extend this to deep networks, giving the NNGP recursion (<a
+href="eq:nngp-recursion">eq:nngp-recursion</a>). <span class="citation"
+data-cites="jacot_ntk_2018">(Jacot et al. 2018)</span> then introduces
+the tangent-kernel counterpart that governs dynamics rather than priors,
+and <span class="citation" data-cites="lee_wide_2019">(Lee et al.
+2019)</span> tightens the convergence to a uniform-linearization
+theorem. <span class="citation" data-cites="arora_exact_2019">(Arora et
+al. 2019)</span> operationalizes all of this by computing the NTK
+exactly at CIFAR-10 scale. The critique then emerges in three papers:
+<span class="citation" data-cites="chizat_lazy_2019">(Chizat et al.
+2019)</span> diagnoses the NTK regime as <em>lazy</em> via the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>-scaling
+and demonstrates that feature-learning (rich) regimes exist; <span
+class="citation" data-cites="mei_mean_field_2018">(Mei et al.
+2018)</span> gives the mean-field PDE as an explicit feature-learning
+limit; <span class="citation" data-cites="yang_hu_2021">(Yang and Hu
+2021)</span> unifies these under the abc-parameterization and identifies
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>P
+as the canonical rich-regime limit. Finally, <span class="citation"
+data-cites="hanin_nica_2019">(Hanin and Nica 2019)</span> and <span
+class="citation" data-cites="roberts_principles_2022">(Roberts et al.
+2022)</span> quantify finite-width corrections as a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi>/</mi><mi>n</mi></mrow><annotation encoding="application/x-tex">1/n</annotation></semantics></math>-expansion,
+and <span class="citation"
+data-cites="geiger_disentangling_2020">(Geiger et al. 2020)</span> and
+<span class="citation"
+data-cites="woodworth_kernel_rich_2020">(Woodworth et al. 2020)</span>
+provide empirical and mathematical evidence that real networks are not
+purely in the NTK regime.</p>
+<h2 id="part-iiis-place-in-the-statistical-dl-story">Part III's place in
+the statistical-DL story</h2>
+<p>Part III sits in a specific position relative to the other parts of
+the book. Part I established classical capacity-based generalization
+theory and its failure on over-parameterized networks. Part II
+introduced PAC-Bayes as a more refined framework that handles
+over-parameterization via posterior-averaging. <u>Part III introduces
+the NTK as a third distinct path: not a generalization bound but a
+generalization model in which training dynamics are explicit and
+closed-form.</u></p>
+<p>The three approaches are complementary. Classical bounds (Part I) are
+architecture-agnostic but loose; PAC-Bayes bounds (Part II) are
+architecture-aware and tight with good priors; NTK analysis (Part III)
+is architecture-specific and gives exact predictions for wide-network
+training. A complete theory of deep-network generalization would combine
+these: PAC-Bayes analysis with NTK-GP priors is a natural synthesis that
+has been pursued <span class="citation"
+data-cites="neyshabur_pac_bayes_2018">(Neyshabur et al. 2018)</span>
+with some success.</p>
+<p>Parts IV and V extend the narrative. Part IV examines <em>benign
+overfitting</em> and <em>double descent</em>, phenomena that the NTK can
+describe in its linearized form but that require finite-width
+corrections to fully explain. Part V examines <em>scaling laws</em>, for
+which the NTK provides a mathematical template (<a
+href="eq:kernel-scaling-law">eq:kernel-scaling-law</a>) but not a
+complete mechanism.</p>
+<p>Collectively the five parts frame a research program:
+statistical-learning-theoretic explanation of deep learning proceeds by
+(i) ruling out classical bounds as sufficient (Parts I, II), (ii)
+establishing the kernel-regression baseline (Part III), (iii)
+characterizing the gap between this baseline and practice (Parts III,
+IV, V). No single part delivers a complete theory; together they outline
+the shape one would take.</p>
+<h2 id="intellectual-lineages-beyond-part-iii">Intellectual lineages
+beyond Part III</h2>
+<p><u>A useful orienting frame is to place Part III's papers in the
+broader intellectual genealogy of the theory of neural networks.</u></p>
+<p>Kernel methods (Aronszajn 1950; <span class="citation"
+data-cites="scholkopf_smola_2002 rasmussen_williams_2006">(Schölkopf and
+Smola 2002; Rasmussen and Williams 2006)</span>). The RKHS framework
+that the NTK slots into was developed in mid-twentieth-century analysis
+for reasons having nothing to do with neural networks. The NTK's
+contribution is to identify a specific family of kernels (those arising
+from neural-architecture parameter-gradients) that inherit the
+architectural inductive bias and are computationally tractable.</p>
+<p>Statistical mechanics of learning (Sompolinsky-Crisanti-Sommers 1988;
+Seung-Sompolinsky-Tishby 1992; Saad-Solla 1995). The physics tradition
+of analyzing learning as a statistical-mechanical system, with
+temperature corresponding to training noise and magnetization
+corresponding to generalization, underlies the mean-field analysis of
+<span class="citation" data-cites="mei_mean_field_2018">(Mei et al.
+2018)</span> and the effective-theory program of <span class="citation"
+data-cites="roberts_principles_2022">(Roberts et al. 2022)</span>. The
+Wasserstein-gradient-flow reformulation of (<a
+href="eq:mean-field-pde">eq:mean-field-pde</a>) is more recent and owes
+to optimal-transport theory <span class="citation"
+data-cites="ambrosio_gradient_flows_2005">(Ambrosio et al.
+2005)</span>.</p>
+<p>Bayesian neural networks (MacKay 1992; Neal 1996; Graves 2011). The
+NNGP sits at the infinite-width end of this lineage. Finite-width
+Bayesian neural networks remain an active research area with variational
+and Monte Carlo methods; the NNGP provides an analytic benchmark against
+which finite-width approximations can be measured.</p>
+<p>High-dimensional probability and random-matrix theory (Wigner 1955;
+Marchenko-Pastur 1967; recent kernel-random-matrix literature). The
+analysis of kernel Gram matrices, their spectra, and their
+double-descent behavior leans on random-matrix theory. The NTK Gram
+matrix at a random training set has spectral properties determined by
+random-matrix ensembles, which connects to the benign-overfitting /
+double-descent analyses of Part IV.</p>
+<p>Tangent methods in optimization (Amari 1998 natural gradient;
+Martens-Grosse 2015 K-FAC). The NTK is mathematically a specific
+empirical-Fisher-like object; natural-gradient methods that precondition
+by the Fisher information are close relatives. The theoretical insight
+of the NTK is that the <em>linear-ODE structure</em> emerges from the
+infinite-width limit, not the preconditioning itself.</p>
+<p>Gradient-flow analysis of neural networks (Du-Lee-Li-Wang-Zhai 2019;
+Chizat-Bach 2019). A parallel line of work analyzes gradient-flow
+convergence on specific neural architectures (two-layer ReLU, deep
+linear networks) without necessarily taking width to infinity. The NTK
+provides the <em>infinite-width limit point</em> of this line; the
+finite-width analyses give convergence rates for specific architectures
+that the NTK subsumes asymptotically.</p>
+<h2 id="cross-references-into-other-parts">Cross-references into other
+parts</h2>
+<ul>
+<li>Part I (classical
+foundations): VC/Rademacher bounds are replaced by RKHS
+generalization bounds in the NTK regime; the spectral decay of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Θ</mi><mi>∞</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>X</mi><mo>,</mo><mi>X</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Theta_\infty(X,X)</annotation></semantics></math>
+plays the role of capacity.</li>
+<li>Part II (PAC-Bayes): the NTK GP
+posterior is a natural PAC-Bayes prior, and <span class="citation"
+data-cites="lee_wide_2019">(Lee et al. 2019)</span>'s ensemble
+interpretation enables direct PAC-Bayes bounds on NTK-regime
+networks.</li>
+<li>Part IV (benign overfitting
+and double descent): the NTK gives a linearized test-bed in which
+benign overfitting and double descent can be computed exactly; the
+condition number of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Θ</mi><mi>∞</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>X</mi><mo>,</mo><mi>X</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Theta_\infty(X,X)</annotation></semantics></math>
+at the interpolation threshold is the NTK's double-descent
+divergence.</li>
+<li>Part V (scaling laws):
+the solvable neural-scaling-law model of <span class="citation"
+data-cites="maloney_solvable_2022">(Maloney et al. 2022)</span> is an
+NTK model; its power-law exponents come from the spectral decay of the
+NNGP/NTK eigenspectrum.</li>
+<li>Companion book (Deep Gaussian Processes
+in Prob DL): NNGP is the infinite-width endpoint of the DGP
+hierarchy; variational DGP approximations recover finite-width
+corrections in a different expansion.</li>
+</ul>
+<h2 id="cross-paper-sota-positioning">Cross-paper SoTA positioning</h2>
+<p>How do the papers of Part III position against each other in the SoTA
+landscape? A few observations:</p>
+<p><span class="citation" data-cites="jacot_ntk_2018">(Jacot et al.
+2018)</span> established the theoretical framework but did not push
+benchmark numbers. Its empirical section was limited to small synthetic
+experiments confirming kernel concentration; it did not claim that NTK
+regression was a competitive predictor.</p>
+<p><span class="citation" data-cites="lee_nngp_2018">(Lee et al.
+2018)</span> pushed the NNGP benchmark numbers first. It reported NNGP
+on MNIST matching or exceeding finite networks, which was the first
+public evidence that an infinite-width closed-form kernel could be
+competitive on standard benchmarks.</p>
+<p><span class="citation" data-cites="arora_exact_2019">(Arora et al.
+2019)</span> pushed the NTK benchmark numbers to CIFAR-10. It delivered
+the CNTK vs CNN table we have referenced, and established the 5-7% gap
+as the empirical anchor for subsequent discussions.</p>
+<p><span class="citation" data-cites="lee_wide_2019">(Lee et al.
+2019)</span> closed the theoretical loop by proving uniform
+linearization, which justifies treating infinite-width SGD-trained
+networks as exactly equivalent to kernel regression.</p>
+<p><span class="citation" data-cites="chizat_lazy_2019">(Chizat et al.
+2019)</span> introduced the scaling-based diagnosis of the NTK regime,
+revealing that lazy training is a universal phenomenon rather than a
+neural-network-specific one.</p>
+<p><span class="citation" data-cites="mei_mean_field_2018">(Mei et al.
+2018)</span> and <span class="citation" data-cites="yang_hu_2021">(Yang
+and Hu 2021)</span> offered feature-learning alternatives that explain
+phenomena the NTK cannot. <span class="citation"
+data-cites="yang_hu_2021">(Yang and Hu 2021)</span> is particularly
+influential in practice because
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>P-transfer
+is directly usable.</p>
+<p><span class="citation" data-cites="hanin_nica_2019">(Hanin and Nica
+2019)</span> and <span class="citation"
+data-cites="roberts_principles_2022">(Roberts et al. 2022)</span>
+quantified finite-width corrections, providing a bridge between the
+idealized infinite-width theory and finite-network reality.</p>
+<p><span class="citation" data-cites="geiger_disentangling_2020">(Geiger
+et al. 2020)</span> and <span class="citation"
+data-cites="woodworth_kernel_rich_2020">(Woodworth et al. 2020)</span>
+provided empirical and mathematical evidence that real-network regimes
+lie strictly between the lazy and rich extremes.</p>
+<p><u>The collective arc is from idealization (NTK as exact theory of
+wide networks) through critique (empirical gap is real) to synthesis
+(finite-width corrections and feature-learning parameterizations
+together give a richer picture).</u> Each paper in Part III plays a
+specific role in this arc, and none is self-sufficient.</p>
+<h2 id="connecting-to-scaling-laws-part-v-preview">Connecting to scaling
+laws (Part V preview)</h2>
+<p>Part V treats neural scaling laws as a distinct topic. A brief
+preview of the NTK connection is useful here. The observation that test
+error scales as a power law in compute, data, and parameters <span
+class="citation"
+data-cites="kaplan_scaling_2020 hoffmann_chinchilla_2022">(Kaplan et al.
+2020; <span class="nocase">Hoffmann et al.</span> 2022)</span> begs the
+theoretical question of <em>why</em> power laws. The NTK provides a
+partial answer <span class="citation"
+data-cites="maloney_solvable_2022">(Maloney et al. 2022)</span>: for
+kernel regression with a kernel whose eigenvalues decay as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mi>k</mi></msub><mo>∼</mo><msup><mi>k</mi><mrow><mi>−</mi><mi>α</mi></mrow></msup></mrow><annotation encoding="application/x-tex">\lambda_k \sim k^{-\alpha}</annotation></semantics></math>
+(power law with decay rate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>),
+the test error on a target with coefficients
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mi>k</mi></msub><mo>∼</mo><msup><mi>k</mi><mrow><mi>−</mi><mi>β</mi></mrow></msup></mrow><annotation encoding="application/x-tex">\beta_k \sim k^{-\beta}</annotation></semantics></math>
+scales as</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="double-struck">𝔼</mi><mo stretchy="false" form="prefix">[</mo><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi><mspace width="0.222em"></mspace><mi mathvariant="normal">e</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="postfix">]</mo><mspace width="0.278em"></mspace><mo>∼</mo><mspace width="0.278em"></mspace><msubsup><mi>n</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow><mrow><mi>−</mi><mrow><mi mathvariant="normal">min</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>α</mi><mo>,</mo><mn>2</mn><mi>β</mi><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>α</mi></mrow></msubsup><mo>+</mo><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">z</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi><mspace width="0.222em"></mspace><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">s</mi></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}
+\mathbb{E}[\mathrm{test\ error}] \;\sim\; n_{\mathrm{train}}^{-\min(\alpha, 2\beta - 1)/\alpha} + \mathrm{regularization\ terms},
+\end{equation}</annotation></semantics></math></p>
+<p>which is a <em>power law in training-set size</em>. The exponent
+depends on the kernel's spectral decay (architecture-dependent) and the
+target's smoothness (task-dependent). For natural datasets whose
+eigenvalue spectra can be estimated, this predicts scaling exponents
+that match observed ones reasonably well.</p>
+<p>The <em>limitations</em> of this NTK-based scaling story are: it
+assumes the network is in the NTK regime (not feature-learning); it
+predicts a single power-law exponent per (architecture, task) pair,
+whereas observed scaling laws are often better fit by broken power laws
+with regime transitions; it has no mechanism for the <em>emergent
+abilities</em> reported in large language models. So the NTK gives a
+mathematical template for scaling-law derivation but does not account
+for the full empirical picture.</p>
+<h2 id="sota-table-across-ntk-vs-modern-architectures">SoTA table across
+NTK vs modern architectures</h2>
+<div class="blog-table"><table id="tbl:ntk-sota-comparison">
+<caption>Leaderboard-style comparison: NTK-regression and modern
+architectures on CIFAR-10 and MNIST. Numbers compiled from <span
+class="citation" data-cites="arora_exact_2019">(Arora et al.
+2019)</span> (CNTK entries), <span class="citation"
+data-cites="lee_nngp_2018">(Lee et al. 2018)</span> (NNGP entries), and
+standard benchmark repositories. The NTK/NNGP entries represent
+<em>infinite-width</em> kernel regression with no training and no data
+augmentation. The WideResNet entry uses Cutout augmentation; the ViT
+entry uses ImageNet-21k pretraining. The point of the table is the
+magnitude of the gap: modern practice exceeds the best kernel by 19 to
+22 points on CIFAR-10. Note that the finite networks of matching
+architecture are already 6 to 8 points above the kernel ceiling before
+any modern recipe is applied, so the 19-to-22-point figure is the sum of
+a feature-learning gap and an architecture-plus-recipe gap and not a
+single effect.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>CIFAR-10 (%)</th>
+<th>MNIST (%)</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NNGP (FC, depth 10) <span class="citation"
+data-cites="lee_nngp_2018">(Lee et al. 2018)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>
+54.0</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>
+98.7</td>
+<td>no training; prior-predictive</td>
+</tr>
+<tr>
+<td>CNTK-V (depth 6, best) <span class="citation"
+data-cites="arora_exact_2019">(Arora et al. 2019)</span></td>
+<td>66.03</td>
+<td>-</td>
+<td>no pooling, no training</td>
+</tr>
+<tr>
+<td>CNTK-GAP (depth 4) <span class="citation"
+data-cites="arora_exact_2019">(Arora et al. 2019)</span></td>
+<td>75.93</td>
+<td>-</td>
+<td>global-avg pool; infinite-width</td>
+</tr>
+<tr>
+<td>CNTK-GAP (depth 11, best) <span class="citation"
+data-cites="arora_exact_2019">(Arora et al. 2019)</span></td>
+<td>77.43</td>
+<td>-</td>
+<td>kernel ceiling across all depths tried</td>
+</tr>
+<tr>
+<td>CNN-V (depth 21, best) <span class="citation"
+data-cites="arora_exact_2019">(Arora et al. 2019)</span></td>
+<td>75.57</td>
+<td>-</td>
+<td>same architecture, SGD-trained</td>
+</tr>
+<tr>
+<td>CNN-GAP (depth 6, best) <span class="citation"
+data-cites="arora_exact_2019">(Arora et al. 2019)</span></td>
+<td>83.75</td>
+<td>-</td>
+<td>same architecture, SGD-trained</td>
+</tr>
+<tr>
+<td>ResNet-110 <span class="citation" data-cites="he_resnet_2016">(He et
+al. 2016)</span></td>
+<td>93.6</td>
+<td>&gt; 99.7</td>
+<td>skip connections + BN; He et al. Table 6</td>
+</tr>
+<tr>
+<td>ResNet-34</td>
+<td>96.0</td>
+<td>&gt; 99.7</td>
+<td>benchmark repositories; not in Arora</td>
+</tr>
+<tr>
+<td>WideResNet-28-10 (Cutout)</td>
+<td>97.1</td>
+<td>&gt; 99.7</td>
+<td>+augmentation; post-2018</td>
+</tr>
+<tr>
+<td>ViT-L/16 (IN21k pretrain)</td>
+<td>99.4</td>
+<td>&gt; 99.9</td>
+<td>+pretraining; post-2020</td>
+</tr>
+</tbody>
+</table></div>
+<p><u>The generalization of this table is: infinite-width kernel methods
+are competitive with non-pretrained, non-augmented, unregularized finite
+networks of matching architecture, but fall far short of modern training
+recipes that exploit feature learning, data augmentation, and transfer
+learning.</u> The NTK theory explains one regime (wide, lazily trained,
+from scratch) and does not explain the regime where modern accuracy
+lives.</p>
+<h2 id="cross-architecture-comparison-of-the-gap">Cross-architecture
+comparison of the gap</h2>
+<div class="blog-table"><table id="tbl:ntk-sgd-gap">
+<caption>Cross-architecture comparison of NTK-regression vs finite-width
+SGD-trained accuracy gap on CIFAR-10. Rows are architecture families.
+The "NTK accuracy" column is the best reported infinite-width
+kernel-regression result; the "SGD accuracy" column is the best reported
+finite-width trained result on the same architecture and training-data
+split (no augmentation, no transfer). Numbers are approximate and drawn
+from <span class="citation"
+data-cites="arora_exact_2019 lee_nngp_2018 lee_finite_nngp_infinite_nngp_2020">(Arora
+et al. 2019; Lee et al. 2018, 2020)</span> and successor benchmarking
+efforts.</caption>
+<thead>
+<tr>
+<th>Architecture</th>
+<th>NTK accuracy</th>
+<th>SGD accuracy</th>
+<th>Gap</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FC depth-3</td>
+<td>54.0</td>
+<td>55.0</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>FC depth-10</td>
+<td>54.5</td>
+<td>56.0</td>
+<td>1.5</td>
+</tr>
+<tr>
+<td>CNN-V depth-11</td>
+<td>65.90</td>
+<td>69.48</td>
+<td>3.6</td>
+</tr>
+<tr>
+<td>CNN-V depth-21</td>
+<td>64.09</td>
+<td>75.57</td>
+<td>11.5</td>
+</tr>
+<tr>
+<td>CNN-GAP depth-6</td>
+<td>76.73</td>
+<td>83.75</td>
+<td>7.0</td>
+</tr>
+<tr>
+<td>CNN-GAP depth-21</td>
+<td>77.08</td>
+<td>83.30</td>
+<td>6.2</td>
+</tr>
+<tr>
+<td>ResNet-like depth-20</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>79</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>87</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>8</td>
+</tr>
+<tr>
+<td>Transformer (vision)</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>73</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>85</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>12</td>
+</tr>
+</tbody>
+</table></div>
+<p>The pattern is clear once depth is held in view: the gap grows both
+with architectural sophistication and, within a fixed architecture, with
+depth. Fully-connected networks have essentially no gap at any depth.
+Vanilla CNNs go from 3.6 points at depth 11 to 11.5 at depth 21, because
+the kernel is falling while the network is still rising. Pooled CNNs sit
+at 6 to 7 points across the whole depth range, and modern architectures
+are further out still. <u>Reporting "the CNTK gap" as a single number is
+therefore a category error; it is a function of depth, and its
+depth-dependence is the informative part.</u></p>
+<h2 id="the-persistence-of-the-gap-across-training-recipes">The
+persistence of the gap across training recipes</h2>
+<p>A natural question is whether the NTK-to-SGD gap can be closed by
+adjusting training recipe. Several attempts have been made, with mixed
+results:</p>
+<p>Training for longer: extending SGD training does not close the gap;
+SGD converges to a feature-learning predictor, and continued training
+does not revert to kernel regression.</p>
+<p>Using larger widths: increasing
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+reduces the kernel fluctuation gap but does not reduce the
+feature-learning gap; infinite-width
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>P
+networks still have feature-learning benefits that NTK lacks.</p>
+<p>Using regularization: explicit regularization (weight decay, dropout)
+can improve generalization but does not close the gap; both NTK and
+SGD-trained networks benefit, and the SGD-trained network still
+wins.</p>
+<p>Using better initialization: initialization schemes that keep
+networks closer to the NTK regime (smaller variance, or effective
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>)
+move the SGD-trained network toward the NTK predictor but at the cost of
+worse final performance.</p>
+<p><u>The persistence of the gap suggests it is structural: SGD-trained
+finite networks operate in a feature-learning regime that is inherently
+better than kernel regression for sufficiently complex tasks, and no
+adjustment of training recipe can move them into the pure kernel regime
+without sacrificing the performance benefit.</u> The gap is a feature of
+practical training, not a bug in the NTK approximation.</p>
+<h2 id="gap-decomposition-by-architecture-family">Gap decomposition by
+architecture family</h2>
+<p>Different architecture families exhibit different NTK-to-SGD gaps. A
+rough taxonomy:</p>
+<p>Fully-connected networks. The NTK gap is small for FC networks at
+moderate width. On MNIST with a 3-layer FC network, the infinite-width
+NNGP reaches 98.7%, the NTK-regression predictor reaches 99.0%, and an
+SGD-trained finite network reaches 99.1%. The gap is within sampling
+noise. The NTK theory is a quantitative theory of wide fully-connected
+networks.</p>
+<p>Vanilla CNNs (no skip connections, no batch norm). The NTK gap is
+intermediate. On CIFAR-10, the gap between CNTK-GAP and the matching
+CNN-GAP is 5-7% in the depth range 11-21 (Table above). This is where
+the feature-learning story becomes essential.</p>
+<p>Modern CNNs (ResNets, WideResNets). The NTK gap is large. Analogs of
+CNTK for ResNets have been proposed <span class="citation"
+data-cites="huang_dynamical_2020">(Huang and Yau 2020)</span> but do not
+capture the training-recipe benefits (augmentation, label smoothing,
+mixup, schedules) that contribute substantially to modern accuracy. A
+precise NTK-vs-SGD comparison on ResNets is not easy to set up fairly,
+but order-of-magnitude estimates place the gap at 10-15% on
+CIFAR-10.</p>
+<p>Transformers. The NTK gap is unclear. Attention-NTKs <span
+class="citation" data-cites="hron_attention_2020">(Hron et al.
+2020)</span> are computable but have not been benchmarked extensively
+against SGD-trained Transformers; the order of limits matters
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>d</mi><mi>k</mi></msub><mo>→</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">d_k \to \infty</annotation></semantics></math>
+before
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mo>→</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">H \to \infty</annotation></semantics></math>,
+or the kernel degenerates), and the resulting NTK has no closed form
+because the softmax requires a double Gaussian integral evaluated by
+Hermite quadrature. On a single-layer infinite-attention experiment with
+IMDB sentiment, NNGP achieves
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>90.1</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">90.1\%</annotation></semantics></math>,
+NTK
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>90.4</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">90.4\%</annotation></semantics></math>,
+and finite-width attention
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>89.8</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">89.8\%</annotation></semantics></math>
+<span class="citation" data-cites="hron_attention_2020">(Hron et al.
+2020)</span>, so for that controlled setting infinite-width predictions
+match finite networks within 1%. Skip connections are essential: without
+residuals the attention NNGP collapses to a constant as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>→</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">L \to \infty</annotation></semantics></math>.
+Layer-norm reduces in the infinite-width limit to a covariance
+normalization
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Σ</mi><mo>↦</mo><mi mathvariant="normal">Σ</mi><mi>/</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Σ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Sigma \mapsto \Sigma/\mathrm{tr}(\Sigma)</annotation></semantics></math>.
+At larger scale, preliminary experiments suggest gaps comparable to
+modern CNNs (10-15% on language-modeling metrics), though the comparison
+is complicated by the pretraining-and-fine-tuning structure of
+Transformer workflows.</p>
+<p>Graph networks. Graph NTKs <span class="citation"
+data-cites="du_graph_2019">(Du et al. 2019)</span> are computable for
+message-passing architectures and on graph-classification benchmarks the
+kernel often <em>matches or exceeds</em> SGD-trained GNNs: on MUTAG,
+GNTK reaches
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>90.0</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">90.0\%</annotation></semantics></math>
+vs
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>89.4</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">89.4\%</annotation></semantics></math>
+for the best GIN; on COLLAB,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>83.6</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">83.6\%</annotation></semantics></math>
+vs
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>80.2</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">80.2\%</annotation></semantics></math>,
+and similar inversions hold for 7 of 9 standard benchmarks (PROTEINS,
+NCI1, IMDB-BINARY, IMDB-MULTI, REDDIT-BINARY, REDDIT-5K). The kernel
+decomposes into node-level kernels
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Θ</mi><mrow><mi>u</mi><mo>,</mo><msup><mi>u</mi><mo>′</mo></msup></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>G</mi><mo>,</mo><msup><mi>G</mi><mo>′</mo></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Theta_{u,u&#39;}(G, G&#39;)</annotation></semantics></math>
+plus sum-pooling, with the number of message-passing rounds
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
+entering as a hyperparameter (sweet spot
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">k = 2</annotation></semantics></math>-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>3</mn><annotation encoding="application/x-tex">3</annotation></semantics></math>).
+The cheap, monotone, kernel-favourable picture for graphs may reflect
+the relatively shallow (2-4 layer) depth of typical GNN architectures,
+which keeps them in a more NTK-favorable regime; it also suggests
+feature learning is <em>less</em> critical for graph-classification than
+for vision, an inversion of the standard NTK-versus-feature-learning
+narrative.</p>
+<p><u>The overall pattern is that simpler, shallower, more homogeneous
+architectures are better-described by the NTK, and more sophisticated
+architectures exhibit larger gaps.</u> This is consistent with the
+diagnosis that the NTK-vs-SGD gap tracks the degree to which training
+benefits from feature learning, which in turn tracks architectural
+sophistication.</p>
+<h2 id="ntks-contribution-to-the-theory-of-generalization">NTK's
+contribution to the theory of generalization</h2>
+<p>The NTK's principal contribution to generalization theory is to
+provide a computable baseline against which to measure. Before the NTK,
+generalization analyses of deep networks were either very loose (VC
+dimension, Rademacher complexity) or required strong unverified
+assumptions (PAC-Bayes with specific posterior priors). The NTK changed
+the landscape by delivering:</p>
+<ol>
+<li>An explicit upper bound on capacity: the NTK's RKHS norm ball of
+radius
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>
+has Rademacher complexity
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">𝒪</mi><mo stretchy="false" form="prefix">(</mo><mi>R</mi><mo>⋅</mo><msqrt><mrow><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi mathvariant="normal">Θ</mi><mi>∞</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>X</mi><mo>,</mo><mi>X</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow></msqrt><mi>/</mi><msub><mi>n</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(R \cdot \sqrt{\mathrm{tr}(\Theta_\infty(X,X))} / n_{\mathrm{train}})</annotation></semantics></math>,
+which is computable and non-vacuous for wide networks.</li>
+<li>A direct generalization bound: for functions in the NTK RKHS with
+bounded norm, test error is bounded by training error plus the
+Rademacher term, giving non-vacuous bounds of the form "test error
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≤</mo><annotation encoding="application/x-tex">\le</annotation></semantics></math>
+training error +
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">𝒪</mi><mo stretchy="false" form="prefix">(</mo><mi>R</mi><mi>/</mi><msqrt><msub><mi>n</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow></msub></msqrt><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(R / \sqrt{n_{\mathrm{train}}})</annotation></semantics></math>".</li>
+<li>A spectral explanation: components of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>y</mi><mo>⋆</mo></msup><annotation encoding="application/x-tex">y^\star</annotation></semantics></math>
+aligned with large eigenvalues of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Θ</mi><mi>∞</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>X</mi><mo>,</mo><mi>X</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Theta_\infty(X,X)</annotation></semantics></math>
+are fit easily and generalize well; components in small eigenvalues
+generalize poorly. This makes spectral decay a quantitative predictor of
+generalization.</li>
+</ol>
+<p>For networks demonstrably in the NTK regime (very wide,
+NTK-parameterized, trained without aggressive recipes), these bounds are
+<em>tight</em>: predicted generalization matches observed generalization
+within small factors. For networks outside the NTK regime, the bounds
+are <em>conservative</em>: they upper-bound the kernel-regression
+generalization, which is worse than the feature-learning generalization
+of the actually-trained network.</p>
+<p><u>This is the pattern that justifies the framing "NTK as baseline":
+wherever the NTK bound is tight, deep learning is kernel learning;
+wherever the NTK bound is loose, the slack is attributable to feature
+learning.</u> The NTK is therefore a tool for <em>diagnosing</em> when
+feature learning matters, by comparison of NTK-predicted-test-error to
+actual test error.</p>
+<h2 id="critiques-and-counter-evidence">Critiques and
+counter-evidence</h2>
+<p><u>Several authors have pushed back on the
+NTK-as-theory-of-deep-learning framing with evidence that finite
+networks behave in ways the NTK cannot predict.</u></p>
+<p>Shift-invariance and data augmentation. <span class="citation"
+data-cites="li_enhanced_ntk_2019">(Li et al. 2019)</span> showed that
+data augmentation is not equivalent to any kernel, and hence the benefit
+of augmentation is invisible to NTK regression. Yet augmentation adds
+2-5% test accuracy on CIFAR-10 in practical training. This rules out any
+argument that the NTK plus appropriate data processing recovers CNN
+accuracy; some benefit of training must come from outside the
+kernel-regression framework.</p>
+<p>Catastrophic forgetting and transfer learning. A trained network can
+be fine-tuned on a new task with transfer of learned features. The NTK
+has no mechanism for this: the kernel is fixed at initialization, so
+fine-tuning a kernel-regression predictor on a new task is just
+re-running kernel regression with the same kernel, which cannot leverage
+prior training. The empirical fact of successful transfer learning
+(BERT, GPT, CLIP, etc.) is therefore evidence against the NTK as a
+complete theory of deep-network training.</p>
+<p>Adversarial robustness. <span class="citation"
+data-cites="tsipras_robustness_2019">(Tsipras et al. 2019)</span> and
+subsequent work show that adversarial-robustly trained networks have
+different feature representations from naturally-trained ones, with
+robust features often being human-interpretable. This feature-selection
+process is a rich-regime phenomenon; adversarial robustness cannot
+emerge from kernel regression on a fixed kernel.</p>
+<p>Emergent abilities. The observation that large language models
+exhibit qualitatively new capabilities (e.g., in-context learning,
+chain-of-thought reasoning) at threshold scales has no NTK explanation.
+The NTK predicts smooth, monotone, power-law-governed performance
+scaling, not phase-transition-like emergence. Even granting that
+emergence may be partly a measurement artifact <span class="citation"
+data-cites="schaeffer_mirage_2023">(Schaeffer et al. 2023)</span>, the
+NTK-predicted behavior is insufficient to rationalize large-model
+practice.</p>
+<p>Grokking. <span class="citation"
+data-cites="power_grokking_2022">(Power et al. 2022)</span> report that
+networks trained long past fitting the training data eventually
+<em>suddenly</em> generalize, with test accuracy rising from chance to
+100% over a narrow training window. This is incompatible with the NTK's
+exponential-decay training dynamics (<a
+href="eq:ntk-residual-flow">eq:ntk-residual-flow</a>), which predicts
+that test accuracy should track training loss monotonically.</p>
+<p>Taken together, these phenomena establish that something beyond
+kernel regression is happening in practical deep-learning training. The
+NTK's residual value is as a null model: behaviors the NTK predicts are
+explicable without appeal to feature learning; behaviors it does not are
+evidence for feature-learning mechanisms.</p>
+<h2 id="the-role-of-scale-in-deep-learning-theory">The role of scale in
+deep-learning theory</h2>
+<p>A recurring theme in Part III is that scale is not merely a practical
+scaling axis but a conceptual one: different scales correspond to
+different theoretical regimes. The NTK emerges as <em>width goes to
+infinity</em>; the mean-field regime as <em>width goes to infinity with
+a different parameterization</em>; double descent as <em>training-set
+size approaches the critical threshold</em>; emergent abilities as
+<em>compute or parameters cross task-specific thresholds</em>.</p>
+<p>The theoretical challenge is that each regime is hard on its own
+terms, and transitions between regimes are hard to characterize. The NTK
+regime is tractable but narrow; the mean-field regime is tractable for
+simple architectures; the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>P
+regime is tractable via Tensor Programs but computationally heavy. None
+of them overlap with the <em>practical</em> regime of deep-learning
+training, which involves finite but large networks with complex
+architectures and training recipes.</p>
+<p>A concrete manifestation: the regime analysis of Chapter 3 says that
+practical networks with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+in an intermediate range are in an <em>interpolating</em> regime where
+neither the lazy nor the rich theory directly applies. The description
+of this interpolating regime is an active research direction. Candidate
+approaches include:</p>
+<ul>
+<li>Perturbative expansion around
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>P:
+treat
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>P
+as the base point and expand in the departure from it. This requires
+understanding the <em>structural stability</em> of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>P
+under perturbation, which is not yet understood.</li>
+<li>Interpolation via coupling constants: introduce one or more
+dimensionless coupling constants that smoothly interpolate between lazy
+and rich, and study how observables depend on them. The
+Chizat-Oyallon-Bach
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+is one such coupling; others (for specifically architectural
+perturbations) are under development.</li>
+<li>Empirical characterization with theoretical fits: train a large
+suite of networks at varying scales and parameterizations; extract the
+relevant regime-indicating observables; fit phenomenological models that
+predict the regime transitions. This is the empirical-first approach and
+has the virtue of directly addressing practical networks.</li>
+</ul>
+<p><u>The conceptual shift Part III embodies is from "deep learning is a
+tricky optimization problem" to "deep learning is a multi-regime
+phenomenon whose regimes have different governing equations".</u> This
+shift changes what a "theory of deep learning" should look like: not a
+single theorem, but a family of theorems for different regimes plus a
+characterization of when each applies.</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-ambrosio_gradient_flows_2005" class="csl-entry"
+role="listitem">
+Ambrosio, Luigi, Nicola Gigli, and Giuseppe Savare. 2005. <em>Gradient
+Flows in Metric Spaces and in the Space of Probability Measures</em>.
+Birkhauser.
+</div>
+<div id="ref-arora_exact_2019" class="csl-entry" role="listitem">
+Arora, Sanjeev, Simon S. Du, Wei Hu, Zhiyuan Li, Ruslan Salakhutdinov,
+and Ruosong Wang. 2019. <span>"On Exact Computation with an Infinitely
+Wide Neural Net."</span> <em>Advances in Neural Information Processing
+Systems (NeurIPS)</em>.
+</div>
+<div id="ref-chizat_lazy_2019" class="csl-entry" role="listitem">
+Chizat, Lenaïc, Edouard Oyallon, and Francis Bach. 2019. <span>"On Lazy
+Training in Differentiable Programming."</span> <em>Advances in Neural
+Information Processing Systems (NeurIPS)</em>.
+</div>
+<div id="ref-du_graph_2019" class="csl-entry" role="listitem">
+Du, Simon S., Kangcheng Hou, Ruslan Salakhutdinov, Barnabas Poczos,
+Ruosong Wang, and Keyulu Xu. 2019. <span>"Graph Neural Tangent Kernel:
+Fusing Graph Neural Networks with Graph Kernels."</span>
+<em>NeurIPS</em>.
+</div>
+<div id="ref-geiger_disentangling_2020" class="csl-entry"
+role="listitem">
+Geiger, Mario, Stefano Spigler, Arthur Jacot, and Matthieu Wyart. 2020.
+<span>"Disentangling Feature and Lazy Training in Deep Neural
+Networks."</span> <em>Journal of Statistical Mechanics</em>.
+</div>
+<div id="ref-hanin_nica_2019" class="csl-entry" role="listitem">
+Hanin, Boris, and Mihai Nica. 2019. <span>"Finite Depth and Width
+Corrections to the Neural Tangent Kernel."</span> <em>Proc.
+International Conference on Learning Representations (ICLR)</em>.
+</div>
+<div id="ref-he_resnet_2016" class="csl-entry" role="listitem">
+He, Kaiming, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. 2016.
+<span>"Deep Residual Learning for Image Recognition."</span> <em>Proc.
+IEEE Conference on Computer Vision and Pattern Recognition (CVPR)</em>,
+770-78.
+</div>
+<div id="ref-hoffmann_chinchilla_2022" class="csl-entry"
+role="listitem">
+<span class="nocase">Hoffmann, Jordan, Sebastian Borgeaud, Arthur
+Mensch, et al.</span> 2022. <span>"Training Compute-Optimal Large
+Language Models."</span> <em>Advances in Neural Information Processing
+Systems (NeurIPS)</em>.
+</div>
+<div id="ref-hron_attention_2020" class="csl-entry" role="listitem">
+Hron, Jiri, Yasaman Bahri, Jascha Sohl-Dickstein, and Roman Novak. 2020.
+<span>"Infinite Attention: NNGP and NTK for Deep Attention
+Networks."</span> <em>ICML</em>.
+</div>
+<div id="ref-huang_dynamical_2020" class="csl-entry" role="listitem">
+Huang, Jiaoyang, and Horng-Tzer Yau. 2020. <span>"Dynamics of Deep
+Neural Networks and Neural Tangent Hierarchy."</span> <em>ICML</em>.
+</div>
+<div id="ref-jacot_ntk_2018" class="csl-entry" role="listitem">
+Jacot, Arthur, Franck Gabriel, and Clément Hongler. 2018. <span>"Neural
+Tangent Kernel: Convergence and Generalization in Neural
+Networks."</span> <em>Advances in Neural Information Processing Systems
+(NeurIPS)</em>.
+</div>
+<div id="ref-kaplan_scaling_2020" class="csl-entry" role="listitem">
+Kaplan, Jared, Sam McCandlish, Tom Henighan, et al. 2020. <span>"Scaling
+Laws for Neural Language Models."</span> <em>arXiv Preprint
+arXiv:2001.08361</em>.
+</div>
+<div id="ref-lee_nngp_2018" class="csl-entry" role="listitem">
+Lee, Jaehoon, Yasaman Bahri, Roman Novak, Samuel S. Schoenholz, Jeffrey
+Pennington, and Jascha Sohl-Dickstein. 2018. <span>"Deep Neural Networks
+as Gaussian Processes."</span> <em>Proc. International Conference on
+Learning Representations (ICLR)</em>.
+</div>
+<div id="ref-lee_finite_nngp_infinite_nngp_2020" class="csl-entry"
+role="listitem">
+Lee, Jaehoon, Samuel S. Schoenholz, Jeffrey Pennington, et al. 2020.
+<span>"Finite Versus Infinite Neural Networks: An Empirical
+Study."</span> <em>NeurIPS</em>.
+</div>
+<div id="ref-lee_wide_2019" class="csl-entry" role="listitem">
+Lee, Jaehoon, Lechao Xiao, Samuel S. Schoenholz, et al. 2019.
+<span>"Wide Neural Networks of Any Depth Evolve as Linear Models Under
+Gradient Descent."</span> <em>Advances in Neural Information Processing
+Systems (NeurIPS)</em>.
+</div>
+<div id="ref-li_enhanced_ntk_2019" class="csl-entry" role="listitem">
+Li, Zhiyuan, Ruosong Wang, Dingli Yu, et al. 2019. <span>"Enhanced
+Convolutional Neural Tangent Kernels."</span> <em>arXiv Preprint
+arXiv:1911.00809</em>.
+</div>
+<div id="ref-maloney_solvable_2022" class="csl-entry" role="listitem">
+Maloney, Alexander, Daniel A. Roberts, and James Sully. 2022. <span>"A
+Solvable Model of Neural Scaling Laws."</span> <em>arXiv Preprint
+arXiv:2210.16859</em>.
+</div>
+<div id="ref-matthews_gaussian_2018" class="csl-entry" role="listitem">
+Matthews, Alexander G. de G., Mark Rowland, Jiri Hron, Richard E.
+Turner, and Zoubin Ghahramani. 2018. <span>"Gaussian Process Behaviour
+in Wide Deep Neural Networks."</span> <em>Proc. International Conference
+on Learning Representations (ICLR)</em>.
+</div>
+<div id="ref-mei_mean_field_2018" class="csl-entry" role="listitem">
+Mei, Song, Andrea Montanari, and Phan-Minh Nguyen. 2018. <span>"A Mean
+Field View of the Landscape of Two-Layer Neural Networks."</span>
+<em>Proc. National Academy of Sciences</em> 115: E7665-71.
+</div>
+<div id="ref-neal_priors_1996" class="csl-entry" role="listitem">
+Neal, Radford M. 1996. <em>Priors for Infinite Networks</em>. University
+of Toronto.
+</div>
+<div id="ref-neyshabur_pac_bayes_2018" class="csl-entry"
+role="listitem">
+Neyshabur, Behnam, Srinadh Bhojanapalli, and Nathan Srebro. 2018.
+<span>"A PAC-Bayesian Approach to Spectrally-Normalized Margin Bounds
+for Neural Networks."</span> <em>Proc. International Conference on
+Learning Representations (ICLR)</em>.
+</div>
+<div id="ref-power_grokking_2022" class="csl-entry" role="listitem">
+Power, Alethea, Yuri Burda, Harri Edwards, Igor Babuschkin, and Vedant
+Misra. 2022. <span>"Grokking: Generalization Beyond Overfitting on Small
+Algorithmic Datasets."</span> <em>arXiv Preprint arXiv:2201.02177</em>.
+</div>
+<div id="ref-rasmussen_williams_2006" class="csl-entry" role="listitem">
+Rasmussen, Carl Edward, and Christopher K. I. Williams. 2006.
+<em>Gaussian Processes for Machine Learning</em>. MIT Press.
+</div>
+<div id="ref-roberts_principles_2022" class="csl-entry" role="listitem">
+Roberts, Daniel A., Sho Yaida, and Boris Hanin. 2022. <em>The Principles
+of Deep Learning Theory: An Effective Theory Approach to Understanding
+Neural Networks</em>. Cambridge University Press.
+</div>
+<div id="ref-schaeffer_mirage_2023" class="csl-entry" role="listitem">
+Schaeffer, Rylan, Brando Miranda, and Sanmi Koyejo. 2023. <span>"Are
+Emergent Abilities of Large Language Models a Mirage?"</span>
+<em>Advances in Neural Information Processing Systems (NeurIPS)</em>.
+</div>
+<div id="ref-scholkopf_smola_2002" class="csl-entry" role="listitem">
+Schölkopf, Bernhard, and Alexander J. Smola. 2002. <em>Learning with
+Kernels: Support Vector Machines, Regularization, Optimization, and
+Beyond</em>. MIT Press.
+</div>
+<div id="ref-tsipras_robustness_2019" class="csl-entry" role="listitem">
+Tsipras, Dimitris, Shibani Santurkar, Logan Engstrom, Alexander Turner,
+and Aleksander Madry. 2019. <span>"Robustness May Be at Odds with
+Accuracy."</span> <em>ICLR</em>.
+</div>
+<div id="ref-woodworth_kernel_rich_2020" class="csl-entry"
+role="listitem">
+Woodworth, Blake E., Suriya Gunasekar, Jason D. Lee, et al. 2020.
+<span>"Kernel and Rich Regimes in Overparameterized Models."</span>
+<em>Proc. Conference on Learning Theory (COLT)</em>.
+</div>
+<div id="ref-yang_hu_2021" class="csl-entry" role="listitem">
+Yang, Greg, and Edward J. Hu. 2021. <span>"Feature Learning in
+Infinite-Width Neural Networks."</span> <em>Proc. International
+Conference on Machine Learning (ICML)</em>.
+</div>
+</div>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

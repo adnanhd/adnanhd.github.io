@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="Deep deterministic policy gradients, twin delayed DDPG, soft actor-critic, and distributed reinforcement learning." />
+        <title>Actor-Critic and Distributed RL: DDPG, TD3, SAC, and Beyond - Adnan Harun Dogan</title>
+        <link rel="canonical" href="https://adnanhd.github.io/blogs/actor-critic-distributed/" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="Actor-Critic and Distributed RL: DDPG, TD3, SAC, and Beyond" />
+        <meta property="og:description" content="Deep deterministic policy gradients, twin delayed DDPG, soft actor-critic, and distributed reinforcement learning." />
+        <meta property="og:url" content="https://adnanhd.github.io/blogs/actor-critic-distributed/" />
+        <meta property="og:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Actor-Critic and Distributed RL: DDPG, TD3, SAC, and Beyond" />
+        <meta name="twitter:description" content="Deep deterministic policy gradients, twin delayed DDPG, soft actor-critic, and distributed reinforcement learning." />
+        <meta name="twitter:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Actor-Critic and Distributed RL: DDPG, TD3, SAC, and Beyond",
+  "description": "Deep deterministic policy gradients, twin delayed DDPG, soft actor-critic, and distributed reinforcement learning.",
+  "url": "https://adnanhd.github.io/blogs/actor-critic-distributed/",
+  "image": "https://adnanhd.github.io/assets/img/profile.jpeg",
+  "author": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan",
+    "url": "https://adnanhd.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan"
+  },
+  "mainEntityOfPage": "https://adnanhd.github.io/blogs/actor-critic-distributed/",
+  "datePublished": "2026-06-01"
+}
+        </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Actor-Critic and Distributed RL: DDPG, TD3, SAC, and Beyond</h1>
+            <div class="blog-meta">Deterministic and soft actor-critic methods, distributed training</div>
+            <article class="blog-body">
+<p>This part-level leaderboard zooms into the actor-critic and
+distributed RL families specifically; the broader cross-part RL
+leaderboard lives in rl/01 Related Work
+and is not duplicated here. Columns track design axes that distinguish
+methods <strong>within</strong> these two families rather than across
+the whole book: policy class (deterministic, stochastic Gaussian,
+max-entropy, V-trace-corrected on-policy), the number of critic networks
+(a load-bearing hyperparameter for overestimation-bias control<a
+href="#fn1" class="footnote-ref" id="fnref1"
+role="doc-noteref"><sup>1</sup></a>), and the two canonical scoreboards
+(MuJoCo HalfCheetah-v2 reward at 1M env steps for continuous control;
+Atari-57 median human-normalized score for distributed agents). Entries
+marked <em>n.r.</em> are not reported in the original paper because the
+method targets only the other domain; entries marked
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>†</mi><annotation encoding="application/x-tex">\dagger</annotation></semantics></math>
+come from third-party reproductions<a href="#fn2" class="footnote-ref"
+id="fnref2" role="doc-noteref"><sup>2</sup></a> rather than the original
+paper.</p>
+<div class="blog-table"><table id="tbl:actor-critic-distributed-leaderboard">
+<caption>Actor-critic and distributed-RL leaderboard. Type
+abbreviations: DPG = deterministic policy gradient, Stoch-G = stochastic
+Gaussian policy, MaxEnt = maximum-entropy soft actor-critic, A-C async =
+asynchronous advantage actor-critic, V-trace = truncated
+importance-sampling correction (Espeholt 2018), Ape-X = centralized
+prioritized replay (Horgan 2018), NGU = Never-Give-Up intrinsic-reward
+population. Off-policy column: <em>Yes</em> uses replay;
+<em>partial</em> uses small replay or near-on-policy correction;
+<em>No</em> is fully on-policy. Critic count tracks the
+overestimation-control axis: 1 critic (DDPG, A2C/A3C, ACER, IMPALA) is
+the high-bias regime; 2 critics with min-target (TD3, SAC, MPO) is the
+variance-bias frontier. HalfCheetah-v2 reward at 1M env steps; Atari-57
+median human-normalized score from the original paper unless noted.
+Dashes mark unreported settings.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>Year</th>
+<th>Type</th>
+<th>Off-policy</th>
+<th>Critics</th>
+<th>HalfCheetah-v2 (1M)</th>
+<th>Atari-57 median HNS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DDPG <span class="citation"
+data-cites="lillicrap_continuous_2019">(Lillicrap et al.
+2019)</span></td>
+<td>2015</td>
+<td>DPG</td>
+<td>Yes</td>
+<td>1</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>3300</td>
+<td>n.r.</td>
+</tr>
+<tr>
+<td>NAF <span class="citation"
+data-cites="gu_continuous_2016">(Gu et al. 2016)</span></td>
+<td>2016</td>
+<td>DPG (quad. Q)</td>
+<td>Yes</td>
+<td>1 (Q=V+A)</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>2800</td>
+<td>n.r.</td>
+</tr>
+<tr>
+<td>A3C <span class="citation"
+data-cites="mnih_asynchronous_2016">(Mnih et al. 2016)</span></td>
+<td>2016</td>
+<td>A-C async</td>
+<td>No</td>
+<td>1 (V)</td>
+<td>n.r.</td>
+<td>344%</td>
+</tr>
+<tr>
+<td>A2C (sync A3C) <span class="citation"
+data-cites="mnih_asynchronous_2016">(Mnih et al. 2016)</span></td>
+<td>2017</td>
+<td>A-C sync</td>
+<td>No</td>
+<td>1 (V)</td>
+<td>n.r.</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>300%<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>†</mi><annotation encoding="application/x-tex">\dagger</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>ACER <span class="citation" data-cites="wang_sample_2017">(Wang et
+al. 2017)</span></td>
+<td>2017</td>
+<td>Stoch-G + Retrace</td>
+<td>partial</td>
+<td>1 (Q)</td>
+<td>n.r.</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>A3C-median</td>
+</tr>
+<tr>
+<td>TD3 <span class="citation"
+data-cites="fujimoto_addressing_2018">(Fujimoto et al. 2018)</span></td>
+<td>2018</td>
+<td>DPG, twin-min</td>
+<td>Yes</td>
+<td>2 (clipped)</td>
+<td>9636</td>
+<td>n.r.</td>
+</tr>
+<tr>
+<td>SAC v2 <span class="citation"
+data-cites="haarnoja_soft_2019">(Haarnoja et al. 2019)</span></td>
+<td>2018</td>
+<td>MaxEnt Stoch-G</td>
+<td>Yes</td>
+<td>2 (min)</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>11000</td>
+<td>n.r.</td>
+</tr>
+<tr>
+<td>MPO <span class="citation"
+data-cites="abdolmaleki_maximum_2018">(Abdolmaleki et al.
+2018)</span></td>
+<td>2018</td>
+<td>EM Stoch-G</td>
+<td>Yes</td>
+<td>2 (target+online)</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>9000</td>
+<td>n.r.</td>
+</tr>
+<tr>
+<td>IMPALA <span class="citation"
+data-cites="espeholt_impala_2018">(Espeholt et al. 2018)</span></td>
+<td>2018</td>
+<td>A-C + V-trace</td>
+<td>partial</td>
+<td>1 (V)</td>
+<td>n.r.</td>
+<td>191.8%</td>
+</tr>
+<tr>
+<td>R2D2 <span class="citation"
+data-cites="kapturowski_recurrent_2018">(Kapturowski et al.
+2018)</span></td>
+<td>2019</td>
+<td>Q-LSTM + Ape-X</td>
+<td>Yes</td>
+<td>1 (Q dueling)</td>
+<td>n.r.</td>
+<td>1920%</td>
+</tr>
+<tr>
+<td>Agent57 <span class="citation"
+data-cites="badia_agent57_2020">(Badia et al. 2020)</span></td>
+<td>2020</td>
+<td>NGU + R2D2</td>
+<td>Yes</td>
+<td>2
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mi>e</mi></msub><mo>,</mo><msub><mi>Q</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">Q_e, Q_i</annotation></semantics></math>)</td>
+<td>n.r.</td>
+<td>superhuman 57/57</td>
+</tr>
+</tbody>
+</table></div>
+<p>The continuous-control column tracks a clean three-step monotone
+improvement driven by overestimation-bias control<a href="#fn3"
+class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>.
+<u>DDPG's single Q-network and OU exploration plateau near 3300</u>; TD3
+nearly triples this to 9636 by combining clipped twin critics, delayed
+actor updates, and target-policy smoothing; SAC pushes further to
+roughly 11000 by replacing the deterministic actor with a max-entropy
+stochastic policy whose temperature
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+is auto-tuned to match a target entropy. MPO arrives at a similar
+ballpark
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>9000)
+via a different route: EM-style decoupled policy improvement with a
+non-parametric weighting step, which is empirically more robust to
+learning-rate choice but rarely beats SAC on raw HalfCheetah numbers.
+<u>The critic-count axis is the single most predictive design choice on
+this benchmark</u>: every method that crosses the 9000 line uses two
+critics with a min-target, and every method that stalls below 5000 uses
+one.</p>
+<p>The distributed column is a different scoreboard with a different
+bottleneck. A3C ran 16 CPU workers asynchronously to reach 344% Atari
+median HNS in 4 days, and the A2C synchronous variant matched it on a
+single GPU once vectorized environments became cheap. ACER folded
+experience replay into A3C with truncated importance sampling and
+Retrace, but its Atari median was only marginally above A3C and it lost
+the dominant-on-policy-AC title to PPO/SAC within six months.
+<u>IMPALA's V-trace correction broke the on-policy throughput
+ceiling</u>: by sending behaviour-policy probabilities alongside actions
+and correcting at the learner, IMPALA scaled linearly to roughly 500
+actors at 250k FPS, but its median 191.8% on Atari-57 trailed the
+prioritized-replay Ape-X / R2D2 line because off-policy correction is
+too aggressive at moderate staleness. <u>R2D2 closed that gap</u> to
+1920% by adding LSTM Q-networks with the burn-in trick over Ape-X-style
+replay, accepting mild staleness as a regularizer rather than correcting
+for it. Agent57 then layered NGU intrinsic rewards plus a 32-arm
+meta-controller on top of R2D2, becoming the first agent superhuman on
+all 57 games at the cost of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>USD
+10k compute per game. <u>The actor-critic and distributed lines converge
+in Agent57</u>: it is simultaneously a two-critic actor-critic (separate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mi>e</mi></msub><mo>,</mo><msub><mi>Q</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">Q_e, Q_i</annotation></semantics></math>
+heads) and a fully distributed agent (512 actors, single TPU learner),
+making it the natural terminal entry of this part.</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-abdolmaleki_maximum_2018" class="csl-entry"
+role="listitem">
+Abdolmaleki, Abbas, Jost Tobias Springenberg, Yuval Tassa, Remi Munos,
+Nicolas Heess, and Martin Riedmiller. 2018. <em>Maximum a
+<span>Posteriori</span> <span>Policy</span>
+<span>Optimisation</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1806.06920">https://doi.org/10.48550/arXiv.1806.06920</a>.
+</div>
+<div id="ref-badia_agent57_2020" class="csl-entry" role="listitem">
+Badia, Adrià Puigdomènech, Bilal Piot, Steven Kapturowski, et al. 2020.
+<em>Agent57: <span>Outperforming</span> the <span>Atari</span>
+<span>Human</span> <span>Benchmark</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2003.13350">https://doi.org/10.48550/arXiv.2003.13350</a>.
+</div>
+<div id="ref-espeholt_impala_2018" class="csl-entry" role="listitem">
+Espeholt, Lasse, Hubert Soyer, Remi Munos, et al. 2018.
+<em><span>IMPALA</span>: <span>Scalable</span> <span>Distributed</span>
+<span>Deep</span>-<span>RL</span> with <span>Importance</span>
+<span>Weighted</span> <span>Actor</span>-<span>Learner</span>
+<span>Architectures</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1802.01561">https://doi.org/10.48550/arXiv.1802.01561</a>.
+</div>
+<div id="ref-fujimoto_addressing_2018" class="csl-entry"
+role="listitem">
+Fujimoto, Scott, Herke van Hoof, and David Meger. 2018. <em>Addressing
+<span>Function</span> <span>Approximation</span> <span>Error</span> in
+<span>Actor</span>-<span>Critic</span> <span>Methods</span></em>. arXiv.
+<a
+href="https://doi.org/10.48550/arXiv.1802.09477">https://doi.org/10.48550/arXiv.1802.09477</a>.
+</div>
+<div id="ref-gu_continuous_2016" class="csl-entry" role="listitem">
+Gu, Shixiang, Timothy Lillicrap, Ilya Sutskever, and Sergey Levine.
+2016. <em>Continuous <span>Deep</span>
+<span>Q</span>-<span>Learning</span> with <span>Model</span>-Based
+<span>Acceleration</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1603.00748">https://doi.org/10.48550/arXiv.1603.00748</a>.
+</div>
+<div id="ref-haarnoja_soft_2019" class="csl-entry" role="listitem">
+Haarnoja, Tuomas, Aurick Zhou, Kristian Hartikainen, et al. 2019.
+<em>Soft <span>Actor</span>-<span>Critic</span> <span>Algorithms</span>
+and <span>Applications</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1812.05905">https://doi.org/10.48550/arXiv.1812.05905</a>.
+</div>
+<div id="ref-kapturowski_recurrent_2018" class="csl-entry"
+role="listitem">
+Kapturowski, Steven, Georg Ostrovski, John Quan, Remi Munos, and Will
+Dabney. 2018. <span>"Recurrent <span>Experience</span>
+<span>Replay</span> in <span>Distributed</span>
+<span>Reinforcement</span> <span>Learning</span>."</span> September. <a
+href="https://openreview.net/forum?id=r1lyTjAqYX">https://openreview.net/forum?id=r1lyTjAqYX</a>.
+</div>
+<div id="ref-lillicrap_continuous_2019" class="csl-entry"
+role="listitem">
+Lillicrap, Timothy P., Jonathan J. Hunt, Alexander Pritzel, et al. 2019.
+<em>Continuous Control with Deep Reinforcement Learning</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1509.02971">https://doi.org/10.48550/arXiv.1509.02971</a>.
+</div>
+<div id="ref-mnih_asynchronous_2016" class="csl-entry" role="listitem">
+Mnih, Volodymyr, Adrià Puigdomènech Badia, Mehdi Mirza, et al. 2016.
+<em>Asynchronous <span>Methods</span> for <span>Deep</span>
+<span>Reinforcement</span> <span>Learning</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1602.01783">https://doi.org/10.48550/arXiv.1602.01783</a>.
+</div>
+<div id="ref-wang_sample_2017" class="csl-entry" role="listitem">
+Wang, Ziyu, Victor Bapst, Nicolas Heess, et al. 2017. <em>Sample
+<span>Efficient</span> <span>Actor</span>-<span>Critic</span> with
+<span>Experience</span> <span>Replay</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1611.01224">https://doi.org/10.48550/arXiv.1611.01224</a>.
+</div>
+</div>
+<section id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p><em>Overestimation bias</em>: function-approximation
+Q-learning systematically over-estimates max-action values via Jensen's
+inequality on noisy targets; the bias compounds through Bellman
+bootstrapping. Clipped twin critics (TD3, SAC), Retrace truncation
+(ACER), and decoupled target networks (MPO) each address the same root
+cause.<a href="#fnref1" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><em>Third-party reproductions</em>: numbers marked
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>†</mi><annotation encoding="application/x-tex">\dagger</annotation></semantics></math>
+come from systematic reproductions (Stable-Baselines3, Tianshou, OpenAI
+Baselines) rather than the original paper, and may differ by 10-20% from
+headline numbers due to MuJoCo version, reward-clipping conventions, and
+seed counts.<a href="#fnref2" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p><em>Overestimation bias</em>: function-approximation
+Q-learning systematically over-estimates max-action values via Jensen's
+inequality on noisy targets; the bias compounds through Bellman
+bootstrapping. Clipped twin critics (TD3, SAC), Retrace truncation
+(ACER), and decoupled target networks (MPO) each address the same root
+cause.<a href="#fnref3" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

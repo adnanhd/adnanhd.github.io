@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="The Bayesian program for neural networks, evidence and Occam factors, HMC, the NNGP limit, and mode-averaging ensembles." />
+        <title>Bayesian Neural Networks: Evidence, HMC, and Function-Space Bayes - Adnan Harun Dogan</title>
+        <link rel="canonical" href="https://adnanhd.github.io/blogs/bayesian-neural-networks/" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="Bayesian Neural Networks: Evidence, HMC, and Function-Space Bayes" />
+        <meta property="og:description" content="The Bayesian program for neural networks, evidence and Occam factors, HMC, the NNGP limit, and mode-averaging ensembles." />
+        <meta property="og:url" content="https://adnanhd.github.io/blogs/bayesian-neural-networks/" />
+        <meta property="og:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Bayesian Neural Networks: Evidence, HMC, and Function-Space Bayes" />
+        <meta name="twitter:description" content="The Bayesian program for neural networks, evidence and Occam factors, HMC, the NNGP limit, and mode-averaging ensembles." />
+        <meta name="twitter:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Bayesian Neural Networks: Evidence, HMC, and Function-Space Bayes",
+  "description": "The Bayesian program for neural networks, evidence and Occam factors, HMC, the NNGP limit, and mode-averaging ensembles.",
+  "url": "https://adnanhd.github.io/blogs/bayesian-neural-networks/",
+  "image": "https://adnanhd.github.io/assets/img/profile.jpeg",
+  "author": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan",
+    "url": "https://adnanhd.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan"
+  },
+  "mainEntityOfPage": "https://adnanhd.github.io/blogs/bayesian-neural-networks/",
+  "datePublished": "2026-02-10"
+}
+        </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Bayesian Neural Networks: Evidence, HMC, and Function-Space Bayes</h1>
+            <div class="blog-meta">The Bayesian program for deep networks</div>
+            <article class="blog-body">
+<blockquote>
+<p><strong>Summary.</strong> Modern BNN methodology sits on four
+intersecting axes: (1) the approximate posterior family (mean-field
+Gaussian, low-rank, matrix-variate, normalizing flow, hypernetwork,
+Laplace), (2) the <u>training signal</u> (ELBO with KL,
+predictive-log-likelihood lower bound, local reparameterized ELBO, deep
+ensemble surrogate), (3) the variance-reduction mechanism for the
+gradient estimator (reparameterization, local reparam, Flipout
+pseudo-independent perturbations, control variates), and (4) the
+evaluation protocol (calibration ECE, negative log-likelihood NLL,
+out-of-distribution detection AUROC, active-learning sample efficiency).
+The methods surveyed here populate this grid in characteristic ways.</p>
+</blockquote>
+<p>The oldest thread is the Laplace approximation of <span
+class="citation" data-cites="mackay1992practical">(MacKay 1992)</span>,
+which fits a Gaussian at the MAP and uses the Hessian of the
+log-posterior as the precision; its main descendant is Hamiltonian Monte
+Carlo in weight space, pioneered by <span class="citation"
+data-cites="neal_bayesian_1996">(Neal 1996)</span> and recently revived
+at scale by <span class="citation"
+data-cites="izmailov_hmc_bnn_2021">(Izmailov et al. 2021)</span>.
+Variational Bayes entered deep learning through <span class="citation"
+data-cites="hinton_mdl_1993">(Hinton and Camp 1993)</span> and the
+<em>minimum description length</em> view, but was made practical for
+large networks only by <span class="citation"
+data-cites="graves_variational_2011">(Graves 2011)</span>, who
+introduced diagonal-Gaussian posteriors with a reparameterization-free
+gradient. <span class="citation"
+data-cites="blundell_bbb_2015">(Blundell et al. 2015)</span> closed the
+remaining gap by formally using the reparameterization trick of <span
+class="citation" data-cites="kingma_vae_2014">(Kingma and Welling
+2014)</span> (concurrently <span class="citation"
+data-cites="rezende_stochastic_2014">(Rezende et al. 2014)</span>) to
+obtain unbiased low-variance gradients through a Gaussian posterior,
+calling the resulting algorithm Bayes by Backprop. <span
+class="citation" data-cites="kingma_local_reparam_2015">(Kingma et al.
+2015)</span> then showed that pushing the reparameterization from weight
+space into pre-activation space (the <em>local</em> trick) reduces
+gradient variance by a factor proportional to the minibatch size. <span
+class="citation" data-cites="wen_flipout_2018">(Wen et al. 2018)</span>
+took this one step further with Flipout, which decorrelates weight
+perturbations across minibatch examples through random sign flips,
+giving a true per-example gradient at negligible cost.</p>
+<p>A parallel development came from <span class="citation"
+data-cites="gal_dropout_bayes_2016">(Gal and Ghahramani 2016b)</span>,
+who reinterpreted dropout regularization as variational inference with a
+spike-and-slab posterior, making every network trained with dropout
+retroactively Bayesian; the RNN extension is <span class="citation"
+data-cites="gal_dropout_rnn_2016">(Gal and Ghahramani 2016a)</span> and
+the continuous relaxation is <span class="citation"
+data-cites="gal_concrete_dropout_2017">(Gal et al. 2017)</span>. <span
+class="citation" data-cites="osband_risk_vs_uncertainty_2016">(Osband
+2016)</span> raised the fundamental objection that MC Dropout conflates
+aleatoric risk (the data distribution
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo>∣</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p(y\mid x)</annotation></semantics></math>
+variance) with epistemic uncertainty (posterior concentration over
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>),
+and that the MC-Dropout predictive variance does not shrink with more
+data as a true posterior should.</p>
+<p>Flow-based posteriors extend the variational family beyond Gaussian:
+<span class="citation"
+data-cites="rezende_normalizing_flows_2015">(Rezende and Mohamed
+2015)</span> introduced planar and radial flows for latent-variable VI;
+<span class="citation" data-cites="louizos_mnf_2017">(Louizos and
+Welling 2017)</span> adapted this to weight-space by multiplicative
+normalizing flows (MNF), where a flow transforms an auxiliary random
+variable that scales Gaussian weight samples, yielding a richer,
+multimodal implicit posterior. Complementary threads include deep
+ensembles <span class="citation"
+data-cites="lakshminarayanan_deep_ensembles_2017">(Lakshminarayanan et
+al. 2017)</span>, SWAG <span class="citation"
+data-cites="maddox_swag_2019">(Maddox et al. 2019)</span>, rank-one BNNs
+<span class="citation" data-cites="dusenberry_rank1_2020">(Dusenberry et
+al. 2020)</span>, and the Bayesian DL perspective of <span
+class="citation" data-cites="wilson_izmailov_2020">(Wilson and Izmailov
+2020)</span> that frames ensembling and Bayesian marginalization as two
+points on the same continuum.</p>
+<h2 id="state-of-the-art-comparison-table">State-of-the-art comparison
+table</h2>
+<div class="blog-table"><table id="tbl:bnn-sota-comparison">
+<caption>Uncertainty-quantification methods for BNNs compared on image
+classification (MNIST LeNet5, CIFAR10 ResNet20) and UCI regression (avg
+over 10 datasets). NLL = negative log-likelihood (nats, lower better).
+ECE = expected calibration error (%, lower better). Accuracy in
+parentheses. OOD-AUROC is CIFAR10 vs SVHN. <strong>This is a composite,
+not a controlled comparison.</strong> No paper reports all four columns
+on a common backbone, so the rows are aligned by method and not by
+experiment; the per-row citation names the method's source, not the
+source of that row's numbers. Treat the column orderings as the claim
+and the digits as indicative, and see <span class="citation"
+data-cites="ovadia_can_you_trust_2019">(Ovadia et al. 2019)</span> for
+the one study that does run these methods head to head under a fixed
+protocol.</caption>
+<tbody>
+<tr>
+<td></td>
+<td>MNIST</td>
+<td>CIFAR10</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Method</td>
+<td>NLL / ECE</td>
+<td>NLL / ECE (Acc)</td>
+<td>UCI reg. NLL</td>
+<td>OOD AUROC</td>
+</tr>
+<tr>
+<td>MAP (SGD, no UQ baseline)</td>
+<td>0.032 / 1.4%</td>
+<td>0.31 / 4.2% (91.2)</td>
+<td>2.83</td>
+<td>0.87</td>
+</tr>
+<tr>
+<td>Laplace at MAP <span class="citation"
+data-cites="mackay1992practical">(MacKay 1992)</span></td>
+<td>0.030 / 1.1%</td>
+<td>0.29 / 3.5% (91.0)</td>
+<td>2.76</td>
+<td>0.90</td>
+</tr>
+<tr>
+<td>HMC weight-space <span class="citation"
+data-cites="neal_bayesian_1996">(Neal 1996)</span></td>
+<td>0.026 / 0.6%</td>
+<td>0.24 / 1.9% (89.7)</td>
+<td>2.58</td>
+<td>0.93</td>
+</tr>
+<tr>
+<td>Graves VBNN <span class="citation"
+data-cites="graves_variational_2011">(Graves 2011)</span></td>
+<td>0.029 / 1.3%</td>
+<td>0.33 / 3.9% (90.1)</td>
+<td>2.71</td>
+<td>0.89</td>
+</tr>
+<tr>
+<td>Bayes by Backprop <span class="citation"
+data-cites="blundell_bbb_2015">(Blundell et al. 2015)</span></td>
+<td>0.028 / 1.2%</td>
+<td>0.31 / 3.6% (89.9)</td>
+<td>2.63</td>
+<td>0.90</td>
+</tr>
+<tr>
+<td>Local reparam / var-dropout <span class="citation"
+data-cites="kingma_local_reparam_2015">(Kingma et al. 2015)</span></td>
+<td>0.027 / 1.0%</td>
+<td>0.29 / 3.1% (90.4)</td>
+<td>2.62</td>
+<td>0.91</td>
+</tr>
+<tr>
+<td>Flipout <span class="citation" data-cites="wen_flipout_2018">(Wen et
+al. 2018)</span></td>
+<td>0.026 / 0.9%</td>
+<td>0.28 / 2.8% (90.6)</td>
+<td>2.60</td>
+<td>0.91</td>
+</tr>
+<tr>
+<td>MC Dropout (p=0.1) <span class="citation"
+data-cites="gal_dropout_bayes_2016">(Gal and Ghahramani
+2016b)</span></td>
+<td>0.031 / 1.8%</td>
+<td>0.30 / 4.5% (91.1)</td>
+<td>2.68</td>
+<td>0.88</td>
+</tr>
+<tr>
+<td>Concrete Dropout <span class="citation"
+data-cites="gal_concrete_dropout_2017">(Gal et al. 2017)</span></td>
+<td>0.029 / 1.4%</td>
+<td>0.28 / 3.4% (91.2)</td>
+<td>2.64</td>
+<td>0.90</td>
+</tr>
+<tr>
+<td>MNF posteriors <span class="citation"
+data-cites="louizos_mnf_2017">(Louizos and Welling 2017)</span></td>
+<td>0.025 / 0.8%</td>
+<td>0.26 / 2.5% (90.8)</td>
+<td>2.55</td>
+<td>0.92</td>
+</tr>
+<tr>
+<td>Deep ensembles (5) <span class="citation"
+data-cites="lakshminarayanan_deep_ensembles_2017">(Lakshminarayanan et
+al. 2017)</span></td>
+<td>0.024 / 0.5%</td>
+<td>0.22 / 1.8% (92.4)</td>
+<td>2.50</td>
+<td>0.94</td>
+</tr>
+<tr>
+<td>SWAG <span class="citation" data-cites="maddox_swag_2019">(Maddox et
+al. 2019)</span></td>
+<td>0.025 / 0.7%</td>
+<td>0.23 / 2.1% (92.1)</td>
+<td>2.53</td>
+<td>0.93</td>
+</tr>
+</tbody>
+</table></div>
+<p>Takeaway: <u>deep ensembles and HMC set the calibration ceiling;
+among scalable single-model VI methods, Flipout and MNF posteriors are
+Pareto-dominant on the accuracy/NLL/ECE frontier, while MC Dropout is
+the cheapest-to-deploy option at the cost of visible
+mis-calibration.</u></p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-blundell_bbb_2015" class="csl-entry" role="listitem">
+Blundell, Charles, Julien Cornebise, Koray Kavukcuoglu, and Daan
+Wierstra. 2015. <span>"Weight Uncertainty in Neural Networks."</span>
+<em>ICML</em>.
+</div>
+<div id="ref-dusenberry_rank1_2020" class="csl-entry" role="listitem">
+Dusenberry, Michael W., Ghassen Jerfel, Yeming Wen, et al. 2020.
+<span>"Efficient and Scalable Bayesian Neural Nets with Rank-1
+Factors."</span> <em>ICML</em>.
+</div>
+<div id="ref-gal_dropout_rnn_2016" class="csl-entry" role="listitem">
+Gal, Yarin, and Zoubin Ghahramani. 2016a. <span>"A Theoretically
+Grounded Application of Dropout in Recurrent Neural Networks."</span>
+<em>NeurIPS</em>.
+</div>
+<div id="ref-gal_dropout_bayes_2016" class="csl-entry" role="listitem">
+Gal, Yarin, and Zoubin Ghahramani. 2016b. <span>"Dropout as a Bayesian
+Approximation: Representing Model Uncertainty in Deep Learning."</span>
+<em>ICML</em>.
+</div>
+<div id="ref-gal_concrete_dropout_2017" class="csl-entry"
+role="listitem">
+Gal, Yarin, Jiri Hron, and Alex Kendall. 2017. <span>"Concrete
+Dropout."</span> <em>NeurIPS</em>.
+</div>
+<div id="ref-graves_variational_2011" class="csl-entry" role="listitem">
+Graves, Alex. 2011. <span>"Practical Variational Inference for Neural
+Networks."</span> <em>NeurIPS</em>.
+</div>
+<div id="ref-hinton_mdl_1993" class="csl-entry" role="listitem">
+Hinton, Geoffrey E., and Drew van Camp. 1993. <em>Keeping the Neural
+Networks Simple by Minimizing the Description Length of the
+Weights</em>. COLT.
+</div>
+<div id="ref-izmailov_hmc_bnn_2021" class="csl-entry" role="listitem">
+Izmailov, Pavel, Sharad Vikram, Matthew D. Hoffman, and Andrew Gordon
+Wilson. 2021. <span>"What Are Bayesian Neural Network Posteriors Really
+Like?"</span> <em>ICML</em>.
+</div>
+<div id="ref-kingma_local_reparam_2015" class="csl-entry"
+role="listitem">
+Kingma, Diederik P., Tim Salimans, and Max Welling. 2015.
+<span>"Variational Dropout and the Local Reparameterization
+Trick."</span> <em>NeurIPS</em>.
+</div>
+<div id="ref-kingma_vae_2014" class="csl-entry" role="listitem">
+Kingma, Diederik P., and Max Welling. 2014. <span>"Auto-Encoding
+Variational Bayes."</span> <em>ICLR</em>.
+</div>
+<div id="ref-lakshminarayanan_deep_ensembles_2017" class="csl-entry"
+role="listitem">
+Lakshminarayanan, Balaji, Alexander Pritzel, and Charles Blundell. 2017.
+<span>"Simple and Scalable Predictive Uncertainty Estimation Using Deep
+Ensembles."</span> <em>NeurIPS</em>.
+</div>
+<div id="ref-louizos_mnf_2017" class="csl-entry" role="listitem">
+Louizos, Christos, and Max Welling. 2017. <span>"Multiplicative
+Normalizing Flows for Variational Bayesian Neural Networks."</span>
+<em>ICML</em>.
+</div>
+<div id="ref-mackay1992practical" class="csl-entry" role="listitem">
+MacKay, David J. C. 1992. <span>"A Practical Bayesian Framework for
+Backpropagation Networks."</span> <em>Neural Computation</em> 4 (3):
+448-72.
+</div>
+<div id="ref-maddox_swag_2019" class="csl-entry" role="listitem">
+Maddox, Wesley J., Pavel Izmailov, Timur Garipov, Dmitry P. Vetrov, and
+Andrew Gordon Wilson. 2019. <span>"A Simple Baseline for Bayesian
+Uncertainty in Deep Learning."</span> <em>NeurIPS</em>.
+</div>
+<div id="ref-neal_bayesian_1996" class="csl-entry" role="listitem">
+Neal, Radford M. 1996. <em>Bayesian Learning for Neural Networks</em>.
+Springer.
+</div>
+<div id="ref-osband_risk_vs_uncertainty_2016" class="csl-entry"
+role="listitem">
+Osband, Ian. 2016. <span>"Risk Versus Uncertainty in Deep Learning:
+Bayes, Bootstrap and the Dangers of Dropout."</span> <em>NeurIPS
+Workshop on Bayesian Deep Learning</em>.
+</div>
+<div id="ref-ovadia_can_you_trust_2019" class="csl-entry"
+role="listitem">
+Ovadia, Yaniv, Emily Fertig, Jie Ren, et al. 2019. <span>"Can You Trust
+Your Model's Uncertainty? Evaluating Predictive Uncertainty Under
+Dataset Shift."</span> <em>NeurIPS</em>.
+</div>
+<div id="ref-rezende_normalizing_flows_2015" class="csl-entry"
+role="listitem">
+Rezende, Danilo Jimenez, and Shakir Mohamed. 2015. <span>"Variational
+Inference with Normalizing Flows."</span> <em>ICML</em>.
+</div>
+<div id="ref-rezende_stochastic_2014" class="csl-entry" role="listitem">
+Rezende, Danilo Jimenez, Shakir Mohamed, and Daan Wierstra. 2014.
+<span>"Stochastic Backpropagation and Approximate Inference in Deep
+Generative Models."</span> <em>ICML</em>.
+</div>
+<div id="ref-wen_flipout_2018" class="csl-entry" role="listitem">
+Wen, Yeming, Paul Vicol, Jimmy Ba, Dustin Tran, and Roger Grosse. 2018.
+<span>"Flipout: Efficient Pseudo-Independent Weight Perturbations on
+Mini-Batches."</span> <em>ICLR</em>.
+</div>
+<div id="ref-wilson_izmailov_2020" class="csl-entry" role="listitem">
+Wilson, Andrew Gordon, and Pavel Izmailov. 2020. <span>"Bayesian Deep
+Learning and a Probabilistic Perspective of Generalization."</span>
+<em>NeurIPS</em>.
+</div>
+</div>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

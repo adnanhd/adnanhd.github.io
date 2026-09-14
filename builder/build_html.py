@@ -9,6 +9,7 @@ import re
 import sys
 
 from .build_config import (
+    BASE_DIR,
     LINK_ICONS,
     LINK_NAMES,
     PRIMARY_LINKS,
@@ -319,7 +320,7 @@ def render_social_posts(data):
         return ""
     return (
         '<div class="content-section" id="social-posts-section">'
-        '<h2>Recent Posts</h2>'
+        '<h2>Media Posts</h2>'
         f'<div id="recent-posts" class="social-grid">{"".join(cards)}</div>'
         '</div>'
     )
@@ -1644,6 +1645,7 @@ def render_blogs(blogs_data, selected_only=False):
     bd = blogs_data or {}
     blogs = bd.get("blogs", [])
     parent_map = _tag_parent_map(bd.get("tag_tree"))
+    blogs = sorted(blogs, key=lambda b: parse_date(str(b.get("date", ""))), reverse=True)
     if selected_only:
         blogs = [b for b in blogs if b.get("selected")]
 
@@ -1657,19 +1659,29 @@ def render_blogs(blogs_data, selected_only=False):
         eff_tags = sorted(_effective_tags(own_tags, parent_map))
         data_tags = " ".join(eff_tags)
         search = " ".join([blog.get("title", ""), blog.get("description", "")] + eff_tags).lower()
+        # Fold the post's full text into the search haystack: unique
+        # words from the generated page, so the search box reaches the
+        # article bodies, not just the ten listing lines.
+        page = BASE_DIR / blog.get("path", "")
+        if page.is_file():
+            body = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ",
+                          page.read_text(errors="ignore"), flags=re.S)
+            body = re.sub(r"<[^>]+>", " ", body)
+            words = sorted(set(re.findall(r"[a-z0-9][a-z0-9'-]{2,}", body.lower())))
+            search += " " + " ".join(words)
 
-        chips = "".join(
-            f'<span class="blog-tag" data-tag="{esc(t)}">{esc(_pretty_tag(t))}</span>'
+        # One plain bullet per post: "18 Mar 2020: Title #tag #tag",
+        # title links to the post page, #tags drive the filter above.
+        # Filter/search metadata rides on the <li>.
+        inline_tags = " ".join(
+            f'<a href="#" class="blog-tag-inline" data-tag="{esc(t)}">#{esc(t)}</a>'
             for t in own_tags
         )
-        chips_html = f'<div class="blog-tags">{chips}</div>' if chips else ""
-        desc = f"<p>{esc(blog['description'])}</p>" if blog.get("description") else ""
         parts.append(
-            f'<div class="blog-item" data-tags="{esc(data_tags)}" data-search="{esc(search)}">'
-            f'<a href="{esc(blog["path"])}" class="blog-link">'
-            f'<h3>{esc(blog["title"])}</h3>'
-            f'<span class="blog-date">{esc(format_date(blog.get("date", "")))}</span>'
-            f'{desc}</a>{chips_html}</div>'
+            f'<li class="blog-item" data-tags="{esc(data_tags)}" data-search="{esc(search)}">'
+            f'<span class="blog-date">{esc(format_date(str(blog.get("date", "")).split(" ")[0], short=True))}</span>'
+            f': <a href="{esc(blog["path"])}" class="blog-link">{esc(blog["title"])}</a>'
+            f' {inline_tags}</li>'
         )
     return "\n".join(parts)
 

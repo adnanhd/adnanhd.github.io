@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="End-to-end detection with DETR, bipartite matching and the set prediction loss, deformable attention, and segmentation transformers." />
+        <title>Detection and Segmentation Transformers: DETR and Its Descendants - Adnan Harun Dogan</title>
+        <link rel="canonical" href="https://adnanhd.github.io/blogs/detection-segmentation-transformers/" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="Detection and Segmentation Transformers: DETR and Its Descendants" />
+        <meta property="og:description" content="End-to-end detection with DETR, bipartite matching and the set prediction loss, deformable attention, and segmentation transformers." />
+        <meta property="og:url" content="https://adnanhd.github.io/blogs/detection-segmentation-transformers/" />
+        <meta property="og:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Detection and Segmentation Transformers: DETR and Its Descendants" />
+        <meta name="twitter:description" content="End-to-end detection with DETR, bipartite matching and the set prediction loss, deformable attention, and segmentation transformers." />
+        <meta name="twitter:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Detection and Segmentation Transformers: DETR and Its Descendants",
+  "description": "End-to-end detection with DETR, bipartite matching and the set prediction loss, deformable attention, and segmentation transformers.",
+  "url": "https://adnanhd.github.io/blogs/detection-segmentation-transformers/",
+  "image": "https://adnanhd.github.io/assets/img/profile.jpeg",
+  "author": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan",
+    "url": "https://adnanhd.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan"
+  },
+  "mainEntityOfPage": "https://adnanhd.github.io/blogs/detection-segmentation-transformers/",
+  "datePublished": "2026-05-06"
+}
+        </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Detection and Segmentation Transformers: DETR and Its Descendants</h1>
+            <div class="blog-meta">Set prediction, bipartite matching, deformable attention</div>
+            <article class="blog-body">
+<p>Detection before DETR relied on two-stage detectors like Faster R-CNN
+or single-stage detectors like YOLO and RetinaNet. These require
+hand-designed components, anchor boxes for proposal generation,
+non-maximum suppression for duplicate removal, and a label-assignment
+rule deciding which prediction is responsible for which object. Each of
+those three is a <strong>spatial prior</strong>, a statement made in
+advance about where objects sit and which prediction owns which one. DETR <span class="citation"
+data-cites="carion_end--end_2020">(Carion et al. 2020)</span> deleted
+all three at once by framing detection as set prediction, a transformer
+encoder-decoder emitting a fixed set of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+predictions from learned object queries, trained by one-to-one bipartite matching
+against the ground truth.</p>
+<p><u>The deletion is what makes the chapter, and the bill for the
+deletion is what organizes the rest of it.</u> DETR trained for 500 COCO
+epochs where Faster R-CNN needs 36, and it lost 6.1 AP on small objects
+while gaining 7.7 on large ones <span class="citation"
+data-cites="carion_end--end_2020">(Carion et al. 2020)</span>. Both
+facts have one cause. A query carrying no spatial prior has to discover
+from scratch where in the image to attend, and a single stride-32
+feature map cannot resolve a small object at any amount of training. So
+every method after DETR in this chapter puts a prior back, and the
+binding constraint is that none of them may put NMS back. A prior
+returned as a reference point, an anchor coordinate, a noised
+ground-truth box or an auxiliary dense head is differentiable and stays
+inside training, and is discarded at inference. A prior returned as
+greedy suppression is neither, and would surrender the one property the
+500 epochs bought. Table <a
+href="tbl:detr-prior-ledger">tbl:detr-prior-ledger</a> is that ledger,
+and it is the shortest route through the sections that follow.</p>
+<p>Segmentation repeats the shape one level up. MaskFormer <span
+class="citation" data-cites="cheng_per-pixel_2021">(Cheng et al.
+2021)</span> drops the per-pixel class prior and predicts a set of masks
+matched exactly the way DETR matches boxes, which is what lets semantic,
+instance and panoptic segmentation share one framework rather than
+three. Mask2Former <span
+class="citation" data-cites="cheng_masked-attention_2022">(Cheng et al.
+2022)</span> then puts a prior of its own back, each query attends only
+inside the mask it predicted at the previous layer, and that is the
+mask-space analogue of a reference point. Underneath both sits the
+backbone's own prior, the hierarchical stride-4-to-32 pyramid that the
+Swin Transformer <span class="citation" data-cites="liu_swin_2021">(Liu
+et al. 2021)</span> supplies with shifted window attention and Swin V2
+<span class="citation" data-cites="liu_swin_2022">(Z. Liu et al.
+2022)</span> carries to 3B parameters and 1536-pixel inputs. A plain ViT
+gives one scale and a DETR decoder has nothing to address it with, which
+is why the backbone chapter and this one are not separable.</p>
+<div class="blog-table"><table id="tbl:detr-prior-ledger">
+<caption>The prior ledger. <em>Puts back</em> names the spatial prior
+DETR had deleted and this method restores. <em>Differentiable form</em>
+names the construction that makes it trainable rather than a
+post-processing heuristic, which is the condition for keeping the
+NMS-free property. <em>Bought</em> gives what the restoration is worth,
+with the schedule and backbone attached, because these methods are only
+comparable at matched epochs. Figures are COCO val2017 with ResNet-50
+unless the cell states otherwise. Read the table downward and the
+chapter is one argument rather than a list of ten papers.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>Puts back</th>
+<th>Differentiable form</th>
+<th>Bought</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Deformable DETR <span
+class="citation" data-cites="zhu_deformable_2021">(Zhu et al.
+2021)</span></td>
+<td>reference point, multi-scale</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">K{=}4</annotation></semantics></math>
+learned offsets around
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>p</mi><mi>q</mi></msub><annotation encoding="application/x-tex">p_q</annotation></semantics></math>,
+levels C3-C6</td>
+<td>50 epochs, 43.8 AP,
+AP<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi></mi><mi>S</mi></msub><annotation encoding="application/x-tex">_S</annotation></semantics></math>
+20.5
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>
+26.4</td>
+</tr>
+<tr>
+<td>Conditional DETR <span
+class="citation" data-cites="meng_conditional_2023">(Meng et al.
+2021)</span></td>
+<td>spatial half of cross-attention</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>q</mi><mi>s</mi></msub><mo>=</mo><msub><mi>f</mi><mi>s</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>c</mi><mi>q</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>⋅</mo><msub><mi>p</mi><mi>s</mi></msub></mrow><annotation encoding="application/x-tex">q_s = f_s(c_q) \cdot p_s</annotation></semantics></math>,
+300 learned reference points</td>
+<td>50 epochs, 40.9 AP where DETR needs 500 for 42.0</td>
+</tr>
+<tr>
+<td>DAB-DETR <span
+class="citation" data-cites="liu_dab-detr_2022">(S. Liu et al.
+2022)</span></td>
+<td>the anchor box itself</td>
+<td>sinusoidal PE of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>w</mi><mo>,</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(x,y,w,h)</annotation></semantics></math>,
+updated per decoder layer</td>
+<td>50 epochs, 42.2 AP, and queries you can plot</td>
+</tr>
+<tr>
+<td>DN-DETR <span
+class="citation" data-cites="li_dn-detr_2022">(Li et al.
+2022)</span></td>
+<td>the assignment</td>
+<td>noised GT boxes with known targets, matcher bypassed</td>
+<td>50 epochs, 44.4 AP,
+~4<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>
+less match switching</td>
+</tr>
+<tr>
+<td>DINO <span
+class="citation" data-cites="zhang_dino_2022">(Zhang et al.
+2023)</span></td>
+<td>negatives, encoder-picked positions</td>
+<td>contrastive denoising, mixed query selection</td>
+<td>12 epochs, 49.4 AP; 63.3 test-dev at Swin-L</td>
+</tr>
+<tr>
+<td>Group DETR <span
+class="citation" data-cites="chen_group_2023">(Chen et al.
+2023)</span></td>
+<td>positive-sample density</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>G</mi><mo>=</mo><mn>11</mn></mrow><annotation encoding="application/x-tex">G{=}11</annotation></semantics></math>
+replicated query groups, masked apart</td>
+<td>+1.5 AP, training-only,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math>
+is dataset-dependent</td>
+</tr>
+<tr>
+<td>H-DETR <span
+class="citation" data-cites="jia_detrs_2023">(Jia et al.
+2023)</span></td>
+<td>positive-sample density</td>
+<td>a second one-to-many head on shared decoder features</td>
+<td>+1.7 AP over DINO at 12 epochs</td>
+</tr>
+<tr>
+<td>Co-DETR
+<span class="citation" data-cites="zong_detrs_2023">(Zong et al.
+2023)</span></td>
+<td>dense assignment on the encoder</td>
+<td>ATSS and RPN auxiliary heads, discarded at inference</td>
+<td>66.0 AP test-dev, ViT-L with Objects365</td>
+</tr>
+<tr>
+<td>Mask2Former <span
+class="citation" data-cites="cheng_masked-attention_2022">(Cheng et al.
+2022)</span></td>
+<td>the region worth attending to</td>
+<td>previous layer's mask as a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mi>∞</mi></mrow><annotation encoding="application/x-tex">-\infty</annotation></semantics></math>
+attention bias</td>
+<td>+4.8 PQ over unmasked cross-attention</td>
+</tr>
+<tr>
+<td>RT-DETR
+<span class="citation" data-cites="zhao_detrs_2024">(Zhao et al.
+2024)</span></td>
+<td>query quality</td>
+<td>uncertainty-minimal selection, decoupled hybrid encoder</td>
+<td>53.1 AP at 108 FPS on T4, NMS-free</td>
+</tr>
+</tbody>
+</table></div>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-carion_end--end_2020" class="csl-entry" role="listitem">
+Carion, Nicolas, Francisco Massa, Gabriel Synnaeve, Nicolas Usunier,
+Alexander Kirillov, and Sergey Zagoruyko. 2020.
+<span>"End-to-<span>End</span> <span>Object</span>
+<span>Detection</span> with <span>Transformers</span>."</span>
+<em>European Conference on Computer Vision (ECCV)</em>, May. <a
+href="https://doi.org/10.48550/arXiv.2005.12872">https://doi.org/10.48550/arXiv.2005.12872</a>.
+</div>
+<div id="ref-chen_group_2023" class="csl-entry" role="listitem">
+Chen, Qiang, Xiaokang Chen, Jian Wang, et al. 2023. <span>"Group
+<span>DETR</span>: <span>Fast</span> <span>DETR</span>
+<span>Training</span> with <span>Group</span>-<span>Wise</span>
+<span>One</span>-to-<span>Many</span> <span>Assignment</span>."</span>
+<em>IEEE/CVF International Conference on Computer Vision (ICCV)</em>,
+August. <a
+href="https://doi.org/10.48550/arXiv.2207.13085">https://doi.org/10.48550/arXiv.2207.13085</a>.
+</div>
+<div id="ref-cheng_masked-attention_2022" class="csl-entry"
+role="listitem">
+Cheng, Bowen, Ishan Misra, Alexander G. Schwing, Alexander Kirillov, and
+Rohit Girdhar. 2022. <span>"Masked-Attention <span>Mask</span>
+<span>Transformer</span> for <span>Universal</span> <span>Image</span>
+<span>Segmentation</span>."</span> <em>IEEE/CVF Conference on Computer
+Vision and Pattern Recognition (CVPR)</em>, June. <a
+href="https://doi.org/10.48550/arXiv.2112.01527">https://doi.org/10.48550/arXiv.2112.01527</a>.
+</div>
+<div id="ref-cheng_per-pixel_2021" class="csl-entry" role="listitem">
+Cheng, Bowen, Alexander G. Schwing, and Alexander Kirillov. 2021.
+<span>"Per-<span>Pixel</span> <span>Classification</span> Is
+<span>Not</span> <span>All</span> <span>You</span> <span>Need</span> for
+<span>Semantic</span> <span>Segmentation</span>."</span> <em>Advances in
+Neural Information Processing Systems (NeurIPS)</em>, October. <a
+href="https://doi.org/10.48550/arXiv.2107.06278">https://doi.org/10.48550/arXiv.2107.06278</a>.
+</div>
+<div id="ref-jia_detrs_2023" class="csl-entry" role="listitem">
+Jia, Ding, Yuhui Yuan, Haodi He, et al. 2023. <span>"<span>DETRs</span>
+with <span>Hybrid</span> <span>Matching</span>."</span> <em>IEEE/CVF
+Conference on Computer Vision and Pattern Recognition (CVPR)</em>, May.
+<a
+href="https://doi.org/10.48550/arXiv.2207.13080">https://doi.org/10.48550/arXiv.2207.13080</a>.
+</div>
+<div id="ref-li_dn-detr_2022" class="csl-entry" role="listitem">
+Li, Feng, Hao Zhang, Shilong Liu, Jian Guo, Lionel M. Ni, and Lei Zhang.
+2022. <span>"<span>DN</span>-<span>DETR</span>: <span>Accelerate</span>
+<span>DETR</span> <span>Training</span> by <span>Introducing</span>
+<span>Query</span> <span>DeNoising</span>."</span> <em>IEEE/CVF
+Conference on Computer Vision and Pattern Recognition (CVPR)</em>,
+December. <a
+href="https://doi.org/10.48550/arXiv.2203.01305">https://doi.org/10.48550/arXiv.2203.01305</a>.
+</div>
+<div id="ref-liu_dab-detr_2022" class="csl-entry" role="listitem">
+Liu, Shilong, Feng Li, Hao Zhang, et al. 2022.
+<span>"<span>DAB</span>-<span>DETR</span>: <span>Dynamic</span>
+<span>Anchor</span> <span>Boxes</span> Are <span>Better</span>
+<span>Queries</span> for <span>DETR</span>."</span> <em>International
+Conference on Learning Representations (ICLR)</em>, March. <a
+href="https://doi.org/10.48550/arXiv.2201.12329">https://doi.org/10.48550/arXiv.2201.12329</a>.
+</div>
+<div id="ref-liu_swin_2022" class="csl-entry" role="listitem">
+Liu, Ze, Han Hu, Yutong Lin, et al. 2022. <em>Swin
+<span>Transformer</span> <span>V2</span>: <span>Scaling</span>
+<span>Up</span> <span>Capacity</span> and <span>Resolution</span></em>.
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2111.09883">https://doi.org/10.48550/arXiv.2111.09883</a>.
+</div>
+<div id="ref-liu_swin_2021" class="csl-entry" role="listitem">
+Liu, Ze, Yutong Lin, Yue Cao, et al. 2021. <span>"Swin
+<span>Transformer</span>: <span>Hierarchical</span> <span>Vision</span>
+<span>Transformer</span> Using <span>Shifted</span>
+<span>Windows</span>."</span> <em>IEEE/CVF International Conference on
+Computer Vision (ICCV)</em>, August. <a
+href="https://doi.org/10.48550/arXiv.2103.14030">https://doi.org/10.48550/arXiv.2103.14030</a>.
+</div>
+<div id="ref-meng_conditional_2023" class="csl-entry" role="listitem">
+Meng, Depu, Xiaokang Chen, Zejia Fan, et al. 2021. <span>"Conditional
+<span>DETR</span> for <span>Fast</span> <span>Training</span>
+<span>Convergence</span>."</span> <em>IEEE/CVF International Conference
+on Computer Vision (ICCV)</em>, September. <a
+href="https://doi.org/10.48550/arXiv.2108.06152">https://doi.org/10.48550/arXiv.2108.06152</a>.
+</div>
+<div id="ref-zhang_dino_2022" class="csl-entry" role="listitem">
+Zhang, Hao, Feng Li, Shilong Liu, et al. 2023. <span>"<span>DINO</span>:
+<span>DETR</span> with <span>Improved</span> <span>DeNoising</span>
+<span>Anchor</span> <span>Boxes</span> for
+<span>End</span>-to-<span>End</span> <span>Object</span>
+<span>Detection</span>."</span> <em>International Conference on Learning
+Representations (ICLR)</em>, July. <a
+href="https://doi.org/10.48550/arXiv.2203.03605">https://doi.org/10.48550/arXiv.2203.03605</a>.
+</div>
+<div id="ref-zhao_detrs_2024" class="csl-entry" role="listitem">
+Zhao, Yian, Wenyu Lv, Shangliang Xu, et al. 2024. <em><span>DETRs</span>
+<span>Beat</span> <span>YOLOs</span> on <span>Real</span>-Time
+<span>Object</span> <span>Detection</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2304.08069">https://doi.org/10.48550/arXiv.2304.08069</a>.
+</div>
+<div id="ref-zhu_deformable_2021" class="csl-entry" role="listitem">
+Zhu, Xizhou, Weijie Su, Lewei Lu, Bin Li, Xiaogang Wang, and Jifeng Dai.
+2021. <span>"Deformable <span>DETR</span>: <span>Deformable</span>
+<span>Transformers</span> for <span>End</span>-to-<span>End</span>
+<span>Object</span> <span>Detection</span>."</span> <em>International
+Conference on Learning Representations (ICLR)</em>, March. <a
+href="https://doi.org/10.48550/arXiv.2010.04159">https://doi.org/10.48550/arXiv.2010.04159</a>.
+</div>
+<div id="ref-zong_detrs_2023" class="csl-entry" role="listitem">
+Zong, Zhuofan, Guanglu Song, and Yu Liu. 2023. <span>"<span>DETRs</span>
+with <span>Collaborative</span> <span>Hybrid</span>
+<span>Assignments</span> <span>Training</span>."</span> <em>IEEE/CVF
+International Conference on Computer Vision (ICCV)</em>, August. <a
+href="https://doi.org/10.48550/arXiv.2211.12860">https://doi.org/10.48550/arXiv.2211.12860</a>.
+</div>
+</div>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

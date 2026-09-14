@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="The ViT architecture, multi-head self-attention, position encodings, and how vision transformers compare with CNNs." />
+        <title>Vision Transformers: ViT, Self-Attention, and the CNN Comparison - Adnan Harun Dogan</title>
+        <link rel="canonical" href="https://adnanhd.github.io/blogs/vision-transformers/" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="Vision Transformers: ViT, Self-Attention, and the CNN Comparison" />
+        <meta property="og:description" content="The ViT architecture, multi-head self-attention, position encodings, and how vision transformers compare with CNNs." />
+        <meta property="og:url" content="https://adnanhd.github.io/blogs/vision-transformers/" />
+        <meta property="og:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Vision Transformers: ViT, Self-Attention, and the CNN Comparison" />
+        <meta name="twitter:description" content="The ViT architecture, multi-head self-attention, position encodings, and how vision transformers compare with CNNs." />
+        <meta name="twitter:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Vision Transformers: ViT, Self-Attention, and the CNN Comparison",
+  "description": "The ViT architecture, multi-head self-attention, position encodings, and how vision transformers compare with CNNs.",
+  "url": "https://adnanhd.github.io/blogs/vision-transformers/",
+  "image": "https://adnanhd.github.io/assets/img/profile.jpeg",
+  "author": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan",
+    "url": "https://adnanhd.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan"
+  },
+  "mainEntityOfPage": "https://adnanhd.github.io/blogs/vision-transformers/",
+  "datePublished": "2026-05-13"
+}
+        </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Vision Transformers: ViT, Self-Attention, and the CNN Comparison</h1>
+            <div class="blog-meta">The ViT architecture and its trade-offs against CNNs</div>
+            <article class="blog-body">
+<p><u>Vision Transformers (ViT) represent a paradigm shift from CNNs to
+pure attention-based architectures.</u> The foundational ViT paper <span class="citation"
+data-cites="dosovitskiy_image_2021">(Dosovitskiy et al. 2021)</span>
+demonstrated that a standard Transformer encoder, applied directly to
+sequences of image patches, achieves excellent results on image
+classification when pretrained on sufficient data (ImageNet-21K <span
+class="citation" data-cites="deng_imagenet_2009">(Deng et al.
+2009)</span> or JFT-300M). ViT-Huge achieved 88.55% top-1 accuracy on
+ImageNet, matching state-of-the-art CNNs while using substantially fewer
+computational resources during training. <u>The key insight: inductive
+biases of convolutions are not strictly necessary; transformers learn
+these from data.</u></p>
+<p>Data efficiency became the focus of subsequent work. DeiT <span class="citation"
+data-cites="touvron_training_2021">(Touvron et al. 2021)</span> showed
+ViT can be trained on ImageNet-1K alone using strong regularization,
+achieving 81.8% top-1 accuracy without external data (83.1% with
+distillation from a RegNetY-16GF teacher). DeiT introduced knowledge
+distillation via a distillation token, demonstrating that ViT benefits
+from CNN-style inductive biases transferred through distillation. DeiT
+III <span class="citation" data-cites="touvron_deit_2022">(Touvron et
+al. 2022)</span> pushed this further with improved training recipes,
+achieving 85.2% with ViT-H/14.</p>
+<p><u>Hierarchical designs addressed the computational limitations of
+global attention.</u> Swin Transformer
+<span class="citation" data-cites="liu_swin_2021">(Liu et al.
+2021)</span> introduced shifted window attention, computing attention
+within local windows while enabling cross-window connections through
+shifting. <u>This achieves linear complexity and provides multi-scale
+feature maps compatible with dense prediction.</u> Swin achieved 87.3%
+on ImageNet and set new state-of-the-art on COCO detection (58.7 box AP)
+and ADE20K segmentation (53.5 mIoU). Swin Transformer V2 <span
+class="citation" data-cites="liu_swin_2022">(Ze Liu et al. 2022)</span>
+scaled to 3B parameters with techniques for training stability (residual
+post-normalization, scaled cosine attention).</p>
+<p>Alternative hierarchical approaches emerged. Pyramid
+Vision Transformer (PVT) <span class="citation"
+data-cites="wang_pyramid_2021">(Wang et al. 2021)</span> uses spatial
+reduction attention to handle high-resolution feature maps. Twins <span class="citation"
+data-cites="chu_twins_2021">(Chu et al. 2021)</span> combines
+locally-grouped attention with global sub-sampled attention. Focal Transformer <span class="citation"
+data-cites="yang_focal_2021">(Yang et al. 2021)</span> introduces focal
+attention attending both locally and globally with varying granularity.
+Nested Hierarchical Transformer (NesT) <span class="citation"
+data-cites="zhang_nested_2021">(Zhang et al. 2021)</span> aggregates
+tokens in a nested manner to create hierarchical representations.</p>
+<p>Hybrid architectures combine CNN and Transformer strengths. Convolutional vision Transformer (CvT) <span
+class="citation" data-cites="wu_cvt_2021">(Wu et al. 2021)</span>
+introduces convolutions into attention projection. CoAtNet <span class="citation"
+data-cites="dai_coatnet_2021">(Dai et al. 2021)</span> systematically
+combines depthwise convolution and attention, achieving 90.88% ImageNet
+accuracy with JFT-3B pretraining. MaxViT <span
+class="citation" data-cites="tu_maxvit_2022">(Tu et al. 2022)</span>
+interleaves block and grid attention patterns with convolutions for
+efficient multi-scale attention. Mobile-Former <span class="citation"
+data-cites="chen_mobile-former_2022">(Y. Chen et al. 2022)</span> uses
+parallel mobile and former branches with bidirectional connections.
+MobileViT <span class="citation"
+data-cites="mehta_mobilevit_2022">(Mehta and Rastegari 2022)</span>
+unfolds features for transformer processing while maintaining mobile
+efficiency.</p>
+<p><u>Self-supervised learning proved particularly effective for
+ViT.</u> DINO <span class="citation"
+data-cites="caron_dino_2021">(Caron et al. 2021)</span> showed
+<u>self-supervised ViT features contain semantic segmentation
+information not present in supervised models</u>, achieving 78.3% k-NN
+accuracy on ImageNet. A follow-up diagnostic, <em>Vision Transformers
+Need Registers</em> <span class="citation"
+data-cites="darcet_vit_2024">(Darcet et al. 2024)</span>, identified a
+structural artifact in large pre-trained ViTs: a small fraction of patch
+tokens develop anomalously high feature norms and attract
+disproportionate attention weight, producing irregular blobs in
+attention maps. These high-norm tokens appear preferentially at
+low-information background patches, not at semantically salient
+locations. The interpretation is that the model repurposes uninformative
+patch tokens as global scratch space to store and transmit information
+that does not fit naturally into the attention pattern of any single
+semantic patch.</p>
+<p>The fix is minimal: append
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">r = 4</annotation></semantics></math>
+additional learnable [REG] tokens to the input sequence (alongside the
+[CLS] token) and include them throughout all layers. These tokens have
+no spatial correspondence and no loss target; they serve purely as
+internal workspace. With registers present, the high-norm artifact
+disappears from patch tokens, attention maps become spatially smooth,
+and dense prediction improves. <u>The intervention requires no change to
+the training recipe, the loss function, or the backbone
+architecture.</u> The paper reports new state of the art for
+self-supervised models on dense visual prediction tasks and demonstrates
+improvements in object discovery quality with larger models. The caveat
+is that register count
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">r = 4</annotation></semantics></math>
+is a hyperparameter tuned on DINOv2-scale models; smaller ViTs trained
+on less data show less severe artifact behaviour and smaller gains from
+registers. MAE <span class="citation"
+data-cites="he_masked_2021">(He et al. 2021)</span> demonstrated that
+masking 75% of patches and reconstructing provides strong pretraining,
+with ViT-Huge achieving 87.8% accuracy using only ImageNet-1K. BEiT <span class="citation"
+data-cites="bao_beit_2022">(Bao et al. 2022)</span> predicted discrete
+visual tokens from masked patches. SimMIM <span class="citation"
+data-cites="xie_simmim_2022">(Xie et al. 2022)</span> showed simple
+random masking with direct pixel prediction works well.</p>
+<p>Efficiency improvements targeted inference cost. DynamicViT <span class="citation"
+data-cites="rao_dynamicvit_2021">(Rao et al. 2021)</span> dynamically
+prunes uninformative tokens based on learned importance scores, reducing
+FLOPs by 31-37% with &lt;0.5% accuracy drop. EfficientFormer <span class="citation"
+data-cites="li_efficientformer_2022">(Li et al. 2022)</span> designed
+latency-driven architectures achieving mobile speed. Token-to-Token ViT
+(T2T-ViT) <span class="citation"
+data-cites="yuan_tokens--token_2021">(Yuan et al. 2021)</span>
+progressively tokenizes images to capture local structure.</p>
+<p>Understanding ViT behavior revealed important properties. Empirical studies <span class="citation"
+data-cites="chen_empirical_2021">(X. Chen et al. 2021)</span> showed ViT
+optimizes differently from CNNs, with sensitivity to optimizer, weight
+decay, and learning rate schedules. "How to train your ViT" <span
+class="citation" data-cites="steiner_how_2022">(Steiner et al.
+2022)</span> provided comprehensive training recipes. Sharpness-aware minimization (SAM) <span
+class="citation" data-cites="foret_sharpness-aware_2021">(Foret et al.
+2021)</span> improved ViT generalization by optimizing for flatter
+minima. Adversarial robustness analysis <span class="citation"
+data-cites="naseer_intriguing_2021">(Naseer et al. 2021)</span> <span
+class="citation" data-cites="shao_adversarial_2022">(Shao et al.
+2022)</span> found ViT more robust than CNNs due to attention's global
+context. Studies on when transformers beat CNNs <span class="citation"
+data-cites="chen_when_2022">(X. Chen et al. 2022)</span> identified data
+scale and model capacity as key factors.</p>
+<p>Cross-attention between scales improved multi-scale reasoning. CrossViT <span class="citation"
+data-cites="chen_crossvit_2021">(C.-F. Chen et al. 2021)</span> uses
+dual-branch architecture with different patch sizes, fusing via
+cross-attention. This achieves efficient multi-scale processing while
+maintaining reasonable computational cost.</p>
+<p>One axis organises the whole list above. ViT made a single design
+decision, it deleted the convolutional prior, and every paper that
+follows pays some of that prior back. DeiT pays it back through the
+teacher and the augmentation stack. Swin, PVT, Twins and Focal re-impose
+locality inside the attention pattern itself. CvT, CoAtNet, MaxViT and
+MobileViT put the convolution back into the block. MAE, BEiT, SimMIM and
+DINO move the prior into the pretext task, so unlabeled data supplies it
+instead of the architecture. ConvNeXt runs the argument backwards,
+keeping the convolution and importing only the recipe. Sorted by where
+the bias is stored rather than by accuracy, the families read as
+follows.</p>
+<div class="blog-table"><table id="tbl:vit-prior-reintroduction">
+<thead>
+<tr>
+<th>Family</th>
+<th>Where the convolutional prior is reinstated</th>
+<th>Mechanism</th>
+<th>Price paid</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ViT <span class="citation"
+data-cites="dosovitskiy_image_2021">(Dosovitskiy et al.
+2021)</span></td>
+<td>nowhere, pay in data instead</td>
+<td>patch embed, then a plain Transformer encoder</td>
+<td>needs
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≥</mo><annotation encoding="application/x-tex">\geq</annotation></semantics></math>14M
+pretraining images to reach parity</td>
+</tr>
+<tr>
+<td>DeiT <span class="citation"
+data-cites="touvron_training_2021">(Touvron et al. 2021)</span></td>
+<td>training recipe</td>
+<td>CNN teacher through a distillation token, heavy augmentation</td>
+<td>300 epochs plus a teacher forward pass per step</td>
+</tr>
+<tr>
+<td>Swin <span class="citation" data-cites="liu_swin_2021">(Liu et al.
+2021)</span>, PVT <span class="citation"
+data-cites="wang_pyramid_2021">(Wang et al. 2021)</span>, Twins <span
+class="citation" data-cites="chu_twins_2021">(Chu et al. 2021)</span>,
+Focal <span class="citation" data-cites="yang_focal_2021">(Yang et al.
+2021)</span></td>
+<td>attention pattern</td>
+<td>windows, spatial reduction, grouping, pooled multi-granularity
+keys</td>
+<td>no single layer sees the whole image any more</td>
+</tr>
+<tr>
+<td>CvT <span class="citation" data-cites="wu_cvt_2021">(Wu et al.
+2021)</span>, CoAtNet <span class="citation"
+data-cites="dai_coatnet_2021">(Dai et al. 2021)</span>, MaxViT <span
+class="citation" data-cites="tu_maxvit_2022">(Tu et al. 2022)</span>,
+MobileViT <span class="citation"
+data-cites="mehta_mobilevit_2022">(Mehta and Rastegari 2022)</span></td>
+<td>inside the block</td>
+<td>convolutional token embed, depthwise conv on Q/K/V, MBConv stem</td>
+<td>convolution kernels back in the parameter count</td>
+</tr>
+<tr>
+<td>MAE <span class="citation" data-cites="he_masked_2021">(He et al.
+2021)</span>, BEiT <span class="citation"
+data-cites="bao_beit_2022">(Bao et al. 2022)</span>, SimMIM <span
+class="citation" data-cites="xie_simmim_2022">(Xie et al. 2022)</span>,
+DINO <span class="citation" data-cites="caron_dino_2021">(Caron et al.
+2021)</span></td>
+<td>pretext task</td>
+<td>masked reconstruction or self-distillation learns the prior from
+unlabeled data</td>
+<td>long pretraining, and MAE features need fine-tuning before use</td>
+</tr>
+<tr>
+<td>MLP-Mixer <span class="citation"
+data-cites="tolstikhin_mlp-mixer_2021">(Tolstikhin et al. 2021)</span>,
+PoolFormer <span class="citation" data-cites="yu_metaformer_2022">(Yu et
+al. 2022)</span></td>
+<td>nowhere, and attention is dropped too</td>
+<td>fixed or parameter-free token mixer, the recipe carries the
+load</td>
+<td>token-mixing weights are tied to one resolution</td>
+</tr>
+<tr>
+<td>ConvNeXt <span class="citation"
+data-cites="liu_convnet_2022">(Zhuang Liu et al. 2022)</span></td>
+<td>never removed it</td>
+<td>keep the convolution, import the ViT recipe and macro design</td>
+<td>none, which is what makes it the control experiment</td>
+</tr>
+</tbody>
+</table></div>
+<p>The field converged on: (1) hierarchical designs for dense prediction
+(Swin), (2) strong regularization for data-efficient training (DeiT),
+(3) self-supervised pretraining for label efficiency (MAE, DINO), (4)
+hybrid CNN-Transformer architectures for mobile deployment, and (5) the
+critical importance of training recipes matching architectural
+choices.</p>
+<p>Related-work leaderboard (representative numbers, ImageNet-1K top-1
+unless noted, COCO box AP with Mask R-CNN or HTC++ as cited in source
+papers, ADE20K mIoU with UperNet):</p>
+<div class="blog-table"><table id="tbl:vit-related-work-leaderboard">
+<thead>
+<tr>
+<th>Backbone family</th>
+<th>Params</th>
+<th>ImageNet</th>
+<th>COCO box AP</th>
+<th>ADE20K mIoU</th>
+<th>Pretrain data</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ViT-B/16 <span class="citation"
+data-cites="dosovitskiy_image_2021">(Dosovitskiy et al.
+2021)</span></td>
+<td>86M</td>
+<td>84.0%</td>
+<td>(n/a)</td>
+<td>(n/a)</td>
+<td>JFT-300M</td>
+</tr>
+<tr>
+<td>ViT-H/14 <span class="citation"
+data-cites="dosovitskiy_image_2021">(Dosovitskiy et al.
+2021)</span></td>
+<td>632M</td>
+<td>88.55%</td>
+<td>(n/a)</td>
+<td>(n/a)</td>
+<td>JFT-300M</td>
+</tr>
+<tr>
+<td>DeiT-B <span class="citation"
+data-cites="touvron_training_2021">(Touvron et al. 2021)</span></td>
+<td>86M</td>
+<td>83.4%</td>
+<td>(n/a)</td>
+<td>(n/a)</td>
+<td>ImageNet-1K + distill</td>
+</tr>
+<tr>
+<td>Swin-L <span class="citation" data-cites="liu_swin_2021">(Liu et al.
+2021)</span></td>
+<td>197M</td>
+<td>87.3%</td>
+<td>58.7</td>
+<td>53.5</td>
+<td>ImageNet-22K</td>
+</tr>
+<tr>
+<td>Swin V2-G <span class="citation" data-cites="liu_swin_2022">(Ze Liu
+et al. 2022)</span></td>
+<td>3.0B</td>
+<td>90.17%</td>
+<td>63.1</td>
+<td>59.9</td>
+<td>SimMIM + 70M</td>
+</tr>
+<tr>
+<td>PVT-L <span class="citation" data-cites="wang_pyramid_2021">(Wang et
+al. 2021)</span></td>
+<td>61M</td>
+<td>81.7%</td>
+<td>42.9</td>
+<td>44.8</td>
+<td>ImageNet-1K</td>
+</tr>
+<tr>
+<td>Twins-SVT-L <span class="citation" data-cites="chu_twins_2021">(Chu
+et al. 2021)</span></td>
+<td>99M</td>
+<td>83.7%</td>
+<td>45.7</td>
+<td>49.8</td>
+<td>ImageNet-1K</td>
+</tr>
+<tr>
+<td>Focal-L <span class="citation" data-cites="yang_focal_2021">(Yang et
+al. 2021)</span></td>
+<td>197M</td>
+<td>87.2%</td>
+<td>58.4</td>
+<td>55.4</td>
+<td>ImageNet-22K</td>
+</tr>
+<tr>
+<td>CoAtNet-7 <span class="citation" data-cites="dai_coatnet_2021">(Dai
+et al. 2021)</span></td>
+<td>2.44B</td>
+<td>90.88%</td>
+<td>(n/a)</td>
+<td>(n/a)</td>
+<td>JFT-3B</td>
+</tr>
+<tr>
+<td>MaxViT-XL <span class="citation" data-cites="tu_maxvit_2022">(Tu et
+al. 2022)</span></td>
+<td>475M</td>
+<td>88.7%</td>
+<td>(n/a)</td>
+<td>(n/a)</td>
+<td>ImageNet-21K</td>
+</tr>
+<tr>
+<td>CvT-21 <span class="citation" data-cites="wu_cvt_2021">(Wu et al.
+2021)</span></td>
+<td>32M</td>
+<td>82.5%</td>
+<td>(n/a)</td>
+<td>(n/a)</td>
+<td>ImageNet-1K</td>
+</tr>
+<tr>
+<td>ConvNeXt-B <span class="citation"
+data-cites="liu_convnet_2022">(Zhuang Liu et al. 2022)</span></td>
+<td>89M</td>
+<td>83.8%</td>
+<td>52.7</td>
+<td>49.9</td>
+<td>ImageNet-1K</td>
+</tr>
+<tr>
+<td>MAE ViT-H <span class="citation" data-cites="he_masked_2021">(He et
+al. 2021)</span></td>
+<td>632M</td>
+<td>87.8%</td>
+<td>53.3 (ViTDet)</td>
+<td>53.6</td>
+<td>ImageNet-1K SSL</td>
+</tr>
+<tr>
+<td>DINO ViT-B/8 <span class="citation"
+data-cites="caron_dino_2021">(Caron et al. 2021)</span></td>
+<td>86M</td>
+<td>80.1% (lin)</td>
+<td>(n/a)</td>
+<td>(n/a)</td>
+<td>ImageNet-1K SSL</td>
+</tr>
+<tr>
+<td>BEiT-L <span class="citation" data-cites="bao_beit_2022">(Bao et al.
+2022)</span></td>
+<td>305M</td>
+<td>87.4%</td>
+<td>53.3</td>
+<td>57.0</td>
+<td>ImageNet-22K + dVAE</td>
+</tr>
+<tr>
+<td>SimMIM SwinV2-H <span class="citation"
+data-cites="xie_simmim_2022">(Xie et al. 2022)</span></td>
+<td>658M</td>
+<td>87.1%</td>
+<td>(n/a)</td>
+<td>(n/a)</td>
+<td>ImageNet-1K SSL</td>
+</tr>
+<tr>
+<td>EfficientFormer-L7 <span class="citation"
+data-cites="li_efficientformer_2022">(Li et al. 2022)</span></td>
+<td>82M</td>
+<td>83.3%</td>
+<td>1.6ms (iPhone)</td>
+<td>(n/a)</td>
+<td>ImageNet-1K</td>
+</tr>
+<tr>
+<td>MobileViT-S <span class="citation"
+data-cites="mehta_mobilevit_2022">(Mehta and Rastegari 2022)</span></td>
+<td>5.6M</td>
+<td>78.4%</td>
+<td>(n/a)</td>
+<td>(n/a)</td>
+<td>ImageNet-1K</td>
+</tr>
+</tbody>
+</table></div>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-bao_beit_2022" class="csl-entry" role="listitem">
+Bao, Hangbo, Li Dong, Songhao Piao, and Furu Wei. 2022.
+<em><span>BEiT</span>: <span>BERT</span>
+<span>Pre</span>-<span>Training</span> of <span>Image</span>
+<span>Transformers</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2106.08254">https://doi.org/10.48550/arXiv.2106.08254</a>.
+</div>
+<div id="ref-caron_dino_2021" class="csl-entry" role="listitem">
+Caron, Mathilde, Hugo Touvron, Ishan Misra, et al. 2021.
+<em>(<span>DINO</span>) <span>Emerging</span> <span>Properties</span> in
+<span>Self</span>-<span>Supervised</span> <span>Vision</span>
+<span>Transformers</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2104.14294">https://doi.org/10.48550/arXiv.2104.14294</a>.
+</div>
+<div id="ref-chen_crossvit_2021" class="csl-entry" role="listitem">
+Chen, Chun-Fu, Quanfu Fan, and Rameswar Panda. 2021.
+<em><span>CrossViT</span>: <span>Cross</span>-<span>Attention</span>
+<span>Multi</span>-<span>Scale</span> <span>Vision</span>
+<span>Transformer</span> for <span>Image</span>
+<span>Classification</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2103.14899">https://doi.org/10.48550/arXiv.2103.14899</a>.
+</div>
+<div id="ref-chen_when_2022" class="csl-entry" role="listitem">
+Chen, Xiangning, Cho-Jui Hsieh, and Boqing Gong. 2022. <em>When
+<span>Vision</span> <span>Transformers</span> <span>Outperform</span>
+<span>ResNets</span> Without <span>Pre</span>-Training or
+<span>Strong</span> <span>Data</span> <span>Augmentations</span></em>.
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2106.01548">https://doi.org/10.48550/arXiv.2106.01548</a>.
+</div>
+<div id="ref-chen_empirical_2021" class="csl-entry" role="listitem">
+Chen, Xinlei, Saining Xie, and Kaiming He. 2021. <em>An
+<span>Empirical</span> <span>Study</span> of <span>Training</span>
+<span>Self</span>-<span>Supervised</span> <span>Vision</span>
+<span>Transformers</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2104.02057">https://doi.org/10.48550/arXiv.2104.02057</a>.
+</div>
+<div id="ref-chen_mobile-former_2022" class="csl-entry" role="listitem">
+Chen, Yinpeng, Xiyang Dai, Dongdong Chen, et al. 2022.
+<em>Mobile-<span>Former</span>: <span>Bridging</span>
+<span>MobileNet</span> and <span>Transformer</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2108.05895">https://doi.org/10.48550/arXiv.2108.05895</a>.
+</div>
+<div id="ref-chu_twins_2021" class="csl-entry" role="listitem">
+Chu, Xiangxiang, Zhi Tian, Yuqing Wang, et al. 2021. <em>Twins:
+<span>Revisiting</span> the <span>Design</span> of <span>Spatial</span>
+<span>Attention</span> in <span>Vision</span>
+<span>Transformers</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2104.13840">https://doi.org/10.48550/arXiv.2104.13840</a>.
+</div>
+<div id="ref-dai_coatnet_2021" class="csl-entry" role="listitem">
+Dai, Zihang, Hanxiao Liu, Quoc V. Le, and Mingxing Tan. 2021.
+<em><span>CoAtNet</span>: <span>Marrying</span> <span>Convolution</span>
+and <span>Attention</span> for <span>All</span> <span>Data</span>
+<span>Sizes</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2106.04803">https://doi.org/10.48550/arXiv.2106.04803</a>.
+</div>
+<div id="ref-darcet_vit_2024" class="csl-entry" role="listitem">
+Darcet, Timothée, Maxime Oquab, Julien Mairal, and Piotr Bojanowski.
+2024. <span>"Vision Transformers Need Registers."</span>
+<em>International Conference on Learning Representations (ICLR)</em>. <a
+href="https://arxiv.org/abs/2309.16588">https://arxiv.org/abs/2309.16588</a>.
+</div>
+<div id="ref-deng_imagenet_2009" class="csl-entry" role="listitem">
+Deng, Jia, Wei Dong, Richard Socher, Li-Jia Li, Kai Li, and Li Fei-Fei.
+2009. <span>"ImageNet: A Large-Scale Hierarchical Image
+Database."</span> <em>IEEE Conference on Computer Vision and Pattern
+Recognition (CVPR)</em>. <a
+href="https://doi.org/10.1109/CVPR.2009.5206848">https://doi.org/10.1109/CVPR.2009.5206848</a>.
+</div>
+<div id="ref-dosovitskiy_image_2021" class="csl-entry" role="listitem">
+Dosovitskiy, Alexey, Lucas Beyer, Alexander Kolesnikov, et al. 2021.
+<em>An <span>Image</span> Is <span>Worth</span> 16x16
+<span>Words</span>: <span>Transformers</span> for <span>Image</span>
+<span>Recognition</span> at <span>Scale</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2010.11929">https://doi.org/10.48550/arXiv.2010.11929</a>.
+</div>
+<div id="ref-foret_sharpness-aware_2021" class="csl-entry"
+role="listitem">
+Foret, Pierre, Ariel Kleiner, Hossein Mobahi, and Behnam Neyshabur.
+2021. <em>Sharpness-<span>Aware</span> <span>Minimization</span> for
+<span>Efficiently</span> <span>Improving</span>
+<span>Generalization</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2010.01412">https://doi.org/10.48550/arXiv.2010.01412</a>.
+</div>
+<div id="ref-he_masked_2021" class="csl-entry" role="listitem">
+He, Kaiming, Xinlei Chen, Saining Xie, Yanghao Li, Piotr Dollár, and
+Ross Girshick. 2021. <em>Masked <span>Autoencoders</span>
+<span>Are</span> <span>Scalable</span> <span>Vision</span>
+<span>Learners</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2111.06377">https://doi.org/10.48550/arXiv.2111.06377</a>.
+</div>
+<div id="ref-li_efficientformer_2022" class="csl-entry" role="listitem">
+Li, Yanyu, Geng Yuan, Yang Wen, et al. 2022.
+<em><span>EfficientFormer</span>: <span>Vision</span>
+<span>Transformers</span> at <span>MobileNet</span>
+<span>Speed</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2206.01191">https://doi.org/10.48550/arXiv.2206.01191</a>.
+</div>
+<div id="ref-liu_swin_2022" class="csl-entry" role="listitem">
+Liu, Ze, Han Hu, Yutong Lin, et al. 2022. <em>Swin
+<span>Transformer</span> <span>V2</span>: <span>Scaling</span>
+<span>Up</span> <span>Capacity</span> and <span>Resolution</span></em>.
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2111.09883">https://doi.org/10.48550/arXiv.2111.09883</a>.
+</div>
+<div id="ref-liu_swin_2021" class="csl-entry" role="listitem">
+Liu, Ze, Yutong Lin, Yue Cao, et al. 2021. <span>"Swin
+<span>Transformer</span>: <span>Hierarchical</span> <span>Vision</span>
+<span>Transformer</span> Using <span>Shifted</span>
+<span>Windows</span>."</span> <em>IEEE/CVF International Conference on
+Computer Vision (ICCV)</em>, August. <a
+href="https://doi.org/10.48550/arXiv.2103.14030">https://doi.org/10.48550/arXiv.2103.14030</a>.
+</div>
+<div id="ref-liu_convnet_2022" class="csl-entry" role="listitem">
+Liu, Zhuang, Hanzi Mao, Chao-Yuan Wu, Christoph Feichtenhofer, Trevor
+Darrell, and Saining Xie. 2022. <em>A <span>ConvNet</span> for the
+2020s</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2201.03545">https://doi.org/10.48550/arXiv.2201.03545</a>.
+</div>
+<div id="ref-mehta_mobilevit_2022" class="csl-entry" role="listitem">
+Mehta, Sachin, and Mohammad Rastegari. 2022. <em><span>MobileViT</span>:
+<span>Light</span>-Weight, <span>General</span>-Purpose, and
+<span>Mobile</span>-Friendly <span>Vision</span>
+<span>Transformer</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2110.02178">https://doi.org/10.48550/arXiv.2110.02178</a>.
+</div>
+<div id="ref-naseer_intriguing_2021" class="csl-entry" role="listitem">
+Naseer, Muzammal, Kanchana Ranasinghe, Salman Khan, Munawar Hayat, Fahad
+Shahbaz Khan, and Ming-Hsuan Yang. 2021. <em>Intriguing
+<span>Properties</span> of <span>Vision</span>
+<span>Transformers</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2105.10497">https://doi.org/10.48550/arXiv.2105.10497</a>.
+</div>
+<div id="ref-rao_dynamicvit_2021" class="csl-entry" role="listitem">
+Rao, Yongming, Wenliang Zhao, Benlin Liu, Jiwen Lu, Jie Zhou, and
+Cho-Jui Hsieh. 2021. <em><span>DynamicViT</span>: <span>Efficient</span>
+<span>Vision</span> <span>Transformers</span> with <span>Dynamic</span>
+<span>Token</span> <span>Sparsification</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2106.02034">https://doi.org/10.48550/arXiv.2106.02034</a>.
+</div>
+<div id="ref-shao_adversarial_2022" class="csl-entry" role="listitem">
+Shao, Rulin, Zhouxing Shi, Jinfeng Yi, Pin-Yu Chen, and Cho-Jui Hsieh.
+2022. <em>On the <span>Adversarial</span> <span>Robustness</span> of
+<span>Vision</span> <span>Transformers</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2103.15670">https://doi.org/10.48550/arXiv.2103.15670</a>.
+</div>
+<div id="ref-steiner_how_2022" class="csl-entry" role="listitem">
+Steiner, Andreas, Alexander Kolesnikov, Xiaohua Zhai, Ross Wightman,
+Jakob Uszkoreit, and Lucas Beyer. 2022. <em>How to Train Your
+<span>ViT</span>? <span>Data</span>, <span>Augmentation</span>, and
+<span>Regularization</span> in <span>Vision</span>
+<span>Transformers</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2106.10270">https://doi.org/10.48550/arXiv.2106.10270</a>.
+</div>
+<div id="ref-tolstikhin_mlp-mixer_2021" class="csl-entry"
+role="listitem">
+Tolstikhin, Ilya, Neil Houlsby, Alexander Kolesnikov, et al. 2021.
+<span>"<span>MLP-Mixer</span>: An All-<span>MLP</span> Architecture for
+Vision."</span> <em>NeurIPS</em>. <a
+href="https://arxiv.org/abs/2105.01601">https://arxiv.org/abs/2105.01601</a>.
+</div>
+<div id="ref-touvron_training_2021" class="csl-entry" role="listitem">
+Touvron, Hugo, Matthieu Cord, Matthijs Douze, Francisco Massa, Alexandre
+Sablayrolles, and Hervé Jégou. 2021. <em>Training Data-Efficient Image
+Transformers &amp; Distillation Through Attention</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2012.12877">https://doi.org/10.48550/arXiv.2012.12877</a>.
+</div>
+<div id="ref-touvron_deit_2022" class="csl-entry" role="listitem">
+Touvron, Hugo, Matthieu Cord, and Hervé Jégou. 2022.
+<em><span>DeiT</span> <span>III</span>: <span>Revenge</span> of the
+<span>ViT</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2204.07118">https://doi.org/10.48550/arXiv.2204.07118</a>.
+</div>
+<div id="ref-tu_maxvit_2022" class="csl-entry" role="listitem">
+Tu, Zhengzhong, Hossein Talebi, Han Zhang, et al. 2022.
+<em><span>MaxViT</span>: <span>Multi</span>-<span>Axis</span>
+<span>Vision</span> <span>Transformer</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2204.01697">https://doi.org/10.48550/arXiv.2204.01697</a>.
+</div>
+<div id="ref-wang_pyramid_2021" class="csl-entry" role="listitem">
+Wang, Wenhai, Enze Xie, Xiang Li, et al. 2021. <em>Pyramid
+<span>Vision</span> <span>Transformer</span>: <span>A</span>
+<span>Versatile</span> <span>Backbone</span> for <span>Dense</span>
+<span>Prediction</span> Without <span>Convolutions</span></em>. arXiv.
+<a
+href="https://doi.org/10.48550/arXiv.2102.12122">https://doi.org/10.48550/arXiv.2102.12122</a>.
+</div>
+<div id="ref-wu_cvt_2021" class="csl-entry" role="listitem">
+Wu, Haiping, Bin Xiao, Noel Codella, et al. 2021. <em><span>CvT</span>:
+<span>Introducing</span> <span>Convolutions</span> to
+<span>Vision</span> <span>Transformers</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2103.15808">https://doi.org/10.48550/arXiv.2103.15808</a>.
+</div>
+<div id="ref-xie_simmim_2022" class="csl-entry" role="listitem">
+Xie, Zhenda, Zheng Zhang, Yue Cao, et al. 2022. <em><span>SimMIM</span>:
+<span>A</span> <span>Simple</span> <span>Framework</span> for
+<span>Masked</span> <span>Image</span> <span>Modeling</span></em>.
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2111.09886">https://doi.org/10.48550/arXiv.2111.09886</a>.
+</div>
+<div id="ref-yang_focal_2021" class="csl-entry" role="listitem">
+Yang, Jianwei, Chunyuan Li, Pengchuan Zhang, et al. 2021. <em>Focal
+<span>Self</span>-Attention for <span>Local</span>-<span>Global</span>
+<span>Interactions</span> in <span>Vision</span>
+<span>Transformers</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2107.00641">https://doi.org/10.48550/arXiv.2107.00641</a>.
+</div>
+<div id="ref-yu_metaformer_2022" class="csl-entry" role="listitem">
+Yu, Weihao, Mi Luo, Pan Zhou, et al. 2022.
+<span>"<span>MetaFormer</span> Is Actually What You Need for
+Vision."</span> <em>CVPR</em>. <a
+href="https://arxiv.org/abs/2111.11418">https://arxiv.org/abs/2111.11418</a>.
+</div>
+<div id="ref-yuan_tokens--token_2021" class="csl-entry" role="listitem">
+Yuan, Li, Yunpeng Chen, Tao Wang, et al. 2021.
+<em>Tokens-to-<span>Token</span> <span>ViT</span>: <span>Training</span>
+<span>Vision</span> <span>Transformers</span> from <span>Scratch</span>
+on <span>ImageNet</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2101.11986">https://doi.org/10.48550/arXiv.2101.11986</a>.
+</div>
+<div id="ref-zhang_nested_2021" class="csl-entry" role="listitem">
+Zhang, Zizhao, Han Zhang, Long Zhao, Ting Chen, Sercan O. Arik, and
+Tomas Pfister. 2021. <em>Nested <span>Hierarchical</span>
+<span>Transformer</span>: <span>Towards</span> <span>Accurate</span>,
+<span>Data</span>-<span>Efficient</span> and <span>Interpretable</span>
+<span>Visual</span> <span>Understanding</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2105.12723">https://doi.org/10.48550/arXiv.2105.12723</a>.
+</div>
+</div>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

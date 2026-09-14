@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="Kaplan scaling laws, Chinchilla compute-optimal training, and the earlier empirical scaling literature." />
+        <title>Neural Scaling Laws: Kaplan, Chinchilla, and Compute-Optimal Training - Adnan Harun Dogan</title>
+        <link rel="canonical" href="https://adnanhd.github.io/blogs/scaling-laws/" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="Neural Scaling Laws: Kaplan, Chinchilla, and Compute-Optimal Training" />
+        <meta property="og:description" content="Kaplan scaling laws, Chinchilla compute-optimal training, and the earlier empirical scaling literature." />
+        <meta property="og:url" content="https://adnanhd.github.io/blogs/scaling-laws/" />
+        <meta property="og:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Neural Scaling Laws: Kaplan, Chinchilla, and Compute-Optimal Training" />
+        <meta name="twitter:description" content="Kaplan scaling laws, Chinchilla compute-optimal training, and the earlier empirical scaling literature." />
+        <meta name="twitter:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Neural Scaling Laws: Kaplan, Chinchilla, and Compute-Optimal Training",
+  "description": "Kaplan scaling laws, Chinchilla compute-optimal training, and the earlier empirical scaling literature.",
+  "url": "https://adnanhd.github.io/blogs/scaling-laws/",
+  "image": "https://adnanhd.github.io/assets/img/profile.jpeg",
+  "author": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan",
+    "url": "https://adnanhd.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan"
+  },
+  "mainEntityOfPage": "https://adnanhd.github.io/blogs/scaling-laws/",
+  "datePublished": "2025-12-16"
+}
+        </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Neural Scaling Laws: Kaplan, Chinchilla, and Compute-Optimal Training</h1>
+            <div class="blog-meta">Empirical scaling laws and compute-optimal model sizing</div>
+            <article class="blog-body">
+<p>The papers collected in this part span two otherwise disjoint
+literatures: empirical scaling (Kaplan, Chinchilla, Hestness, Bahri) and
+information-theoretic dynamics (Tishby, Shwartz-Ziv, Saxe), connected by
+the question of whether deep networks' generalization curves admit a
+compact functional description. A third, more recent strand (Wei,
+Schaeffer, Power) asks whether the smooth power laws tell the whole
+story or whether discontinuous behaviours (emergence, grokking) live on
+top of them. A fourth strand reframes the bottleneck from
+<em>quantity</em> to <em>quality</em>. <span class="citation"
+data-cites="sorscher_beyond_2022">(Sorscher et al. 2022)</span> (NeurIPS
+2022 Outstanding) argue that the Hestness-Kaplan power law
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>∝</mo><msup><mi>D</mi><mrow><mi>−</mi><msub><mi>α</mi><mi>D</mi></msub></mrow></msup></mrow><annotation encoding="application/x-tex">L \propto D^{-\alpha_D}</annotation></semantics></math>
+is not a property of the learning problem but an artefact of i.i.d.
+random subsetting. When training examples are ranked by difficulty and
+the easiest fraction is discarded, test error decays
+<em>exponentially</em> in the retained fraction
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
+in the over-parameterised regime rather than following the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∝</mo><mn>1</mn><mi>/</mi><msqrt><mi>D</mi></msqrt></mrow><annotation encoding="application/x-tex">\propto 1/\sqrt{D}</annotation></semantics></math>
+rate that classical uniform-convergence theory predicts. The intuition:
+random subsets always retain both easy and redundant samples; a pruned
+subset concentrated on hard, near-decision-boundary examples provides
+more gradient signal per sample, so the model learns the same boundary
+geometry from a smaller dataset.</p>
+<p>Ten difficulty metrics are benchmarked, including EL2N
+(early-training
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ℓ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\ell_2</annotation></semantics></math>
+error norm), forgetting scores, memorization, ensemble uncertainty, and
+margin. Among supervised metrics, EL2N performs best on CIFAR-10: a
+ResNet-18 trained on the top-50% hardest examples (by EL2N) matches
+full-dataset accuracy. On ImageNet, training on 80% of examples selected
+by memorization score matches the 100% baseline; most supervised metrics
+degrade sharply below 60% retention. A new self-supervised metric is
+proposed: cosine distance to the nearest k-means cluster centroid in
+SWaV embeddings, which matches supervised baselines without requiring
+labels and enables pruning before annotation.</p>
+<p>The exponential advantage is conditional. It holds only in the
+over-parameterised regime (model large enough to fit the retained set)
+and only when the pruning metric aligns well with the true difficulty
+ordering (measured by angular alignment
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+between the probe gradient and the teacher gradient). When the probe
+misaligns by more than roughly 10 degrees, a minimum retained fraction
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi mathvariant="normal">min</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f_{\min}(\theta)</annotation></semantics></math>
+exists below which further pruning does not help; the exponential phase
+ends and the standard power law resumes. The paper therefore does not
+supersede scaling laws for the frontier regime (where models are
+maximally over-parameterised and the full pre-training corpus is already
+curated); it applies most directly to fine-tuning and mid-scale training
+where aggressive dataset curation is practical.</p>
+<p><u>The shared methodology is to fit a parametric family to
+train-and-test curves and to ask what the fit exponents mean.</u> In
+Kaplan's setup, the test cross-entropy loss is modelled as three
+single-variable power laws plus an irreducible offset; in Chinchilla it
+is a single joint
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>
+surface; in Hestness it is a dataset-size-only power law; in Bahri the
+exponent is derived from kernel spectra and manifold dimension. The SoTA
+landscape across papers is summarised below by the exponents appearing
+in the three canonical laws</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi>N</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msub><mi>N</mi><mi>c</mi></msub><mi>N</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>α</mi><mi>N</mi></msub></msup><mo>,</mo><mspace width="1.0em"></mspace><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi>D</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msub><mi>D</mi><mi>c</mi></msub><mi>D</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>α</mi><mi>D</mi></msub></msup><mo>,</mo><mspace width="1.0em"></mspace><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi>C</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msub><mi>C</mi><mi>c</mi></msub><mi>C</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>α</mi><mi>C</mi></msub></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">\begin{equation}
+L(N) = \left(\frac{N_c}{N}\right)^{\alpha_N}, \quad L(D) = \left(\frac{D_c}{D}\right)^{\alpha_D}, \quad L(C) = \left(\frac{C_c}{C}\right)^{\alpha_C}.
+\end{equation}</annotation></semantics></math></p>
+<div class="blog-table"><table id="tbl:scaling-law-exponents">
+<caption>SoTA scaling-law exponents across the papers in this part.
+Empty cells mark laws not reported by that paper. Kaplan's
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>N</mi></msub><annotation encoding="application/x-tex">\alpha_N</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>D</mi></msub><annotation encoding="application/x-tex">\alpha_D</annotation></semantics></math>
+are for transformer LMs trained on WebText2 with non-embedding
+parameters
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>;
+Chinchilla's exponents are symmetric because the compute-optimal recipe
+equalises the contributions of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>.</caption>
+<thead>
+<tr>
+<th>Paper</th>
+<th><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>N</mi></msub><annotation encoding="application/x-tex">\alpha_N</annotation></semantics></math></th>
+<th><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>D</mi></msub><annotation encoding="application/x-tex">\alpha_D</annotation></semantics></math></th>
+<th><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>C</mi></msub><annotation encoding="application/x-tex">\alpha_C</annotation></semantics></math></th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kaplan 2020 <span class="citation"
+data-cites="kaplan_scaling_2020">(Kaplan et al. 2020)</span></td>
+<td>0.076</td>
+<td>0.095</td>
+<td>0.050</td>
+<td>GPT-style LM, WebText2, cross-entropy nats/token</td>
+</tr>
+<tr>
+<td>Chinchilla <span class="citation"
+data-cites="hoffmann_chinchilla_2022">(<span class="nocase">Hoffmann et
+al.</span> 2022)</span></td>
+<td>0.34</td>
+<td>0.28</td>
+<td> - </td>
+<td>Joint
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>N</mi><mo>,</mo><mi>D</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(N,D)</annotation></semantics></math>
+fit, symmetric exponents</td>
+</tr>
+<tr>
+<td>Hestness et al. <span class="citation"
+data-cites="hestness_scaling_2017">(Hestness et al. 2017)</span></td>
+<td> - </td>
+<td>0.07-0.35</td>
+<td> - </td>
+<td>Varies by domain: NMT, LM, vision</td>
+</tr>
+<tr>
+<td>Bahri et al. <span class="citation"
+data-cites="bahri_explaining_2024">(Bahri et al. 2024)</span></td>
+<td>derived</td>
+<td>derived</td>
+<td> - </td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>∼</mo><mn>4</mn><mi>/</mi><mi>d</mi></mrow><annotation encoding="application/x-tex">\alpha \sim 4/d</annotation></semantics></math>
+or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>K</mi></msub><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\alpha_K - 1</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>Sharma &amp; Kaplan <span class="citation"
+data-cites="sharma_kaplan_2022">(Sharma and Kaplan 2022)</span></td>
+<td>derived</td>
+<td>derived</td>
+<td> - </td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>D</mi></msub><mo>=</mo><mn>4</mn><mi>/</mi><msub><mi>d</mi><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">d</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\alpha_D = 4/d_{\mathrm{manifold}}</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>Maloney et al. <span class="citation"
+data-cites="maloney_solvable_2022">(Maloney et al. 2022)</span></td>
+<td>analytical</td>
+<td>analytical</td>
+<td>analytical</td>
+<td>Closed form from random-feature model</td>
+</tr>
+<tr>
+<td>Michaud et al. <span class="citation"
+data-cites="michaud_quantization_2023">(Michaud et al. 2023)</span></td>
+<td>derived</td>
+<td>derived</td>
+<td> - </td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mi>β</mi><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>β</mi></mrow><annotation encoding="application/x-tex">\alpha = (\beta-1)/\beta</annotation></semantics></math>
+from Zipf exponent</td>
+</tr>
+</tbody>
+</table></div>
+<p>The IB and emergence rows do not fit the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>N</mi></msub><annotation encoding="application/x-tex">\alpha_N</annotation></semantics></math>/<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>D</mi></msub><annotation encoding="application/x-tex">\alpha_D</annotation></semantics></math>/<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>C</mi></msub><annotation encoding="application/x-tex">\alpha_C</annotation></semantics></math>
+schema because those papers report different observables (mutual
+information trajectories, task-by-task accuracy jumps). They appear
+later in this chapter under their own headings.</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-bahri_explaining_2024" class="csl-entry" role="listitem">
+Bahri, Yasaman, Ethan Dyer, Jared Kaplan, Jaehoon Lee, and Utkarsh
+Sharma. 2024. <span>"Explaining Neural Scaling Laws."</span> <em>Proc.
+National Academy of Sciences</em>.
+</div>
+<div id="ref-hestness_scaling_2017" class="csl-entry" role="listitem">
+Hestness, Joel, Sharan Narang, Newsha Ardalani, et al. 2017. <span>"Deep
+Learning Scaling Is Predictable, Empirically."</span> <em>arXiv Preprint
+arXiv:1712.00409</em>.
+</div>
+<div id="ref-hoffmann_chinchilla_2022" class="csl-entry"
+role="listitem">
+<span class="nocase">Hoffmann, Jordan, Sebastian Borgeaud, Arthur
+Mensch, et al.</span> 2022. <span>"Training Compute-Optimal Large
+Language Models."</span> <em>Advances in Neural Information Processing
+Systems (NeurIPS)</em>.
+</div>
+<div id="ref-kaplan_scaling_2020" class="csl-entry" role="listitem">
+Kaplan, Jared, Sam McCandlish, Tom Henighan, et al. 2020. <span>"Scaling
+Laws for Neural Language Models."</span> <em>arXiv Preprint
+arXiv:2001.08361</em>.
+</div>
+<div id="ref-maloney_solvable_2022" class="csl-entry" role="listitem">
+Maloney, Alexander, Daniel A. Roberts, and James Sully. 2022. <span>"A
+Solvable Model of Neural Scaling Laws."</span> <em>arXiv Preprint
+arXiv:2210.16859</em>.
+</div>
+<div id="ref-michaud_quantization_2023" class="csl-entry"
+role="listitem">
+Michaud, Eric J., Ziming Liu, Uzay Girit, and Max Tegmark. 2023.
+<span>"The Quantization Model of Neural Scaling."</span> <em>Advances in
+Neural Information Processing Systems (NeurIPS)</em>.
+</div>
+<div id="ref-sharma_kaplan_2022" class="csl-entry" role="listitem">
+Sharma, Utkarsh, and Jared Kaplan. 2022. <span>"Scaling Laws from the
+Data Manifold Dimension."</span> <em>Journal of Machine Learning
+Research</em> 23: 1-34.
+</div>
+<div id="ref-sorscher_beyond_2022" class="csl-entry" role="listitem">
+Sorscher, Ben, Robert Geirhos, Shashank Shekhar, Surya Ganguli, and Ari
+S. Morcos. 2022. <span>"Beyond Neural Scaling Laws: Beating Power Law
+Scaling via Data Pruning."</span> <em>Advances in Neural Information
+Processing Systems (NeurIPS)</em>. <a
+href="https://arxiv.org/abs/2206.14486">https://arxiv.org/abs/2206.14486</a>.
+</div>
+</div>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

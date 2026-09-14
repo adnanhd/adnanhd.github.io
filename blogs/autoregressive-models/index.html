@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="PixelRNN, masked convolutions in PixelCNN, conditional generation, and vector-quantized latent spaces." />
+        <title>Autoregressive Image Generation: PixelRNN, PixelCNN, and VQ-VAE - Adnan Harun Dogan</title>
+        <link rel="canonical" href="https://adnanhd.github.io/blogs/autoregressive-models/" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="Autoregressive Image Generation: PixelRNN, PixelCNN, and VQ-VAE" />
+        <meta property="og:description" content="PixelRNN, masked convolutions in PixelCNN, conditional generation, and vector-quantized latent spaces." />
+        <meta property="og:url" content="https://adnanhd.github.io/blogs/autoregressive-models/" />
+        <meta property="og:image" content="https://adnanhd.github.io/blogs/autoregressive-models/og-image.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Autoregressive Image Generation: PixelRNN, PixelCNN, and VQ-VAE" />
+        <meta name="twitter:description" content="PixelRNN, masked convolutions in PixelCNN, conditional generation, and vector-quantized latent spaces." />
+        <meta name="twitter:image" content="https://adnanhd.github.io/blogs/autoregressive-models/og-image.png" />
+        <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Autoregressive Image Generation: PixelRNN, PixelCNN, and VQ-VAE",
+  "description": "PixelRNN, masked convolutions in PixelCNN, conditional generation, and vector-quantized latent spaces.",
+  "url": "https://adnanhd.github.io/blogs/autoregressive-models/",
+  "image": "https://adnanhd.github.io/blogs/autoregressive-models/og-image.png",
+  "author": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan",
+    "url": "https://adnanhd.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan"
+  },
+  "mainEntityOfPage": "https://adnanhd.github.io/blogs/autoregressive-models/",
+  "datePublished": "2026-04-21"
+}
+        </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Autoregressive Image Generation: PixelRNN, PixelCNN, and VQ-VAE</h1>
+            <div class="blog-meta">Pixel-level autoregression and discrete latent codes</div>
+            <article class="blog-body">
+<p>Autoregressive visual generation evolved through four overlapping
+waves: (i) <em>pixel-level</em> models that factorise the image
+distribution as a product of conditionals over raw RGB values (PixelRNN
+<span class="citation" data-cites="oord_pixel_2016">(Oord, Kalchbrenner,
+and Kavukcuoglu 2016)</span>, PixelCNN <span class="citation"
+data-cites="oord_conditional_2016">(Oord, Kalchbrenner, Vinyals, et al.
+2016)</span>, PixelCNN++ <span class="citation"
+data-cites="salimans_pixelcnn_2017">(Salimans et al. 2017)</span>); (ii)
+<em>discrete tokenisation</em> that compresses pixels into learned
+codebooks before autoregression (VQ-VAE <span class="citation"
+data-cites="oord_neural_2018">(Oord et al. 2017)</span>, VQ-VAE-2 <span
+class="citation" data-cites="razavi_generating_2019">(Razavi et al.
+2019)</span>, RQ-VAE <span class="citation"
+data-cites="lee_autoregressive_2022">(Lee et al. 2022)</span>); (iii)
+<em>transformer-based generation</em> that ports GPT-style decoders to
+image and text-to-image (iGPT <span class="citation"
+data-cites="chen_generative_2020">(Chen et al. 2020)</span>, DALL-E
+<span class="citation" data-cites="ramesh_zero-shot_2021">(Ramesh et al.
+2021)</span>, Parti <span class="citation"
+data-cites="yu_scaling_2022">(Yu et al. 2022)</span>, LlamaGen <span
+class="citation" data-cites="sun_autoregressive_2024">(Sun et al.
+2024)</span>), inheriting the encoder-decoder sequence-modelling
+architecture from neural machine translation (Sutskever's
+sequence-to-sequence formulation <span class="citation"
+data-cites="sutskever_sequence_2014">(Sutskever et al. 2014)</span> and
+Bahdanau's content-based attention <span class="citation"
+data-cites="bahdanau_neural_2015">(Bahdanau et al. 2015)</span>) where
+the conditional-token-by-token factorisation was first stress-tested at
+scale; and (iv) <em>alternative orderings and parallel decoding</em>
+that break the strict raster-scan dependency (MaskGIT <span
+class="citation" data-cites="chang_maskgit_2022">(Chang et al.
+2022)</span>, MAGE <span class="citation" data-cites="li_mage_2023">(Li
+et al. 2023)</span>, Muse <span class="citation"
+data-cites="chang_muse_2023">(Chang et al. 2023)</span>, ARDM <span
+class="citation" data-cites="hoogeboom_autoregressive_2022">(Hoogeboom
+et al. 2022)</span>, VAR <span class="citation"
+data-cites="tian_visual_2024">(Tian et al. 2024)</span>, Infinity <span
+class="citation" data-cites="han_infinity_2025">(Han et al.
+2025)</span>, InfinityStar <span class="citation"
+data-cites="liu_infinitystar_2025">(Liu et al. 2025)</span>, VARGPT
+<span class="citation" data-cites="zhuang_vargpt_2025">(Zhuang et al.
+2025)</span>). Video extends these designs along the temporal axis
+(VideoGPT <span class="citation" data-cites="yan_videogpt_2021">(Yan et
+al. 2021)</span>, TATS <span class="citation"
+data-cites="ge_long_2022">(Ge et al. 2022)</span>, Phenaki <span
+class="citation" data-cites="villegas_phenaki_2022">(Villegas et al.
+2023)</span>, MCVD <span class="citation"
+data-cites="voleti_mcvd_2022">(Voleti et al. 2022)</span>) and
+scene-conditioned generation injects layout priors (Make-A-Scene <span
+class="citation" data-cites="gafni_make--scene_2022">(Gafni et al.
+2022)</span>, Semantic-Diffusion <span class="citation"
+data-cites="zhou_semantic_2025">(Wang et al. 2023)</span>). Theoretical
+scaffolding around scale and substrate is provided by autoregressive
+scaling laws <span class="citation"
+data-cites="henighan_scaling_2020">(Henighan et al. 2020)</span>, ViT
+scaling <span class="citation" data-cites="zhai_scaling_2022">(Zhai et
+al. 2022)</span>, and hardware-lottery analysis <span class="citation"
+data-cites="hooker_hardware_2020">(Hooker 2020)</span>.</p>
+<p>The state-of-the-art landscape on standard image-generation
+benchmarks shows AR models reaching parity with and in places exceeding
+diffusion. The leaderboard below collates the headline numbers
+(ImageNet-256 FID for class-conditional, zero-shot MS-COCO FID for
+text-to-image where applicable; tokenizer column reports the discrete
+code source; latency is per-image at the listed resolution; "Cite"
+anchors to the in-chapter section).</p>
+<div class="blog-table"><table id="tbl:ar-leaderboard">
+<caption>Autoregressive image-generation leaderboard. ImageNet-256 FID
+is class-conditional; COCO-FID is zero-shot at
+256<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>256;
+latency is wall-clock seconds per image at the listed deployment
+resolution. Tokenizer column lists the discrete code source. Empty cells
+denote not-reported or not-applicable. Models tagged "masked" use
+parallel iterative decoding; "next-scale" use coarse-to-fine scale
+autoregression; "raster-AR" use sequential next-token. The "first AR
+model to beat diffusion on ImageNet" milestone is VAR-d30 at 2.0B
+parameters, reaching FID 1.92 by sampling and 1.73 with rejection
+sampling, against DiT-XL/2's 2.27 at 675M <span class="citation"
+data-cites="peebles_scalable_2023">(Peebles and Xie 2023)</span>. The
+comparison is not parameter-matched, so read it as "a
+3<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>
+larger AR model finally cleared the diffusion baseline", not as an
+efficiency result.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>Year</th>
+<th>Params</th>
+<th>Tokenizer</th>
+<th>Decoding</th>
+<th>ImageNet-FID</th>
+<th>COCO-FID</th>
+<th>Latency</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PixelRNN <span class="citation" data-cites="oord_pixel_2016">(Oord,
+Kalchbrenner, and Kavukcuoglu 2016)</span></td>
+<td>2016</td>
+<td>~50M</td>
+<td>Raw 8-bit pixel</td>
+<td>raster-AR</td>
+<td>3.00 bpd</td>
+<td></td>
+<td>very slow</td>
+</tr>
+<tr>
+<td>PixelCNN <span class="citation"
+data-cites="oord_conditional_2016">(Oord, Kalchbrenner, Vinyals, et al.
+2016)</span></td>
+<td>2016</td>
+<td>~80M</td>
+<td>Raw 8-bit pixel</td>
+<td>raster-AR</td>
+<td>3.03 bpd</td>
+<td></td>
+<td>slow</td>
+</tr>
+<tr>
+<td>PixelCNN++ <span class="citation"
+data-cites="salimans_pixelcnn_2017">(Salimans et al. 2017)</span></td>
+<td>2017</td>
+<td>~95M</td>
+<td>Raw + logistic mix</td>
+<td>raster-AR</td>
+<td>2.92 bpd</td>
+<td></td>
+<td>slow</td>
+</tr>
+<tr>
+<td>VQ-VAE-2 <span class="citation"
+data-cites="razavi_generating_2019">(Razavi et al. 2019)</span></td>
+<td>2019</td>
+<td>~13B*</td>
+<td>Hierarchical VQ</td>
+<td>raster-AR</td>
+<td>31.11</td>
+<td></td>
+<td>minutes</td>
+</tr>
+<tr>
+<td>iGPT-L <span class="citation"
+data-cites="chen_generative_2020">(Chen et al. 2020)</span></td>
+<td>2020</td>
+<td>1.4B</td>
+<td>k-means 9-bit pixel</td>
+<td>raster-AR</td>
+<td>36.4</td>
+<td></td>
+<td>minutes</td>
+</tr>
+<tr>
+<td>DALL-E <span class="citation"
+data-cites="ramesh_zero-shot_2021">(Ramesh et al. 2021)</span></td>
+<td>2021</td>
+<td>12B</td>
+<td>dVAE 8192</td>
+<td>raster-AR</td>
+<td></td>
+<td>~17</td>
+<td>~30s/64 cands</td>
+</tr>
+<tr>
+<td>MaskGIT <span class="citation"
+data-cites="chang_maskgit_2022">(Chang et al. 2022)</span></td>
+<td>2022</td>
+<td>227M</td>
+<td>VQ-GAN 1024</td>
+<td>masked</td>
+<td>6.18</td>
+<td></td>
+<td>~0.5s</td>
+</tr>
+<tr>
+<td>Make-A-Scene <span class="citation"
+data-cites="gafni_make--scene_2022">(Gafni et al. 2022)</span></td>
+<td>2022</td>
+<td>4B</td>
+<td>Triple-VQ</td>
+<td>raster-AR</td>
+<td></td>
+<td>11.84</td>
+<td>~10s</td>
+</tr>
+<tr>
+<td>Parti-20B <span class="citation" data-cites="yu_scaling_2022">(Yu et
+al. 2022)</span></td>
+<td>2022</td>
+<td>20B</td>
+<td>ViT-VQGAN 8192</td>
+<td>raster-AR</td>
+<td></td>
+<td>7.23</td>
+<td>~15s</td>
+</tr>
+<tr>
+<td>MAGE-L <span class="citation" data-cites="li_mage_2023">(Li et al.
+2023)</span></td>
+<td>2023</td>
+<td>300M</td>
+<td>VQ-GAN 1024</td>
+<td>masked</td>
+<td>6.93</td>
+<td></td>
+<td>~0.5s</td>
+</tr>
+<tr>
+<td>Muse <span class="citation" data-cites="chang_muse_2023">(Chang et
+al. 2023)</span></td>
+<td>2023</td>
+<td>3B+3B</td>
+<td>ViT-VQGAN 8192</td>
+<td>masked+SR</td>
+<td></td>
+<td>7.88</td>
+<td>1.3s</td>
+</tr>
+<tr>
+<td>LlamaGen-3B <span class="citation"
+data-cites="sun_autoregressive_2024">(Sun et al. 2024)</span></td>
+<td>2024</td>
+<td>3.1B</td>
+<td>VQ-GAN 16384</td>
+<td>raster-AR</td>
+<td>2.18</td>
+<td>7.2</td>
+<td>~2s w/ vLLM</td>
+</tr>
+<tr>
+<td>VAR-d30 <span class="citation" data-cites="tian_visual_2024">(Tian
+et al. 2024)</span></td>
+<td>2024</td>
+<td>2.0B</td>
+<td>Multi-scale RQ-VAE</td>
+<td>next-scale</td>
+<td>1.73</td>
+<td></td>
+<td>~0.3s</td>
+</tr>
+<tr>
+<td>Infinity-2B <span class="citation"
+data-cites="han_infinity_2025">(Han et al. 2025)</span></td>
+<td>2025</td>
+<td>2B</td>
+<td>LFQ 32-bit (no book)</td>
+<td>next-scale</td>
+<td></td>
+<td>0.69 GE</td>
+<td>0.8s @ 1024</td>
+</tr>
+<tr>
+<td>InfinityStar <span class="citation"
+data-cites="liu_infinitystar_2025">(Liu et al. 2025)</span></td>
+<td>2025</td>
+<td>8B</td>
+<td>3D LFQ</td>
+<td>next-scale</td>
+<td></td>
+<td>83.74 VB</td>
+<td>40s/5s 720p</td>
+</tr>
+<tr>
+<td>VARGPT <span class="citation"
+data-cites="zhuang_vargpt_2025">(Zhuang et al. 2025)</span></td>
+<td>2025</td>
+<td>7B</td>
+<td>VAR-style + CLIP</td>
+<td>next-scale</td>
+<td></td>
+<td>14.8</td>
+<td>~0.3s+text</td>
+</tr>
+</tbody>
+</table></div>
+<p>(*) VQ-VAE-2's 13B figure aggregates the top-prior 48-layer
+Transformer (~12B) with the bottom-prior 20-layer PixelCNN (~1B);
+per-paper accounting practice varies. "GE" denotes GenEval composite
+score (text-to-image alignment, higher is better, 0-1) and "VB" denotes
+VBench composite (text-to-video, higher is better, 0-100); these
+benchmarks are not directly comparable to FID. Pixel-level rows report
+bits-per-dimension instead of FID because Inception-v3 features are
+uninformative at
+32<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>32
+resolution.</p>
+<p><img src="figures/ar-causal-masking.svg" /></p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-bahdanau_neural_2015" class="csl-entry" role="listitem">
+Bahdanau, Dzmitry, Kyunghyun Cho, and Yoshua Bengio. 2015. <span>"Neural
+Machine Translation by Jointly Learning to Align and Translate."</span>
+<em>International Conference on Learning Representations (ICLR)</em>. <a
+href="https://arxiv.org/abs/1409.0473">https://arxiv.org/abs/1409.0473</a>.
+</div>
+<div id="ref-chang_muse_2023" class="csl-entry" role="listitem">
+Chang, Huiwen, Han Zhang, Jarred Barber, et al. 2023. <span>"Muse:
+<span>Text</span>-<span>To</span>-<span>Image</span>
+<span>Generation</span> via <span>Masked</span> <span>Generative</span>
+<span>Transformers</span>."</span> <em>International Conference on
+Machine Learning (ICML)</em>, January. <a
+href="https://doi.org/10.48550/arXiv.2301.00704">https://doi.org/10.48550/arXiv.2301.00704</a>.
+</div>
+<div id="ref-chang_maskgit_2022" class="csl-entry" role="listitem">
+Chang, Huiwen, Han Zhang, Lu Jiang, Ce Liu, and William T. Freeman.
+2022. <span>"<span>MaskGIT</span>: <span>Masked</span>
+<span>Generative</span> <span>Image</span>
+<span>Transformer</span>."</span> <em>IEEE/CVF Conference on Computer
+Vision and Pattern Recognition (CVPR)</em>, February. <a
+href="https://doi.org/10.48550/arXiv.2202.04200">https://doi.org/10.48550/arXiv.2202.04200</a>.
+</div>
+<div id="ref-chen_generative_2020" class="csl-entry" role="listitem">
+Chen, Mark, Alec Radford, Rewon Child, et al. 2020. <span>"Generative
+<span>Pretraining</span> <span>From</span> <span>Pixels</span>."</span>
+<em>Proceedings of the 37th <span>International</span>
+<span>Conference</span> on <span>Machine</span>
+<span>Learning</span></em>, November, 1691-703. <a
+href="https://proceedings.mlr.press/v119/chen20s.html">https://proceedings.mlr.press/v119/chen20s.html</a>.
+</div>
+<div id="ref-gafni_make--scene_2022" class="csl-entry" role="listitem">
+Gafni, Oran, Adam Polyak, Oron Ashual, Shelly Sheynin, Devi Parikh, and
+Yaniv Taigman. 2022. <span>"Make-<span>A</span>-<span>Scene</span>:
+<span>Scene</span>-<span>Based</span>
+<span>Text</span>-to-<span>Image</span> <span>Generation</span> with
+<span>Human</span> <span>Priors</span>."</span> <em>European Conference
+on Computer Vision (ECCV)</em>, March. <a
+href="https://doi.org/10.48550/arXiv.2203.13131">https://doi.org/10.48550/arXiv.2203.13131</a>.
+</div>
+<div id="ref-ge_long_2022" class="csl-entry" role="listitem">
+Ge, Songwei, Thomas Hayes, Harry Yang, et al. 2022. <span>"Long
+<span>Video</span> <span>Generation</span> with
+<span>Time</span>-<span>Agnostic</span> <span>VQGAN</span> and
+<span>Time</span>-<span>Sensitive</span>
+<span>Transformer</span>."</span> <em>European Conference on Computer
+Vision (ECCV)</em>, September. <a
+href="https://doi.org/10.48550/arXiv.2204.03638">https://doi.org/10.48550/arXiv.2204.03638</a>.
+</div>
+<div id="ref-han_infinity_2025" class="csl-entry" role="listitem">
+Han, Jian, Jinlai Liu, Yi Jiang, et al. 2025. <em>Infinity:
+<span>Scaling</span> <span>Bitwise</span> <span>AutoRegressive</span>
+<span>Modeling</span> for <span>High</span>-<span>Resolution</span>
+<span>Image</span> <span>Synthesis</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2412.04431">https://doi.org/10.48550/arXiv.2412.04431</a>.
+</div>
+<div id="ref-henighan_scaling_2020" class="csl-entry" role="listitem">
+Henighan, Tom, Jared Kaplan, Mor Katz, et al. 2020. <em>Scaling
+<span>Laws</span> for <span>Autoregressive</span>
+<span>Generative</span> <span>Modeling</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2010.14701">https://doi.org/10.48550/arXiv.2010.14701</a>.
+</div>
+<div id="ref-hoogeboom_autoregressive_2022" class="csl-entry"
+role="listitem">
+Hoogeboom, Emiel, Alexey A. Gritsenko, Jasmijn Bastings, Ben Poole,
+Rianne van den Berg, and Tim Salimans. 2022. <span>"Autoregressive
+<span>Diffusion</span> <span>Models</span>."</span> <em>International
+Conference on Learning Representations</em>, February. <a
+href="https://doi.org/10.48550/arXiv.2110.02037">https://doi.org/10.48550/arXiv.2110.02037</a>.
+</div>
+<div id="ref-hooker_hardware_2020" class="csl-entry" role="listitem">
+Hooker, Sara. 2020. <em>The <span>Hardware</span>
+<span>Lottery</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2009.06489">https://doi.org/10.48550/arXiv.2009.06489</a>.
+</div>
+<div id="ref-lee_autoregressive_2022" class="csl-entry" role="listitem">
+Lee, Doyup, Chiheon Kim, Saehoon Kim, Minsu Cho, and Wook-Shin Han.
+2022. <span>"Autoregressive <span>Image</span> <span>Generation</span>
+Using <span>Residual</span> <span>Quantization</span>."</span>
+<em>IEEE/CVF Conference on Computer Vision and Pattern Recognition
+(CVPR)</em>, March. <a
+href="https://doi.org/10.48550/arXiv.2203.01941">https://doi.org/10.48550/arXiv.2203.01941</a>.
+</div>
+<div id="ref-li_mage_2023" class="csl-entry" role="listitem">
+Li, Tianhong, Huiwen Chang, Shlok Kumar Mishra, Han Zhang, Dina Katabi,
+and Dilip Krishnan. 2023. <span>"<span>MAGE</span>: <span>MAsked</span>
+<span>Generative</span> <span>Encoder</span> to <span>Unify</span>
+<span>Representation</span> <span>Learning</span> and <span>Image</span>
+<span>Synthesis</span>."</span> <em>IEEE/CVF Conference on Computer
+Vision and Pattern Recognition (CVPR)</em>, June. <a
+href="https://doi.org/10.48550/arXiv.2211.09117">https://doi.org/10.48550/arXiv.2211.09117</a>.
+</div>
+<div id="ref-liu_infinitystar_2025" class="csl-entry" role="listitem">
+Liu, Jinlai, Jian Han, Bin Yan, et al. 2025.
+<span>"<span>InfinityStar</span>: <span>Unified</span>
+<span>Spacetime</span> <span>AutoRegressive</span> <span>Modeling</span>
+for <span>Visual</span> <span>Generation</span>."</span> <em>Advances in
+Neural Information Processing Systems</em>, November. <a
+href="https://doi.org/10.48550/arXiv.2511.04675">https://doi.org/10.48550/arXiv.2511.04675</a>.
+</div>
+<div id="ref-oord_pixel_2016" class="csl-entry" role="listitem">
+Oord, Aaron van den, Nal Kalchbrenner, and Koray Kavukcuoglu. 2016.
+<span>"Pixel <span>Recurrent</span> <span>Neural</span>
+<span>Networks</span>."</span> <em>International Conference on Machine
+Learning (ICML)</em>, August. <a
+href="https://doi.org/10.48550/arXiv.1601.06759">https://doi.org/10.48550/arXiv.1601.06759</a>.
+</div>
+<div id="ref-oord_conditional_2016" class="csl-entry" role="listitem">
+Oord, Aaron van den, Nal Kalchbrenner, Oriol Vinyals, Lasse Espeholt,
+Alex Graves, and Koray Kavukcuoglu. 2016. <span>"Conditional
+<span>Image</span> <span>Generation</span> with <span>PixelCNN</span>
+<span>Decoders</span>."</span> <em>Advances in Neural Information
+Processing Systems</em>, June. <a
+href="https://doi.org/10.48550/arXiv.1606.05328">https://doi.org/10.48550/arXiv.1606.05328</a>.
+</div>
+<div id="ref-oord_neural_2018" class="csl-entry" role="listitem">
+Oord, Aaron van den, Oriol Vinyals, and Koray Kavukcuoglu. 2017.
+<span>"Neural <span>Discrete</span> <span>Representation</span>
+<span>Learning</span>."</span> <em>Advances in Neural Information
+Processing Systems</em>, May. <a
+href="https://doi.org/10.48550/arXiv.1711.00937">https://doi.org/10.48550/arXiv.1711.00937</a>.
+</div>
+<div id="ref-peebles_scalable_2023" class="csl-entry" role="listitem">
+Peebles, William, and Saining Xie. 2023. <em>Scalable
+<span>Diffusion</span> <span>Models</span> with
+<span>Transformers</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2212.09748">https://doi.org/10.48550/arXiv.2212.09748</a>.
+</div>
+<div id="ref-ramesh_zero-shot_2021" class="csl-entry" role="listitem">
+Ramesh, Aditya, Mikhail Pavlov, Gabriel Goh, et al. 2021.
+<span>"Zero-<span>Shot</span> <span>Text</span>-to-<span>Image</span>
+<span>Generation</span>."</span> <em>International Conference on Machine
+Learning (ICML)</em>, February. <a
+href="https://doi.org/10.48550/arXiv.2102.12092">https://doi.org/10.48550/arXiv.2102.12092</a>.
+</div>
+<div id="ref-razavi_generating_2019" class="csl-entry" role="listitem">
+Razavi, Ali, Aaron van den Oord, and Oriol Vinyals. 2019.
+<span>"Generating <span>Diverse</span>
+<span>High</span>-<span>Fidelity</span> <span>Images</span> with
+<span>VQ</span>-<span>VAE</span>-2."</span> <em>Advances in Neural
+Information Processing Systems</em>, June. <a
+href="https://doi.org/10.48550/arXiv.1906.00446">https://doi.org/10.48550/arXiv.1906.00446</a>.
+</div>
+<div id="ref-salimans_pixelcnn_2017" class="csl-entry" role="listitem">
+Salimans, Tim, Andrej Karpathy, Xi Chen, and Diederik P. Kingma. 2017.
+<span>"<span>PixelCNN</span>++: <span>Improving</span> the
+<span>PixelCNN</span> with <span>Discretized</span>
+<span>Logistic</span> <span>Mixture</span> <span>Likelihood</span> and
+<span>Other</span> <span>Modifications</span>."</span> <em>International
+Conference on Learning Representations</em>, January. <a
+href="https://doi.org/10.48550/arXiv.1701.05517">https://doi.org/10.48550/arXiv.1701.05517</a>.
+</div>
+<div id="ref-sun_autoregressive_2024" class="csl-entry" role="listitem">
+Sun, Peize, Yi Jiang, Shoufa Chen, et al. 2024. <em>Autoregressive
+<span>Model</span> <span>Beats</span> <span>Diffusion</span>:
+<span>Llama</span> for <span>Scalable</span> <span>Image</span>
+<span>Generation</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2406.06525">https://doi.org/10.48550/arXiv.2406.06525</a>.
+</div>
+<div id="ref-sutskever_sequence_2014" class="csl-entry" role="listitem">
+Sutskever, Ilya, Oriol Vinyals, and Quoc V. Le. 2014. <span>"Sequence to
+Sequence Learning with Neural Networks."</span> <em>Advances in Neural
+Information Processing Systems (NeurIPS)</em>. <a
+href="https://arxiv.org/abs/1409.3215">https://arxiv.org/abs/1409.3215</a>.
+</div>
+<div id="ref-tian_visual_2024" class="csl-entry" role="listitem">
+Tian, Keyu, Yi Jiang, Zehuan Yuan, Bingyue Peng, and Liwei Wang. 2024.
+<span>"Visual <span>Autoregressive</span> <span>Modeling</span>:
+<span>Scalable</span> <span>Image</span> <span>Generation</span> via
+<span>Next</span>-<span>Scale</span> <span>Prediction</span>."</span>
+<em>Advances in Neural Information Processing Systems</em>, June. <a
+href="https://doi.org/10.48550/arXiv.2404.02905">https://doi.org/10.48550/arXiv.2404.02905</a>.
+</div>
+<div id="ref-villegas_phenaki_2022" class="csl-entry" role="listitem">
+Villegas, Ruben, Mohammad Babaeizadeh, Pieter-Jan Kindermans, et al.
+2023. <span>"Phenaki: <span>Variable</span> <span>Length</span>
+<span>Video</span> <span>Generation</span> <span>From</span>
+<span>Open</span> <span>Domain</span> <span>Textual</span>
+<span>Description</span>."</span> <em>International Conference on
+Learning Representations</em>, October. <a
+href="https://doi.org/10.48550/arXiv.2210.02399">https://doi.org/10.48550/arXiv.2210.02399</a>.
+</div>
+<div id="ref-voleti_mcvd_2022" class="csl-entry" role="listitem">
+Voleti, Vikram, Alexia Jolicoeur-Martineau, and Christopher Pal. 2022.
+<span>"<span>MCVD</span>: <span>Masked</span> <span>Conditional</span>
+<span>Video</span> <span>Diffusion</span> for <span>Prediction</span>,
+<span>Generation</span>, and <span>Interpolation</span>."</span>
+<em>Advances in Neural Information Processing Systems</em>, October. <a
+href="https://doi.org/10.48550/arXiv.2205.09853">https://doi.org/10.48550/arXiv.2205.09853</a>.
+</div>
+<div id="ref-zhou_semantic_2025" class="csl-entry" role="listitem">
+Wang, Weilun, Jianmin Bao, Wengang Zhou, et al. 2023. <em>Semantic
+<span>Image</span> <span>Synthesis</span> via <span>Diffusion</span>
+<span>Models</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2207.00050">https://doi.org/10.48550/arXiv.2207.00050</a>.
+</div>
+<div id="ref-yan_videogpt_2021" class="csl-entry" role="listitem">
+Yan, Wilson, Yunzhi Zhang, Pieter Abbeel, and Aravind Srinivas. 2021.
+<em><span>VideoGPT</span>: <span>Video</span> <span>Generation</span>
+Using <span>VQ</span>-<span>VAE</span> and
+<span>Transformers</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2104.10157">https://doi.org/10.48550/arXiv.2104.10157</a>.
+</div>
+<div id="ref-yu_scaling_2022" class="csl-entry" role="listitem">
+Yu, Jiahui, Yuanzhong Xu, Jing Yu Koh, et al. 2022. <em>Scaling
+<span>Autoregressive</span> <span>Models</span> for
+<span>Content</span>-<span>Rich</span>
+<span>Text</span>-to-<span>Image</span> <span>Generation</span></em>.
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2206.10789">https://doi.org/10.48550/arXiv.2206.10789</a>.
+</div>
+<div id="ref-zhai_scaling_2022" class="csl-entry" role="listitem">
+Zhai, Xiaohua, Alexander Kolesnikov, Neil Houlsby, and Lucas Beyer.
+2022. <span>"Scaling <span>Vision</span>
+<span>Transformers</span>."</span> <em>IEEE/CVF Conference on Computer
+Vision and Pattern Recognition (CVPR)</em>, June. <a
+href="https://doi.org/10.48550/arXiv.2106.04560">https://doi.org/10.48550/arXiv.2106.04560</a>.
+</div>
+<div id="ref-zhuang_vargpt_2025" class="csl-entry" role="listitem">
+Zhuang, Xianwei, Yuxin Xie, Yufan Deng, et al. 2025.
+<em><span>VARGPT</span>: <span>Unified</span> <span>Understanding</span>
+and <span>Generation</span> in a <span>Visual</span>
+<span>Autoregressive</span> <span>Multimodal</span> <span>Large</span>
+<span>Language</span> <span>Model</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2501.12327">https://doi.org/10.48550/arXiv.2501.12327</a>.
+</div>
+</div>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

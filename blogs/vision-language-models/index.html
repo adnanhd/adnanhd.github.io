@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="Contrastive language-image pretraining, zero-shot transfer, scaling with noisy pairs, and sigmoid-loss variants." />
+        <title>Vision-Language Models: CLIP, ALIGN, and SigLIP - Adnan Harun Dogan</title>
+        <link rel="canonical" href="https://adnanhd.github.io/blogs/vision-language-models/" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="Vision-Language Models: CLIP, ALIGN, and SigLIP" />
+        <meta property="og:description" content="Contrastive language-image pretraining, zero-shot transfer, scaling with noisy pairs, and sigmoid-loss variants." />
+        <meta property="og:url" content="https://adnanhd.github.io/blogs/vision-language-models/" />
+        <meta property="og:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Vision-Language Models: CLIP, ALIGN, and SigLIP" />
+        <meta name="twitter:description" content="Contrastive language-image pretraining, zero-shot transfer, scaling with noisy pairs, and sigmoid-loss variants." />
+        <meta name="twitter:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Vision-Language Models: CLIP, ALIGN, and SigLIP",
+  "description": "Contrastive language-image pretraining, zero-shot transfer, scaling with noisy pairs, and sigmoid-loss variants.",
+  "url": "https://adnanhd.github.io/blogs/vision-language-models/",
+  "image": "https://adnanhd.github.io/assets/img/profile.jpeg",
+  "author": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan",
+    "url": "https://adnanhd.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan"
+  },
+  "mainEntityOfPage": "https://adnanhd.github.io/blogs/vision-language-models/",
+  "datePublished": "2026-04-07"
+}
+        </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Vision-Language Models: CLIP, ALIGN, and SigLIP</h1>
+            <div class="blog-meta">Contrastive image-text pretraining and zero-shot transfer</div>
+            <article class="blog-body">
+<p>The foundation of modern VLMs was established by CLIP <span
+class="citation" data-cites="radford_learning_2021">(Radford et al.
+2021)</span>, which demonstrated that contrastive learning on 400
+million image-text pairs enables zero-shot transfer to diverse visual
+tasks.[fn:s0-clip-impl] <u>CLIP's text tower inherits a long
+lineage</u>: distributed word representations trained by contrasting
+context-word co-occurrences against negative samples (the word2vec
+construction of <span class="citation"
+data-cites="mikolov_distributed_2013">(Mikolov et al. 2013)</span>,
+which introduced negative sampling as a replacement for hierarchical
+softmax, frequent-word subsampling, and phrase representations, making
+billion-token corpora trainable on a single machine) were the first
+widely-deployed evidence that geometry in a learned embedding space
+reflects semantic structure, and the InfoNCE loss CLIP uses is
+essentially the same noise-contrastive estimator generalised to
+cross-modal positive pairs. ALIGN <span class="citation"
+data-cites="jia_scaling_2021">(Jia et al. 2021)</span> showed that noisy
+web-scale data can substitute for curation when sufficient scale is
+achieved. SigLIP <span class="citation"
+data-cites="zhai_sigmoid_2023">(Zhai et al. 2023)</span> introduced a
+simpler sigmoid loss that scales more efficiently than softmax-based
+contrastive learning. The contrastive pre-training lineage also includes
+earlier work like VirTex (2020, caption-based supervision), ConVIRT
+(2020, medical domain), and UniCL (2022, unified classification and
+contrastive learning), with CLIP's influence coming from its combination
+of scale, simplicity, and public release. The longer arc reaches back to
+<strong>Baby Talk</strong> <span class="citation"
+data-cites="kulkarni_babytalk_2011">(Kulkarni et al. 2011)</span>, the
+first end-to-end pipeline that generated natural-language descriptions
+of unseen images from hand-engineered object/attribute/preposition
+detectors fed into a tree-CRF; that paper's central claim that visual
+content can be linearised into compositional language predates
+CLIP-style contrastive coupling by a decade and frames every subsequent
+VLM benchmark. Subsequent refinements include OpenCLIP (open
+reimplementation with documented data), FILIP (fine-grained token-level
+alignment), and MetaCLIP (careful data curation matching CLIP's original
+recipe).</p>
+<p>Self-supervised visual learning reached new heights with DINOv2 <span
+class="citation" data-cites="oquab_dinov2_2024">(Oquab et al.
+2024)</span>, which produces all-purpose visual features through careful
+data curation and training at scale (below).
+Chinese CLIP <span class="citation" data-cites="yang_chinese_2023">(Yang
+et al. 2023)</span> extended contrastive pre-training to Chinese
+language.</p>
+<p>The BLIP series <span class="citation"
+data-cites="li_blip_2022 li_blip-2_2023 xue_xgen-mm_2025">(Li et al.
+2022; J. Li et al. 2023; Xue et al. 2024)</span> introduced
+bootstrapping approaches that filter noisy captions and enable efficient
+adaptation of frozen encoders (BLIP, BLIP-2). InstructBLIP <span class="citation"
+data-cites="dai_instructblip_2023">(Dai et al. 2023)</span> demonstrated
+the power of instruction tuning for vision-language models. Parallel
+efforts in this space include ALBEF (2021, introduced the unified
+encoder-decoder design with image-text matching and contrastive
+objectives), OFA (2022, unified multimodal sequence-to-sequence
+learning), and mPLUG (2022-2023, modular cross-attention with skip
+connections). The BLIP line's distinguishing contribution was
+CapFilt-style bootstrapping, which has since become a standard technique
+across the VLM training pipeline.</p>
+<p>Flamingo <span class="citation"
+data-cites="alayrac_flamingo_2022">(Alayrac et al. 2022)</span>
+pioneered few-shot learning in VLMs through interleaved image-text
+inputs. LLaVA <span class="citation"
+data-cites="liu_visual_2023 liu_improved_2024 lee_llava-next_2024">(Liu
+et al. 2023, 2024; Lee et al. 2024)</span> established simple yet
+effective approaches for visual instruction tuning. CogVLM <span class="citation"
+data-cites="wang_cogvlm_2024">(Wang et al. 2024)</span> introduced
+visual expert modules for deep vision-language fusion, while Qwen-VL
+<span class="citation" data-cites="bai_qwen-vl_2023">(Bai et al.
+2023)</span> demonstrated strong multilingual capabilities. Contemporary
+open-source VLMs that extend or compete with these lines include
+InternVL (2024, high-resolution scaling), IDEFICS (2023-2024, open
+Flamingo reproduction), MiniGPT-4/v2 (2023, early LLaVA-style open
+demonstrator), mPLUG-Owl (2023-2024, modular design with visual
+abstractor), and PaliGemma (2024, Google's open SigLIP + Gemma
+combination).</p>
+<p>Efficient VLMs for deployment include MobileVLM <span
+class="citation" data-cites="chu_mobilevlm_2023">(Chu et al.
+2023)</span>, TinyGPT-V <span class="citation"
+data-cites="yuan_tinygpt-v_2024">(Yuan et al. 2024)</span>, and
+LLaVA-Phi <span class="citation" data-cites="zhu_llava-phi_2024">(Zhu et
+al. 2024)</span>; see Efficient
+Vision-Language Models. Frontier systems like GPT-4V <span
+class="citation" data-cites="noauthor_gpt-4vision_2023">(OpenAI
+2023)</span> and Gemini <span class="citation"
+data-cites="team_gemini_2025 team_gemini_2024">(Team et al. 2023,
+2024)</span> represent the state of the art in multimodal understanding. Additional closed
+frontier systems include Claude 3.5 Sonnet (Anthropic), GPT-4o (OpenAI,
+successor to GPT-4V with stronger multimodal integration), and
+Grok-Vision (xAI). <u>The closed-vs-open gap has narrowed
+substantially</u>: as of late 2024, the best open models (Qwen2-VL-72B,
+InternVL-2-76B) match or exceed GPT-4V on most academic benchmarks,
+though closed models retain a lead in qualitative usability, reasoning
+depth, and safety behavior.</p>
+<p>Recent systematic surveys include Zhang et al.'s "Vision-Language
+Models for Vision Tasks: A Survey" <span class="citation"
+data-cites="li_object-centric_2025">(Li et al. 2025)</span> and the
+MMLMs survey by Yin et al., which provide broader coverage complementing
+the focus here. Reading pathways: for contrastive pre-training, start
+with CLIP and follow forward through SigLIP; for generative VLMs, follow BLIP -&gt; BLIP-2
+-&gt; LLaVA -&gt; LLaVA-NeXT; for frontier systems, read Gemini and GPT-4V
+system cards alongside technical reports.</p>
+<h2 id="sota-leaderboard">SoTA Leaderboard</h2>
+<div class="blog-table"><table id="tab:vlm-sota">
+<caption>Selected vision-language milestones from CLIP (2021) to
+frontier multimodal assistants (2024). "Type" labels three families:
+contrastive (C), generative/captioning (G), and instruction-tuned
+multimodal (I). Vision-encoder column lists the image tower (ViT sizes
+follow the standard B/L/H/g/G/E convention; "/14" = patch 14). LLM
+column gives the language tower for VLMs that wire one in (contrastive
+models leave it blank). "Train data" reports the headline pre-training
+pair count. "IN 0-shot" is ImageNet-1k zero-shot top-1 (where
+applicable; instruction VLMs are not designed for this task and read - ).
+"COCO R@1" is image-to-text retrieval on MS-COCO 5K (zero-shot for
+contrastive models; - where the model targets generation only). "VQAv2"
+is test-dev accuracy (zero-shot reported where the paper exposed it;
+otherwise fine-tuned). "GQA" is the test-dev split. Citations point to
+the canonical paper for each model. Numbers reflect the largest
+configuration each paper released; smaller siblings (e.g., LLaVA-1.5-7B
+vs 13B) pick the larger to keep rows comparable.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>Year</th>
+<th>Type</th>
+<th>Vision enc.</th>
+<th>LLM</th>
+<th>Train data</th>
+<th>IN 0-shot</th>
+<th>VQAv2</th>
+<th>COCO R@1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CLIP ViT-L/14-336 <span class="citation"
+data-cites="radford_learning_2021">(Radford et al. 2021)</span></td>
+<td>2021</td>
+<td>C</td>
+<td>ViT-L/14</td>
+<td> - </td>
+<td>WIT 400M</td>
+<td>76.2</td>
+<td> - </td>
+<td>58.4</td>
+</tr>
+<tr>
+<td>ALIGN <span class="citation" data-cites="jia_scaling_2021">(Jia et
+al. 2021)</span></td>
+<td>2021</td>
+<td>C</td>
+<td>EfficientNet-L</td>
+<td>BERT-Large</td>
+<td>ALIGN 1.8B</td>
+<td>76.4</td>
+<td> - </td>
+<td>58.6</td>
+</tr>
+<tr>
+<td>FLIP ViT-L/14 <span class="citation"
+data-cites="li_scaling_2023">(Y. Li et al. 2023)</span></td>
+<td>2023</td>
+<td>C</td>
+<td>ViT-L/14</td>
+<td> - </td>
+<td>LAION-400M</td>
+<td>74.6</td>
+<td> - </td>
+<td>54.8</td>
+</tr>
+<tr>
+<td>OpenCLIP ViT-G/14 <span class="citation"
+data-cites="cherti_reproducible_2023">(Cherti et al. 2023)</span></td>
+<td>2022</td>
+<td>C</td>
+<td>ViT-G/14</td>
+<td> - </td>
+<td>LAION-2B</td>
+<td>80.1</td>
+<td> - </td>
+<td>67.3</td>
+</tr>
+<tr>
+<td>EVA-CLIP-E/14+ <span class="citation"
+data-cites="sun_eva-clip_2023">(Sun et al. 2023)</span></td>
+<td>2023</td>
+<td>C</td>
+<td>ViT-E/14</td>
+<td> - </td>
+<td>LAION-2B+</td>
+<td>82.0</td>
+<td> - </td>
+<td>71.1</td>
+</tr>
+<tr>
+<td>SigLIP SoViT-400m <span class="citation"
+data-cites="zhai_sigmoid_2023">(Zhai et al. 2023)</span></td>
+<td>2023</td>
+<td>C</td>
+<td>SoViT-400m/14</td>
+<td> - </td>
+<td>WebLI 10B</td>
+<td>83.0</td>
+<td> - </td>
+<td>70.6</td>
+</tr>
+<tr>
+<td>Chinese-CLIP ViT-H <span class="citation"
+data-cites="yang_chinese_2023">(Yang et al. 2023)</span></td>
+<td>2022</td>
+<td>C</td>
+<td>ViT-H/14</td>
+<td>RoBERTa-wwm</td>
+<td>LAION+Wukong</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+</tr>
+<tr>
+<td>BLIP ViT-L <span class="citation" data-cites="li_blip_2022">(Li et
+al. 2022)</span></td>
+<td>2022</td>
+<td>G</td>
+<td>ViT-L/16</td>
+<td>BERT-Large</td>
+<td>129M</td>
+<td> - </td>
+<td>78.2</td>
+<td>65.1</td>
+</tr>
+<tr>
+<td>CoCa-2.1B <span class="citation" data-cites="yu_coca_2022">(Yu et
+al. 2022)</span></td>
+<td>2022</td>
+<td>C+G</td>
+<td>ViT-g</td>
+<td>dec. 1.1B</td>
+<td>ALIGN+JFT-3B</td>
+<td>86.3</td>
+<td>82.3</td>
+<td>66.3</td>
+</tr>
+<tr>
+<td>BLIP-2 (FlanT5-XXL) <span class="citation"
+data-cites="li_blip-2_2023">(J. Li et al. 2023)</span></td>
+<td>2023</td>
+<td>G</td>
+<td>EVA-ViT-g</td>
+<td>FlanT5-XXL 11B</td>
+<td>129M</td>
+<td> - </td>
+<td>65.0</td>
+<td> - </td>
+</tr>
+<tr>
+<td>BEiT-3 <span class="citation" data-cites="wang_image_2023">(Wang et
+al. 2023)</span></td>
+<td>2022</td>
+<td>G</td>
+<td>ViT-g (BEiT-3)</td>
+<td>BEiT-3 dec.</td>
+<td>35M</td>
+<td> - </td>
+<td>84.0</td>
+<td>76.0</td>
+</tr>
+<tr>
+<td>Flamingo-80B <span class="citation"
+data-cites="alayrac_flamingo_2022">(Alayrac et al. 2022)</span></td>
+<td>2022</td>
+<td>G+I</td>
+<td>NFNet-F6</td>
+<td>Chinchilla 70B</td>
+<td>M3W 43M+</td>
+<td> - </td>
+<td>82.0</td>
+<td> - </td>
+</tr>
+<tr>
+<td>IDEFICS-80B <span class="citation"
+data-cites="laurencon_obelics_2023">(Laurençon et al. 2023)</span></td>
+<td>2023</td>
+<td>G+I</td>
+<td>OpenCLIP H/14</td>
+<td>LLaMA-65B</td>
+<td>OBELICS 141M</td>
+<td> - </td>
+<td>60.0</td>
+<td> - </td>
+</tr>
+<tr>
+<td>Florence-2-Large <span class="citation"
+data-cites="xiao_florence-2_2024">(Xiao et al. 2024)</span></td>
+<td>2023</td>
+<td>G</td>
+<td>DaViT-Large</td>
+<td>BART-base dec.</td>
+<td>FLD-5B</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+</tr>
+<tr>
+<td>MiniGPT-4 <span class="citation"
+data-cites="zhu_minigpt-4_2023">(Zhu et al. 2023)</span></td>
+<td>2023</td>
+<td>I</td>
+<td>EVA-ViT-g</td>
+<td>Vicuna-13B</td>
+<td>LAION+CC+SBU</td>
+<td> - </td>
+<td>48.5</td>
+<td> - </td>
+</tr>
+<tr>
+<td>LLaVA-1.5-13B <span class="citation"
+data-cites="liu_improved_2024">(Liu et al. 2024)</span></td>
+<td>2023</td>
+<td>I</td>
+<td>CLIP ViT-L-336</td>
+<td>Vicuna-13B</td>
+<td>1.2M</td>
+<td> - </td>
+<td>80.0</td>
+<td> - </td>
+</tr>
+<tr>
+<td>InstructBLIP-13B <span class="citation"
+data-cites="dai_instructblip_2023">(Dai et al. 2023)</span></td>
+<td>2023</td>
+<td>I</td>
+<td>EVA-ViT-g</td>
+<td>Vicuna-13B</td>
+<td>26 datasets</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+</tr>
+<tr>
+<td>Qwen-VL-Chat <span class="citation"
+data-cites="bai_qwen-vl_2023">(Bai et al. 2023)</span></td>
+<td>2023</td>
+<td>I</td>
+<td>ViT-bigG</td>
+<td>Qwen-7B</td>
+<td>1.4B+7M+350K</td>
+<td> - </td>
+<td>78.2</td>
+<td> - </td>
+</tr>
+<tr>
+<td>CogVLM-17B <span class="citation"
+data-cites="wang_cogvlm_2024">(Wang et al. 2024)</span></td>
+<td>2023</td>
+<td>I</td>
+<td>EVA2-CLIP-E</td>
+<td>Vicuna-7B</td>
+<td>1.5B</td>
+<td> - </td>
+<td>82.3</td>
+<td> - </td>
+</tr>
+<tr>
+<td>LLaVA-NeXT-34B <span class="citation"
+data-cites="lee_llava-next_2024">(Lee et al. 2024)</span></td>
+<td>2024</td>
+<td>I</td>
+<td>CLIP ViT-L-336</td>
+<td>Nous-Hermes-Yi-34B</td>
+<td>1.3M</td>
+<td> - </td>
+<td>83.7</td>
+<td> - </td>
+</tr>
+<tr>
+<td>GPT-4V <span class="citation"
+data-cites="noauthor_gpt-4vision_2023">(OpenAI 2023)</span></td>
+<td>2023</td>
+<td>I</td>
+<td>undisclosed</td>
+<td>GPT-4</td>
+<td>undisclosed</td>
+<td> - </td>
+<td>77.2</td>
+<td> - </td>
+</tr>
+<tr>
+<td>Gemini-1.5 Pro <span class="citation"
+data-cites="team_gemini_2024">(Team et al. 2024)</span></td>
+<td>2024</td>
+<td>I</td>
+<td>undisclosed</td>
+<td>Gemini Pro</td>
+<td>undisclosed</td>
+<td> - </td>
+<td>73.2</td>
+<td> - </td>
+</tr>
+</tbody>
+</table></div>
+<p>GQA was dropped to keep the table within 14 cm; instruction-tuned VLM
+GQA scores cluster between 49 and 67 (InstructBLIP-13B 49.5,
+Qwen-VL-Chat 57.5, LLaVA-1.5-13B 63.3, CogVLM 65.2, LLaVA-NeXT-34B 67.1)
+and are visited per-model in the chapter sections below. The " - " entries
+are not failures: contrastive dual-encoders cannot answer free-form VQA
+questions without a generative head; instruction VLMs are not optimized
+for ImageNet zero-shot prompting; closed frontier systems (GPT-4V,
+Gemini) do not publish architectural
+details.[fn:s0-problem-vlm-comparability]</p>
+<p>The contrastive era (rows 1-7) opens with CLIP, whose ViT-L/14-336
+set the 76.2% ImageNet zero-shot bar that anchored the field for two
+years. ALIGN matched it the same year using 1.8B noisy web pairs,
+validating that curation could be replaced by scale. FLIP introduced
+patch-level masking to halve training compute at modest accuracy cost.
+OpenCLIP reproduced the recipe openly on LAION-2B, climbing to 80.1%
+with the ViT-G/14 model and giving the academic community its first
+matched-spec CLIP variant. EVA-CLIP layered MIM-pretrained vision
+backbones onto LAION to push to 82.0%, while SigLIP swapped softmax
+InfoNCE for sigmoid loss and reached 83.0% on WebLI-10B; the SigLIP
+recipe has since become the default vision tower for downstream VLMs
+(PaliGemma, LLaVA-NeXT-Sigmoid). Chinese-CLIP (row 7) extended the
+pattern to non-English, with bilingual retrieval scores no
+English-trained CLIP can match.</p>
+<p>The generative and bootstrapping era (rows 8-14) introduced unified
+objectives for retrieval, captioning, and VQA simultaneously. BLIP's
+CapFilt cleaned web captions and reached 78.2 VQAv2 with only 129M
+training pairs. CoCa fused contrastive and captioning losses in one
+decoder, hitting 86.3 ImageNet zero-shot (the contrastive ceiling at the
+time) and 82.3 fine-tuned VQAv2. BLIP-2's Q-Former showed that
+frozen-encoder/frozen-LLM bridging trains for a fraction of
+full-finetune cost and still reaches 65.0 zero-shot VQAv2 with
+FlanT5-XXL. BEiT-3 unified vision and language as a single Multiway
+Transformer, taking 84.0 fine-tuned VQAv2 with only 35M training pairs
+by reusing the same backbone for image, text, and image-text inputs.
+Flamingo and its open clone IDEFICS-80B introduced gated cross-attention
+and Perceiver resamplers to enable few-shot multimodal in-context
+learning, while Florence-2 went the opposite direction (dense prediction
+unification with DaViT and a BART-style decoder).</p>
+<p>The instruction era (rows 15-22) replaced fine-tuning with visual
+instruction tuning. MiniGPT-4 showed the basic recipe, LLaVA-1.5 cleaned
+it up with a 2-layer MLP projector and 336px CLIP, reaching 80.0 VQAv2
+on a 1.2M-sample budget. InstructBLIP turned 26 datasets into
+instruction format atop the BLIP-2 Q-Former. Qwen-VL added bounding-box
+supervision and bilingual training. CogVLM introduced "visual expert"
+parallel layers (separate QKV/FFN per Transformer block) for deeper
+fusion, reaching 82.3 VQAv2 without forgetting language ability.
+LLaVA-NeXT scaled to dynamic resolution and 34B LLM backbones (83.7
+VQAv2). The closed frontier (GPT-4V, Gemini-1.5 Pro) reports lower
+academic VQAv2 (77.2 / 73.2) than the best open-source models on the
+same benchmark, but holds qualitative leads on long-context, document,
+and reasoning evaluations not tabulated here; the closed-vs-open gap
+that mattered most in 2023 has been substantially closed by late 2024 on
+extractive benchmarks while remaining wide on holistic ones.</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-alayrac_flamingo_2022" class="csl-entry" role="listitem">
+Alayrac, Jean-Baptiste, Jeff Donahue, Pauline Luc, et al. 2022.
+<em>Flamingo: A <span>Visual</span> <span>Language</span>
+<span>Model</span> for <span>Few</span>-<span>Shot</span>
+<span>Learning</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2204.14198">https://doi.org/10.48550/arXiv.2204.14198</a>.
+</div>
+<div id="ref-bai_qwen-vl_2023" class="csl-entry" role="listitem">
+Bai, Jinze, Shuai Bai, Shusheng Yang, et al. 2023.
+<em>Qwen-<span>VL</span>: <span>A</span> <span>Versatile</span>
+<span>Vision</span>-<span>Language</span> <span>Model</span> for
+<span>Understanding</span>, <span>Localization</span>, <span>Text</span>
+<span>Reading</span>, and <span>Beyond</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2308.12966">https://doi.org/10.48550/arXiv.2308.12966</a>.
+</div>
+<div id="ref-cherti_reproducible_2023" class="csl-entry"
+role="listitem">
+Cherti, Mehdi, Romain Beaumont, Ross Wightman, et al. 2023.
+<span>"Reproducible Scaling Laws for Contrastive Language-Image
+Learning."</span> <em>Proceedings of the
+<span>IEEE</span>/<span>CVF</span> <span>Conference</span> on
+<span>Computer</span> <span>Vision</span> and <span>Pattern</span>
+<span>Recognition</span></em>. <a
+href="https://doi.org/10.48550/arXiv.2212.07143">https://doi.org/10.48550/arXiv.2212.07143</a>.
+</div>
+<div id="ref-chu_mobilevlm_2023" class="csl-entry" role="listitem">
+Chu, Xiangxiang, Limeng Qiao, Xinyang Lin, et al. 2023.
+<em><span>MobileVLM</span> : <span>A</span> <span>Fast</span>,
+<span>Strong</span> and <span>Open</span> <span>Vision</span>
+<span>Language</span> <span>Assistant</span> for <span>Mobile</span>
+<span>Devices</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2312.16886">https://doi.org/10.48550/arXiv.2312.16886</a>.
+</div>
+<div id="ref-dai_instructblip_2023" class="csl-entry" role="listitem">
+Dai, Wenliang, Junnan Li, Dongxu Li, et al. 2023.
+<em><span>InstructBLIP</span>: <span>Towards</span>
+<span>General</span>-Purpose <span>Vision</span>-<span>Language</span>
+<span>Models</span> with <span>Instruction</span>
+<span>Tuning</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2305.06500">https://doi.org/10.48550/arXiv.2305.06500</a>.
+</div>
+<div id="ref-jia_scaling_2021" class="csl-entry" role="listitem">
+Jia, Chao, Yinfei Yang, Ye Xia, et al. 2021. <em>Scaling <span>Up</span>
+<span>Visual</span> and <span>Vision</span>-<span>Language</span>
+<span>Representation</span> <span>Learning</span> <span>With</span>
+<span>Noisy</span> <span>Text</span> <span>Supervision</span></em>.
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2102.05918">https://doi.org/10.48550/arXiv.2102.05918</a>.
+</div>
+<div id="ref-kulkarni_babytalk_2011" class="csl-entry" role="listitem">
+Kulkarni, Girish, Visruth Premraj, Sagnik Dhar, et al. 2011. <span>"Baby
+Talk: Understanding and Generating Image Descriptions."</span> <em>IEEE
+Conference on Computer Vision and Pattern Recognition (CVPR)</em>. <a
+href="https://doi.org/10.1109/CVPR.2011.5995466">https://doi.org/10.1109/CVPR.2011.5995466</a>.
+</div>
+<div id="ref-laurencon_obelics_2023" class="csl-entry" role="listitem">
+Laurençon, Hugo, Lucile Saulnier, Léo Tronchon, et al. 2023.
+<span>"<span>OBELICS</span>: <span>An</span> <span>Open</span>
+<span>Web</span>-<span>Scale</span> <span>Filtered</span>
+<span>Dataset</span> of <span>Interleaved</span>
+<span>Image</span>-<span>Text</span> <span>Documents</span>."</span>
+<em>Advances in <span>Neural</span> <span>Information</span>
+<span>Processing</span> <span>Systems</span></em>. <a
+href="https://doi.org/10.48550/arXiv.2306.16527">https://doi.org/10.48550/arXiv.2306.16527</a>.
+</div>
+<div id="ref-lee_llava-next_2024" class="csl-entry" role="listitem">
+Lee, Yong Jae, Chunyuan Li, Yuheng Li, et al. 2024.
+<span>"<span>LLaVA</span>-<span>NeXT</span>: <span>Improved</span>
+Reasoning, <span>OCR</span>, and World Knowledge."</span> In
+<em>LLaVA</em>. <a
+href="https://llava-vl.github.io/blog/2024-01-30-llava-next/">https://llava-vl.github.io/blog/2024-01-30-llava-next/</a>.
+</div>
+<div id="ref-li_object-centric_2025" class="csl-entry" role="listitem">
+Li, Guangyuan, Rongzhen Zhao, Jinhong Deng, Yanbo Wang, and Joni
+Pajarinen. 2025. <em>Object-<span>Centric</span> <span>Vision</span>
+<span>Token</span> <span>Pruning</span> for <span>Vision</span>
+<span>Language</span> <span>Models</span></em>. <a
+href="https://doi.org/10.48550/arXiv.2511.20439">https://doi.org/10.48550/arXiv.2511.20439</a>.
+</div>
+<div id="ref-li_blip-2_2023" class="csl-entry" role="listitem">
+Li, Junnan, Dongxu Li, Silvio Savarese, and Steven Hoi. 2023.
+<em><span>BLIP</span>-2: <span>Bootstrapping</span>
+<span>Language</span>-<span>Image</span> <span>Pre</span>-Training with
+<span>Frozen</span> <span>Image</span> <span>Encoders</span> and
+<span>Large</span> <span>Language</span> <span>Models</span></em>.
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2301.12597">https://doi.org/10.48550/arXiv.2301.12597</a>.
+</div>
+<div id="ref-li_blip_2022" class="csl-entry" role="listitem">
+Li, Junnan, Dongxu Li, Caiming Xiong, and Steven Hoi. 2022.
+<em><span>BLIP</span>: <span>Bootstrapping</span>
+<span>Language</span>-<span>Image</span> <span>Pre</span>-Training for
+<span>Unified</span> <span>Vision</span>-<span>Language</span>
+<span>Understanding</span> and <span>Generation</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2201.12086">https://doi.org/10.48550/arXiv.2201.12086</a>.
+</div>
+<div id="ref-li_scaling_2023" class="csl-entry" role="listitem">
+Li, Yanghao, Haoqi Fan, Ronghang Hu, Christoph Feichtenhofer, and
+Kaiming He. 2023. <span>"Scaling
+<span>Language</span>-<span>Image</span> <span>Pre</span>-Training via
+<span>Masking</span>."</span> <em>Proceedings of the
+<span>IEEE</span>/<span>CVF</span> <span>Conference</span> on
+<span>Computer</span> <span>Vision</span> and <span>Pattern</span>
+<span>Recognition</span></em>. <a
+href="https://doi.org/10.48550/arXiv.2212.00794">https://doi.org/10.48550/arXiv.2212.00794</a>.
+</div>
+<div id="ref-liu_improved_2024" class="csl-entry" role="listitem">
+Liu, Haotian, Chunyuan Li, Yuheng Li, and Yong Jae Lee. 2024.
+<em>Improved <span>Baselines</span> with <span>Visual</span>
+<span>Instruction</span> <span>Tuning</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2310.03744">https://doi.org/10.48550/arXiv.2310.03744</a>.
+</div>
+<div id="ref-liu_visual_2023" class="csl-entry" role="listitem">
+Liu, Haotian, Chunyuan Li, Qingyang Wu, and Yong Jae Lee. 2023.
+<em>Visual <span>Instruction</span> <span>Tuning</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2304.08485">https://doi.org/10.48550/arXiv.2304.08485</a>.
+</div>
+<div id="ref-mikolov_distributed_2013" class="csl-entry"
+role="listitem">
+Mikolov, Tomas, Ilya Sutskever, Kai Chen, Greg Corrado, and Jeffrey
+Dean. 2013. <span>"Distributed Representations of Words and Phrases and
+Their Compositionality."</span> <em>Advances in Neural Information
+Processing Systems (NeurIPS)</em>. <a
+href="https://papers.nips.cc/paper_files/paper/2013/hash/9aa42b31882ec039965f3c4923ce901b-Abstract.html">https://papers.nips.cc/paper_files/paper/2013/hash/9aa42b31882ec039965f3c4923ce901b-Abstract.html</a>.
+</div>
+<div id="ref-noauthor_gpt-4vision_2023" class="csl-entry"
+role="listitem">
+OpenAI. 2023. <em><span>GPT</span>-<span>4V</span>(ision)
+<span>System</span> <span>Card</span></em>. OpenAI Technical Report. <a
+href="https://cdn.openai.com/papers/GPTV_System_Card.pdf">https://cdn.openai.com/papers/GPTV_System_Card.pdf</a>.
+</div>
+<div id="ref-oquab_dinov2_2024" class="csl-entry" role="listitem">
+Oquab, Maxime, Timothée Darcet, Théo Moutakanni, et al. 2024.
+<em><span>DINOv2</span>: <span>Learning</span> <span>Robust</span>
+<span>Visual</span> <span>Features</span> Without
+<span>Supervision</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2304.07193">https://doi.org/10.48550/arXiv.2304.07193</a>.
+</div>
+<div id="ref-radford_learning_2021" class="csl-entry" role="listitem">
+Radford, Alec, Jong Wook Kim, Chris Hallacy, et al. 2021. <em>Learning
+<span>Transferable</span> <span>Visual</span> <span>Models</span>
+<span>From</span> <span>Natural</span> <span>Language</span>
+<span>Supervision</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2103.00020">https://doi.org/10.48550/arXiv.2103.00020</a>.
+</div>
+<div id="ref-sun_eva-clip_2023" class="csl-entry" role="listitem">
+Sun, Quan, Yuxin Fang, Ledell Wu, Xinlong Wang, and Yue Cao. 2023.
+<em><span>EVA</span>-<span>CLIP</span>: <span>Improved</span>
+<span>Training</span> <span>Techniques</span> for <span>CLIP</span> at
+<span>Scale</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2303.15389">https://doi.org/10.48550/arXiv.2303.15389</a>.
+</div>
+<div id="ref-team_gemini_2025" class="csl-entry" role="listitem">
+Team, Gemini, Rohan Anil, Sebastian Borgeaud, et al. 2023. <em>Gemini:
+<span>A</span> <span>Family</span> of <span>Highly</span>
+<span>Capable</span> <span>Multimodal</span> <span>Models</span></em>.
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2312.11805">https://doi.org/10.48550/arXiv.2312.11805</a>.
+</div>
+<div id="ref-team_gemini_2024" class="csl-entry" role="listitem">
+Team, Gemini, Petko Georgiev, Ving Ian Lei, et al. 2024. <em>Gemini 1.5:
+<span>Unlocking</span> Multimodal Understanding Across Millions of
+Tokens of Context</em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2403.05530">https://doi.org/10.48550/arXiv.2403.05530</a>.
+</div>
+<div id="ref-wang_cogvlm_2024" class="csl-entry" role="listitem">
+Wang, Weihan, Qingsong Lv, Wenmeng Yu, et al. 2024.
+<em><span>CogVLM</span>: <span>Visual</span> <span>Expert</span> for
+<span>Pretrained</span> <span>Language</span> <span>Models</span></em>.
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2311.03079">https://doi.org/10.48550/arXiv.2311.03079</a>.
+</div>
+<div id="ref-wang_image_2023" class="csl-entry" role="listitem">
+Wang, Wenhui, Hangbo Bao, Li Dong, et al. 2023. <span>"Image as a
+<span>Foreign</span> <span>Language</span>: <span>BEiT</span>
+<span>Pretraining</span> for <span>All</span> <span>Vision</span> and
+<span>Vision</span>-<span>Language</span> <span>Tasks</span>."</span>
+<em>Proceedings of the <span>IEEE</span>/<span>CVF</span>
+<span>Conference</span> on <span>Computer</span> <span>Vision</span> and
+<span>Pattern</span> <span>Recognition</span></em>. <a
+href="https://doi.org/10.48550/arXiv.2208.10442">https://doi.org/10.48550/arXiv.2208.10442</a>.
+</div>
+<div id="ref-xiao_florence-2_2024" class="csl-entry" role="listitem">
+Xiao, Bin, Haiping Wu, Weijian Xu, et al. 2024. <span>"Florence-2:
+<span>Advancing</span> a <span>Unified</span>
+<span>Representation</span> for a <span>Variety</span> of
+<span>Vision</span> <span>Tasks</span>."</span> <em>Proceedings of the
+<span>IEEE</span>/<span>CVF</span> <span>Conference</span> on
+<span>Computer</span> <span>Vision</span> and <span>Pattern</span>
+<span>Recognition</span></em>. <a
+href="https://doi.org/10.48550/arXiv.2311.06242">https://doi.org/10.48550/arXiv.2311.06242</a>.
+</div>
+<div id="ref-xue_xgen-mm_2025" class="csl-entry" role="listitem">
+Xue, Le, Manli Shu, Anas Awadalla, et al. 2024. <em><span
+class="nocase">xGen</span>-<span>MM</span> (<span>BLIP</span>-3):
+<span>A</span> <span>Family</span> of <span>Open</span>
+<span>Large</span> <span>Multimodal</span> <span>Models</span></em>.
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2408.08872">https://doi.org/10.48550/arXiv.2408.08872</a>.
+</div>
+<div id="ref-yang_chinese_2023" class="csl-entry" role="listitem">
+Yang, An, Junshu Pan, Junyang Lin, et al. 2023. <em>Chinese
+<span>CLIP</span>: <span>Contrastive</span>
+<span>Vision</span>-<span>Language</span> <span>Pretraining</span> in
+<span>Chinese</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2211.01335">https://doi.org/10.48550/arXiv.2211.01335</a>.
+</div>
+<div id="ref-yu_coca_2022" class="csl-entry" role="listitem">
+Yu, Jiahui, Zirui Wang, Vijay Vasudevan, Legg Yeung, Mojtaba
+Seyedhosseini, and Yonghui Wu. 2022. <span>"<span>CoCa</span>:
+<span>Contrastive</span> <span>Captioners</span> Are
+<span>Image</span>-<span>Text</span> <span>Foundation</span>
+<span>Models</span>."</span> <em>Transactions on Machine Learning
+Research</em>, ahead of print. <a
+href="https://doi.org/10.48550/arXiv.2205.01917">https://doi.org/10.48550/arXiv.2205.01917</a>.
+</div>
+<div id="ref-yuan_tinygpt-v_2024" class="csl-entry" role="listitem">
+Yuan, Zhengqing, Zhaoxu Li, Weiran Huang, Yanfang Ye, and Lichao Sun.
+2024. <em><span>TinyGPT</span>-<span>V</span>: <span>Efficient</span>
+<span>Multimodal</span> <span>Large</span> <span>Language</span>
+<span>Model</span> via <span>Small</span> <span>Backbones</span></em>.
+arXiv. <a
+href="https://doi.org/10.48550/arXiv.2312.16862">https://doi.org/10.48550/arXiv.2312.16862</a>.
+</div>
+<div id="ref-zhai_sigmoid_2023" class="csl-entry" role="listitem">
+Zhai, Xiaohua, Basil Mustafa, Alexander Kolesnikov, and Lucas Beyer.
+2023. <em>Sigmoid <span>Loss</span> for <span>Language</span>
+<span>Image</span> <span>Pre</span>-<span>Training</span></em>. arXiv.
+<a
+href="https://doi.org/10.48550/arXiv.2303.15343">https://doi.org/10.48550/arXiv.2303.15343</a>.
+</div>
+<div id="ref-zhu_minigpt-4_2023" class="csl-entry" role="listitem">
+Zhu, Deyao, Jun Chen, Xiaoqian Shen, Xiang Li, and Mohamed Elhoseiny.
+2023. <em><span>MiniGPT</span>-4: <span>Enhancing</span>
+<span>Vision</span>-<span>Language</span> <span>Understanding</span>
+with <span>Advanced</span> <span>Large</span> <span>Language</span>
+<span>Models</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2304.10592">https://doi.org/10.48550/arXiv.2304.10592</a>.
+</div>
+<div id="ref-zhu_llava-phi_2024" class="csl-entry" role="listitem">
+Zhu, Yichen, Minjie Zhu, Ning Liu, Zhicai Ou, Xiaofeng Mou, and Jian
+Tang. 2024. <em><span>LLaVA</span>-<span>Phi</span>:
+<span>Efficient</span> <span>Multi</span>-<span>Modal</span>
+<span>Assistant</span> with <span>Small</span> <span>Language</span>
+<span>Model</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2401.02330">https://doi.org/10.48550/arXiv.2401.02330</a>.
+</div>
+</div>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

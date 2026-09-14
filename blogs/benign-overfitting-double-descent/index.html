@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="The double-descent curve, deep double descent, experimental protocol nuances, and the dynamical picture of benign overfitting." />
+        <title>Benign Overfitting and Double Descent - Adnan Harun Dogan</title>
+        <link rel="canonical" href="https://adnanhd.github.io/blogs/benign-overfitting-double-descent/" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="Benign Overfitting and Double Descent" />
+        <meta property="og:description" content="The double-descent curve, deep double descent, experimental protocol nuances, and the dynamical picture of benign overfitting." />
+        <meta property="og:url" content="https://adnanhd.github.io/blogs/benign-overfitting-double-descent/" />
+        <meta property="og:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Benign Overfitting and Double Descent" />
+        <meta name="twitter:description" content="The double-descent curve, deep double descent, experimental protocol nuances, and the dynamical picture of benign overfitting." />
+        <meta name="twitter:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Benign Overfitting and Double Descent",
+  "description": "The double-descent curve, deep double descent, experimental protocol nuances, and the dynamical picture of benign overfitting.",
+  "url": "https://adnanhd.github.io/blogs/benign-overfitting-double-descent/",
+  "image": "https://adnanhd.github.io/assets/img/profile.jpeg",
+  "author": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan",
+    "url": "https://adnanhd.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan"
+  },
+  "mainEntityOfPage": "https://adnanhd.github.io/blogs/benign-overfitting-double-descent/",
+  "datePublished": "2025-12-23"
+}
+        </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Benign Overfitting and Double Descent</h1>
+            <div class="blog-meta">Interpolation without catastrophe and the double-descent curve</div>
+            <article class="blog-body">
+<p>The "benign overfitting" research programme crystallized between 2017
+and 2020 around three stubborn empirical facts that uniform-convergence
+theory could not accommodate. First, deep networks fit random labels to
+zero training error while still generalizing on the true labels <span
+class="citation" data-cites="zhang_rethinking_2017">(Zhang et al.
+2017)</span>. The same networks remain fragile to imperceptible
+adversarial perturbations even where they generalize <span
+class="citation" data-cites="szegedy_intriguing_2014">(Szegedy et al.
+2014)</span>, so whatever inductive bias selects a generalizing
+interpolator is also selecting a non-robust one, and a capacity-only
+account has no vocabulary in which to say that. Section Robustness, Adversarial Examples,
+and Benign Overfitting takes that tension up in detail, and the
+answer there turns out to be a property of the min-norm interpolator
+rather than an accident of training. Second, their test error does not
+increase monotonically with capacity past the interpolation threshold;
+it decreases again, tracing the double-descent curve <span
+class="citation"
+data-cites="belkin_reconciling_2019 nakkiran_double_descent_2020">(Belkin
+et al. 2019; Nakkiran et al. 2020)</span>. Third, the same phenomenology
+is visible in linear regression, kernel regression, and random-feature
+regression, which admit exact asymptotic analysis <span class="citation"
+data-cites="bartlett_benign_2020 mei_montanari_2022 hastie_ridgeless_2022">(Bartlett
+et al. 2020; Mei and Montanari 2022; Hastie et al. 2022)</span>.
+<u>These three facts together ruled out any explanation based purely on
+function-class capacity and forced the field to look at the interaction
+between the data covariance spectrum, the optimizer's implicit bias, and
+the architectural parameterization.</u></p>
+<p>The lineage of the interpolation idea predates deep learning. <span
+class="citation" data-cites="schapire_margin_1998">(Schapire et al.
+1998)</span> already explained why boosting keeps improving test error
+after training error hits zero (the margin story, see Part I). The kernel community observed
+the same behaviour when interpolating RBF kernels with zero
+regularization, documented systematically by <span class="citation"
+data-cites="belkin_kernel_2018">(Belkin et al. 2018)</span>: kernels
+with sufficiently flat spectra can interpolate noisy data and still
+generalize, contradicting the bias-variance orthodoxy that interpolation
+must overfit. <u>What deep learning added was scale: models routinely
+exceed sample size by orders of magnitude, pushing into a regime where
+the classical analyses simply do not apply.</u> <span class="citation"
+data-cites="belkin_reconciling_2019">(Belkin et al. 2019)</span> was the
+synthesis paper that named the phenomenon ("double descent") and drew
+the canonical figure; a U-curve joined to a second descent, with a spike
+at the interpolation threshold.</p>
+<p>The theoretical settlement came from two directions. <span
+class="citation" data-cites="bartlett_benign_2020">(Bartlett et al.
+2020)</span> gave finite-sample risk bounds for the min-norm linear
+interpolator and identified the effective-rank conditions that govern
+when interpolation is benign; <span class="citation"
+data-cites="tsigler_bartlett_2023">(Tsigler and Bartlett 2023)</span>
+extended this to ridge regression with both positive and negative
+regularization. Independently, <span class="citation"
+data-cites="liang_rakhlin_2020">(Liang and Rakhlin 2020)</span> proved a
+matching statement for kernel ridgeless regression in the
+high-dimensional setting, relating the implicit regularization to the
+curvature of the kernel. On the optimization side, <span
+class="citation" data-cites="soudry_implicit_2018">(Soudry et al.
+2018)</span> showed that gradient descent on separable data with
+logistic-type losses converges to the max-margin (L2 SVM) predictor; the
+implicit bias result that provided the missing algorithmic explanation.
+<span class="citation"
+data-cites="gunasekar_implicit_conv_2018">(Gunasekar et al. 2018)</span>
+extended this to convolutional networks (different implicit bias:
+Fourier-sparse, not L2), and <span class="citation"
+data-cites="ji_telgarsky_2019">(Ji and Telgarsky 2019)</span> closed the
+nonseparable case.</p>
+<p>The final piece was the random-features bridge. <span
+class="citation" data-cites="rahimi_recht_2008">(Rahimi and Recht
+2008)</span> introduced random features as a tractable kernel
+approximation; <span class="citation"
+data-cites="mei_montanari_2022">(Mei and Montanari 2022)</span> used the
+random-features model as an analytically solvable proxy for a two-layer
+neural network and derived the precise asymptotic curves that match
+Belkin and Nakkiran's empirical double-descent plots. <span
+class="citation" data-cites="hastie_ridgeless_2022">(Hastie et al.
+2022)</span> independently analyzed high-dimensional ridgeless least
+squares and also reproduced double descent. <span class="citation"
+data-cites="advani_saxe_2020">(Advani et al. 2020)</span> had earlier
+given the dynamical picture from statistical physics, explaining double
+descent as an interaction between signal and noise modes during
+training.</p>
+<p>A parallel empirical thread sharpens what <em>role</em>
+overparameterization actually plays. The Lottery Ticket Hypothesis <span
+class="citation" data-cites="frankle_lottery_2019">(Frankle and Carbin
+2019)</span> (ICLR 2019 Best Paper) demonstrated that dense networks
+contain sparse subnetworks ("winning tickets") that, when extracted and
+<em>reset to their original random initialization</em> and retrained in
+isolation, match the dense network's accuracy at roughly 10-20% of the
+original weight count. The construction is iterative magnitude pruning
+(IMP): train the full network to convergence, prune the lowest-magnitude
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>%
+of weights, reset surviving weights to their exact values from before
+any training (not to zero, not to a new random draw; back to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\theta_0</annotation></semantics></math>),
+then retrain the sparse network. Repeating this over multiple rounds
+finds progressively sparser winning tickets.</p>
+<p>On small networks the result is striking. A Lenet winning ticket at
+21.1% sparsity reaches minimum validation loss 38% faster than the full
+network and finishes 0.3 percentage points higher. On CIFAR-10
+convolutional networks, the winning ticket at ~11% sparsity improves
+accuracy by 3.5 points over the dense baseline when matched for
+iteration count.</p>
+<p><u>The core claim is not about expressivity but about initialization
+quality</u>: the dense network's parameter budget functions as a
+<em>search space</em> for discovering an initialization that makes
+sparse training efficient. The winning ticket is not
+sparser-but-equivalent; it trains faster than the full network, which a
+capacity argument cannot explain.</p>
+<p>The scale limitation of the original paper is concrete: IMP fails on
+VGG-19 and ResNet-18 at standard learning rates (0.1), because
+large-network training is sensitive to learning-rate warmup in ways
+small-network training is not. Subsequent work <span class="citation"
+data-cites="frankle_linear_2020">(Frankle et al. 2020)</span> addressed
+this by rewinding surviving weights not all the way to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\theta_0</annotation></semantics></math>
+but to a checkpoint taken after a few hundred steps (the "stability
+point"), recovering the winning-ticket property at ImageNet scale. This
+refinement is not in the 2019 paper. The skeptical reading that connects
+Lottery Ticket to double descent: double descent says capacity past
+interpolation helps generalization; Lottery Ticket says the mechanism is
+finding a sparse trainable initialization, not deploying all the
+parameters at inference. <u>This unified reading is not yet a
+theorem</u>, but it is the cleanest framing for why both phenomena
+coexist without contradicting each other.</p>
+<div class="blog-table"><table id="tbl:related-work-landscape">
+<caption>SoTA leaderboard for the interpolation regime across modern
+benchmarks. All rows are in the over-parameterized regime (parameters
+much greater than training examples); the point of the table is that
+train error is near zero while test error continues to improve,
+empirically refuting the naive bias-variance bound. Numbers are
+representative headline values reported in the cited papers and
+follow-ups.</caption>
+<thead>
+<tr>
+<th>Model family</th>
+<th>Setting</th>
+<th>Train acc / err</th>
+<th>Test acc / err</th>
+<th>Parameters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Inception, CIFAR-10 true labels <span class="citation"
+data-cites="zhang_rethinking_2017">(Zhang et al. 2017)</span></td>
+<td>SGD to convergence, over-parameterized</td>
+<td>100.0 %</td>
+<td>89.1 % test acc</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>1.6
+M</td>
+</tr>
+<tr>
+<td>Inception, CIFAR-10 random labels <span class="citation"
+data-cites="zhang_rethinking_2017">(Zhang et al. 2017)</span></td>
+<td>Same recipe</td>
+<td>100.0 %</td>
+<td>10 % (chance)</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>1.6
+M</td>
+</tr>
+<tr>
+<td>AlexNet, ImageNet true labels <span class="citation"
+data-cites="zhang_rethinking_2017">(Zhang et al. 2017)</span></td>
+<td>Standard</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>100
+% top-5</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>83
+% top-5</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>60
+M</td>
+</tr>
+<tr>
+<td>ResNet-18, CIFAR-10 15% noise <span class="citation"
+data-cites="nakkiran_double_descent_2020">(Nakkiran et al.
+2020)</span></td>
+<td>Width-parameter 64, epoch 4000</td>
+<td>100 %</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>
+6.5 % test error</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>11
+M</td>
+</tr>
+<tr>
+<td>ResNet-18, CIFAR-10 15% noise <span class="citation"
+data-cites="nakkiran_double_descent_2020">(Nakkiran et al.
+2020)</span></td>
+<td>Width-parameter 10, at EMC threshold</td>
+<td>100 %</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>18
+% test error (peak)</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>0.3
+M</td>
+</tr>
+<tr>
+<td>Standard Transformer, WMT'14 en-fr <span class="citation"
+data-cites="nakkiran_double_descent_2020">(Nakkiran et al.
+2020)</span></td>
+<td>Epoch-wise double descent, 18 layers</td>
+<td>near 0 train loss</td>
+<td>+0.9 BLEU over classical</td>
+<td>base</td>
+</tr>
+<tr>
+<td>Min-norm linear interpolator <span class="citation"
+data-cites="bartlett_benign_2020">(Bartlett et al. 2020)</span></td>
+<td>Gaussian features,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>/</mi><mi>n</mi><mo>→</mo><mi>γ</mi></mrow><annotation encoding="application/x-tex">p/n \to \gamma</annotation></semantics></math></td>
+<td>0 train err</td>
+<td>benign iff eff-rank cond</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>≫</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">p \gg n</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>RF regression, two-layer ReLU <span class="citation"
+data-cites="mei_montanari_2022">(Mei and Montanari 2022)</span></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mi>N</mi><mo>=</mo><mi>d</mi></mrow><annotation encoding="application/x-tex">n = N = d</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ψ</mi><mn>1</mn></msub><mo>=</mo><msub><mi>ψ</mi><mn>2</mn></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\psi_1 = \psi_2 = 1</annotation></semantics></math></td>
+<td>0 train err</td>
+<td>double-descent peak</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mi>d</mi><mo>=</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">N=d=n</annotation></semantics></math></td>
+</tr>
+<tr>
+<td>Laplace kernel, MNIST/CIFAR-2 <span class="citation"
+data-cites="belkin_kernel_2018">(Belkin et al. 2018)</span></td>
+<td>Ridgeless, zero training error</td>
+<td>0 train err</td>
+<td>within 1 % of regularized</td>
+<td>kernel $n× n$</td>
+</tr>
+</tbody>
+</table></div>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-advani_saxe_2020" class="csl-entry" role="listitem">
+Advani, Madhu S., Andrew M. Saxe, and Haim Sompolinsky. 2020.
+<span>"High-Dimensional Dynamics of Generalization Error in Neural
+Networks."</span> <em>Neural Networks</em> 132: 428-46.
+</div>
+<div id="ref-bartlett_benign_2020" class="csl-entry" role="listitem">
+Bartlett, Peter L., Philip M. Long, Gábor Lugosi, and Alexander Tsigler.
+2020. <span>"Benign Overfitting in Linear Regression."</span> <em>Proc.
+National Academy of Sciences</em> 117 (48): 30063-70.
+</div>
+<div id="ref-belkin_reconciling_2019" class="csl-entry" role="listitem">
+Belkin, Mikhail, Daniel Hsu, Siyuan Ma, and Soumik Mandal. 2019.
+<span>"Reconciling Modern Machine-Learning Practice and the Classical
+Bias-Variance Trade-Off."</span> <em>Proc. National Academy of
+Sciences</em> 116 (32): 15849-54.
+</div>
+<div id="ref-belkin_kernel_2018" class="csl-entry" role="listitem">
+Belkin, Mikhail, Siyuan Ma, and Soumik Mandal. 2018. <span>"To
+Understand Deep Learning We Need to Understand Kernel Learning."</span>
+<em>Proc. International Conference on Machine Learning (ICML)</em>.
+</div>
+<div id="ref-frankle_lottery_2019" class="csl-entry" role="listitem">
+Frankle, Jonathan, and Michael Carbin. 2019. <span>"The Lottery Ticket
+Hypothesis: Finding Sparse, Trainable Neural Networks."</span>
+<em>International Conference on Learning Representations (ICLR)</em>. <a
+href="https://arxiv.org/abs/1803.03635">https://arxiv.org/abs/1803.03635</a>.
+</div>
+<div id="ref-frankle_linear_2020" class="csl-entry" role="listitem">
+Frankle, Jonathan, Gintare Karolina Dziugaite, Daniel M. Roy, and
+Michael Carbin. 2020. <span>"Linear Mode Connectivity and the Lottery
+Ticket Hypothesis."</span> <em>Proc. 37th International Conference on
+Machine Learning (ICML)</em>, Proceedings of machine learning research,
+vol. 119: 3259-69. <a
+href="https://proceedings.mlr.press/v119/frankle20a.html">https://proceedings.mlr.press/v119/frankle20a.html</a>.
+</div>
+<div id="ref-gunasekar_implicit_conv_2018" class="csl-entry"
+role="listitem">
+Gunasekar, Suriya, Jason D. Lee, Daniel Soudry, and Nathan Srebro. 2018.
+<span>"Implicit Bias of Gradient Descent on Linear Convolutional
+Networks."</span> <em>Advances in Neural Information Processing Systems
+(NeurIPS)</em>.
+</div>
+<div id="ref-hastie_ridgeless_2022" class="csl-entry" role="listitem">
+Hastie, Trevor, Andrea Montanari, Saharon Rosset, and Ryan J.
+Tibshirani. 2022. <span>"Surprises in High-Dimensional Ridgeless Least
+Squares Interpolation."</span> <em>Annals of Statistics</em> 50 (2):
+949-86.
+</div>
+<div id="ref-ji_telgarsky_2019" class="csl-entry" role="listitem">
+Ji, Ziwei, and Matus Telgarsky. 2019. <span>"The Implicit Bias of
+Gradient Descent on Nonseparable Data."</span> <em>Proc. Conference on
+Learning Theory (COLT)</em>.
+</div>
+<div id="ref-liang_rakhlin_2020" class="csl-entry" role="listitem">
+Liang, Tengyuan, and Alexander Rakhlin. 2020. <span>"Just Interpolate:
+Kernel "Ridgeless" Regression Can Generalize."</span> <em>Annals of
+Statistics</em> 48 (3): 1329-47.
+</div>
+<div id="ref-mei_montanari_2022" class="csl-entry" role="listitem">
+Mei, Song, and Andrea Montanari. 2022. <span>"The Generalization Error
+of Random Features Regression: Precise Asymptotics and the Double
+Descent Curve."</span> <em>Communications on Pure and Applied
+Mathematics</em> 75 (4): 667-766.
+</div>
+<div id="ref-nakkiran_double_descent_2020" class="csl-entry"
+role="listitem">
+Nakkiran, Preetum, Gal Kaplun, Yamini Bansal, Tristan Yang, Boaz Barak,
+and Ilya Sutskever. 2020. <span>"Deep Double Descent: Where Bigger
+Models and More Data Hurt."</span> <em>Proc. International Conference on
+Learning Representations (ICLR)</em>.
+</div>
+<div id="ref-rahimi_recht_2008" class="csl-entry" role="listitem">
+Rahimi, Ali, and Benjamin Recht. 2008. <span>"Random Features for
+Large-Scale Kernel Machines."</span> <em>Advances in Neural Information
+Processing Systems (NeurIPS)</em>.
+</div>
+<div id="ref-schapire_margin_1998" class="csl-entry" role="listitem">
+Schapire, Robert E., Yoav Freund, Peter Bartlett, and Wee Sun Lee. 1998.
+<span>"Boosting the Margin: A New Explanation for the Effectiveness of
+Voting Methods."</span> <em>Annals of Statistics</em> 26 (5): 1651-86.
+</div>
+<div id="ref-soudry_implicit_2018" class="csl-entry" role="listitem">
+Soudry, Daniel, Elad Hoffer, Mor Shpigel Nacson, Suriya Gunasekar, and
+Nathan Srebro. 2018. <span>"The Implicit Bias of Gradient Descent on
+Separable Data."</span> <em>Journal of Machine Learning Research</em>
+19: 1-57.
+</div>
+<div id="ref-szegedy_intriguing_2014" class="csl-entry" role="listitem">
+Szegedy, Christian, Wojciech Zaremba, Ilya Sutskever, et al. 2014.
+<span>"Intriguing Properties of Neural Networks."</span>
+<em>International Conference on Learning Representations (ICLR)</em>. <a
+href="https://arxiv.org/abs/1312.6199">https://arxiv.org/abs/1312.6199</a>.
+</div>
+<div id="ref-tsigler_bartlett_2023" class="csl-entry" role="listitem">
+Tsigler, Alexander, and Peter L. Bartlett. 2023. <span>"Benign
+Overfitting in Ridge Regression."</span> <em>Journal of Machine Learning
+Research</em> 24: 1-76.
+</div>
+<div id="ref-zhang_rethinking_2017" class="csl-entry" role="listitem">
+Zhang, Chiyuan, Samy Bengio, Moritz Hardt, Benjamin Recht, and Oriol
+Vinyals. 2017. <span>"Understanding Deep Learning Requires Rethinking
+Generalization."</span> <em>Proc. International Conference on Learning
+Representations (ICLR)</em>.
+</div>
+</div>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="The predictive variance decomposition, heteroscedastic heads with MC dropout, prior networks, and deep ensembles." />
+        <title>Uncertainty Quantification: Predictive Variance, MC Dropout, and Deep Ensembles - Adnan Harun Dogan</title>
+        <link rel="canonical" href="https://adnanhd.github.io/blogs/uncertainty-quantification/" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="Uncertainty Quantification: Predictive Variance, MC Dropout, and Deep Ensembles" />
+        <meta property="og:description" content="The predictive variance decomposition, heteroscedastic heads with MC dropout, prior networks, and deep ensembles." />
+        <meta property="og:url" content="https://adnanhd.github.io/blogs/uncertainty-quantification/" />
+        <meta property="og:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Uncertainty Quantification: Predictive Variance, MC Dropout, and Deep Ensembles" />
+        <meta name="twitter:description" content="The predictive variance decomposition, heteroscedastic heads with MC dropout, prior networks, and deep ensembles." />
+        <meta name="twitter:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Uncertainty Quantification: Predictive Variance, MC Dropout, and Deep Ensembles",
+  "description": "The predictive variance decomposition, heteroscedastic heads with MC dropout, prior networks, and deep ensembles.",
+  "url": "https://adnanhd.github.io/blogs/uncertainty-quantification/",
+  "image": "https://adnanhd.github.io/assets/img/profile.jpeg",
+  "author": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan",
+    "url": "https://adnanhd.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan"
+  },
+  "mainEntityOfPage": "https://adnanhd.github.io/blogs/uncertainty-quantification/",
+  "datePublished": "2026-01-20"
+}
+        </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Uncertainty Quantification: Predictive Variance, MC Dropout, and Deep Ensembles</h1>
+            <div class="blog-meta">Aleatoric and epistemic uncertainty in deep models</div>
+            <article class="blog-body">
+<p><u>The UQ literature for deep nets splits along a methodological axis
+(how uncertainty is produced) and an operational axis (what guarantee is
+offered).</u> Bayesian methods (BNNs, deep ensembles, MC dropout,
+Laplace) produce a posterior predictive whose moments decompose cleanly
+into epistemic and aleatoric components <span class="citation"
+data-cites="kendall_gal_uncertainties_2017">(Kendall and Gal
+2017)</span>, at the cost of extra compute and the usual approximation
+concerns covered in Part III. Post-hoc calibration methods (Platt
+scaling, isotonic regression, temperature scaling <span class="citation"
+data-cites="guo_calibration_2017">(Guo et al. 2017)</span>) are free
+(single scalar added to softmax logits) but only correct the marginal
+confidence histogram without improving ranking. Conformal prediction
+<span class="citation"
+data-cites="vovk_algorithmic_2005 angelopoulos_gentle_2021">(Vovk et al.
+2005; Angelopoulos and Bates 2021)</span> sidesteps the probabilistic
+modeling question entirely and instead delivers a distribution-free
+finite-sample coverage guarantee at a target level
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>α</mi></mrow><annotation encoding="application/x-tex">1 - \alpha</annotation></semantics></math><a
+href="#fn1" class="footnote-ref" id="fnref1"
+role="doc-noteref"><sup>1</sup></a>; the trade-off is that individual
+set sizes can be large if the base model is poor. OOD detection is the
+sister literature that reuses these signals as scores for a binary
+"in-distribution vs. out-of-distribution" classifier <span
+class="citation"
+data-cites="hendrycks_baseline_2017 liang_odin_2018 liu_energy_2020">(Hendrycks
+and Gimpel 2017; Liang et al. 2018; Liu et al. 2020)</span>.
+Probabilistic programming languages (Pyro, NumPyro, TFP, Stan) <span
+class="citation"
+data-cites="bingham_pyro_2019 phan_numpyro_2019 tran_edward_2018 carpenter_stan_2017">(Bingham
+et al. 2019; Phan et al. 2019; Tran et al. 2018; Carpenter et al.
+2017)</span> are the infrastructure layer that glues posteriors,
+calibrations, and predictive distributions into a coherent model.
+Bayesian RL <span class="citation"
+data-cites="ghavamzadeh_brl_2015 osband_bootstrapped_dqn_2016 depeweg_decomposition_2018">(Ghavamzadeh
+et al. 2015; Osband et al. 2016; Depeweg et al. 2018)</span> applies the
+decomposition to a <em>dynamics</em> model and uses the epistemic
+component as an intrinsic reward driving Thompson sampling and
+information-directed exploration.</p>
+<p>Table <a href="tab:uq-sota">tab:uq-sota</a> summarizes the
+methodological landscape.</p>
+<div class="blog-table"><table id="tab:uq-sota">
+<caption>SoTA landscape for uncertainty quantification on deep nets. ECE
+is expected calibration error (lower is better, 15-bin equal-width on
+CIFAR / ImageNet); NLL is negative log-likelihood on the held-out test
+set; AUROC is OOD-detection area under the ROC curve (CIFAR-10 in-dist
+vs. SVHN out-of-dist, higher is better); Coverage reports the empirical
+coverage of a prediction set at target
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>α</mi><mo>=</mo><mn>0.9</mn></mrow><annotation encoding="application/x-tex">1 - \alpha = 0.9</annotation></semantics></math>.
+Numbers are representative values from the cited papers; absolute
+figures depend on the backbone (most entries here assume ResNet-110 /
+ResNet-50 / DenseNet-BC unless noted), split, and binning choice. Blank
+cells mean the method does not report that metric.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>ECE (CIFAR-100)</th>
+<th>NLL (CIFAR-100)</th>
+<th>AUROC (C10 vs. SVHN)</th>
+<th>Coverage @ 0.9</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Softmax baseline <span class="citation"
+data-cites="hendrycks_baseline_2017">(Hendrycks and Gimpel
+2017)</span></td>
+<td>16.5%</td>
+<td>1.15</td>
+<td>89.9</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Temperature scaling <span class="citation"
+data-cites="guo_calibration_2017">(Guo et al. 2017)</span></td>
+<td>2.1%</td>
+<td>0.94</td>
+<td>90.1</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Histogram binning <span class="citation"
+data-cites="guo_calibration_2017">(Guo et al. 2017)</span></td>
+<td>2.8%</td>
+<td>1.02</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Platt / vector scaling <span class="citation"
+data-cites="platt_probabilistic_1999">(Platt 1999)</span></td>
+<td>4.5%</td>
+<td>0.99</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Verified calibration (KLM) <span class="citation"
+data-cites="kumar_verified_2019">(Kumar et al. 2019)</span></td>
+<td>1.9%</td>
+<td>0.92</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Deep ensemble (5 models) <span class="citation"
+data-cites="kendall_gal_uncertainties_2017">(Kendall and Gal
+2017)</span></td>
+<td>1.5%</td>
+<td>0.78</td>
+<td>93.7</td>
+<td>-</td>
+</tr>
+<tr>
+<td>ODIN (T=1000, eps=0.0014) <span class="citation"
+data-cites="liang_odin_2018">(Liang et al. 2018)</span></td>
+<td>-</td>
+<td>-</td>
+<td>96.7</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Energy score <span class="citation"
+data-cites="liu_energy_2020">(Liu et al. 2020)</span></td>
+<td>-</td>
+<td>-</td>
+<td>98.5</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Likelihood ratios (genomic) <span class="citation"
+data-cites="ren_likelihood_2019">(Ren et al. 2019)</span></td>
+<td>-</td>
+<td>-</td>
+<td>89.0</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Split conformal (APS) <span class="citation"
+data-cites="angelopoulos_gentle_2021">(Angelopoulos and Bates
+2021)</span></td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>0.901</td>
+</tr>
+<tr>
+<td>CQR (conformalized QR) <span class="citation"
+data-cites="romano_cqr_2019">(Romano et al. 2019)</span></td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>0.901</td>
+</tr>
+<tr>
+<td>Weighted conformal (cov-sh) <span class="citation"
+data-cites="tibshirani_covariate_2019">(Tibshirani et al.
+2019)</span></td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>0.903</td>
+</tr>
+</tbody>
+</table></div>
+<p>Three methodological observations follow from the table. First,
+post-hoc calibration dominates accuracy-matched cost: one extra scalar
+parameter (the temperature
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>)
+reduces ECE by roughly an order of magnitude on CIFAR-100 at zero
+accuracy cost<a href="#fn2" class="footnote-ref" id="fnref2"
+role="doc-noteref"><sup>2</sup></a> <span class="citation"
+data-cites="guo_calibration_2017">(Guo et al. 2017)</span>, making
+temperature scaling the default first step for any deployed classifier.
+Second, OOD detection and calibration are separate problems: a perfectly
+calibrated model can still fail catastrophically on inputs from outside
+the training distribution (ImageNet-trained ResNet assigns confident
+softmax to texture noise), which is why the OOD literature designs a
+different score (energy, ODIN, likelihood-ratio) rather than reading off
+softmax confidence. Third, conformal prediction is orthogonal to both:
+it wraps any base model and converts its score into a set with exact
+marginal coverage, regardless of whether the score was calibrated or how
+the model was trained.</p>
+<h2 id="historical-notes">Historical Notes</h2>
+<p>The separation of reducible from irreducible uncertainty predates
+deep learning by centuries. Laplace's <em>Essai philosophique sur les
+probabilités</em> (1814) distinguishes between "ignorance of the causes"
+(epistemic) and "inherent variability" (aleatoric) in the context of
+classical mechanics. Knight's <em>Risk, Uncertainty, and Profit</em>
+(1921) made the same distinction in economics, calling the epistemic
+component <em>true uncertainty</em> and the aleatoric component
+<em>risk</em>. In machine learning, the distinction was re-introduced by
+<span class="citation" data-cites="neal_bayesian_1996">(Neal
+1996)</span> in the context of Bayesian neural networks: the posterior
+variance over weights is <em>epistemic</em>, the likelihood variance
+(observation noise) is <em>aleatoric</em>. <u>Modern deep-learning UQ is
+thus not a new paradigm but a practical engineering of ideas that have
+been known for generations.</u></p>
+<p>Calibration as a desideratum goes back at least to Brier's (1950)
+meteorological scoring rule, which rewarded <em>reliable</em>
+probabilistic forecasts of rain. Platt (1999) <span class="citation"
+data-cites="platt_probabilistic_1999">(Platt 1999)</span> was the first
+to apply calibration to machine-learning classifiers (SVMs). The "deep
+learning is overconfident" observation by <span class="citation"
+data-cites="guo_calibration_2017">(Guo et al. 2017)</span> was partly a
+rediscovery of the same phenomenon that had been noted in boosted trees
+and had been partly understood as a general property of
+margin-maximizing classifiers.</p>
+<p>Conformal prediction originated in <span class="citation"
+data-cites="vovk_algorithmic_2005">(Vovk et al. 2005)</span>, who
+developed the theory for online sequential prediction with
+exchangeability. The framework was largely unknown outside the
+learning-theory community until <span class="citation"
+data-cites="angelopoulos_gentle_2021">(Angelopoulos and Bates
+2021)</span> wrote an accessible tutorial for deep-learning
+practitioners, triggering rapid adoption. <u>The tutorial paper became
+the most-cited introduction to conformal prediction within three years
+of publication, demonstrating that exposition can be as impactful as
+novel theory in moving a field.</u></p>
+<p>OOD detection has its roots in the anomaly detection literature
+(Chandola et al. 2009 survey) but became a deep-learning-specific
+research program with <span class="citation"
+data-cites="hendrycks_baseline_2017">(Hendrycks and Gimpel 2017)</span>,
+who framed it as a binary classification task with a specific evaluation
+protocol (CIFAR-10 vs. SVHN, TinyImageNet vs. LSUN). The
+AUROC/FPR-at-95-TPR metrics became the de facto OOD benchmark<a
+href="#fn3" class="footnote-ref" id="fnref3"
+role="doc-noteref"><sup>3</sup></a>.</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-angelopoulos_gentle_2021" class="csl-entry"
+role="listitem">
+Angelopoulos, Anastasios N., and Stephen Bates. 2021. <span>"A Gentle
+Introduction to Conformal Prediction and Distribution-Free Uncertainty
+Quantification."</span> <em>arXiv Preprint</em> arXiv:2107.07511. <a
+href="https://arxiv.org/abs/2107.07511">https://arxiv.org/abs/2107.07511</a>.
+</div>
+<div id="ref-bingham_pyro_2019" class="csl-entry" role="listitem">
+Bingham, Eli, Jonathan P. Chen, Martin Jankowiak, et al. 2019.
+<span>"Pyro: Deep Universal Probabilistic Programming."</span>
+<em>Journal of Machine Learning Research</em> 20 (28): 1-6.
+</div>
+<div id="ref-carpenter_stan_2017" class="csl-entry" role="listitem">
+Carpenter, Bob, Andrew Gelman, Matthew D. Hoffman, et al. 2017.
+<span>"Stan: A Probabilistic Programming Language."</span> <em>Journal
+of Statistical Software</em> 76 (1): 1-32. <a
+href="https://doi.org/10.18637/jss.v076.i01">https://doi.org/10.18637/jss.v076.i01</a>.
+</div>
+<div id="ref-depeweg_decomposition_2018" class="csl-entry"
+role="listitem">
+Depeweg, Stefan, José Miguel Hernández-Lobato, Finale Doshi-Velez, and
+Steffen Udluft. 2018. <span>"Decomposition of Uncertainty in
+<span>Bayesian</span> Deep Learning for Efficient and Risk-Sensitive
+Learning."</span> <em>Proceedings of the 35th International Conference
+on Machine Learning</em>, 1184-93. <a
+href="https://arxiv.org/abs/1710.07283">https://arxiv.org/abs/1710.07283</a>.
+</div>
+<div id="ref-ghavamzadeh_brl_2015" class="csl-entry" role="listitem">
+Ghavamzadeh, Mohammad, Shie Mannor, Joelle Pineau, and Aviv Tamar. 2015.
+<span>"Bayesian Reinforcement Learning: A Survey."</span>
+<em>Foundations and Trends in Machine Learning</em> 8 (5-6): 359-483. <a
+href="https://doi.org/10.1561/2200000049">https://doi.org/10.1561/2200000049</a>.
+</div>
+<div id="ref-guo_calibration_2017" class="csl-entry" role="listitem">
+Guo, Chuan, Geoff Pleiss, Yu Sun, and Kilian Q. Weinberger. 2017.
+<span>"On Calibration of Modern Neural Networks."</span> <em>Proceedings
+of the 34th International Conference on Machine Learning</em>, 1321-30.
+<a
+href="https://arxiv.org/abs/1706.04599">https://arxiv.org/abs/1706.04599</a>.
+</div>
+<div id="ref-hendrycks_baseline_2017" class="csl-entry" role="listitem">
+Hendrycks, Dan, and Kevin Gimpel. 2017. <span>"A Baseline for Detecting
+Misclassified and Out-of-Distribution Examples in Neural
+Networks."</span> <em>International Conference on Learning
+Representations</em>. <a
+href="https://arxiv.org/abs/1610.02136">https://arxiv.org/abs/1610.02136</a>.
+</div>
+<div id="ref-kendall_gal_uncertainties_2017" class="csl-entry"
+role="listitem">
+Kendall, Alex, and Yarin Gal. 2017. <span>"What Uncertainties Do We Need
+in Bayesian Deep Learning for Computer Vision?"</span> <em>NeurIPS</em>.
+</div>
+<div id="ref-kumar_verified_2019" class="csl-entry" role="listitem">
+Kumar, Ananya, Percy Liang, and Tengyu Ma. 2019. <span>"Verified
+Uncertainty Calibration."</span> <em>Advances in Neural Information
+Processing Systems</em> 32. <a
+href="https://arxiv.org/abs/1909.10155">https://arxiv.org/abs/1909.10155</a>.
+</div>
+<div id="ref-liang_odin_2018" class="csl-entry" role="listitem">
+Liang, Shiyu, Yixuan Li, and R. Srikant. 2018. <span>"Enhancing the
+Reliability of Out-of-Distribution Image Detection in Neural
+Networks."</span> <em>International Conference on Learning
+Representations</em>. <a
+href="https://arxiv.org/abs/1706.02690">https://arxiv.org/abs/1706.02690</a>.
+</div>
+<div id="ref-liu_energy_2020" class="csl-entry" role="listitem">
+Liu, Weitang, Xiaoyun Wang, John D. Owens, and Yixuan Li. 2020.
+<span>"Energy-Based Out-of-Distribution Detection."</span>
+<em>NeurIPS</em>.
+</div>
+<div id="ref-neal_bayesian_1996" class="csl-entry" role="listitem">
+Neal, Radford M. 1996. <em>Bayesian Learning for Neural Networks</em>.
+Springer.
+</div>
+<div id="ref-osband_bootstrapped_dqn_2016" class="csl-entry"
+role="listitem">
+Osband, Ian, Charles Blundell, Alexander Pritzel, and Benjamin Van Roy.
+2016. <span>"Deep Exploration via Bootstrapped DQN."</span>
+<em>NeurIPS</em>.
+</div>
+<div id="ref-phan_numpyro_2019" class="csl-entry" role="listitem">
+Phan, Du, Neeraj Pradhan, and Martin Jankowiak. 2019. <span>"Composable
+Effects for Flexible and Accelerated Probabilistic Programming in
+<span>NumPyro</span>."</span> <em>arXiv Preprint</em> arXiv:1912.11554.
+<a
+href="https://arxiv.org/abs/1912.11554">https://arxiv.org/abs/1912.11554</a>.
+</div>
+<div id="ref-platt_probabilistic_1999" class="csl-entry"
+role="listitem">
+Platt, John. 1999. <span>"Probabilistic Outputs for Support Vector
+Machines and Comparisons to Regularized Likelihood Methods."</span> In
+<em>Advances in Large Margin Classifiers</em>, edited by A. Smola, P.
+Bartlett, B. Scholkopf, and D. Schuurmans. MIT Press.
+</div>
+<div id="ref-ren_likelihood_2019" class="csl-entry" role="listitem">
+Ren, Jie, Peter J. Liu, Emily Fertig, et al. 2019. <span>"Likelihood
+Ratios for Out-of-Distribution Detection."</span> <em>Advances in Neural
+Information Processing Systems</em> 32. <a
+href="https://arxiv.org/abs/1906.02845">https://arxiv.org/abs/1906.02845</a>.
+</div>
+<div id="ref-romano_cqr_2019" class="csl-entry" role="listitem">
+Romano, Yaniv, Evan Patterson, and Emmanuel J. Candès. 2019.
+<span>"Conformalized Quantile Regression."</span> <em>Advances in Neural
+Information Processing Systems</em> 32. <a
+href="https://arxiv.org/abs/1905.03222">https://arxiv.org/abs/1905.03222</a>.
+</div>
+<div id="ref-tibshirani_covariate_2019" class="csl-entry"
+role="listitem">
+Tibshirani, Ryan J., Rina Foygel Barber, Emmanuel J. Candès, and Aaditya
+Ramdas. 2019. <span>"Conformal Prediction Under Covariate Shift."</span>
+<em>Advances in Neural Information Processing Systems</em> 32. <a
+href="https://arxiv.org/abs/1904.06019">https://arxiv.org/abs/1904.06019</a>.
+</div>
+<div id="ref-tran_edward_2018" class="csl-entry" role="listitem">
+Tran, Dustin, Matthew D. Hoffman, Dave Moore, et al. 2018.
+<span>"Simple, Distributed, and Accelerated Probabilistic
+Programming."</span> <em>Advances in Neural Information Processing
+Systems</em> 31. <a
+href="https://arxiv.org/abs/1811.02091">https://arxiv.org/abs/1811.02091</a>.
+</div>
+<div id="ref-vovk_algorithmic_2005" class="csl-entry" role="listitem">
+Vovk, Vladimir, Alexander Gammerman, and Glenn Shafer. 2005.
+<em>Algorithmic Learning in a Random World</em>. First. Springer.
+</div>
+</div>
+<section id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p><em>Conformal exchangeability requirement</em>: split
+conformal's marginal-coverage guarantee assumes calibration and test
+points are exchangeable (e.g., i.i.d. from the same distribution); the
+guarantee fails outright under covariate shift, label shift, or temporal
+drift. Weighted conformal <span class="citation"
+data-cites="tibshirani_covariate_2019">(Tibshirani et al. 2019)</span>
+restores coverage when the shift's likelihood ratio is known, but the
+ratio itself is rarely available in practice.<a href="#fnref1"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><em>ECE bin-choice sensitivity</em>: the standard 15-bin
+equal-width estimator can differ from a 15-bin equal-mass estimator by
+0.5-1.0 percentage points on CIFAR-100 ResNets <span class="citation"
+data-cites="kumar_verified_2019">(Kumar et al. 2019)</span>, so reported
+ECE numbers are only comparable across papers that fix the same binning
+scheme. Adaptive binning (one bin per quantile, plus debiased
+estimators) reduces variance but is not yet the field default.<a
+href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p><em>Near-OOD vs far-OOD</em>: the CIFAR-10 vs SVHN
+benchmark is <em>far-OOD</em> (different image domain, different label
+space) and is empirically easy; near-OOD benchmarks like CIFAR-10 vs
+CIFAR-100 (same image domain, disjoint label space) are 10-20 AUROC
+points harder for every detector and are arguably more diagnostic of
+deployment-time behavior. Reporting only far-OOD numbers (the historical
+default) overstates progress.<a href="#fnref3" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

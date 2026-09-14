@@ -242,6 +242,13 @@ function initBlogFilter() {
   }
 
   if (search) search.addEventListener("input", apply);
+  // #tag links inline in the listing drive the same filter.
+  document.querySelectorAll("#blog-posts .blog-tag-inline").forEach((a) =>
+    a.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      setTag(a.getAttribute("data-tag") || "");
+    }),
+  );
   filters.forEach((btn) =>
     btn.addEventListener("click", () => setTag(btn.getAttribute("data-tag") || "")),
   );

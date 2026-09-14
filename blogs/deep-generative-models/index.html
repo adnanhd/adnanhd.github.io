@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="The VAE framework, the evidence lower bound, the reparameterization trick, and importance weighted autoencoders." />
+        <title>Variational Autoencoders: The ELBO and the Reparameterization Trick - Adnan Harun Dogan</title>
+        <link rel="canonical" href="https://adnanhd.github.io/blogs/deep-generative-models/" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="Variational Autoencoders: The ELBO and the Reparameterization Trick" />
+        <meta property="og:description" content="The VAE framework, the evidence lower bound, the reparameterization trick, and importance weighted autoencoders." />
+        <meta property="og:url" content="https://adnanhd.github.io/blogs/deep-generative-models/" />
+        <meta property="og:image" content="https://adnanhd.github.io/blogs/deep-generative-models/og-image.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Variational Autoencoders: The ELBO and the Reparameterization Trick" />
+        <meta name="twitter:description" content="The VAE framework, the evidence lower bound, the reparameterization trick, and importance weighted autoencoders." />
+        <meta name="twitter:image" content="https://adnanhd.github.io/blogs/deep-generative-models/og-image.png" />
+        <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Variational Autoencoders: The ELBO and the Reparameterization Trick",
+  "description": "The VAE framework, the evidence lower bound, the reparameterization trick, and importance weighted autoencoders.",
+  "url": "https://adnanhd.github.io/blogs/deep-generative-models/",
+  "image": "https://adnanhd.github.io/blogs/deep-generative-models/og-image.png",
+  "author": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan",
+    "url": "https://adnanhd.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan"
+  },
+  "mainEntityOfPage": "https://adnanhd.github.io/blogs/deep-generative-models/",
+  "datePublished": "2026-04-28"
+}
+        </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Variational Autoencoders: The ELBO and the Reparameterization Trick</h1>
+            <div class="blog-meta">The VAE framework and its training objective</div>
+            <article class="blog-body">
+<p><u>Generative modeling aims to learn the underlying data distribution
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mtext mathvariant="normal">data</mtext></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p_{\text{data}}(x)</annotation></semantics></math>
+and generate new samples from it.</u> Classical approaches include
+Gaussian mixture models <span class="citation"
+data-cites="reynolds_gaussian_2009">(Reynolds 2009)</span>, kernel
+density estimation, and graphical models (Bayesian networks, Markov
+random fields). <u>These methods scale poorly to high-dimensional
+data</u>: Gaussian mixtures require exponentially many components,
+kernel methods suffer from the curse of dimensionality, and
+graphical-model inference is intractable for dense dependencies. <u>Deep
+learning changed the field by moving the modelling effort from the
+density to the map.</u> Classical methods place a tractable density
+directly on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+and then pay for that tractability in expressiveness. Neural methods
+instead parameterize a map from a simple distribution to the data and
+let the density be whatever that map induces, which removes the
+component-count and bandwidth bottlenecks above at the price of an
+objective that is no longer a plain likelihood. Every paradigm below is
+a different answer to the question that price raises: what do you
+optimize when you can no longer optimize the likelihood directly?</p>
+<p>Variational Autoencoders
+<span class="citation" data-cites="kingma_auto-encoding_2022">(Kingma
+and Welling 2014)</span> introduced amortized variational inference with
+neural networks, enabling efficient approximate posterior inference
+through the Evidence Lower Bound (ELBO).
+Extensions include importance-weighted bounds
+<span class="citation" data-cites="burda_importance_2016">(Burda et al.
+2016)</span>, disentangled representations
+<span class="citation" data-cites="higgins_beta-vae_2017">(Higgins et
+al. 2017)</span>, and hierarchical architectures
+<span class="citation" data-cites="vahdat_nvae_2021">(Vahdat and Kautz
+2020)</span>. The VAE framework connects to classical variational Bayes
+<span class="citation" data-cites="jordan_introduction_1999">(Jordan et
+al. 1999)</span> and neural autoencoders <span class="citation"
+data-cites="hinton_reducing_2006">(Hinton and Salakhutdinov
+2006)</span>, combining the probabilistic principles of the former with
+the representation-learning flexibility of the latter.</p>
+<p>Generative Adversarial
+Networks <span class="citation"
+data-cites="goodfellow_generative_2014">(Goodfellow et al. 2014)</span>
+frame generation as a game between generator and discriminator networks
+through the adversarial game. Key
+advances include stable training
+techniques <span class="citation"
+data-cites="gulrajani_improved_2017">(Gulrajani et al. 2017)</span>, progressive growing <span
+class="citation" data-cites="karras_progressive_2018">(Karras et al.
+2018)</span>, and style-based generation <span
+class="citation" data-cites="karras_style-based_2019">(Karras et al.
+2019)</span>. The game-theoretic framing spread under the label
+``adversarial'', but two different things travelled under that one word,
+and they are separate. What transferred literally is the
+<em>discriminator as a learned loss</em>: domain-adversarial training
+<span class="citation" data-cites="ganin_domain-adversarial_2016">(Ganin
+et al. 2016)</span> trains a domain classifier on the features and
+reverses its gradient into the feature extractor, so the classifier
+plays exactly the discriminator's role of supplying a loss that adapts
+to whatever the encoder is currently getting wrong. What transferred
+only in form is the <em>saddle point</em>: adversarial robustness <span
+class="citation" data-cites="madry_towards_2018">(Madry et al.
+2018)</span> writes training as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mrow><mi mathvariant="normal">min</mi><mo>&#8289;</mo></mrow><mi>θ</mi></msub><mi mathvariant="double-struck">𝔼</mi><msub><mrow><mi mathvariant="normal">max</mi><mo>&#8289;</mo></mrow><mrow><mo stretchy="false" form="postfix">∥</mo><mi>δ</mi><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><mi>ϵ</mi></mrow></msub><mi>ℓ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>+</mo><mi>δ</mi><mo>,</mo><mi>y</mi><mo>;</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\min_\theta \mathbb{E}\max_{\|\delta\| \leq \epsilon} \ell(x + \delta, y; \theta)</annotation></semantics></math>,
+which is a minimax problem, but its inner maximiser is a
+projected-gradient attack on the input rather than a second network with
+parameters of its own. So domain adaptation inherited the GAN mechanism
+and robust training inherited the GAN shape, and conflating the two is
+what makes the ``adversarial'' literature look more unified than it
+is.</p>
+<p>Normalizing Flows <span
+class="citation" data-cites="rezende_variational_2016">(Rezende and
+Mohamed 2015)</span> provide exact likelihood computation through
+invertible transformations. Notable architectures include Real NVP <span class="citation"
+data-cites="dinh_density_2017">(Dinh et al. 2017)</span>, MAF <span class="citation"
+data-cites="papamakarios_masked_2018">(Papamakarios et al. 2018)</span>,
+Glow <span class="citation"
+data-cites="kingma_glow_2018">(Kingma and Dhariwal 2018)</span>, and Neural Spline Flows <span
+class="citation" data-cites="durkan_neural_2019">(Durkan et al.
+2019)</span>. Flows generalize classical change-of-variables density
+estimation by using deep neural networks as the transformation, with
+careful design constraints to maintain invertibility and efficient
+Jacobian computation.</p>
+<p>Score-based models
+<span class="citation" data-cites="song_generative_2020">(Song and Ermon
+2020)</span> learn the gradient of the log-density and generate via Langevin dynamics. The connection to diffusion
+models <span class="citation" data-cites="ho_denoising_2020">(Ho et
+al. 2020)</span> established a unified framework through stochastic differential equations
+<span class="citation" data-cites="song_score-based_2021">(Song et al.
+2021)</span>. Score-based generation builds on score matching <span
+class="citation" data-cites="hyvarinen_estimation_2005">(Hyvärinen
+2005)</span> and denoising autoencoders <span class="citation"
+data-cites="vincent_extracting_2008">(Vincent et al. 2008)</span>, with
+the continuous-time formulation drawing on results from stochastic
+calculus (Anderson's reverse-time diffusion theorem from 1982).</p>
+<p>Autoregressive models (PixelRNN <span class="citation"
+data-cites="van_den_oord_pixel_2016">(Oord, Kalchbrenner, and
+Kavukcuoglu 2016)</span>, PixelCNN <span class="citation"
+data-cites="van_den_oord_conditional_2016">(Oord, Kalchbrenner, Vinyals,
+et al. 2016)</span>, WaveNet <span class="citation"
+data-cites="van_den_oord_wavenet_2016">(Oord, Dieleman, et al.
+2016)</span>, GPT <span class="citation"
+data-cites="radford_language_2019">(Radford et al. 2019)</span>) provide
+a competing paradigm that factorizes the joint via the chain rule and
+models each conditional with a deep neural network. For discrete data
+and sequences, autoregressive models are often the natural choice; for
+continuous high-dimensional data, they have been largely superseded by
+diffusion models due to sampling speed.</p>
+<p><u>Recent work has focused on unifying these paradigms through the
+score SDE framework</u> <span class="citation"
+data-cites="song_score-based_2021">(Song et al. 2021)</span>, <u>Flow
+Matching</u> <span class="citation"
+data-cites="lipman_flow_2023">(Lipman et al. 2023)</span>, <u>and the
+Schrödinger bridge perspective</u> <span class="citation"
+data-cites="debortoli_diffusion_2021">(De Bortoli et al. 2021)</span>.
+<u>The field increasingly views VAE/GAN/flow/diffusion as different
+instantiations of a common transport-map framework, with architectural
+and training-objective choices distinguishing them rather than
+fundamental paradigm differences.</u></p>
+<p><img src="figures/dgm-taxonomy.svg" /></p>
+<p>The five paradigms are the VAE, the GAN, the flow, the score-based model and the diffusion model, and each
+is detailed in the sections that follow, with its core formulation, its
+key extensions, its practical training considerations, its architectural
+innovations, and its empirical results. Two readings run in parallel
+throughout. The historical reading asks what problem each paradigm was
+built to solve. The modern reading asks where each sits in the
+transport-map framework, and that reading has a single organising claim:
+every one of these models learns a map from a simple distribution to the
+data, and what separates them is the divergence the objective minimises
+plus the constraint the parametric family carries. The divergence is the
+load-bearing choice. Forward KL is mode-covering, so VAEs, flows,
+autoregressive models and diffusion cover modes and blur; reverse KL is
+mode-seeking, so the non-saturating GAN sharpens and drops modes; JS
+saturates when supports are disjoint, which is why the original GAN
+objective stalls; the Wasserstein distance stays finite across disjoint
+supports, which is why WGAN trains where JS does not. Each paradigm's
+characteristic failure mode is a consequence of its divergence rather
+than an accident of its architecture, and the information-theoretic
+section closes the argument. Read every section below as an answer
+to two questions: which divergence, and which constraint.</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-burda_importance_2016" class="csl-entry" role="listitem">
+Burda, Yuri, Roger Grosse, and Ruslan Salakhutdinov. 2016.
+<span>"Importance <span>Weighted</span>
+<span>Autoencoders</span>."</span> <em>International Conference on
+Learning Representations</em>, November. <a
+href="https://doi.org/10.48550/arXiv.1509.00519">https://doi.org/10.48550/arXiv.1509.00519</a>.
+</div>
+<div id="ref-debortoli_diffusion_2021" class="csl-entry"
+role="listitem">
+De Bortoli, Valentin, James Thornton, Jeremy Heng, and Arnaud Doucet.
+2021. <span>"Diffusion <span class="nocase">Schr<span
+class="nocase">ö</span>dinger</span> Bridge with Applications to
+Score-Based Generative Modeling."</span> <em>Advances in Neural
+Information Processing Systems (<span>NeurIPS</span>)</em>. <a
+href="https://arxiv.org/abs/2106.01357">https://arxiv.org/abs/2106.01357</a>.
+</div>
+<div id="ref-dinh_density_2017" class="csl-entry" role="listitem">
+Dinh, Laurent, Jascha Sohl-Dickstein, and Samy Bengio. 2017. <em>Density
+Estimation Using <span>Real</span> <span>NVP</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1605.08803">https://doi.org/10.48550/arXiv.1605.08803</a>.
+</div>
+<div id="ref-durkan_neural_2019" class="csl-entry" role="listitem">
+Durkan, Conor, Artur Bekasov, Iain Murray, and George Papamakarios.
+2019. <em>Neural <span>Spline</span> <span>Flows</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1906.04032">https://doi.org/10.48550/arXiv.1906.04032</a>.
+</div>
+<div id="ref-ganin_domain-adversarial_2016" class="csl-entry"
+role="listitem">
+Ganin, Yaroslav, Evgeniya Ustinova, Hana Ajakan, et al. 2016.
+<span>"Domain-<span>Adversarial</span> <span>Training</span> of
+<span>Neural</span> <span>Networks</span>."</span> <em>Journal of
+Machine Learning Research</em> 17 (59): 1-35. <a
+href="https://www.jmlr.org/papers/v17/15-239.html">https://www.jmlr.org/papers/v17/15-239.html</a>.
+</div>
+<div id="ref-goodfellow_generative_2014" class="csl-entry"
+role="listitem">
+Goodfellow, Ian J., Jean Pouget-Abadie, Mehdi Mirza, et al. 2014.
+<span>"Generative <span>Adversarial</span>
+<span>Networks</span>."</span> <em>Advances in Neural Information
+Processing Systems</em>, June. <a
+href="https://doi.org/10.48550/arXiv.1406.2661">https://doi.org/10.48550/arXiv.1406.2661</a>.
+</div>
+<div id="ref-gulrajani_improved_2017" class="csl-entry" role="listitem">
+Gulrajani, Ishaan, Faruk Ahmed, Martin Arjovsky, Vincent Dumoulin, and
+Aaron Courville. 2017. <span>"Improved <span>Training</span> of
+<span>Wasserstein</span> <span>GANs</span>."</span> <em>Advances in
+Neural Information Processing Systems</em>, December. <a
+href="https://doi.org/10.48550/arXiv.1704.00028">https://doi.org/10.48550/arXiv.1704.00028</a>.
+</div>
+<div id="ref-higgins_beta-vae_2017" class="csl-entry" role="listitem">
+Higgins, Irina, Loic Matthey, Arka Pal, et al. 2017.
+<span>"Beta-<span>VAE</span>: <span>Learning</span> <span>Basic</span>
+<span>Visual</span> <span>Concepts</span> with a
+<span>Constrained</span> <span>Variational</span>
+<span>Framework</span>."</span> February. <a
+href="https://openreview.net/forum?id=Sy2fzU9gl">https://openreview.net/forum?id=Sy2fzU9gl</a>.
+</div>
+<div id="ref-hinton_reducing_2006" class="csl-entry" role="listitem">
+Hinton, Geoffrey E., and Ruslan R. Salakhutdinov. 2006. <span>"Reducing
+the Dimensionality of Data with Neural Networks."</span>
+<em>Science</em> 313 (5786): 504-7.
+</div>
+<div id="ref-ho_denoising_2020" class="csl-entry" role="listitem">
+Ho, Jonathan, Ajay Jain, and Pieter Abbeel. 2020. <span>"Denoising
+<span>Diffusion</span> <span>Probabilistic</span>
+<span>Models</span>."</span> <em>Advances in Neural Information
+Processing Systems</em>, December. <a
+href="https://doi.org/10.48550/arXiv.2006.11239">https://doi.org/10.48550/arXiv.2006.11239</a>.
+</div>
+<div id="ref-hyvarinen_estimation_2005" class="csl-entry"
+role="listitem">
+Hyvärinen, Aapo. 2005. <span>"Estimation of Non-Normalized Statistical
+Models by Score Matching."</span> <em>Journal of Machine Learning
+Research (<span>JMLR</span>)</em> 6: 695-709.
+</div>
+<div id="ref-jordan_introduction_1999" class="csl-entry"
+role="listitem">
+Jordan, Michael I., Zoubin Ghahramani, Tommi S. Jaakkola, and Lawrence
+K. Saul. 1999. <span>"An Introduction to Variational Methods for
+Graphical Models."</span> <em>Machine Learning</em> 37 (2): 183-233.
+</div>
+<div id="ref-karras_progressive_2018" class="csl-entry" role="listitem">
+Karras, Tero, Timo Aila, Samuli Laine, and Jaakko Lehtinen. 2018.
+<span>"Progressive <span>Growing</span> of <span>GANs</span> for
+<span>Improved</span> <span>Quality</span>, <span>Stability</span>, and
+<span>Variation</span>."</span> <em>International Conference on Learning
+Representations</em>, February. <a
+href="https://doi.org/10.48550/arXiv.1710.10196">https://doi.org/10.48550/arXiv.1710.10196</a>.
+</div>
+<div id="ref-karras_style-based_2019" class="csl-entry" role="listitem">
+Karras, Tero, Samuli Laine, and Timo Aila. 2019. <span>"A
+<span>Style</span>-<span>Based</span> <span>Generator</span>
+<span>Architecture</span> for <span>Generative</span>
+<span>Adversarial</span> <span>Networks</span>."</span> <em>IEEE/CVF
+Conference on Computer Vision and Pattern Recognition (CVPR)</em>,
+March. <a
+href="https://doi.org/10.48550/arXiv.1812.04948">https://doi.org/10.48550/arXiv.1812.04948</a>.
+</div>
+<div id="ref-kingma_glow_2018" class="csl-entry" role="listitem">
+Kingma, Diederik P., and Prafulla Dhariwal. 2018. <em>Glow:
+<span>Generative</span> <span>Flow</span> with <span>Invertible</span>
+1x1 <span>Convolutions</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1807.03039">https://doi.org/10.48550/arXiv.1807.03039</a>.
+</div>
+<div id="ref-kingma_auto-encoding_2022" class="csl-entry"
+role="listitem">
+Kingma, Diederik P., and Max Welling. 2014.
+<span>"Auto-<span>Encoding</span> <span>Variational</span>
+<span>Bayes</span>."</span> <em>International Conference on Learning
+Representations</em>, December. <a
+href="https://doi.org/10.48550/arXiv.1312.6114">https://doi.org/10.48550/arXiv.1312.6114</a>.
+</div>
+<div id="ref-lipman_flow_2023" class="csl-entry" role="listitem">
+Lipman, Yaron, Ricky T. Q. Chen, Heli Ben-Hamu, Maximilian Nickel, and
+Matt Le. 2023. <em>Flow <span>Matching</span> for
+<span>Generative</span> <span>Modeling</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2210.02747">https://doi.org/10.48550/arXiv.2210.02747</a>.
+</div>
+<div id="ref-madry_towards_2018" class="csl-entry" role="listitem">
+Madry, Aleksander, Aleksandar Makelov, Ludwig Schmidt, Dimitris Tsipras,
+and Adrian Vladu. 2018. <span>"Towards <span>Deep</span>
+<span>Learning</span> <span>Models</span> <span>Resistant</span> to
+<span>Adversarial</span> <span>Attacks</span>."</span> <em>International
+<span>Conference</span> on <span>Learning</span>
+<span>Representations</span> (<span>ICLR</span>)</em>. <a
+href="https://openreview.net/forum?id=rJzIBfZAb">https://openreview.net/forum?id=rJzIBfZAb</a>.
+</div>
+<div id="ref-van_den_oord_wavenet_2016" class="csl-entry"
+role="listitem">
+Oord, Aäron van den, Sander Dieleman, Heiga Zen, et al. 2016.
+<em><span>WaveNet</span>: A Generative Model for Raw Audio</em>. <a
+href="https://arxiv.org/abs/1609.03499">https://arxiv.org/abs/1609.03499</a>.
+</div>
+<div id="ref-van_den_oord_pixel_2016" class="csl-entry" role="listitem">
+Oord, Aäron van den, Nal Kalchbrenner, and Koray Kavukcuoglu. 2016.
+<span>"Pixel Recurrent Neural Networks."</span> <em>International
+Conference on Machine Learning (<span>ICML</span>)</em>. <a
+href="https://arxiv.org/abs/1601.06759">https://arxiv.org/abs/1601.06759</a>.
+</div>
+<div id="ref-van_den_oord_conditional_2016" class="csl-entry"
+role="listitem">
+Oord, Aäron van den, Nal Kalchbrenner, Oriol Vinyals, Lasse Espeholt,
+Alex Graves, and Koray Kavukcuoglu. 2016. <span>"Conditional Image
+Generation with <span>PixelCNN</span> Decoders."</span> <em>Advances in
+Neural Information Processing Systems (<span>NeurIPS</span>)</em>. <a
+href="https://arxiv.org/abs/1606.05328">https://arxiv.org/abs/1606.05328</a>.
+</div>
+<div id="ref-papamakarios_masked_2018" class="csl-entry"
+role="listitem">
+Papamakarios, George, Theo Pavlakou, and Iain Murray. 2018. <em>Masked
+<span>Autoregressive</span> <span>Flow</span> for <span>Density</span>
+<span>Estimation</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1705.07057">https://doi.org/10.48550/arXiv.1705.07057</a>.
+</div>
+<div id="ref-radford_language_2019" class="csl-entry" role="listitem">
+Radford, Alec, Jeffrey Wu, Rewon Child, David Luan, Dario Amodei, and
+Ilya Sutskever. 2019. <em>Language Models Are Unsupervised Multitask
+Learners</em>. OpenAI Technical Report.
+</div>
+<div id="ref-reynolds_gaussian_2009" class="csl-entry" role="listitem">
+Reynolds, Douglas A. 2009. <span>"<span>Gaussian</span> Mixture
+Models."</span> In <em>Encyclopedia of Biometrics</em>, edited by Stan
+Z. Li and Anil K. Jain. Springer.
+</div>
+<div id="ref-rezende_variational_2016" class="csl-entry"
+role="listitem">
+Rezende, Danilo Jimenez, and Shakir Mohamed. 2015. <span>"Variational
+<span>Inference</span> with <span>Normalizing</span>
+<span>Flows</span>."</span> <em>International Conference on Machine
+Learning (ICML)</em>, June. <a
+href="https://doi.org/10.48550/arXiv.1505.05770">https://doi.org/10.48550/arXiv.1505.05770</a>.
+</div>
+<div id="ref-song_generative_2020" class="csl-entry" role="listitem">
+Song, Yang, and Stefano Ermon. 2020. <em>Generative
+<span>Modeling</span> by <span>Estimating</span> <span>Gradients</span>
+of the <span>Data</span> <span>Distribution</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1907.05600">https://doi.org/10.48550/arXiv.1907.05600</a>.
+</div>
+<div id="ref-song_score-based_2021" class="csl-entry" role="listitem">
+Song, Yang, Jascha Sohl-Dickstein, Diederik P. Kingma, Abhishek Kumar,
+Stefano Ermon, and Ben Poole. 2021. <span>"Score-<span>Based</span>
+<span>Generative</span> <span>Modeling</span> Through
+<span>Stochastic</span> <span>Differential</span>
+<span>Equations</span>."</span> <em>International Conference on Learning
+Representations</em>, February. <a
+href="https://doi.org/10.48550/arXiv.2011.13456">https://doi.org/10.48550/arXiv.2011.13456</a>.
+</div>
+<div id="ref-vahdat_nvae_2021" class="csl-entry" role="listitem">
+Vahdat, Arash, and Jan Kautz. 2020. <span>"<span>NVAE</span>:
+<span>A</span> <span>Deep</span> <span>Hierarchical</span>
+<span>Variational</span> <span>Autoencoder</span>."</span> <em>Advances
+in Neural Information Processing Systems</em>, January. <a
+href="https://doi.org/10.48550/arXiv.2007.03898">https://doi.org/10.48550/arXiv.2007.03898</a>.
+</div>
+<div id="ref-vincent_extracting_2008" class="csl-entry" role="listitem">
+Vincent, Pascal, Hugo Larochelle, Yoshua Bengio, and Pierre-Antoine
+Manzagol. 2008. <span>"Extracting and Composing Robust Features with
+Denoising Autoencoders."</span> <em>International Conference on Machine
+Learning (<span>ICML</span>)</em>.
+</div>
+</div>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

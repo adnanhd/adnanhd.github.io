@@ -1640,11 +1640,49 @@ a:hover {
 }
 
 /* Blog and Work Items */
-.blog-list,
 .repos-list {
     display: flex;
     flex-direction: column;
     gap: 20px;
+}
+
+/* Blog listing: plain bulleted lines, "18 Mar 2020 » Title". */
+.blog-list {
+    list-style: disc outside;
+    padding-left: 18px;
+}
+.blog-list .blog-item {
+    border: none;
+    padding: 0;
+    margin-bottom: 4px;
+    line-height: 1.5;
+}
+.blog-list .blog-item:hover {
+    border: none;
+    box-shadow: none;
+}
+.blog-list .blog-item::marker {
+    color: var(--text-tertiary);
+}
+.blog-list .blog-link {
+    display: inline;
+    color: var(--link-color);
+    text-decoration: none;
+}
+.blog-list .blog-date {
+    font-style: normal;
+    color: var(--text-tertiary);
+}
+.blog-tag-inline {
+    color: var(--text-muted);
+    font-size: 0.82em;
+    text-decoration: none;
+}
+.blog-tag-inline:hover {
+    color: var(--accent-color);
+}
+.blog-list .blog-link:hover {
+    text-decoration: underline;
 }
 
 .blog-item,

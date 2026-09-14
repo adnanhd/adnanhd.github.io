@@ -5,101 +5,325 @@
     <link>https://adnanhd.github.io/?tab=blogs</link>
     <description>Adnan Harun Doğan - Graduate Research &amp; Teaching Assistant at Middle East Technical University. Research in differentiable optimization and deep learning for computer vision.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 14 Sep 2026 12:10:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 14 Sep 2026 13:15:44 +0000</lastBuildDate>
     <atom:link href="https://adnanhd.github.io/feed.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Reinforcement Learning</title>
-      <link>https://adnanhd.github.io/blogs/reinforcement-learning/index.html</link>
-      <guid isPermaLink="true">https://adnanhd.github.io/blogs/reinforcement-learning/index.html</guid>
-      <pubDate>Mon, 15 Jun 2026 14:32:00 +0000</pubDate>
-      <description>A survey of 30+ RL models - policy gradients, trust-region and actor-critic methods, distributed training, model-based RL, and offline / preference-based learning.</description>
+      <title>torchestrator</title>
+      <link>https://adnanhd.github.io/projects/torchestrator/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/projects/torchestrator/index.html</guid>
+      <pubDate>Fri, 21 Aug 2026 00:00:00 +0000</pubDate>
+      <description>A Dockerfile-like declarative runner for PyTorch training pipelines: torchfile DSL, registry roster, content-addressed run hub.</description>
+      <category>software</category>
+    </item>
+    <item>
+      <title>registry-pattern</title>
+      <link>https://adnanhd.github.io/projects/registry-pattern/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/projects/registry-pattern/index.html</guid>
+      <pubDate>Fri, 14 Aug 2026 00:00:00 +0000</pubDate>
+      <description>Name-based type and function registries with a recursive build/serialize factory for Python projects.</description>
+      <category>software</category>
+    </item>
+    <item>
+      <title>observer-pattern</title>
+      <link>https://adnanhd.github.io/projects/observer-pattern/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/projects/observer-pattern/index.html</guid>
+      <pubDate>Sun, 09 Aug 2026 00:00:00 +0000</pubDate>
+      <description>Observable/Eventful event model with topic-keyed message queues, competing consumers, and queue-RPC.</description>
+      <category>software</category>
+    </item>
+    <item>
+      <title>torchdatasets</title>
+      <link>https://adnanhd.github.io/projects/torchdatasets/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/projects/torchdatasets/index.html</guid>
+      <pubDate>Tue, 07 Jul 2026 00:00:00 +0000</pubDate>
+      <description>PyTorch Dataset and IterableDataset extensions with a composable transform pipeline.</description>
+      <category>software</category>
+    </item>
+    <item>
+      <title>Policy Gradients: REINFORCE, Baselines, and Generalized Advantage Estimation</title>
+      <link>https://adnanhd.github.io/blogs/policy-gradient-foundations/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/policy-gradient-foundations/index.html</guid>
+      <pubDate>Mon, 15 Jun 2026 00:00:00 +0000</pubDate>
+      <description>The policy gradient theorem, REINFORCE, baseline subtraction and advantage functions, and generalized advantage estimation.</description>
       <category>reinforcement-learning</category>
       <category>policy-gradient</category>
-      <category>actor-critic</category>
-      <category>model-based-rl</category>
-      <category>offline-rl</category>
     </item>
     <item>
-      <title>Computer Vision</title>
-      <link>https://adnanhd.github.io/blogs/computer-vision/index.html</link>
-      <guid isPermaLink="true">https://adnanhd.github.io/blogs/computer-vision/index.html</guid>
-      <pubDate>Wed, 20 May 2026 09:47:00 +0000</pubDate>
-      <description>CNN-based object detection, vision transformers, and detection &amp; segmentation transformers.</description>
+      <title>Trust-Region Policy Methods: TRPO, PPO, and GRPO</title>
+      <link>https://adnanhd.github.io/blogs/trust-region-methods/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/trust-region-methods/index.html</guid>
+      <pubDate>Mon, 08 Jun 2026 00:00:00 +0000</pubDate>
+      <description>Trust region policy optimization, proximal policy optimization, group relative policy optimization, and why implementation details matter.</description>
+      <category>reinforcement-learning</category>
+      <category>policy-gradient</category>
+    </item>
+    <item>
+      <title>Frequency-Weighted Neural Kalman Filters</title>
+      <link>https://adnanhd.github.io/projects/frequency-weighted-neural-kalman-filters/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/projects/frequency-weighted-neural-kalman-filters/index.html</guid>
+      <pubDate>Mon, 01 Jun 2026 00:00:00 +0000</pubDate>
+      <description>Learned frequency-weighted Kalman filters that denoise the innovation spectrum under spectral supervision. IEEE/ICRA 2026.</description>
+      <category>papers</category>
+      <category>inertial-motion-capture</category>
+    </item>
+    <item>
+      <title>Actor-Critic and Distributed RL: DDPG, TD3, SAC, and Beyond</title>
+      <link>https://adnanhd.github.io/blogs/actor-critic-distributed/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/actor-critic-distributed/index.html</guid>
+      <pubDate>Mon, 01 Jun 2026 00:00:00 +0000</pubDate>
+      <description>Deep deterministic policy gradients, twin delayed DDPG, soft actor-critic, and distributed reinforcement learning.</description>
+      <category>reinforcement-learning</category>
+      <category>actor-critic</category>
+    </item>
+    <item>
+      <title>Offline and Model-Based RL: CQL, Decision Transformer, DPO, and World Models</title>
+      <link>https://adnanhd.github.io/blogs/offline-model-based-rl/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/offline-model-based-rl/index.html</guid>
+      <pubDate>Mon, 25 May 2026 00:00:00 +0000</pubDate>
+      <description>Conservative Q-learning, the decision transformer, direct preference optimization, and world-model agents.</description>
+      <category>reinforcement-learning</category>
+      <category>offline-rl</category>
+      <category>model-based-rl</category>
+    </item>
+    <item>
+      <title>paper-reproductions</title>
+      <link>https://adnanhd.github.io/projects/paper-reproductions/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/projects/paper-reproductions/index.html</guid>
+      <pubDate>Sat, 23 May 2026 00:00:00 +0000</pubDate>
+      <description>A monorepo of from-scratch PyTorch reproductions of machine learning papers.</description>
+      <category>software</category>
+    </item>
+    <item>
+      <title>CNN Object Detection: From LeNet and AlexNet to Modern Detector Backbones</title>
+      <link>https://adnanhd.github.io/blogs/cnn-object-detection/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/cnn-object-detection/index.html</guid>
+      <pubDate>Wed, 20 May 2026 00:00:00 +0000</pubDate>
+      <description>LeNet, AlexNet, VGG, ResNet, Inception, and the CNN object detection lineage built on them.</description>
       <category>computer-vision</category>
       <category>object-detection</category>
-      <category>vision-transformers</category>
-      <category>segmentation</category>
     </item>
     <item>
-      <title>Generative Models</title>
-      <link>https://adnanhd.github.io/blogs/generative-models/index.html</link>
-      <guid isPermaLink="true">https://adnanhd.github.io/blogs/generative-models/index.html</guid>
-      <pubDate>Tue, 28 Apr 2026 18:05:00 +0000</pubDate>
-      <description>Deep generative models, autoregressive visual generation, diffusion transformers, and vision-language models.</description>
+      <title>Vision Transformers: ViT, Self-Attention, and the CNN Comparison</title>
+      <link>https://adnanhd.github.io/blogs/vision-transformers/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/vision-transformers/index.html</guid>
+      <pubDate>Wed, 13 May 2026 00:00:00 +0000</pubDate>
+      <description>The ViT architecture, multi-head self-attention, position encodings, and how vision transformers compare with CNNs.</description>
+      <category>computer-vision</category>
+      <category>vision-transformers</category>
+    </item>
+    <item>
+      <title>Detection and Segmentation Transformers: DETR and Its Descendants</title>
+      <link>https://adnanhd.github.io/blogs/detection-segmentation-transformers/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/detection-segmentation-transformers/index.html</guid>
+      <pubDate>Wed, 06 May 2026 00:00:00 +0000</pubDate>
+      <description>End-to-end detection with DETR, bipartite matching and the set prediction loss, deformable attention, and segmentation transformers.</description>
+      <category>computer-vision</category>
+      <category>object-detection</category>
+      <category>segmentation</category>
+      <category>vision-transformers</category>
+    </item>
+    <item>
+      <title>Variational Autoencoders: The ELBO and the Reparameterization Trick</title>
+      <link>https://adnanhd.github.io/blogs/deep-generative-models/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/deep-generative-models/index.html</guid>
+      <pubDate>Tue, 28 Apr 2026 00:00:00 +0000</pubDate>
+      <description>The VAE framework, the evidence lower bound, the reparameterization trick, and importance weighted autoencoders.</description>
       <category>generative-models</category>
       <category>deep-generative-models</category>
+    </item>
+    <item>
+      <title>Autoregressive Image Generation: PixelRNN, PixelCNN, and VQ-VAE</title>
+      <link>https://adnanhd.github.io/blogs/autoregressive-models/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/autoregressive-models/index.html</guid>
+      <pubDate>Tue, 21 Apr 2026 00:00:00 +0000</pubDate>
+      <description>PixelRNN, masked convolutions in PixelCNN, conditional generation, and vector-quantized latent spaces.</description>
+      <category>generative-models</category>
+      <category>deep-generative-models</category>
+    </item>
+    <item>
+      <title>Diffusion Models and DiT: Noise Schedules, DDIM, and Scalable Transformers</title>
+      <link>https://adnanhd.github.io/blogs/diffusion-transformers/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/diffusion-transformers/index.html</guid>
+      <pubDate>Tue, 14 Apr 2026 00:00:00 +0000</pubDate>
+      <description>Forward and reverse diffusion, noise schedules, DDIM sampling, the score-based view, and scalable diffusion transformers.</description>
+      <category>generative-models</category>
       <category>diffusion-models</category>
+    </item>
+    <item>
+      <title>Vision-Language Models: CLIP, ALIGN, and SigLIP</title>
+      <link>https://adnanhd.github.io/blogs/vision-language-models/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/vision-language-models/index.html</guid>
+      <pubDate>Tue, 07 Apr 2026 00:00:00 +0000</pubDate>
+      <description>Contrastive language-image pretraining, zero-shot transfer, scaling with noisy pairs, and sigmoid-loss variants.</description>
+      <category>generative-models</category>
       <category>vision-language-models</category>
     </item>
     <item>
-      <title>Self-Supervised Representation Learning</title>
+      <title>Self-Supervised Representation Learning: Instance Discrimination and InfoNCE</title>
       <link>https://adnanhd.github.io/blogs/self-supervised-learning/index.html</link>
       <guid isPermaLink="true">https://adnanhd.github.io/blogs/self-supervised-learning/index.html</guid>
-      <pubDate>Fri, 03 Apr 2026 11:20:00 +0000</pubDate>
-      <description>Self-supervised visual pretraining and knowledge distillation.</description>
+      <pubDate>Fri, 03 Apr 2026 00:00:00 +0000</pubDate>
+      <description>Instance discrimination, the InfoNCE loss, alignment and uniformity, and the augmentation pipeline behind contrastive pretraining.</description>
       <category>representation-learning</category>
       <category>self-supervised-learning</category>
+    </item>
+    <item>
+      <title>Knowledge Distillation: Soft Labels, Temperature, and Dark Knowledge</title>
+      <link>https://adnanhd.github.io/blogs/knowledge-distillation/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/knowledge-distillation/index.html</guid>
+      <pubDate>Fri, 27 Mar 2026 00:00:00 +0000</pubDate>
+      <description>Hard versus soft labels, temperature-scaled softmax, the distillation objective, and what dark knowledge actually transfers.</description>
+      <category>representation-learning</category>
       <category>knowledge-distillation</category>
     </item>
     <item>
-      <title>Optimization for Machine Learning</title>
-      <link>https://adnanhd.github.io/blogs/optimization/index.html</link>
-      <guid isPermaLink="true">https://adnanhd.github.io/blogs/optimization/index.html</guid>
-      <pubDate>Wed, 11 Mar 2026 16:58:00 +0000</pubDate>
-      <description>Optimal transport, Bayesian optimization, and constrained optimization in learning.</description>
+      <title>Optimal Transport: From Exact Linear Programs to Sinkhorn and Neural Potentials</title>
+      <link>https://adnanhd.github.io/blogs/optimal-transport/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/optimal-transport/index.html</guid>
+      <pubDate>Wed, 11 Mar 2026 00:00:00 +0000</pubDate>
+      <description>Exact LP formulations, entropic regularization and Sinkhorn, sliced OT, and unbalanced / Gromov-Wasserstein extensions.</description>
       <category>optimization</category>
       <category>optimal-transport</category>
+    </item>
+    <item>
+      <title>Bayesian Optimization with Gaussian Process Surrogates</title>
+      <link>https://adnanhd.github.io/blogs/bayesian-optimization/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/bayesian-optimization/index.html</guid>
+      <pubDate>Wed, 04 Mar 2026 00:00:00 +0000</pubDate>
+      <description>Gaussian process surrogates, posterior inference, covariance functions, and hyperparameter learning for black-box optimization.</description>
+      <category>optimization</category>
       <category>bayesian-optimization</category>
+      <category>gaussian-processes</category>
+    </item>
+    <item>
+      <title>Differentiating Through Constrained Optimization: Implicit Layers and Convex Programs</title>
+      <link>https://adnanhd.github.io/blogs/constrained-optimization-learning/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/constrained-optimization-learning/index.html</guid>
+      <pubDate>Wed, 25 Feb 2026 00:00:00 +0000</pubDate>
+      <description>Implicit differentiation of optimality conditions, perturbation methods, differentiable convex layers, and input convex networks.</description>
+      <category>optimization</category>
       <category>constrained-optimization</category>
     </item>
     <item>
-      <title>Probabilistic Deep Learning</title>
-      <link>https://adnanhd.github.io/blogs/probabilistic-deep-learning/index.html</link>
-      <guid isPermaLink="true">https://adnanhd.github.io/blogs/probabilistic-deep-learning/index.html</guid>
-      <pubDate>Tue, 17 Feb 2026 08:33:00 +0000</pubDate>
-      <description>Bayesian neural networks, posterior approximation, Gaussian processes, and uncertainty quantification.</description>
+      <title>Probabilistic Deep Learning Foundations: Tractability versus Generality</title>
+      <link>https://adnanhd.github.io/blogs/probabilistic-dl-foundations/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/probabilistic-dl-foundations/index.html</guid>
+      <pubDate>Tue, 17 Feb 2026 00:00:00 +0000</pubDate>
+      <description>Exact inference under structural constraints, why neural generality breeds intractability, and approximation as a necessity.</description>
+      <category>probabilistic-ml</category>
+    </item>
+    <item>
+      <title>Bayesian Neural Networks: Evidence, HMC, and Function-Space Bayes</title>
+      <link>https://adnanhd.github.io/blogs/bayesian-neural-networks/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/bayesian-neural-networks/index.html</guid>
+      <pubDate>Tue, 10 Feb 2026 00:00:00 +0000</pubDate>
+      <description>The Bayesian program for neural networks, evidence and Occam factors, HMC, the NNGP limit, and mode-averaging ensembles.</description>
       <category>probabilistic-ml</category>
       <category>bayesian-neural-networks</category>
+    </item>
+    <item>
+      <title>Posterior Approximation: Variational Inference from Mean-Field to Cold Posteriors</title>
+      <link>https://adnanhd.github.io/blogs/posterior-approximation/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/posterior-approximation/index.html</guid>
+      <pubDate>Tue, 03 Feb 2026 00:00:00 +0000</pubDate>
+      <description>Variational inference and the ELBO, stochastic VI, mean-field Gaussian BNNs, tight bounds, and the cold posterior effect.</description>
+      <category>probabilistic-ml</category>
+      <category>bayesian-neural-networks</category>
+    </item>
+    <item>
+      <title>Gaussian Processes and Deep Kernel Learning</title>
+      <link>https://adnanhd.github.io/blogs/gaussian-processes-deep-kernels/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/gaussian-processes-deep-kernels/index.html</guid>
+      <pubDate>Tue, 27 Jan 2026 00:00:00 +0000</pubDate>
+      <description>The GP prior, posterior mean and variance, marginal likelihood, computational costs, and deep kernel learning.</description>
+      <category>probabilistic-ml</category>
       <category>gaussian-processes</category>
+    </item>
+    <item>
+      <title>Uncertainty Quantification: Predictive Variance, MC Dropout, and Deep Ensembles</title>
+      <link>https://adnanhd.github.io/blogs/uncertainty-quantification/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/uncertainty-quantification/index.html</guid>
+      <pubDate>Tue, 20 Jan 2026 00:00:00 +0000</pubDate>
+      <description>The predictive variance decomposition, heteroscedastic heads with MC dropout, prior networks, and deep ensembles.</description>
+      <category>probabilistic-ml</category>
       <category>uncertainty-quantification</category>
     </item>
     <item>
-      <title>Statistical Deep Learning</title>
-      <link>https://adnanhd.github.io/blogs/statistical-deep-learning/index.html</link>
-      <guid isPermaLink="true">https://adnanhd.github.io/blogs/statistical-deep-learning/index.html</guid>
-      <pubDate>Thu, 22 Jan 2026 21:14:00 +0000</pubDate>
-      <description>PAC-Bayes generalization, the neural tangent kernel, benign overfitting / double descent, and scaling laws.</description>
+      <title>Classical Statistical Learning: ERM, Capacity Control, and Uniform Convergence</title>
+      <link>https://adnanhd.github.io/blogs/statistical-learning-foundations/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/statistical-learning-foundations/index.html</guid>
+      <pubDate>Tue, 13 Jan 2026 00:00:00 +0000</pubDate>
+      <description>Empirical risk minimization, maximum likelihood as M-estimation, capacity control, and the classical uniform-convergence toolkit.</description>
+      <category>statistical-learning</category>
+    </item>
+    <item>
+      <title>PAC-Bayes Generalization Bounds: From McAllester to Nonvacuous Bounds</title>
+      <link>https://adnanhd.github.io/blogs/pac-bayes-generalization/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/pac-bayes-generalization/index.html</guid>
+      <pubDate>Tue, 06 Jan 2026 00:00:00 +0000</pubDate>
+      <description>The McAllester bound, deterministic versus stochastic classifiers, refinements, and nonvacuous bounds for deep networks.</description>
       <category>statistical-learning</category>
       <category>pac-bayes</category>
+    </item>
+    <item>
+      <title>The Neural Tangent Kernel and Infinite-Width Networks</title>
+      <link>https://adnanhd.github.io/blogs/ntk-infinite-width/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/ntk-infinite-width/index.html</guid>
+      <pubDate>Tue, 30 Dec 2025 00:00:00 +0000</pubDate>
+      <description>The NTK definition and parameterization, the gradient-flow ODE, the convergence theorem, and where the kernel picture breaks.</description>
+      <category>statistical-learning</category>
       <category>neural-tangent-kernel</category>
+    </item>
+    <item>
+      <title>Benign Overfitting and Double Descent</title>
+      <link>https://adnanhd.github.io/blogs/benign-overfitting-double-descent/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/benign-overfitting-double-descent/index.html</guid>
+      <pubDate>Tue, 23 Dec 2025 00:00:00 +0000</pubDate>
+      <description>The double-descent curve, deep double descent, experimental protocol nuances, and the dynamical picture of benign overfitting.</description>
+      <category>statistical-learning</category>
       <category>double-descent</category>
+    </item>
+    <item>
+      <title>Neural Scaling Laws: Kaplan, Chinchilla, and Compute-Optimal Training</title>
+      <link>https://adnanhd.github.io/blogs/scaling-laws/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/blogs/scaling-laws/index.html</guid>
+      <pubDate>Tue, 16 Dec 2025 00:00:00 +0000</pubDate>
+      <description>Kaplan scaling laws, Chinchilla compute-optimal training, and the earlier empirical scaling literature.</description>
+      <category>statistical-learning</category>
       <category>scaling-laws</category>
     </item>
     <item>
-      <title>Quantization-Aware Training</title>
+      <title>Quantization-Aware Training: Scales, Granularity, and Calibration</title>
       <link>https://adnanhd.github.io/blogs/quantization-aware-training/index.html</link>
       <guid isPermaLink="true">https://adnanhd.github.io/blogs/quantization-aware-training/index.html</guid>
-      <pubDate>Tue, 09 Dec 2025 13:09:00 +0000</pubDate>
-      <description>Low-precision deep network training and inference.</description>
+      <pubDate>Tue, 09 Dec 2025 00:00:00 +0000</pubDate>
+      <description>Uniform affine quantization, symmetric versus asymmetric schemes, per-tensor versus per-channel granularity, and calibration.</description>
       <category>quantization</category>
     </item>
     <item>
-      <title>Sparse Inertial Motion Capture</title>
+      <title>Sparse Inertial Motion Capture: IMU Models, Orientation, and Sensor Fusion</title>
       <link>https://adnanhd.github.io/blogs/inertial-motion-capture/index.html</link>
       <guid isPermaLink="true">https://adnanhd.github.io/blogs/inertial-motion-capture/index.html</guid>
-      <pubDate>Fri, 14 Nov 2025 10:41:00 +0000</pubDate>
-      <description>IMU-based pose estimation and sensor fusion.</description>
+      <pubDate>Fri, 14 Nov 2025 00:00:00 +0000</pubDate>
+      <description>IMU measurement models, orientation estimation, sparse sensor configurations, and coordinate-frame handling.</description>
       <category>inertial-motion-capture</category>
+    </item>
+    <item>
+      <title>Beyond Subjectivity: Continuous Cybersickness Detection Using EEG</title>
+      <link>https://adnanhd.github.io/projects/beyond-subjectivity-continuous-cybersickness-detection-using-eeg-based-multitaper-spectrum-estimation/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/projects/beyond-subjectivity-continuous-cybersickness-detection-using-eeg-based-multitaper-spectrum-estimation/index.html</guid>
+      <pubDate>Thu, 01 May 2025 00:00:00 +0000</pubDate>
+      <description>Continuous cybersickness detection in VR from EEG multitaper spectra. IEEE/TVCG 2025.</description>
+      <category>papers</category>
+    </item>
+    <item>
+      <title>Bucketed Ranking-Based Losses for Efficient Training of Object Detectors</title>
+      <link>https://adnanhd.github.io/projects/bucketed-ranking-based-losses-for-efficient-training-of-object-detectors/index.html</link>
+      <guid isPermaLink="true">https://adnanhd.github.io/projects/bucketed-ranking-based-losses-for-efficient-training-of-object-detectors/index.html</guid>
+      <pubDate>Tue, 01 Oct 2024 00:00:00 +0000</pubDate>
+      <description>Bucketed ranking-based losses that speed up ranking-based detector training up to 6x. ECCV 2024.</description>
+      <category>papers</category>
+      <category>object-detection</category>
     </item>
   </channel>
 </rss>

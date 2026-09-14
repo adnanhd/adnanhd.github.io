@@ -1,0 +1,906 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="Implicit differentiation of optimality conditions, perturbation methods, differentiable convex layers, and input convex networks." />
+        <title>Differentiating Through Constrained Optimization: Implicit Layers and Convex Programs - Adnan Harun Dogan</title>
+        <link rel="canonical" href="https://adnanhd.github.io/blogs/constrained-optimization-learning/" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="Differentiating Through Constrained Optimization: Implicit Layers and Convex Programs" />
+        <meta property="og:description" content="Implicit differentiation of optimality conditions, perturbation methods, differentiable convex layers, and input convex networks." />
+        <meta property="og:url" content="https://adnanhd.github.io/blogs/constrained-optimization-learning/" />
+        <meta property="og:image" content="https://adnanhd.github.io/blogs/constrained-optimization-learning/og-image.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Differentiating Through Constrained Optimization: Implicit Layers and Convex Programs" />
+        <meta name="twitter:description" content="Implicit differentiation of optimality conditions, perturbation methods, differentiable convex layers, and input convex networks." />
+        <meta name="twitter:image" content="https://adnanhd.github.io/blogs/constrained-optimization-learning/og-image.png" />
+        <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Differentiating Through Constrained Optimization: Implicit Layers and Convex Programs",
+  "description": "Implicit differentiation of optimality conditions, perturbation methods, differentiable convex layers, and input convex networks.",
+  "url": "https://adnanhd.github.io/blogs/constrained-optimization-learning/",
+  "image": "https://adnanhd.github.io/blogs/constrained-optimization-learning/og-image.png",
+  "author": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan",
+    "url": "https://adnanhd.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan"
+  },
+  "mainEntityOfPage": "https://adnanhd.github.io/blogs/constrained-optimization-learning/",
+  "datePublished": "2026-02-25"
+}
+        </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../index.html" class="blog-back">&larr; Back to home</a>
+            <h1>Differentiating Through Constrained Optimization: Implicit Layers and Convex Programs</h1>
+            <div class="blog-meta">Implicit differentiation and optimization layers in deep networks</div>
+            <article class="blog-body">
+<p>Many ML pipelines have a two-stage structure: a predictor outputs
+unknown parameters; a solver consumes them and returns decisions.
+<u>Training the predictor with MSE or cross-entropy is agnostic to how
+prediction errors propagate through the solver, and small parameter
+errors near a constraint boundary can flip an entire decision</u><a
+href="#fn1" class="footnote-ref" id="fnref1"
+role="doc-noteref"><sup>1</sup></a><a href="#fn2" class="footnote-ref"
+id="fnref2" role="doc-noteref"><sup>2</sup></a>.
+<strong>Constrained-optimization learning</strong> (variously
+decision-focused learning, predict-then-optimize, or
+differentiable-optimization) closes this loop by differentiating through
+the solver itself; the predictor learns to minimize
+<strong>regret</strong> on decisions, not error on parameters. Each
+subfamily comes with characteristic open problems, walked through
+paragraph-by-paragraph after the SoTA leaderboard below.</p>
+<p>The historical trajectory has three eras. Early
+<strong>implicit-layer</strong> work (2010-2017) established the
+gradient calculus for graphical-model inference <span class="citation"
+data-cites="domke_implicit_2010">(Domke 2010)</span> and convex-program
+sensitivity <span class="citation"
+data-cites="barratt_differentiability_2019">(Barratt 2019)</span>; the
+differentiable-layer era (2017-2021) packaged this calculus into
+deep-learning frameworks via OptNet <span
+class="citation" data-cites="amos_optnet_2021">(Amos and Kolter
+2017)</span> and CvxpyLayers <span
+class="citation" data-cites="agrawal_differentiable_2019">(Agrawal et
+al. 2019)</span>, with the predict-then-optimize
+formulation <span class="citation"
+data-cites="elmachtoub_smart_2020">(Elmachtoub and Grigas 2022)</span>
+giving consistent surrogate losses; and the modern era (2021-present)
+has scaled to <strong>combinatorial</strong> problems via blackbox finite differences <span
+class="citation"
+data-cites="vlastelica_differentiation_2020">(Vlastelica et al.
+2020)</span> and perturbed
+maximizers <span class="citation"
+data-cites="berthet_learning_2020">(Berthet et al. 2020)</span>, to
+<strong>structured prediction</strong> via Fenchel-Young losses <span
+class="citation" data-cites="blondel_fenchel-young_2020">(Blondel et al.
+2020)</span>, and to <strong>dual learning</strong> <span
+class="citation" data-cites="klamkin_dual_2025">(Klamkin et al.
+2025)</span> for large-scale constrained programs.</p>
+<p>Read across the eras and one question keeps being asked in different
+vocabulary: <u>an <code class="verbatim">argmin</code> is piecewise
+constant in its inputs, so its honest derivative is zero almost
+everywhere and undefined on a measure-zero set where all the information
+lives. Where do you get a usable gradient from?</u> There are only four
+answers, and every family below is one of them. Differentiate the
+<em>optimality conditions</em> rather than the solver, which is exact
+where the active set is fixed and singular where it changes.
+Differentiate a <em>smoothed</em> problem, which is always defined but
+is the gradient of a different function than the one you solve. Take a
+<em>finite difference through the solver itself</em>, which needs no
+structure at all but costs a second solve and returns nothing when the
+perturbation fails to cross a face. Or refuse the gradient and change
+the <em>loss</em> instead, so that the training signal never has to pass
+through the solver. The seven families are these four answers crossed
+with what the inner problem happens to be, and the footnotes above are
+the bill each answer runs up.</p>
+<p>The taxonomy below distinguishes seven families.
+<strong>Implicit-layer</strong> methods solve the forward problem with a
+classical solver and back-propagate by differentiating the
+<strong>KKT</strong> system; this is exact when the active set is fixed,
+but the linear system is ill-conditioned at the boundary<a href="#fn3"
+class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> and
+costly to assemble at every step<a href="#fn4" class="footnote-ref"
+id="fnref4" role="doc-noteref"><sup>4</sup></a>.
+<strong>Predict-then-optimize</strong> methods replace the MSE training
+signal with a <strong>regret-based</strong> surrogate (SPO+, CaVE),
+eliminating the loss-mismatch<a href="#fn5" class="footnote-ref"
+id="fnref5" role="doc-noteref"><sup>5</sup></a> but inheriting the
+solver's non-differentiability for combinatorial problems<a href="#fn6"
+class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a>.
+<strong>Combinatorial</strong> methods sidestep non-differentiability
+via blackbox interpolation, perturb-and-MAP, or Sinkhorn relaxations,
+paying for the smoothing with an integer-relaxation gap<a href="#fn7"
+class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a>.
+<strong>Augmented-Lagrangian</strong> and <strong>prox</strong>-based
+methods enforce constraints by penalty rather than solver call, trading
+exact feasibility for a tunable violation-vs-optimality
+balance<a href="#fn8" class="footnote-ref" id="fnref8"
+role="doc-noteref"><sup>8</sup></a>. <strong>Bilevel</strong> methods
+fold the inner problem into a hyper-gradient, enabling millions of
+hyperparameters but requiring careful Hessian-vector treatment.
+<strong>Structured-prediction</strong> methods cast inference as
+regularized optimization with closed-form Fenchel-Young losses.
+<strong>Application-driven</strong> methods (MPC, portfolio, routing)
+tune the recipe to a problem class. <u>A persistent diagnostic across
+the field is scale mismatch: an MLP predictor's natural output scale is
+rarely the solver's parameter scale, and naive loss combinations across
+the two scales train poorly</u><a href="#fn9" class="footnote-ref"
+id="fnref9" role="doc-noteref"><sup>9</sup></a>; another is the
+<strong>failure to exploit problem structure</strong><a href="#fn10"
+class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a>,
+where a generic implicit-layer beats a problem-specific decomposition
+only on toy sizes.</p>
+<div class="blog-table"><table id="tbl:col-sota">
+<caption>Constrained-optimization-learning SoTA leaderboard. Method
+links to the chapter section and cites the canonical paper.
+Architecture/Layer = the differentiable mechanism (implicit KKT, prox,
+perturbed argmax, augmented Lagrangian, etc.). Loss = the training
+signal driving the predictor. Problem class abbreviates LP / QP / MILP /
+SOCP / Combinatorial (Comb) / Convex (Cvx). Constraint-sat =
+constraint-satisfaction rate (% of test instances feasible). Opt-gap =
+optimality gap (%) vs the exact-solver optimum. Speedup = wall-clock vs
+the classical solver (1x = parity). OOD = qualitative generalization to
+out-of-distribution constraints (high / med / low). Dashes mark
+unreported settings. Numbers are paper-reported headline values;
+settings differ across rows and only same-row reads are
+consistent.</caption>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Constraints</td>
+<td>Optimality</td>
+<td>Speed</td>
+<td>OOD</td>
+</tr>
+<tr>
+<td>Method</td>
+<td>Year</td>
+<td>Architecture</td>
+<td>Loss</td>
+<td>Problem</td>
+<td>sat (%)</td>
+<td>gap (%)</td>
+<td>speedup</td>
+<td>gen</td>
+</tr>
+<tr>
+<td>Domke
+implicit grad <span class="citation"
+data-cites="domke_implicit_2010">(Domke 2010)</span></td>
+<td>2010</td>
+<td>implicit graphical-model</td>
+<td>marginal NLL</td>
+<td>Cvx-MAP</td>
+<td>100</td>
+<td> - </td>
+<td>1x</td>
+<td>low</td>
+</tr>
+<tr>
+<td>Barratt
+sensitivity <span class="citation"
+data-cites="barratt_differentiability_2019">(Barratt 2019)</span></td>
+<td>2019</td>
+<td>implicit cone-program</td>
+<td>downstream-task</td>
+<td>SOCP</td>
+<td>100</td>
+<td> - </td>
+<td>0.3x</td>
+<td>med</td>
+</tr>
+<tr>
+<td>ICNN <span class="citation"
+data-cites="amos_input_2017">(Amos et al. 2017)</span></td>
+<td>2017</td>
+<td>input-convex MLP</td>
+<td>MSE on objective</td>
+<td>Cvx</td>
+<td>100</td>
+<td>1.0</td>
+<td>5x</td>
+<td>med</td>
+</tr>
+<tr>
+<td>OptNet <span class="citation"
+data-cites="amos_optnet_2021">(Amos and Kolter 2017)</span></td>
+<td>2017</td>
+<td>implicit QP layer (KKT)</td>
+<td>task / MSE</td>
+<td>QP</td>
+<td>100</td>
+<td>0.3</td>
+<td>0.5x</td>
+<td>med</td>
+</tr>
+<tr>
+<td>DiffMPC <span class="citation"
+data-cites="amos_differentiable_2019">(Amos et al. 2018)</span></td>
+<td>2018</td>
+<td>implicit iLQR</td>
+<td>imitation</td>
+<td>QP-MPC</td>
+<td>100</td>
+<td>1.5</td>
+<td>1x</td>
+<td>med</td>
+</tr>
+<tr>
+<td>SPO+ <span
+class="citation" data-cites="elmachtoub_smart_2020">(Elmachtoub and
+Grigas 2022)</span></td>
+<td>2017</td>
+<td>predict-then-LP</td>
+<td>regret-based (SPO+)</td>
+<td>LP</td>
+<td>100</td>
+<td>4.2</td>
+<td>1x</td>
+<td>high</td>
+</tr>
+<tr>
+<td>CvxpyLayers <span class="citation"
+data-cites="agrawal_differentiable_2019">(Agrawal et al.
+2019)</span></td>
+<td>2019</td>
+<td>implicit DCP cone</td>
+<td>task</td>
+<td>Cvx</td>
+<td>100</td>
+<td> - </td>
+<td>0.4x</td>
+<td>high</td>
+</tr>
+<tr>
+<td>GNN-NP <span
+class="citation" data-cites="prates_learning_2018">(Prates et al.
+2019)</span></td>
+<td>2018</td>
+<td>message-passing GNN</td>
+<td>binary CE on feasibility</td>
+<td>SAT</td>
+<td>85</td>
+<td> - </td>
+<td>30x</td>
+<td>low</td>
+</tr>
+<tr>
+<td>AttnTSP <span
+class="citation" data-cites="kool_attention_2019">(Kool et al.
+2019)</span></td>
+<td>2019</td>
+<td>encoder-decoder attention</td>
+<td>REINFORCE rollout-baseline</td>
+<td>Comb</td>
+<td>100</td>
+<td>2.6</td>
+<td>100x</td>
+<td>low</td>
+</tr>
+<tr>
+<td>Bilevel-HPO <span
+class="citation" data-cites="franceschi_bilevel_2018">(Franceschi et al.
+2018)</span></td>
+<td>2018</td>
+<td>reverse-mode unrolling</td>
+<td>val loss</td>
+<td>Cvx</td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+</tr>
+<tr>
+<td>Lorraine
+M-HP <span class="citation"
+data-cites="lorraine_optimizing_2019">(Lorraine et al. 2020)</span></td>
+<td>2019</td>
+<td>Neumann implicit</td>
+<td>val loss</td>
+<td>Cvx</td>
+<td> - </td>
+<td> - </td>
+<td>10x</td>
+<td>high</td>
+</tr>
+<tr>
+<td>Meta-DCO
+<span class="citation" data-cites="lee_meta-learning_2019">(Lee et al.
+2019)</span></td>
+<td>2019</td>
+<td>implicit ridge</td>
+<td>meta-loss (CE)</td>
+<td>QP</td>
+<td>100</td>
+<td> - </td>
+<td>0.6x</td>
+<td>high</td>
+</tr>
+<tr>
+<td>Blackbox-CO <span
+class="citation"
+data-cites="vlastelica_differentiation_2020">(Vlastelica et al.
+2020)</span></td>
+<td>2020</td>
+<td>finite-diff via solver</td>
+<td>hinge / Hamming</td>
+<td>Comb</td>
+<td>100</td>
+<td>1.4</td>
+<td>1x</td>
+<td>med</td>
+</tr>
+<tr>
+<td>Perturbed-FY
+<span class="citation" data-cites="berthet_learning_2020">(Berthet et
+al. 2020)</span></td>
+<td>2020</td>
+<td>Gumbel-perturbed argmax</td>
+<td>Fenchel-Young</td>
+<td>Comb</td>
+<td>100</td>
+<td>2.0</td>
+<td>1x</td>
+<td>high</td>
+</tr>
+<tr>
+<td>Fenchel-Young <span
+class="citation" data-cites="blondel_fenchel-young_2020">(Blondel et al.
+2020)</span></td>
+<td>2020</td>
+<td>regularized prediction</td>
+<td>Fenchel-Young</td>
+<td>Comb</td>
+<td>100</td>
+<td> - </td>
+<td>1x</td>
+<td>high</td>
+</tr>
+<tr>
+<td>DiffDP <span class="citation"
+data-cites="mensch_differentiable-dp_2018">(Mensch and Blondel
+2018)</span></td>
+<td>2018</td>
+<td>smoothed Bellman</td>
+<td>structured</td>
+<td>DP-Comb</td>
+<td>100</td>
+<td> - </td>
+<td>5x</td>
+<td>med</td>
+</tr>
+<tr>
+<td>SATNet <span class="citation"
+data-cites="wang_satnet_2019">(Wang et al. 2019)</span></td>
+<td>2019</td>
+<td>low-rank SDP (Mixing)</td>
+<td>MSE on logits</td>
+<td>SDP-MaxSAT</td>
+<td>100</td>
+<td> - </td>
+<td>20x</td>
+<td>low</td>
+</tr>
+<tr>
+<td>DDN <span
+class="citation" data-cites="gould_deep_2021">(Gould et al.
+2021)</span></td>
+<td>2021</td>
+<td>declarative implicit</td>
+<td>task</td>
+<td>Cvx</td>
+<td>100</td>
+<td> - </td>
+<td>0.5x</td>
+<td>med</td>
+</tr>
+<tr>
+<td>Kotary L2O <span
+class="citation" data-cites="kotary_learning_2021">(Kotary et al.
+2021)</span></td>
+<td>2021</td>
+<td>NN-imitation of solver</td>
+<td>feas+opt joint</td>
+<td>LP/QP</td>
+<td>92</td>
+<td>1.8</td>
+<td>50x</td>
+<td>low</td>
+</tr>
+<tr>
+<td>BPQP <span class="citation"
+data-cites="pan_bpqp_2024">(Pan et al. 2024)</span></td>
+<td>2024</td>
+<td>structured QP backward</td>
+<td>task</td>
+<td>QP</td>
+<td>100</td>
+<td>0.4</td>
+<td>5x</td>
+<td>med</td>
+</tr>
+<tr>
+<td>CaVE <span class="citation"
+data-cites="tang_cave_2024">(Tang and Khalil 2024)</span></td>
+<td>2024</td>
+<td>cone-aligned MILP</td>
+<td>regret cone-loss</td>
+<td>MILP</td>
+<td>100</td>
+<td>0.9</td>
+<td>1x</td>
+<td>high</td>
+</tr>
+<tr>
+<td>Dual-OL <span
+class="citation" data-cites="klamkin_dual_2025">(Klamkin et al.
+2025)</span></td>
+<td>2025</td>
+<td>augmented-Lagrangian</td>
+<td>dual-objective</td>
+<td>LP/QP</td>
+<td>99</td>
+<td>0.7</td>
+<td>8x</td>
+<td>high</td>
+</tr>
+</tbody>
+</table></div>
+<p>The table groups the literature into seven families, walked through
+in chronological order. <strong>Implicit-layer</strong> foundations
+(Domke, Barratt) gave the gradient calculus for parametric MAP and
+convex programs by differentiating the KKT system; the construction is
+exact when the active set is fixed but is dominated by the cost of
+solving an inner linear system at every gradient step<a href="#fn11"
+class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a>,
+and is numerically delicate near a constraint boundary<a href="#fn12"
+class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a>.
+<u>The 100% constraint-satisfaction reported in the table for these rows
+reflects that the forward pass is a feasible solver call</u>; the OOD
+column flags whether the predictor's parameters generalize beyond the
+training distribution of constraints, which Domke's marginal-NLL recipe
+does not address while CvxpyLayers and Lorraine's hyperparameter
+approach do.</p>
+<p>The <strong>differentiable-optimization-layer</strong> line (OptNet, CvxpyLayers,
+DDN, BPQP) extended the implicit-layer recipe to general
+<strong>QP</strong> and <strong>DCP</strong> problems, packaging the
+<strong>KKT</strong>-Jacobian backward into PyTorch and JAX. The
+wall-clock cost of these layers (0.3-0.5x compared to a forward-only
+solver call) is dominated by an LU factorization on the KKT matrix at
+every step<a href="#fn13" class="footnote-ref" id="fnref13"
+role="doc-noteref"><sup>13</sup></a>, with BPQP
+reducing the constant factor by 5-10x via structure-aware factorization
+but not the asymptotic order; the implicit-layer family also fails to
+exploit problem-specific decompositions that classical solvers use for
+free<a href="#fn14" class="footnote-ref" id="fnref14"
+role="doc-noteref"><sup>14</sup></a>. Within this line,
+<strong>input-convex</strong> networks <span class="citation"
+data-cites="amos_input_2017">(Amos et al. 2017)</span> take an
+orthogonal route: <u>instead of differentiating a solver, they constrain
+the network architecture to be convex in its input, so the forward pass
+is an unconstrained convex optimization with closed-form
+gradients.</u></p>
+<p><strong>Predict-then-optimize</strong> methods (SPO+, CaVE) replace the predictor's MSE loss with a
+<strong>regret-based</strong> surrogate that knows the downstream
+solver. SPO+ is a Fisher-consistent convex upper bound on the true
+regret, achieved with a single extra solver call per training point and
+gradients computed without backprop through the solver itself; this
+sidesteps the non-differentiable-solver obstacle<a href="#fn15"
+class="footnote-ref" id="fnref15" role="doc-noteref"><sup>15</sup></a>
+but pays for it with a 4.2% optimality gap at convergence (vs OptNet's
+0.3% on small QPs) because the surrogate is not the true regret<a
+href="#fn16" class="footnote-ref" id="fnref16"
+role="doc-noteref"><sup>16</sup></a>. CaVE
+<u>extends the recipe to MILP by aligning the predicted cost vector to
+the optimality cone of the integer-feasible solution</u>, the first
+decision-focused method that closes the gap on binary programs without
+smoothing the integer feasibility<a href="#fn17" class="footnote-ref"
+id="fnref17" role="doc-noteref"><sup>17</sup></a>.</p>
+<p><img src="figures/col-family-timeline.svg" /></p>
+<p><strong>Combinatorial</strong> methods (Blackbox-CO, Perturbed-FY,
+Fenchel-Young, GNN-NP, AttnTSP, SATNet) attack the harder problem of
+differentiating through <strong>non-differentiable</strong> integer/SAT
+solvers<a href="#fn18" class="footnote-ref" id="fnref18"
+role="doc-noteref"><sup>18</sup></a>. Blackbox differentiation runs the
+solver twice with perturbed parameters and uses a finite-difference
+gradient on the resulting decisions; perturbed-FY
+adds Gumbel noise to the solver inputs and treats the expected argmax as
+a differentiable smoothed version, with closed-form gradients via the Fenchel-Young machinery.
+<strong>SATNet</strong> takes a third route, replacing the solver
+entirely with a low-rank <strong>SDP</strong> relaxation differentiable
+end-to-end. The cost of all three is an integer-relaxation gap<a
+href="#fn19" class="footnote-ref" id="fnref19"
+role="doc-noteref"><sup>19</sup></a>: <u>the relaxed gradient signal is
+well-defined but biased away from the true integer optimum, and the gap
+does not vanish as the predictor improves.</u></p>
+<p><strong>Bilevel</strong> methods (Franceschi, Lorraine,
+Lee)
+fold an inner optimization (model fit on the train set) into an outer
+hyper-gradient (val loss). <u>Reverse-mode unrolling computes exact
+hyper-gradients but stores all inner-loop activations, limiting the
+inner horizon to ~20-50 steps</u> <span class="citation"
+data-cites="franceschi_bilevel_2018">(Franceschi et al. 2018)</span>;
+<strong>Neumann-implicit</strong> methods <span class="citation"
+data-cites="lorraine_optimizing_2019">(Lorraine et al. 2020)</span>
+approximate the hyper-Jacobian as a truncated Neumann series, scaling to
+millions of hyperparameters at the cost of approximation bias. The OOD
+column is high for these because the meta-loop is training for OOD
+generalization by construction; the inner-loop ill-conditioning is the
+same KKT pathology<a href="#fn20" class="footnote-ref" id="fnref20"
+role="doc-noteref"><sup>20</sup></a> as in the implicit-layer
+family.</p>
+<p><strong>Dual learning</strong> (Klamkin 2025) and
+<strong>augmented-Lagrangian</strong> methods enforce constraints via a
+learned dual variable rather than a solver call, training a primal
+predictor and a dual predictor jointly with an augmented-Lagrangian
+objective. <u>The reported 99% constraint-satisfaction (vs 100% for
+solver-in-the-loop methods) is the price of dropping the inner solver
+from the training loop, recovered as an 8x training speedup</u>; the
+<strong>prox</strong>-update on the dual variable is what stabilizes the
+alternation between primal-feasibility and primal-optimality<a
+href="#fn21" class="footnote-ref" id="fnref21"
+role="doc-noteref"><sup>21</sup></a>. Against the
+<strong>predict-then-optimize</strong> family, dual learning trades a
+small infeasibility rate for a much faster training loop and better
+scaling to large LP/QP instances.</p>
+<p>The table separates four eras: foundational implicit gradients
+(2010-2017), the differentiable-layer build-out (2017-2021),
+combinatorial and predict-then-optimize maturation (2018-2024), and the
+modern <strong>dual learning</strong> and <strong>cone-aligned</strong>
+recipes (2024-2025). Three readings. First, no single method dominates:
+implicit-layer methods are exact but slow (0.3-0.5x),
+predict-then-optimize is fast but has a 1-4% optimality floor,
+combinatorial is fast on integer problems but hurt by relaxation bias,
+and dual learning is fastest but trades a percent of feasibility.
+Second, OOD generalization is the unresolved axis: <u>the methods rated
+"high" (SPO+, CvxpyLayers, Lorraine, Perturbed-FY, FY, Meta-DCO, CaVE,
+Dual-OL) are those whose training signal is the downstream task, while
+methods rated "low" (Domke, GNN-NP, AttnTSP, SATNet, Kotary) overfit to
+the training instance distribution.</u> Third, the trend is toward
+<strong>hybrid</strong> recipes: BPQP combines structured backward with
+task loss, CaVE combines cone alignment with decision-focused regret,
+and Dual-OL combines augmented-Lagrangian with primal-dual prediction;
+the next generation appears to be <strong>augmented-Lagrangian +
+decision-focused</strong> trained end-to-end on industrial-scale
+LPs.</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-agrawal_differentiable_2019" class="csl-entry"
+role="listitem">
+Agrawal, Akshay, Brandon Amos, Shane Barratt, Stephen Boyd, Steven
+Diamond, and Zico Kolter. 2019. <span>"Differentiable
+<span>Convex</span> <span>Optimization</span>
+<span>Layers</span>."</span> <em>Advances in Neural Information
+Processing Systems (NeurIPS)</em>, October. <a
+href="https://doi.org/10.48550/arXiv.1910.12430">https://doi.org/10.48550/arXiv.1910.12430</a>.
+</div>
+<div id="ref-amos_optnet_2021" class="csl-entry" role="listitem">
+Amos, Brandon, and J. Zico Kolter. 2017. <span>"<span>OptNet</span>:
+<span>Differentiable</span> <span>Optimization</span> as a
+<span>Layer</span> in <span>Neural</span> <span>Networks</span>."</span>
+<em>International Conference on Machine Learning (ICML)</em>, December.
+<a
+href="https://doi.org/10.48550/arXiv.1703.00443">https://doi.org/10.48550/arXiv.1703.00443</a>.
+</div>
+<div id="ref-amos_differentiable_2019" class="csl-entry"
+role="listitem">
+Amos, Brandon, Ivan Dario Jimenez Rodriguez, Jacob Sacks, Byron Boots,
+and J. Zico Kolter. 2018. <span>"Differentiable <span>MPC</span> for
+<span>End</span>-to-End <span>Planning</span> and
+<span>Control</span>."</span> <em>Advances in Neural Information
+Processing Systems (NeurIPS)</em>, October. <a
+href="https://doi.org/10.48550/arXiv.1810.13400">https://doi.org/10.48550/arXiv.1810.13400</a>.
+</div>
+<div id="ref-amos_input_2017" class="csl-entry" role="listitem">
+Amos, Brandon, Lei Xu, and J. Zico Kolter. 2017. <span>"Input
+<span>Convex</span> <span>Neural</span> <span>Networks</span>."</span>
+<em>International Conference on Machine Learning (ICML)</em>, June. <a
+href="https://doi.org/10.48550/arXiv.1609.07152">https://doi.org/10.48550/arXiv.1609.07152</a>.
+</div>
+<div id="ref-barratt_differentiability_2019" class="csl-entry"
+role="listitem">
+Barratt, Shane. 2019. <em>On the <span>Differentiability</span> of the
+<span>Solution</span> to <span>Convex</span> <span>Optimization</span>
+<span>Problems</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.1804.05098">https://doi.org/10.48550/arXiv.1804.05098</a>.
+</div>
+<div id="ref-berthet_learning_2020" class="csl-entry" role="listitem">
+Berthet, Quentin, Mathieu Blondel, Olivier Teboul, Marco Cuturi,
+Jean-Philippe Vert, and Francis Bach. 2020. <span>"Learning with
+<span>Differentiable</span> <span>Perturbed</span>
+<span>Optimizers</span>."</span> <em>Advances in Neural Information
+Processing Systems (<span>NeurIPS</span>)</em> 33. <a
+href="http://arxiv.org/abs/2002.08676">http://arxiv.org/abs/2002.08676</a>.
+</div>
+<div id="ref-blondel_fenchel-young_2020" class="csl-entry"
+role="listitem">
+Blondel, Mathieu, André F. T. Martins, and Vlad Niculae. 2020.
+<em>Learning with <span>Fenchel</span>-<span>Young</span>
+<span>Losses</span></em>. <a
+href="https://doi.org/10.48550/arXiv.1901.02324">https://doi.org/10.48550/arXiv.1901.02324</a>.
+</div>
+<div id="ref-domke_implicit_2010" class="csl-entry" role="listitem">
+Domke, Justin. 2010. <span>"Implicit <span>Differentiation</span> by
+<span>Perturbation</span>."</span> <em>Advances in <span>Neural</span>
+<span>Information</span> <span>Processing</span>
+<span>Systems</span></em> 23. <a
+href="https://papers.nips.cc/paper_files/paper/2010/hash/6ecbdd6ec859d284dc13885a37ce8d81-Abstract.html">https://papers.nips.cc/paper_files/paper/2010/hash/6ecbdd6ec859d284dc13885a37ce8d81-Abstract.html</a>.
+</div>
+<div id="ref-elmachtoub_smart_2020" class="csl-entry" role="listitem">
+Elmachtoub, Adam N., and Paul Grigas. 2022. <span>"Smart
+"<span>Predict</span>, Then <span>Optimize</span>"."</span>
+<em>Management Science</em>, ahead of print, November. <a
+href="https://doi.org/10.48550/arXiv.1710.08005">https://doi.org/10.48550/arXiv.1710.08005</a>.
+</div>
+<div id="ref-franceschi_bilevel_2018" class="csl-entry" role="listitem">
+Franceschi, Luca, Paolo Frasconi, Saverio Salzo, Riccardo Grazzi, and
+Massimilano Pontil. 2018. <span>"Bilevel <span>Programming</span> for
+<span>Hyperparameter</span> <span>Optimization</span> and
+<span>Meta</span>-<span>Learning</span>."</span> <em>International
+Conference on Machine Learning (ICML)</em>, July. <a
+href="https://doi.org/10.48550/arXiv.1806.04910">https://doi.org/10.48550/arXiv.1806.04910</a>.
+</div>
+<div id="ref-gould_deep_2021" class="csl-entry" role="listitem">
+Gould, Stephen, Richard Hartley, and Dylan Campbell. 2021. <span>"Deep
+<span>Declarative</span> <span>Networks</span>: <span>A</span>
+<span>New</span> <span>Hope</span>."</span> <em>IEEE Transactions on
+Pattern Analysis and Machine Intelligence</em>, 1-1. <a
+href="https://doi.org/10.1109/TPAMI.2021.3059462">https://doi.org/10.1109/TPAMI.2021.3059462</a>.
+</div>
+<div id="ref-klamkin_dual_2025" class="csl-entry" role="listitem">
+Klamkin, Michael, Mathieu Tanneau, and Pascal Van Hentenryck. 2025.
+<em>Dual <span>Interior</span> <span>Point</span>
+<span>Optimization</span> <span>Learning</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2402.02596">https://doi.org/10.48550/arXiv.2402.02596</a>.
+</div>
+<div id="ref-kool_attention_2019" class="csl-entry" role="listitem">
+Kool, Wouter, Herke van Hoof, and Max Welling. 2019. <span>"Attention,
+<span>Learn</span> to <span>Solve</span> <span>Routing</span>
+<span>Problems</span>!"</span> <em>International Conference on Learning
+Representations (ICLR)</em>, February. <a
+href="https://doi.org/10.48550/arXiv.1803.08475">https://doi.org/10.48550/arXiv.1803.08475</a>.
+</div>
+<div id="ref-kotary_learning_2021" class="csl-entry" role="listitem">
+Kotary, James, Ferdinando Fioretto, and Pascal Van Hentenryck. 2021.
+<span>"Learning <span>Hard</span> <span>Optimization</span>
+<span>Problems</span>: <span>A</span> <span>Data</span>
+<span>Generation</span> <span>Perspective</span>."</span> <em>Advances
+in Neural Information Processing Systems (NeurIPS)</em>, June. <a
+href="https://doi.org/10.48550/arXiv.2106.02601">https://doi.org/10.48550/arXiv.2106.02601</a>.
+</div>
+<div id="ref-lee_meta-learning_2019" class="csl-entry" role="listitem">
+Lee, Kwonjoon, Subhransu Maji, Avinash Ravichandran, and Stefano Soatto.
+2019. <span>"Meta-<span>Learning</span> <span>With</span>
+<span>Differentiable</span> <span>Convex</span>
+<span>Optimization</span>."</span> <em>2019
+<span>IEEE</span>/<span>CVF</span> <span>Conference</span> on
+<span>Computer</span> <span>Vision</span> and <span>Pattern</span>
+<span>Recognition</span> (<span>CVPR</span>)</em> (Long Beach, CA, USA),
+June, 10649-57. <a
+href="https://doi.org/10.1109/CVPR.2019.01091">https://doi.org/10.1109/CVPR.2019.01091</a>.
+</div>
+<div id="ref-lorraine_optimizing_2019" class="csl-entry"
+role="listitem">
+Lorraine, Jonathan, Paul Vicol, and David Duvenaud. 2020.
+<span>"Optimizing <span>Millions</span> of <span>Hyperparameters</span>
+by <span>Implicit</span> <span>Differentiation</span>."</span>
+<em>International Conference on Artificial Intelligence and Statistics
+(AISTATS)</em>, November. <a
+href="https://doi.org/10.48550/arXiv.1911.02590">https://doi.org/10.48550/arXiv.1911.02590</a>.
+</div>
+<div id="ref-mensch_differentiable-dp_2018" class="csl-entry"
+role="listitem">
+Mensch, Arthur, and Mathieu Blondel. 2018. <span>"Differentiable
+<span>Dynamic</span> <span>Programming</span> for
+<span>Structured</span> <span>Prediction</span> and
+<span>Attention</span>."</span> <em>International Conference on Machine
+Learning (ICML)</em>. <a
+href="https://doi.org/10.48550/arXiv.1802.03676">https://doi.org/10.48550/arXiv.1802.03676</a>.
+</div>
+<div id="ref-pan_bpqp_2024" class="csl-entry" role="listitem">
+Pan, Jianming, Zeqi Ye, Xiao Yang, et al. 2024.
+<span>"<span>BPQP</span>: <span>A</span> <span>Differentiable</span>
+<span>Convex</span> <span>Optimization</span> <span>Framework</span> for
+<span>Efficient</span> <span>End</span>-to-<span>End</span>
+<span>Learning</span>."</span> <em>Advances in Neural Information
+Processing Systems (NeurIPS)</em>, December. <a
+href="https://doi.org/10.48550/arXiv.2411.19285">https://doi.org/10.48550/arXiv.2411.19285</a>.
+</div>
+<div id="ref-prates_learning_2018" class="csl-entry" role="listitem">
+Prates, Marcelo O. R., Pedro H. C. Avelar, Henrique Lemos, Luis Lamb,
+and Moshe Vardi. 2019. <span>"Learning to <span>Solve</span>
+<span>NP</span>-<span>Complete</span> <span>Problems</span> -
+<span>A</span> <span>Graph</span> <span>Neural</span>
+<span>Network</span> for <span>Decision</span> <span>TSP</span>."</span>
+<em>AAAI Conference on Artificial Intelligence</em>, November. <a
+href="https://doi.org/10.48550/arXiv.1809.02721">https://doi.org/10.48550/arXiv.1809.02721</a>.
+</div>
+<div id="ref-tang_cave_2024" class="csl-entry" role="listitem">
+Tang, Bo, and Elias B. Khalil. 2024. <span>"<span>CaVE</span>:
+<span>A</span> <span>Cone</span>-<span>Aligned</span>
+<span>Approach</span> for <span>Fast</span>
+<span>Predict</span>-Then-Optimize with <span>Binary</span>
+<span>Linear</span> <span>Programs</span>."</span> <em>International
+Conference on Machine Learning (ICML)</em>, March. <a
+href="https://doi.org/10.48550/arXiv.2312.07718">https://doi.org/10.48550/arXiv.2312.07718</a>.
+</div>
+<div id="ref-vlastelica_differentiation_2020" class="csl-entry"
+role="listitem">
+Vlastelica, Marin, Anselm Paulus, Vít Musil, Georg Martius, and Michal
+Rolínek. 2020. <span>"Differentiation of <span>Blackbox</span>
+<span>Combinatorial</span> <span>Solvers</span>."</span>
+<em>International Conference on Learning Representations (ICLR)</em>,
+February. <a
+href="https://doi.org/10.48550/arXiv.1912.02175">https://doi.org/10.48550/arXiv.1912.02175</a>.
+</div>
+<div id="ref-wang_satnet_2019" class="csl-entry" role="listitem">
+Wang, Po-Wei, Priya L. Donti, Bryan Wilder, and Zico Kolter. 2019.
+<span>"<span>SATNet</span>: <span>Bridging</span> Deep Learning and
+Logical Reasoning Using a Differentiable Satisfiability Solver."</span>
+<em>International Conference on Machine Learning
+(<span>ICML</span>)</em>, Proceedings of machine learning research, vol.
+97: 6545-54. <a
+href="http://arxiv.org/abs/1905.12149">http://arxiv.org/abs/1905.12149</a>.
+</div>
+</div>
+<section id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p><em>Decision-vs-prediction loss mismatch</em>: minimum
+MSE on parameters is not minimum regret on decisions; errors that cross
+a constraint or objective boundary are arbitrarily more costly than
+errors that don't.<a href="#fnref1" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><em>Active-set discontinuity</em>: the solver's argmax
+is piecewise-linear in its parameters with jump discontinuities at
+active-set transitions; a small input perturbation can flip which
+constraints bind, producing infinite local Lipschitz constants that
+defeat first-order training.<a href="#fnref2" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p><em>Ill-conditioned KKT system</em>: at the active-set
+boundary the KKT matrix becomes singular and its condition number
+diverges; gradient noise then dominates the signal and training
+oscillates without explicit regularization (typically a small
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mi>I</mi></mrow><annotation encoding="application/x-tex">\epsilon I</annotation></semantics></math>
+on the slack block).<a href="#fnref3" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p><em>Implicit-differentiation cost</em>: each backward
+pass solves an
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n^2)</annotation></semantics></math>-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mn>3</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n^3)</annotation></semantics></math>
+linear system in the inner-problem variables, so wrapping an LP/QP
+solver inside a training loop adds 5-50x wall-clock overhead per step
+relative to plain autograd.<a href="#fnref4" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p><em>Decision-vs-prediction loss mismatch</em>: minimum
+MSE on parameters is not minimum regret on decisions; errors that cross
+a constraint or objective boundary are arbitrarily more costly than
+errors that don't.<a href="#fnref5" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p><em>Non-differentiable solver</em>: branch-and-bound,
+simplex, and SAT solvers are piecewise-constant in their parameters, so
+naive autograd returns zero gradients; smoothing, blackbox finite
+differences, or perturbed-MAP estimators are required.<a href="#fnref6"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p><em>Integer-relaxation gap</em>: continuous relaxations
+(LP-relaxation, Sinkhorn, perturbed argmax) have a gap to the true
+integer optimum that does not shrink with predictor accuracy; the
+learned solution can be near-optimal in relaxation yet infeasible after
+rounding.<a href="#fnref7" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p><em>Constraint violation</em>: an unconstrained NN
+output may violate the feasible set; projection layers, penalty terms,
+and dual updates each trade feasibility against optimality and gradient
+quality.<a href="#fnref8" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn9"><p><em>Scale mismatch between predictor and solver</em>:
+the predictor's output scale (network logits) is rarely the solver's
+parameter scale (cost coefficients in the same units as the objective);
+without per-feature standardization or a learned output gain, gradients
+through the solver are dominated by the largest-magnitude coordinate and
+training stalls.<a href="#fnref9" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn10"><p><em>Failure to exploit problem structure</em>: a
+generic OptNet/CvxpyLayer ignores LP-totally-unimodular structure,
+network-flow decompositions, or block-diagonal Hessians that classical
+solvers exploit, so neural-augmented pipelines often run slower than
+tuned commercial solvers on structured instances despite better
+worst-case generalization.<a href="#fnref10" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn11"><p><em>Implicit-differentiation cost</em>: each backward
+pass solves an
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n^2)</annotation></semantics></math>-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mn>3</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n^3)</annotation></semantics></math>
+linear system in the inner-problem variables, so wrapping an LP/QP
+solver inside a training loop adds 5-50x wall-clock overhead per step
+relative to plain autograd.<a href="#fnref11" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn12"><p><em>Ill-conditioned KKT system</em>: at the active-set
+boundary the KKT matrix becomes singular and its condition number
+diverges; gradient noise then dominates the signal and training
+oscillates without explicit regularization (typically a small
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mi>I</mi></mrow><annotation encoding="application/x-tex">\epsilon I</annotation></semantics></math>
+on the slack block).<a href="#fnref12" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn13"><p><em>Implicit-differentiation cost</em>: each backward
+pass solves an
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n^2)</annotation></semantics></math>-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mn>3</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n^3)</annotation></semantics></math>
+linear system in the inner-problem variables, so wrapping an LP/QP
+solver inside a training loop adds 5-50x wall-clock overhead per step
+relative to plain autograd.<a href="#fnref13" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn14"><p><em>Failure to exploit problem structure</em>: a
+generic OptNet/CvxpyLayer ignores LP-totally-unimodular structure,
+network-flow decompositions, or block-diagonal Hessians that classical
+solvers exploit, so neural-augmented pipelines often run slower than
+tuned commercial solvers on structured instances despite better
+worst-case generalization.<a href="#fnref14" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn15"><p><em>Non-differentiable solver</em>: branch-and-bound,
+simplex, and SAT solvers are piecewise-constant in their parameters, so
+naive autograd returns zero gradients; smoothing, blackbox finite
+differences, or perturbed-MAP estimators are required.<a href="#fnref15"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn16"><p><em>Decision-vs-prediction loss mismatch</em>: minimum
+MSE on parameters is not minimum regret on decisions; errors that cross
+a constraint or objective boundary are arbitrarily more costly than
+errors that don't.<a href="#fnref16" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn17"><p><em>Integer-relaxation gap</em>: continuous relaxations
+(LP-relaxation, Sinkhorn, perturbed argmax) have a gap to the true
+integer optimum that does not shrink with predictor accuracy; the
+learned solution can be near-optimal in relaxation yet infeasible after
+rounding.<a href="#fnref17" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn18"><p><em>Non-differentiable solver</em>: branch-and-bound,
+simplex, and SAT solvers are piecewise-constant in their parameters, so
+naive autograd returns zero gradients; smoothing, blackbox finite
+differences, or perturbed-MAP estimators are required.<a href="#fnref18"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn19"><p><em>Integer-relaxation gap</em>: continuous relaxations
+(LP-relaxation, Sinkhorn, perturbed argmax) have a gap to the true
+integer optimum that does not shrink with predictor accuracy; the
+learned solution can be near-optimal in relaxation yet infeasible after
+rounding.<a href="#fnref19" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn20"><p><em>Ill-conditioned KKT system</em>: at the active-set
+boundary the KKT matrix becomes singular and its condition number
+diverges; gradient noise then dominates the signal and training
+oscillates without explicit regularization (typically a small
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mi>I</mi></mrow><annotation encoding="application/x-tex">\epsilon I</annotation></semantics></math>
+on the slack block).<a href="#fnref20" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+<li id="fn21"><p><em>Constraint violation</em>: an unconstrained NN
+output may violate the feasible set; projection layers, penalty terms,
+and dual updates each trade feasibility against optimality and gradient
+quality.<a href="#fnref21" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>
