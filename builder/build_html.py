@@ -379,7 +379,7 @@ def _render_pub_links(links):
     return f'<div class="publication-links">\n{items}\n</div>'
 
 
-def _render_awards(awards):
+def _render_awards(awards, compact=False):
     """Render an attached-awards line. Subtle: small trophy glyph +
     plain text name, optionally a thin organization tail. One line per
     award. Returns "" when there are no awards so callers can drop it
@@ -392,7 +392,8 @@ def _render_awards(awards):
         name = esc(a["name"])
         org = a.get("organization")
         link = a.get("link")
-        org_html = f' <span class="award-org">- {esc(org)}</span>' if org else ""
+        org_html = "" if compact else (
+            f' <span class="award-org">- {esc(org)}</span>' if org else "")
         body = (
             f'<i class="fa-solid fa-award" aria-hidden="true"></i> '
             f'<span class="award-name">{name}</span>{org_html}'
@@ -546,18 +547,28 @@ def render_compact_publication(paper):
 _MD_LINK = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 
 
+def _md_strip(text):
+    """Markdown links and **bold** reduced to bare text (for alt attributes)."""
+    return re.sub(r"\*\*(.+?)\*\*", r"\1", _MD_LINK.sub(r"\1", str(text)))
+
+
+def _md_bold(chunk):
+    """Escape a text chunk, rendering **phrase** as bold."""
+    return re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", esc(chunk))
+
+
 def _md_to_html(text):
-    """Convert inline markdown links [phrase](url) to anchors; escape
-    everything else."""
+    """Convert inline markdown links [phrase](url) to anchors and
+    **phrase** to bold; escape everything else."""
     out, last = [], 0
     for m in _MD_LINK.finditer(text):
-        out.append(esc(text[last:m.start()]))
+        out.append(_md_bold(text[last:m.start()]))
         out.append(
             f'<a href="{esc(m.group(2))}" target="_blank" rel="noopener noreferrer">'
             f'{esc(m.group(1))}</a>'
         )
         last = m.end()
-    out.append(esc(text[last:]))
+    out.append(_md_bold(text[last:]))
     return "".join(out)
 
 
@@ -570,7 +581,7 @@ def _render_resume_item(title, subtitle, date, description="", logo=None,
 
     if logo:
         parts.append('<div class="resume-logo">')
-        img = f'<img src="{esc(logo)}" alt="{esc(subtitle)}" loading="lazy" width="40" height="40" />'
+        img = f'<img src="{esc(logo)}" alt="{esc(_md_strip(subtitle))}" loading="lazy" width="40" height="40" />'
         if logo_link:
             parts.append(f'<a href="{esc(logo_link)}" target="_blank" rel="noopener noreferrer">{img}</a>')
         else:
@@ -652,8 +663,10 @@ def render_experience(data):
 
 
 def render_research(data):
+    # Project / lab name carries the entry; the generic role label
+    # ("Undergraduate Research Project") is the subtitle.
     items = (data.get("research") or {}).get("research", [])
-    return _render_section(items, "position", "company", _date_range, advisor_label="Supervisor")
+    return _render_section(items, "company", "position", _date_range, advisor_label="Supervisor")
 
 
 def render_teaching(data):
@@ -729,49 +742,45 @@ _MD_LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 
 def _md_links(text):
     """Escape text for HTML, converting [phrase](url) markdown links
-    into news-style anchors on the phrase."""
+    into news-style anchors and **phrase** into bold."""
     out, last = [], 0
     for m in _MD_LINK_RE.finditer(text):
-        out.append(esc(text[last:m.start()]))
+        out.append(_md_bold(text[last:m.start()]))
         out.append(
             f'<a href="{esc(m.group(2))}" class="news-link" '
             f'target="_blank" rel="noopener noreferrer">{esc(m.group(1))}</a>'
         )
         last = m.end()
-    out.append(esc(text[last:]))
+    out.append(_md_bold(text[last:]))
     return "".join(out)
 
 
 def render_news(data):
-    """One-line news entries with optional [link] and tag chips.
-    Row is a <div data-href=...> (not <a>) because the content already
-    contains an external <a class=news-link>[link]</a>, and nested <a>
-    is invalid HTML - the browser silently closes the outer anchor and
-    the row loses its grid layout. JS handles row-clicks instead.
-    """
-    items = (data.get("news") or {}).get("items", [])
+    """News is the curated view of the timeline: every entity (paper,
+    degree, position, honor) may carry `news:` entries - a date and a
+    hand-written one-liner with inline markdown links - and this
+    section collects them newest-first. The full record lives on the
+    Timeline page; this is its `selected` cut, the way resume.pdf cuts
+    cv.pdf."""
+    items = []
+    for paper in (data.get("publications") or {}).get("papers", []):
+        items.extend(paper.get("news") or [])
+    for section in ("education", "experience", "research"):
+        for item in (data.get(section) or {}).get(section) or []:
+            items.extend(item.get("news") or [])
+    for h in (data.get("extracurricular") or {}).get("honors", []):
+        items.extend(h.get("news") or [])
+    items = [n for n in items if n.get("date") and n.get("text")]
     if not items:
         return ""
 
-    items = sorted(items, key=lambda i: parse_date(i.get("date", "")), reverse=True)
+    items.sort(key=lambda n: parse_date(n["date"]), reverse=True)
     items = items[:_NEWS_MAX_ITEMS]
 
     parts = []
-    for item in items:
-        date_html = f'<span class="news-date">{esc(format_date(item["date"], short=True))}</span>'
-
-        # Inline markdown links [text](url) become understated anchors;
-        # the legacy `link` field still renders as a trailing "[link]".
-        body = _md_links(item["content"])
-        if item.get("link"):
-            body += (
-                f' <a href="{esc(item["link"])}" class="news-link" '
-                f'target="_blank" rel="noopener noreferrer">[link]</a>'
-            )
-        content_html = f'<span class="news-content">{body}</span>'
-
-        # News rows are static one-liners: no tag chips, and timeline_ref
-        # is kept in the data but no longer turned into a click-through.
+    for n in items:
+        date_html = f'<span class="news-date">{esc(format_date(n["date"], short=True))}:</span>'
+        content_html = f' <span class="news-content">{_md_links(n["text"])}</span>'
         parts.append(
             f'<li><div class="news-row">'
             f'{date_html}{content_html}</div></li>'
@@ -783,16 +792,15 @@ def render_news(data):
 # Timeline - two-sided chronology, no nav entry (reached via News clicks)
 # ---------------------------------------------------------------------------
 
-# Type -> (side, dot/border colour). Paper-related events (publications +
-# paper awards) go on the LEFT; institutional events (degree, experience,
-# research positions) go on the RIGHT. The right side is intentionally
-# given more width since those titles + org names run long.
+# Type -> (side, dot/border colour). Publications are the primary cards
+# on the LEFT; degrees sit on the RIGHT; experience / research render as
+# parallel position bars along the rail.
 _TIMELINE_TYPE_META = {
-    "publication": ("left",  "#10b981"),  # only when a pub has no `source:`
+    "publication": ("left",  "#10b981"),
     "award":       ("left",  "#b58900"),  # orphan honors (no parent entry)
     "degree":      ("right", "#6c71c4"),  # formal credentials -> right side
-    "experience":  ("left",  "#2aa198"),  # internships / positions -> left
-    "research":    ("left",  "#2aa198"),  # research projects -> left
+    "experience":  ("right", "#2aa198"),  # processes: right column
+    "research":    ("right", "#859900"),
 }
 
 # Order + labels for the timeline type-filter chips (only present types show).
@@ -804,7 +812,6 @@ _TL_FILTER_ORDER = [
     ("award",       "Awards"),
 ]
 
-
 def _timeline_exp_event(item, ev_type):
     """Build a timeline event from an education/experience/research record.
     The `id` field is the slug used to match a publication's `source:`
@@ -813,19 +820,33 @@ def _timeline_exp_event(item, ev_type):
     `slugify(title)` -- explicit ids are needed when several entries
     share the same position title (e.g. multiple 'Undergraduate Research
     Project' rows in research.yaml)."""
-    title = item.get("degree") or item.get("position", "")
-    item_id = item.get("id") or slugify(title)
+    title_link = None
+    if ev_type in ("research", "experience"):
+        # Position cards lead with the lab / institution name (linked to
+        # the lab page); the role label becomes the subtitle.
+        company = item.get("company", "")
+        m = _MD_LINK.search(company)
+        title_link = (m.group(2) if m else None) or item.get("logo_link")
+        title = _md_strip(company)
+        subtitle = item.get("position", "")
+    else:
+        title = item.get("degree") or item.get("position", "")
+        subtitle = item.get("institution") or item.get("company", "")
+    item_id = item.get("id") or slugify(item.get("degree") or item.get("position", ""))
     return {
         "date": item.get("start_date"), "end_date": item.get("end_date"),
         "type": ev_type,
         "title": title,
+        "title_link": title_link,
         "id": item_id,
-        "subtitle": item.get("institution") or item.get("company", ""),
+        "pos_id": item.get("id"),
+        "subtitle": subtitle,
         "logo": item.get("logo"),
         "link": item.get("link"),
-        # Awards opt out of the timeline with `timelined: false`.
-        "awards": [a for a in (item.get("awards") or [])
-                   if a.get("timelined") is not False],
+        # Scholarships and other position awards stay off the timeline
+        # (they live in the Honors section and the CV awards list);
+        # only merit badges on publications render here.
+        "awards": [],
     }
 
 
@@ -838,7 +859,6 @@ def _render_nested_pub(paper):
     title = esc(paper.get("title", ""))
     authors = highlight_author(esc(paper.get("authors", "")))
     venue = esc(paper.get("venue_short") or paper.get("venue", ""))
-    date = esc(format_date(paper.get("date"), short=True))
     venue_tag = (
         f'<span class="nested-pub-venue-tag">{venue}</span>' if venue else ""
     )
@@ -856,10 +876,9 @@ def _render_nested_pub(paper):
         f'<div class="nested-pub-line-1">'
         f'{venue_tag}'
         f'<span class="nested-pub-title">{title}</span>'
-        f'<span class="nested-pub-date">{date}</span>'
         f'</div>'
         f'<div class="nested-pub-line-2">{authors}</div>'
-        f'{_render_awards(paper.get("awards"))}'
+        f'{_render_awards(paper.get("awards"), compact=True)}'
         f'{links_html}'
         f'</div>'
     )
@@ -887,25 +906,32 @@ def _estimate_card_height(e, slim=False):
         title_cpl = 30      # chars per line; conservative for ~280px width
         text_cpl = 40
     else:
-        pad = 30
-        date_h = 21
-        title_lh = 24
-        text_lh = 22
-        links_h = 28
-        # Multi-lane left side -> a 3-lane layout gives each card ~250px
-        # of width, ~225px of inner text width. Bold 1em title fits ~22
-        # chars per line; 0.9em text fits ~28. Anything bigger here
-        # undercounts wraps and the per-lane post-pass leaves siblings
-        # overlapping.
-        title_cpl = 22
-        text_cpl = 28
+        pad = 24
+        date_h = 16
+        title_lh = 18
+        text_lh = 16
+        links_h = 26
+        # Multi-lane left side: with the 0.9em title / 0.78em text a
+        # ~250px lane fits ~25 title chars and ~32 text chars per line.
+        # Anything bigger here undercounts wraps and the per-lane
+        # post-pass leaves siblings overlapping.
+        # Single wide publication lane (~420px): generous lines.
+        title_cpl = 34
+        text_cpl = 46
     h = pad + date_h + 4
+    if e.get("news_text"):
+        # date line + wrapped sentence + padding
+        return pad + date_h + max(1, -(-len(e["news_text"]) // text_cpl)) * text_lh
     title = e.get("title", "") or ""
     h += max(1, -(-len(title) // title_cpl)) * title_lh
     if e["type"] == "publication" and e.get("authors"):
         h += max(1, -(-len(e["authors"]) // text_cpl)) * text_lh
     if e.get("subtitle"):
         h += max(1, -(-len(e["subtitle"]) // text_cpl)) * text_lh
+    for label, value in e.get("meta_rows") or []:
+        # Meta rows wrap: label + value at 0.66em fits ~64 chars a line.
+        txt = re.sub(r"<[^>]+>", "", f"{label} {value}")
+        h += max(1, -(-len(txt) // 64)) * 15
     has_links = (e.get("links") and any(l.get("url") for l in e["links"])) or e.get("link")
     if has_links:
         h += links_h
@@ -921,7 +947,7 @@ def _estimate_card_height(e, slim=False):
     # Round up a touch (50) so the layout estimator leans toward "a
     # little too much space" instead of "a little overlap".
     for child in e.get("child_pubs") or []:
-        child_h = 50
+        child_h = 92  # boxed chip: 3-line title clamp + 2 author lines
         if child.get("links"):
             child_h += 18
         if child.get("awards"):
@@ -959,6 +985,9 @@ def _date_frac(date_str):
 def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False):
     """Render a single timeline card with absolute positioning + lane info."""
     side, color = _TIMELINE_TYPE_META.get(e["type"], ("right", "var(--accent-color)"))
+    if e.get("pos_color"):
+        color = e["pos_color"]
+    pos_attr = f' data-pos="{esc(e["pos_id"])}"' if e.get("pos_id") else ""
     anchor = f"tl-{slugify(e['title'])}"
     slim_cls = " timeline-slim" if slim else ""
 
@@ -972,9 +1001,33 @@ def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False
         f'width="22" height="22" />' if logo else ""
     )
 
+    if e.get("news_text"):
+        # Atomic news moment: a dated one-liner, no title block.
+        body = [
+            f'<span class="timeline-date">{date}</span>',
+            f'<div class="timeline-newsline">{logo_html}<span>{_md_links(e["news_text"])}</span></div>',
+        ]
+        lane_ratio = lane / max(1, lanes)
+        rail_marker = (
+            f'<div class="rail-marker rail-marker-{side} timeline-{e["type"]}"{pos_attr} aria-hidden="true" '
+            f'style="top: {top_px:.1f}px; --lane-ratio: {lane_ratio:.6f}; '
+            f'--dot-color: {color};"></div>'
+        )
+        return (
+            f'<div id="{anchor}" class="timeline-item timeline-{e["type"]} timeline-{side} timeline-newsitem"{pos_attr} '
+            f'style="top: {top_px:.1f}px; --dot-color: {color}; --lane: {lane}; '
+            f'--lanes: {lanes}; --lane-recip: {1.0 / max(1, lanes):.6f};">'
+            f'{"".join(body)}</div>' + rail_marker
+        )
+
+    title_html = esc(e["title"])
+    if e.get("title_link"):
+        title_html = (
+            f'<a href="{esc(e["title_link"])}" target="_blank" '
+            f'rel="noopener noreferrer">{title_html}</a>')
     body = [
         f'<span class="timeline-date">{date}</span>',
-        f'<h4 class="timeline-title">{logo_html}<span>{esc(e["title"])}</span></h4>',
+        f'<h4 class="timeline-title">{logo_html}<span>{title_html}</span></h4>',
     ]
 
     if e["type"] == "publication":
@@ -983,8 +1036,12 @@ def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False
             f'{highlight_author(esc(e.get("authors", "")))}</div>'
         )
         if e.get("subtitle"):
-            body.append(f'<div class="timeline-venue"><em>{esc(e["subtitle"])}</em></div>')
-        body.append(_render_awards(e.get("awards")))
+            body.append(f'<div class="timeline-venue"><em>{_md_to_html(e["subtitle"])}</em></div>')
+        body.append(_render_awards(e.get("awards"), compact=True))
+        for label, value in e.get("meta_rows") or []:
+            body.append(
+                f'<div class="timeline-meta">'
+                f'<span class="timeline-meta-label">{label}</span> {value}</div>')
         links = [l for l in (e.get("links") or []) if l.get("url")]
         if links:
             link_html = "".join(
@@ -995,8 +1052,8 @@ def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False
             body.append(f'<div class="timeline-links">{link_html}</div>')
     else:
         if e.get("subtitle"):
-            body.append(f'<div class="timeline-org">{esc(e["subtitle"])}</div>')
-        body.append(_render_awards(e.get("awards")))
+            body.append(f'<div class="timeline-org">{_md_to_html(e["subtitle"])}</div>')
+        body.append(_render_awards(e.get("awards"), compact=True))
         if e.get("link"):
             body.append(
                 f'<div class="timeline-links">'
@@ -1017,8 +1074,9 @@ def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False
     )
     if height_px is not None:
         style += f" min-height: {height_px:.1f}px;"
+    plain_cls = "" if e["type"] == "publication" else " timeline-plain"
     card_html = (
-        f'<div id="{anchor}" class="timeline-item timeline-{e["type"]} timeline-{side}{slim_cls}" '
+        f'<div id="{anchor}" class="timeline-item timeline-{e["type"]} timeline-{side}{slim_cls}{plain_cls}"{pos_attr} '
         f'style="{style}">{"".join(body)}</div>'
     )
 
@@ -1034,9 +1092,9 @@ def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False
     # The marker carries the same timeline-<type> class as its card so the
     # type filter (initTimelineFilter) hides a card together with its dot+arm.
     rail_marker = (
-        f'<div class="rail-marker rail-marker-{side} timeline-{e["type"]}" aria-hidden="true" '
+        f'<div class="rail-marker rail-marker-{side} timeline-{e["type"]}"{pos_attr} aria-hidden="true" '
         f'style="top: {top_px:.1f}px; --lane-ratio: {lane_ratio:.6f}; '
-        f'--dot-color: {color};"></div>'
+        f'--dot-color: {color};"><i class="rail-dot-hit"></i></div>'
     )
     # rail-marker is placed AFTER the card so the `.timeline-item:hover +
     # .rail-marker` sibling combinator can light up the right dot.
@@ -1050,6 +1108,34 @@ def render_timeline(data):
     """
     events = []
 
+    # Index the raw section items by id; one stable colour per position
+    # paints its rail bar, its publications' borders / dots, and the
+    # hover linkage between them.
+    raw_parents = {}
+    for section in ("education", "experience", "research"):
+        for item in (data.get(section) or {}).get(section) or []:
+            if item.get("id"):
+                item["_section"] = section
+                raw_parents[item["id"]] = item
+    # Colours go only to positions that actually appear on the timeline
+    # (a paper's source, a news owner, or a drawn bar), in an order
+    # chosen so related labs land on clearly different hues. A position
+    # can also pin its own colour with a `color:` field in its meta.
+    _POS_PALETTE = ["#268bd2", "#2aa198", "#cb4b16", "#6c71c4", "#dc322f",
+                    "#859900", "#d33682", "#b58900", "#0f766e", "#5b7eb0"]
+    used = set()
+    for paper in (data.get("publications") or {}).get("papers", []):
+        if paper.get("source") and not paper.get("status"):
+            used.add(paper["source"])
+    for pid, item in raw_parents.items():
+        # Anything that draws a bar or owns news gets its own colour.
+        if item.get("news") or item.get("start_date"):
+            used.add(pid)
+    ordered = [pid for pid in raw_parents if pid in used]
+    pos_colors = {}
+    for i, pid in enumerate(ordered):
+        pos_colors[pid] = raw_parents[pid].get("color") or _POS_PALETTE[i % len(_POS_PALETTE)]
+
     for edu in (data.get("education") or {}).get("education", []):
         if edu.get("timelined"):
             events.append(_timeline_exp_event(edu, "degree"))
@@ -1060,29 +1146,71 @@ def render_timeline(data):
         if res.get("timelined"):
             events.append(_timeline_exp_event(res, "research"))
 
-    # Index parents by id so each publication's `source:` field can
-    # look up its parent card directly.
-    parent_index = {e["id"]: e for e in events if e.get("id")}
+    # Atomic moments of positions and degrees: every entity's `news:`
+    # entries render as small dated cards, typed like their owner so
+    # the filter chips rebuild the left column per entity kind.
+    # (Publication news are skipped: the paper card is that moment.)
+    _NEWS_EVENT_TYPE = {"experience": "experience", "research": "research",
+                        "education": "degree"}
+    for section, ev_type in _NEWS_EVENT_TYPE.items():
+        for item in (data.get(section) or {}).get(section) or []:
+            for n in item.get("news") or []:
+                if n.get("date") and n.get("text"):
+                    events.append({
+                        "date": n["date"], "type": ev_type,
+                        "title": _md_strip(n["text"])[:60],
+                        "news_text": n["text"],
+                        "logo": item.get("logo"),
+                        "pos_id": item.get("id"),
+                        "pos_color": pos_colors.get(item.get("id")),
+                    })
+
 
     for paper in (data.get("publications") or {}).get("papers", []):
         if paper.get("timelined") is False:  # explicitly hidden from the timeline
             continue
+        if paper.get("status"):  # under review: not an event yet
+            continue
+        # Publications are the timeline's primary entities: each renders
+        # as a full card at its own date. `source` no longer nests the
+        # paper inside the position card; instead the position's
+        # supervisor / laboratory / role ride along as meta rows.
+        meta_rows = []
         source = paper.get("source")
         if source:
-            parent = parent_index.get(source)
+            parent = raw_parents.get(source)
             if parent is None:
-                # Data-integrity warning: surface at build time so
-                # typos / renamed positions don't silently drop a paper.
                 print(
                     f"Warning: publication '{paper.get('title','')[:60]}' "
-                    f"has source='{source}' but no timelined position "
-                    f"with that slug exists. Available: "
-                    f"{sorted(parent_index)}",
+                    f"has source='{source}' but no position with that id "
+                    f"exists. Available: {sorted(raw_parents)}",
                     file=sys.stderr,
                 )
             else:
-                parent.setdefault("child_pubs", []).append(paper)
-                continue  # don't render as a standalone event
+                # Labels follow the parent's kind: a lab position, a
+                # research project, or a degree programme.
+                sec = parent.get("_section")
+                lab_label = {"experience": "Laboratory", "research": "Project",
+                             "education": "Institution"}.get(sec, "Laboratory")
+                role_label = {"experience": "Employment", "research": "Position",
+                              "education": "Programme"}.get(sec, "Employment")
+                if parent.get("advisor"):
+                    meta_rows.append(("Supervisor",
+                        linkify_names_html(_md_to_html(parent["advisor"]))))
+                lab = parent.get("company") or parent.get("institution")
+                if lab:
+                    lab_html = _md_to_html(lab)
+                    # No inline markdown link: fall back to the lab /
+                    # project page, mirroring the CV renderer.
+                    if "](" not in lab and parent.get("logo_link"):
+                        lab_html = (
+                            f'<a href="{esc(parent["logo_link"])}" target="_blank" '
+                            f'rel="noopener noreferrer">{lab_html}</a>')
+                    meta_rows.append((lab_label, lab_html))
+                role = parent.get("position") or parent.get("degree")
+                if role:
+                    span = f'{format_date(parent.get("start_date"), short=True, day=False)} - '                            f'{format_date(parent.get("end_date"), short=True, day=False)}'
+                    meta_rows.append((role_label, f"{esc(role)}, {esc(span)}"))
         events.append({
             "date": paper.get("date"), "type": "publication",
             "title": paper.get("title", ""),
@@ -1090,6 +1218,9 @@ def render_timeline(data):
             "subtitle": paper.get("venue_short") or paper.get("venue", ""),
             "links": paper.get("links"),
             "awards": paper.get("awards"),
+            "meta_rows": meta_rows,
+            "pos_id": source if source in raw_parents else None,
+            "pos_color": pos_colors.get(source),
         })
 
     # Standalone (orphan) honors. Awards that belong to a specific paper
@@ -1119,9 +1250,17 @@ def render_timeline(data):
     top_year = int(max(fracs)) + 1
     bot_year = int(min(fracs))
 
-    # Split events by side
+    # Everything on the timeline is atomic now; ranges survive only as
+    # the degree cards on the right. All atomic cards (papers, news
+    # moments) share the wide left column.
+    card_events = events
+
+    for e in card_events:
+        if e.get("pos_id") and not e.get("pos_color"):
+            e["pos_color"] = pos_colors.get(e["pos_id"])
+
     left, right = [], []
-    for e in events:
+    for e in card_events:
         side, _ = _TIMELINE_TYPE_META.get(e["type"], ("right", ""))
         (left if side == "left" else right).append(e)
 
@@ -1144,8 +1283,20 @@ def render_timeline(data):
                 lane_ends.append(en)
         return max(len(lane_ends), 1)
 
-    n_left = assign_lanes(left)
-    n_right = assign_lanes(right)
+    # The left side is type-banded: employment hugs the axis (lane 0
+    # upward), everything else (research, orphan pubs, awards) sits in
+    # the lanes further out. Overlapping employment spans still fan out
+    # into their own sub-lanes before the rest begin.
+    # One wide lane for the publication cards; the per-lane post-pass
+    # stacks same-year papers vertically.
+    for e in left:
+        e["_lane"] = 0
+    n_left = 1
+    # Right side is a single column: degree cards and education news
+    # stack; the per-lane post-pass resolves any vertical overlap.
+    for e in right:
+        e["_lane"] = 0
+    n_right = 1 if right else 1
 
     # ---- VARIABLE-BAND LAYOUT: every year gets its own band whose
     # height is just enough to hold the densest column's content for
@@ -1182,6 +1333,8 @@ def render_timeline(data):
     # cards never use slim. Only standalone publications (rare now that
     # most pubs nest into a parent via `source:`) get slim treatment.
     def _is_slim(e):
+        return False  # publications are primary cards now, never slim
+
         return e["type"] == "publication"
 
     columns = (
@@ -1189,138 +1342,129 @@ def render_timeline(data):
         + [(g, False) for g in right_lane_groups.values()]
     )
 
-    # Step 1: required band height per year from point events.
-    # band[y] is the px height of the band representing year y (i.e. the
-    # vertical slab between the year (y+1) label at top and year y label
-    # at bottom). Point events with int(end) == y sit in this band.
-    band = {y: MIN_BAND for y in range(bot_year, top_year + 1)}
-    for col, _ in columns:
-        per_year_points = _dd(list)
+    # ---- ASYNC AXIS LAYOUT -------------------------------------------
+    # The axis is monotone in time but deliberately non-linear: busy
+    # stretches expand to hold their cards, quiet stretches collapse to
+    # a minimum step. Cards anchor at their date on this warped axis;
+    # events from the same moment simply stack. No fixed year bands, no
+    # dead whitespace, no card drifting into a foreign year.
+    GAP = _TIMELINE_GAP_PX
+    MIN_STEP = 26        # px between consecutive distinct dates
+    MIN_YEAR_SEG = 150   # room for all twelve month labels even in an empty year
+    TOP_PAD = 34
+
+    for idx, (col, _) in enumerate(columns):
         for e in col:
-            is_range = e.get("end_date") and e["_end"] - e["_start"] > 0.05
-            if is_range:
-                continue
-            per_year_points[int(e["_end"])].append(e)
-        for y, evs in per_year_points.items():
-            h = sum(_estimate_card_height(e, slim=_is_slim(e)) for e in evs)
-            h += GAP * max(0, len(evs) - 1)
-            h += MIN_GAP_BELOW_YEAR
-            band[y] = max(band.get(y, MIN_BAND), h)
+            e["_colkey"] = idx
+            e["_est_h"] = _estimate_card_height(e, slim=_is_slim(e))
 
-    # Step 2: range events. Grow each year band so the range card's
-    # content fits within its date span - i.e. "make the rail longer
-    # for that year". A short-span card with lots of nested content
-    # (CONTSEC: 3 pubs in 9 months, SIPLab: 2 pubs in 3 months) demands
-    # a tall band on the year(s) it spans; sparse years collapse to
-    # MIN_BAND. Year labels then end up exactly at the natural date
-    # positions of every event - no drift, no overlap.
-    range_events = [
-        e for e in events
-        if e.get("end_date") and e["_end"] - e["_start"] > 0.05
-    ]
+    # ---- CALENDAR-BLOCK LAYOUT ---------------------------------------
+    # Years are blocks, newest first. Inside a block the year pill is
+    # the header and the months run Jan -> Dec downwards, each month a
+    # header with its cards beneath it (earliest day first). Busy
+    # months stretch, empty months collapse to MIN_MONTH.
+    GAP = _TIMELINE_GAP_PX
+    MIN_MONTH = 16
+    YEAR_GAP = 20    # minimum distance between a year pill and a month
+    TOP_PAD = 34
+    DOT_LIFT = 25   # dot centre sits this far below a card's top edge
 
-    def _band_weights(e):
-        s, en = e["_start"], e["_end"]
-        s_y, e_y = int(s), int(en)
-        s_frac, e_frac = s - s_y, en - e_y
-        weights = {}
-        if s_y == e_y:
-            weights[s_y] = max(0.05, e_frac - s_frac)
-        else:
-            weights[s_y] = max(0.05, 1 - s_frac)
-            for y in range(s_y + 1, e_y):
-                weights[y] = 1.0
-            weights[e_y] = max(0.05, e_frac)
-        return weights
+    for idx, (col, _) in enumerate(columns):
+        for e in col:
+            e["_colkey"] = idx
+            e["_est_h"] = _estimate_card_height(e, slim=_is_slim(e))
 
-    for _ in range(30):
-        changed = False
-        for e in range_events:
-            need = _estimate_card_height(e, slim=False) + MIN_GAP_BELOW_YEAR
-            weights = _band_weights(e)
-            actual = sum(band.get(y, MIN_BAND) * w for y, w in weights.items())
-            if actual + 0.5 < need:
-                deficit = need - actual
-                total_w = sum(weights.values())
-                if total_w > 1e-6:
-                    grow = deficit / total_w
-                    any_grew = False
-                    for y in weights:
-                        new_val = min(BAND_CAP, band.get(y, MIN_BAND) + grow)
-                        if new_val > band.get(y, MIN_BAND) + 0.5:
-                            band[y] = new_val
-                            any_grew = True
-                        else:
-                            band[y] = new_val
-                    if any_grew:
-                        changed = True
-        if not changed:
-            break
+    # Year range covers cards AND position spans (for the bars).
+    span_dates = []
+    for item in raw_parents.values():
+        for key in ("start_date", "end_date"):
+            f = _date_frac(item.get(key))
+            if f is not None:
+                span_dates.append(f)
+    all_fracs = [e["_end"] for e in card_events] + span_dates
+    yr_max = int(max(all_fracs))
+    yr_min = int(min(all_fracs))
 
-    # Step 3: year-label positions (cumulative bands from top).
-    year_label_y = {top_year: 0.0}
-    cum = 0.0
-    for y in range(top_year - 1, bot_year - 1, -1):
-        cum += band[y]
-        year_label_y[y] = cum
-    total_h = int(cum + 40)
+    # Events keyed by (year, month), day-sorted ascending.
+    from collections import defaultdict as _dd2
+    by_month = _dd2(list)
+    for e in card_events:
+        Y = int(e["_end"])
+        M = int((e["_end"] - Y) * 12 + 1e-6) + 1
+        M = min(max(M, 1), 12)
+        by_month[(Y, M)].append(e)
+    for g in by_month.values():
+        g.sort(key=lambda e: e["_end"], reverse=True)  # later days first
+
+    lane_cursor = {}
+    year_label_y = {}
+    month_header_y = {}
+    cursor = 0.0
+    # Newest year on top. Each pill heads its own year; beneath it the
+    # months run Dec -> Jan, so time descends the page without a break.
+    for Y in range(yr_max, yr_min - 1, -1):
+        cursor = max(cursor, TOP_PAD - 34)
+        # The pill above a block is the BOUNDARY: start of year Y+1,
+        # end of year Y - months below it belong to year Y.
+        year_label_y[Y + 1] = cursor
+        cursor += YEAR_GAP - MIN_MONTH  # Dec lands YEAR_GAP below the pill
+        for M in range(12, 1, -1):
+            cursor += MIN_MONTH
+            month_header_y[(Y, M)] = cursor
+            # Same-month cards stack PER COLUMN: a busy right column
+            # never pushes a free left column's card off its date line.
+            col_next = {}
+            for e in by_month.get((Y, M), []):
+                ck = e.get("_colkey")
+                y = max(cursor if ck not in col_next else col_next[ck],
+                        lane_cursor.get(ck, -1e9) + GAP)
+                e["_top_px"] = y - DOT_LIFT
+                lane_cursor[ck] = e["_top_px"] + e["_est_h"]
+                col_next[ck] = y + MIN_MONTH
+                cursor = max(cursor, y)
+        # January owns no rail stretch of its own: its events anchor on
+        # the year pill line itself; their cards may run on past the
+        # pill, the per-column cursors absorb that.
+        jan_y = cursor + YEAR_GAP
+        month_header_y[(Y, 1)] = jan_y
+        col_next = {}
+        for e in by_month.get((Y, 1), []):
+            ck = e.get("_colkey")
+            y = max(jan_y if ck not in col_next else col_next[ck],
+                    lane_cursor.get(ck, -1e9) + GAP)
+            e["_top_px"] = y - DOT_LIFT
+            lane_cursor[ck] = e["_top_px"] + e["_est_h"]
+            col_next[ck] = y + MIN_MONTH
+        cursor = jan_y  # the next year pill sits exactly on January's line
+    year_label_y[yr_min] = cursor  # closing boundary sits on the last Jan line
+    cursor += 8
+    order = card_events
+    bottom = max((e["_top_px"] + e["_est_h"] for e in order), default=TOP_PAD)
+    total_h = int(max(bottom, cursor) + 40)
 
     def _y_at_date(d):
-        """Map a fractional date to its y-position on the shared axis."""
-        y_int = int(d)
-        frac = d - y_int            # 0 (Jan 1, y_int) .. 1 (Jan 1, y_int+1)
-        top_y = year_label_y.get(y_int + 1, 0.0)
-        bot_y = year_label_y.get(y_int, total_h)
-        return top_y + (1 - frac) * (bot_y - top_y)
-
-    # Step 4: place cards.
-    # Range cards: top = y at end date; height = max(span_h, content_h).
-    # Point cards: stack within their year band, newest first.
-    # Then a per-lane post-pass walks the lane top-down (newest first)
-    # and pushes each card down whenever the previous newer card's
-    # bottom would overlap. This is what guarantees no within-lane
-    # vertical collision when a short-span range card has more nested
-    # content than its date span can hold.
-    for col, _ in columns:
-        col.sort(key=lambda e: e["_end"], reverse=True)
-        col_cursor = {}
-        for e in col:
-            is_range = e.get("end_date") and e["_end"] - e["_start"] > 0.05
-            if is_range:
-                top_px = _y_at_date(e["_end"])
-                bot_px = _y_at_date(e["_start"])
-                content_h = _estimate_card_height(e, slim=False)
-                e["_top_px"] = top_px
-                e["_est_h"] = max(bot_px - top_px, content_h)
-                continue
-            y = int(e["_end"])
-            band_top = year_label_y.get(y + 1, 0.0)
-            cursor = col_cursor.get(y, band_top + MIN_GAP_BELOW_YEAR)
-            h = _estimate_card_height(e, slim=_is_slim(e))
-            e["_top_px"] = cursor
-            e["_est_h"] = h
-            col_cursor[y] = cursor + h + GAP
-
-        # Per-lane vertical collision fix: walk newest-first and push
-        # each card down so its top is at least prev_bot + GAP.
-        prev_bot = -1e9
-        for e in col:
-            if e["_top_px"] < prev_bot + GAP:
-                e["_top_px"] = prev_bot + GAP
-            prev_bot = e["_top_px"] + e["_est_h"]
-
-    # Recompute total height: cards may have been pushed past the
-    # natural canvas bottom by the per-lane shift.
-    if events:
-        canvas_max = max(e["_top_px"] + e["_est_h"] for e in events if "_top_px" in e)
-        total_h = max(total_h, int(canvas_max + 40))
+        """Date -> y inside its own year block (piecewise per month)."""
+        Y = int(d)
+        M = int((d - Y) * 12 + 1e-6) + 1
+        M = min(max(M, 1), 12)
+        top = month_header_y.get((Y, M))
+        if top is None:
+            return None
+        nxt = month_header_y.get((Y, M - 1)) if M > 1 else \
+            (year_label_y.get(Y, total_h))
+        # A date maps onto its month LABEL line; day-level dates slip a
+        # few px below it on the NOMINAL month scale, so a stretched
+        # month never turns days into centimetres.
+        frac_in_month = (d - Y) * 12 - (M - 1)
+        span = max((nxt or top + MIN_MONTH) - top, 0)
+        return top + min(frac_in_month * MIN_MONTH, span - 2 if span > 2 else span)
 
     # Render newest end first so DOM order matches visual stacking
     # (also what the responsive single-column collapse reads top-to-bottom).
-    events.sort(key=lambda e: e["_end"] or 0, reverse=True)
+    card_events.sort(key=lambda e: e["_end"] or 0, reverse=True)
 
     # Type-filter chips. Only show chips for types actually present.
-    present_types = {e["type"] for e in events}
+    present_types = {e["type"] for e in card_events}
     chips = ['<button class="timeline-filter active" data-tl-type="">All</button>']
     for type_key, label in _TL_FILTER_ORDER:
         if type_key in present_types:
@@ -1334,44 +1478,99 @@ def render_timeline(data):
 
     # Emit the per-build lane counts so the CSS computes one uniform
     # --lane-w across all sub-columns (no left-vs-right width asymmetry).
-    n_total = n_left + n_right
+    # The publication column carries nearly all the content, the degree
+    # column only slim lines: weight the left side heavier so the rail
+    # sits right of centre instead of splitting the width evenly.
+    left_w = n_left * 1.25
+    n_total = left_w + n_right
     total_recip = 1.0 / max(1, n_total)
     timeline_style = (
         f"height: {total_h:.0f}px; "
-        f"--n-left: {n_left}; --n-right: {n_right}; "
-        f"--n-total: {n_total}; --total-recip: {total_recip:.6f};"
+        f"--n-left: {left_w:.2f}; --n-right: {n_right}; "
+        f"--n-total: {n_total:.2f}; --total-recip: {total_recip:.6f};"
     )
     parts = [f'<div class="timeline" style="{timeline_style}">']
     # Month ticks on the rail (small dashes between consecutive year
     # labels). The band per year is variable, so each tick is placed at
     # the m/12 fraction of its year's band height.
-    for y in range(top_year - 1, bot_year - 1, -1):
-        band_top = year_label_y.get(y + 1, 0.0)
-        band_h = band.get(y, 0)
-        if band_h <= 0:
-            continue
-        for m in range(1, 12):
-            tick_y = band_top + (m / 12.0) * band_h
+    # Month headers: Jan sits directly under its year pill, Dec last.
+    month_names = {1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May",
+                   6: "Jun", 7: "Jul", 8: "Aug", 9: "Sep", 10: "Oct",
+                   11: "Nov", 12: "Dec"}
+    for (Y, M), ty in month_header_y.items():
+        if M != 1:
             parts.append(
-                f'<div class="timeline-month-tick" style="top: {tick_y:.1f}px"></div>'
-            )
+                f'<div class="timeline-month-tick" style="top: {ty:.1f}px"></div>')
+        if M == 1:
+            continue  # January's line IS the year pill: no tick, no label
+        parts.append(
+            f'<div id="{Y}-{M:02d}" class="timeline-month-label" style="top: {ty:.1f}px">'
+            f'{month_names[M]}</div>')
+
     for y, y_pos in year_label_y.items():
         parts.append(
-            f'<div class="timeline-year-label" style="top: {y_pos:.1f}px">{y}</div>'
+            f'<div id="{y}" class="timeline-year-label" style="top: {y_pos:.1f}px">{y}</div>'
         )
 
-    for e in events:
-        side, _ = _TIMELINE_TYPE_META.get(e["type"], ("right", ""))
+    # Position bars: one thin vertical bar per employment / research
+    # span, colour-matched to that position's publications, fanned out
+    # on the left flank of the rail. Hovering a publication lights up
+    # its bar and vice versa (initTimelinePosHover).
+    # Position bars, split per year block so each segment lies exactly
+    # over the months it covers inside that block.
+    spans = []
+    for pid, item in raw_parents.items():
+        sfrac = _date_frac(item.get("start_date"))
+        efrac = _date_frac(item.get("end_date")) or sfrac
+        if sfrac is None:
+            continue
+        spans.append({"_start": sfrac, "_end": efrac, "_pid": pid, "_item": item})
+    # Greedy interval colouring: non-overlapping spans share the lane
+    # nearest the rail, so the bars sit snugly side by side.
+    spans.sort(key=lambda sp: sp["_end"], reverse=True)
+    lane_free = []  # per lane: the start (oldest frac) of its last bar
+    for sp in spans:
+        for li in range(len(lane_free)):
+            # Spans that merely touch within the same month (defend the
+            # thesis Jan 10, start the internship that January) still
+            # share a lane; only real overlaps fan outwards.
+            if lane_free[li] >= sp["_end"] - 1.0 / 12:
+                sp["_lane"] = li
+                lane_free[li] = sp["_start"]
+                break
+        else:
+            sp["_lane"] = len(lane_free)
+            lane_free.append(sp["_start"])
+    for sp in spans:
+        item = sp["_item"]
+        role = item.get("position") or item.get("degree", "")
+        dates = f'{format_date(item.get("start_date"), short=True, day=False)} - '                 f'{format_date(item.get("end_date"), short=True, day=False)}'
+        who = _md_strip(item.get("company") or item.get("institution", ""))
+        tip = esc(f'{who} - {role} ({dates})')
+        offset = 14 + sp["_lane"] * 7
+        color = pos_colors.get(sp["_pid"], "#6c71c4")
+        # Exact endpoints: each tip at its date's own coordinate, nudged
+        # 4px off the boundary line so it reads inside its month.
+        y0 = _y_at_date(sp["_end"])
+        y1 = _y_at_date(sp["_start"])
+        if y0 is None or y1 is None:
+            continue
+        top, hgt = min(y0, y1), abs(y1 - y0)
+        parts.append(
+            f'<div class="tl-posbar timeline-{ {"experience": "experience", "research": "research", "education": "degree"}[item["_section"]] }" '
+            f'data-pos="{esc(sp["_pid"])}" title="{tip}" '
+            f'style="top: {top:.1f}px; height: {max(hgt, 8):.1f}px; '
+            f'left: calc(var(--rail-x) + {offset}px); --dot-color: {color};"></div>')
+
+    for e in card_events:
+        side, color = _TIMELINE_TYPE_META.get(e["type"], ("right", ""))
         top_px = e["_top_px"]
         n_lanes = n_left if side == "left" else n_right
         slim = _is_slim(e)
-        # Always enforce the packed est_h as min-height: it's what the
-        # per-lane post-pass used to space siblings, and if the actual
-        # rendered content turns out larger than the estimate, the card
-        # still grows past min-height - but never SHRINKS below it, so
-        # the next-in-lane card never collides.
-        est_h = e.get("_est_h", 0)
-        height_px = est_h if est_h > 1 else None
+        # est_h only spaces siblings during layout; the rendered card
+        # keeps its natural CSS height, so an over-estimate leaves air
+        # between cards, never dead space inside one.
+        height_px = None
         parts.append(_render_timeline_card(
             e, top_px, height_px, lane=e.get("_lane", 0), lanes=n_lanes,
             slim=slim,
