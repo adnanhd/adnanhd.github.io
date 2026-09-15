@@ -110,7 +110,10 @@ a:hover {
 .page-layout {
     display: flex;
     min-height: 100vh;
-    background-color: var(--bg-secondary);
+    /* One background for the whole page: a centred content column over a
+       different colour appears to slide sideways as the viewport (and so
+       the leftover space) changes with browser zoom. */
+    background-color: var(--bg-primary);
 }
 
 /* Left Sidebar - Fixed */
@@ -267,7 +270,9 @@ a:hover {
     flex: 1;
     min-width: 0;
     max-width: 1180px;
-    margin: 0 auto;
+    /* Anchored to the sidebar rather than centred in the leftover space:
+       centring makes the column drift on every zoom step. */
+    margin: 0;
     padding: 0;
     background-color: var(--bg-primary);
 }
@@ -1178,7 +1183,7 @@ a:hover {
    stack on a left rail. Cards keep their own date text, so the absolute
    year labels / month ticks / rail markers are dropped here. DOM order is
    already newest-first chronological, so the stack reads top-to-bottom. */
-@media (max-width: 760px) {
+@media (max-width: 1100px) {
     .timeline {
         height: auto !important;
         max-width: 100%;
@@ -1188,7 +1193,9 @@ a:hover {
     }
     .timeline::before,
     .timeline-month-tick,
+    .timeline-month-label,
     .timeline-year-label,
+    .tl-posbar,
     .rail-marker {
         display: none !important;
     }
