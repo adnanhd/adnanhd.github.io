@@ -34,7 +34,7 @@
     "name": "Adnan Harun Dogan"
   },
   "mainEntityOfPage": "https://adnanhd.github.io/blogs/cnn-object-detection/",
-  "datePublished": "2026-05-20"
+  "datePublished": "2023-06-02T22:30"
 }
         </script>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
@@ -49,14 +49,14 @@
             <article class="blog-body">
 <p>Object detection localizes and classifies multiple objects in images
 via bounding boxes. Across roughly six years (2014-2020) the literature
-settled into five overlapping families; <strong>two-stage</strong>
+settled into five overlapping families: <strong>two-stage</strong>
 refinement, <strong>single-shot</strong> dense prediction,
 <strong>focal</strong>-loss balanced one-stage,
 <strong>anchor-free</strong> per-pixel and keypoint heads, and
-<strong>set-prediction</strong> transformers; each occupying a different
-point on the accuracy/speed/simplicity frontier. Each family also
+<strong>set-prediction</strong> transformers. Each occupies a different
+point on the accuracy/speed/simplicity frontier, and each family also
 addressed a characteristic set of well-known problems (scale, imbalance,
-NMS heuristics, anchor design, slow convergence, etc.) walked through
+NMS heuristics, anchor design, slow convergence) walked through
 paragraph-by-paragraph after the SoTA leaderboard below.</p>
 <p><u>The historical context matters because the same problems recur
 under new names.</u> Pre-deep-learning detection plateaued near 33% mAP
@@ -109,7 +109,7 @@ multi-stage pipeline and slow inference. One-stage detectors face the
 imbalance directly through hard mining (SSD), focal loss (RetinaNet), or
 implicit balanced anchors (YOLO grid). Anchor-free heads sidestep the
 entire scale-and-aspect anchor-tuning enterprise but still need a
-label-assignment heuristic (smallest-area box, centerness, etc.).
+label-assignment heuristic (smallest-area box or centerness).
 Set-prediction transformers bypass NMS at the cost of 500-epoch
 training. <strong>No family dominates</strong>: the COCO leaderboard top
 is a moving boundary between Cascade-style two-stage refinement,
@@ -561,14 +561,15 @@ is initialized to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>π</mi><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>π</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="0.222em"></mspace><mi>π</mi><mo>=</mo><mn>0.01</mn></mrow><annotation encoding="application/x-tex"> -\log((1-\pi)/\pi),\ \pi=0.01 </annotation></semantics></math>
 to make the initial logits match the empirical class prior. <u>Focal
 loss beat OHEM because it uses every negative with smooth down-weighting
-rather than a hard cutoff</u>. Crucially, RetinaNet sat on top of FPN <span class="citation"
-data-cites="lin_feature_2017">(Lin, Dollár, et al. 2017)</span>, whose
-top-down + lateral pathway propagates semantic strength to
-high-resolution feature levels at single-pass cost; AP<sub>S</sub> rose
-from 14.1 to 19.9 (+5.8) on COCO purely from FPN, and FPN became the
-universal neck across Faster R-CNN, Mask R-CNN, RetinaNet, FCOS, and
-EfficientDet<a href="#fn15" class="footnote-ref" id="fnref15"
-role="doc-noteref"><sup>15</sup></a>.</p>
+rather than a hard cutoff</u>. The second contribution is that RetinaNet
+sat on top of FPN <span
+class="citation" data-cites="lin_feature_2017">(Lin, Dollár, et al.
+2017)</span>, whose top-down + lateral pathway propagates semantic
+strength to high-resolution feature levels at single-pass cost;
+AP<sub>S</sub> rose from 14.1 to 19.9 (+5.8) on COCO purely from FPN,
+and FPN became the universal neck across Faster R-CNN, Mask R-CNN,
+RetinaNet, FCOS, and EfficientDet<a href="#fn15" class="footnote-ref"
+id="fnref15" role="doc-noteref"><sup>15</sup></a>.</p>
 <figure id="fig:cnn-detection-timeline">
 <img src="figures/cnn-detection-timeline.svg" />
 <figcaption>CNN detection family evolution from 2015 R-CNN-era detectors
@@ -595,7 +596,7 @@ contrastive auxiliaries).</figcaption>
 made a structural rather than empirical case. FCOS predicts
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>l</mi><mo>,</mo><mi>t</mi><mo>,</mo><mi>r</mi><mo>,</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(l,t,r,b)</annotation></semantics></math>
 distances at every foreground pixel of the FPN levels and resolves
-multi-GT overlap by assigning to the <strong>smallest-area</strong> box;
+multi-GT overlap by assigning to the <strong>smallest-area</strong> box,
 the only heuristic the paper retains<a href="#fn16" class="footnote-ref"
 id="fnref16" role="doc-noteref"><sup>16</sup></a>. The
 <strong>centerness</strong> branch

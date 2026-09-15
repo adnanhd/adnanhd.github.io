@@ -34,7 +34,7 @@
     "name": "Adnan Harun Dogan"
   },
   "mainEntityOfPage": "https://adnanhd.github.io/blogs/vision-language-models/",
-  "datePublished": "2026-04-07"
+  "datePublished": "2024-06-06T22:59"
 }
         </script>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
@@ -49,8 +49,8 @@
             <article class="blog-body">
 <p>The foundation of modern VLMs was established by CLIP <span
 class="citation" data-cites="radford_learning_2021">(Radford et al.
-2021)</span>, which demonstrated that contrastive learning on 400
-million image-text pairs enables zero-shot transfer to diverse visual
+2021)</span>, which showed that contrastive learning on 400 million
+image-text pairs enables zero-shot transfer to diverse visual
 tasks.[fn:s0-clip-impl] <u>CLIP's text tower inherits a long
 lineage</u>: distributed word representations trained by contrasting
 context-word co-occurrences against negative samples (the word2vec
@@ -96,9 +96,9 @@ data-cites="li_blip_2022 li_blip-2_2023 xue_xgen-mm_2025">(Li et al.
 2022; J. Li et al. 2023; Xue et al. 2024)</span> introduced
 bootstrapping approaches that filter noisy captions and enable efficient
 adaptation of frozen encoders (BLIP, BLIP-2). InstructBLIP <span class="citation"
-data-cites="dai_instructblip_2023">(Dai et al. 2023)</span> demonstrated
-the power of instruction tuning for vision-language models. Parallel
-efforts in this space include ALBEF (2021, introduced the unified
+data-cites="dai_instructblip_2023">(Dai et al. 2023)</span> showed the
+power of instruction tuning for vision-language models. Parallel efforts
+in this space include ALBEF (2021, introduced the unified
 encoder-decoder design with image-text matching and contrastive
 objectives), OFA (2022, unified multimodal sequence-to-sequence
 learning), and mPLUG (2022-2023, modular cross-attention with skip
@@ -115,7 +115,7 @@ effective approaches for visual instruction tuning. CogVLM <span class="citation
 data-cites="wang_cogvlm_2024">(Wang et al. 2024)</span> introduced
 visual expert modules for deep vision-language fusion, while Qwen-VL
 <span class="citation" data-cites="bai_qwen-vl_2023">(Bai et al.
-2023)</span> demonstrated strong multilingual capabilities. Contemporary
+2023)</span> showed strong multilingual capabilities. Contemporary
 open-source VLMs that extend or compete with these lines include
 InternVL (2024, high-resolution scaling), IDEFICS (2023-2024, open
 Flamingo reproduction), MiniGPT-4/v2 (2023, early LLaVA-style open
@@ -132,7 +132,7 @@ Vision-Language Models. Frontier systems like GPT-4V <span
 class="citation" data-cites="noauthor_gpt-4vision_2023">(OpenAI
 2023)</span> and Gemini <span class="citation"
 data-cites="team_gemini_2025 team_gemini_2024">(Team et al. 2023,
-2024)</span> represent the state of the art in multimodal understanding. Additional closed
+2024)</span> lead most published leaderboards in multimodal understanding. Additional closed
 frontier systems include Claude 3.5 Sonnet (Anthropic), GPT-4o (OpenAI,
 successor to GPT-4V with stronger multimodal integration), and
 Grok-Vision (xAI). <u>The closed-vs-open gap has narrowed
@@ -141,15 +141,17 @@ InternVL-2-76B) match or exceed GPT-4V on most academic benchmarks,
 though closed models retain a lead in qualitative usability, reasoning
 depth, and safety behavior.</p>
 <p>Recent systematic surveys include Zhang et al.'s "Vision-Language
-Models for Vision Tasks: A Survey" <span class="citation"
-data-cites="li_object-centric_2025">(Li et al. 2025)</span> and the
-MMLMs survey by Yin et al., which provide broader coverage complementing
-the focus here. Reading pathways: for contrastive pre-training, start
-with CLIP and follow forward through SigLIP; for generative VLMs, follow BLIP -&gt; BLIP-2
--&gt; LLaVA -&gt; LLaVA-NeXT; for frontier systems, read Gemini and GPT-4V
-system cards alongside technical reports.</p>
+Models for Vision Tasks: A Survey" and the MMLMs survey by Yin et al.,
+neither of which has an entry in this bibliography; both provide broader
+coverage complementing the focus here. Reading pathways: for contrastive
+pre-training, start with CLIP and follow
+forward through SigLIP; for generative VLMs,
+follow BLIP -&gt; BLIP-2 -&gt; LLaVA
+-&gt; LLaVA-NeXT; for frontier systems,
+read Gemini and GPT-4V system cards alongside technical
+reports.</p>
 <h2 id="sota-leaderboard">SoTA Leaderboard</h2>
-<div class="blog-table"><table id="tab:vlm-sota">
+<div class="blog-table"><table id="tbl:vlm-sota">
 <caption>Selected vision-language milestones from CLIP (2021) to
 frontier multimodal assistants (2024). "Type" labels three families:
 contrastive (C), generative/captioning (G), and instruction-tuned
@@ -162,10 +164,10 @@ applicable; instruction VLMs are not designed for this task and read - ).
 "COCO R@1" is image-to-text retrieval on MS-COCO 5K (zero-shot for
 contrastive models; - where the model targets generation only). "VQAv2"
 is test-dev accuracy (zero-shot reported where the paper exposed it;
-otherwise fine-tuned). "GQA" is the test-dev split. Citations point to
-the canonical paper for each model. Numbers reflect the largest
-configuration each paper released; smaller siblings (e.g., LLaVA-1.5-7B
-vs 13B) pick the larger to keep rows comparable.</caption>
+otherwise fine-tuned). Citations point to the canonical paper for each
+model. Numbers reflect the largest configuration each paper released;
+smaller siblings (e.g., LLaVA-1.5-7B vs 13B) pick the larger to keep
+rows comparable.</caption>
 <thead>
 <tr>
 <th>Method</th>
@@ -270,7 +272,7 @@ al. 2022)</span></td>
 <td>2022</td>
 <td>G</td>
 <td>ViT-L/16</td>
-<td>BERT-Large</td>
+<td>BERT-base</td>
 <td>129M</td>
 <td> - </td>
 <td>78.2</td>
@@ -446,15 +448,15 @@ data-cites="team_gemini_2024">(Team et al. 2024)</span></td>
 </tr>
 </tbody>
 </table></div>
-<p>GQA was dropped to keep the table within 14 cm; instruction-tuned VLM
-GQA scores cluster between 49 and 67 (InstructBLIP-13B 49.5,
-Qwen-VL-Chat 57.5, LLaVA-1.5-13B 63.3, CogVLM 65.2, LLaVA-NeXT-34B 67.1)
-and are visited per-model in the chapter sections below. The " - " entries
-are not failures: contrastive dual-encoders cannot answer free-form VQA
-questions without a generative head; instruction VLMs are not optimized
-for ImageNet zero-shot prompting; closed frontier systems (GPT-4V,
-Gemini) do not publish architectural
-details.[fn:s0-problem-vlm-comparability]</p>
+<p>GQA was dropped to keep the table readable at A4 width.
+Instruction-tuned VLM GQA scores cluster between 49 and 67
+(InstructBLIP-13B 49.5, Qwen-VL-Chat 57.5, LLaVA-1.5-13B 63.3, CogVLM
+65.2, LLaVA-NeXT-34B 67.1) and are visited per-model in the chapter
+sections below. The " - " entries are not failures: contrastive
+dual-encoders cannot answer free-form VQA questions without a generative
+head; instruction VLMs are not optimized for ImageNet zero-shot
+prompting; closed frontier systems (GPT-4V, Gemini) do not publish
+architectural details.[fn:s0-problem-vlm-comparability]</p>
 <p>The contrastive era (rows 1-7) opens with CLIP, whose ViT-L/14-336
 set the 76.2% ImageNet zero-shot bar that anchored the field for two
 years. ALIGN matched it the same year using 1.8B noisy web pairs,
@@ -498,7 +500,8 @@ academic VQAv2 (77.2 / 73.2) than the best open-source models on the
 same benchmark, but holds qualitative leads on long-context, document,
 and reasoning evaluations not tabulated here; the closed-vs-open gap
 that mattered most in 2023 has been substantially closed by late 2024 on
-extractive benchmarks while remaining wide on holistic ones.</p>
+extractive benchmarks while remaining wide on open-ended,
+multi-capability evaluations.</p>
 <h2 class="blog-refs-title">References</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 role="list">
@@ -573,13 +576,6 @@ Lee, Yong Jae, Chunyuan Li, Yuheng Li, et al. 2024.
 Reasoning, <span>OCR</span>, and World Knowledge."</span> In
 <em>LLaVA</em>. <a
 href="https://llava-vl.github.io/blog/2024-01-30-llava-next/">https://llava-vl.github.io/blog/2024-01-30-llava-next/</a>.
-</div>
-<div id="ref-li_object-centric_2025" class="csl-entry" role="listitem">
-Li, Guangyuan, Rongzhen Zhao, Jinhong Deng, Yanbo Wang, and Joni
-Pajarinen. 2025. <em>Object-<span>Centric</span> <span>Vision</span>
-<span>Token</span> <span>Pruning</span> for <span>Vision</span>
-<span>Language</span> <span>Models</span></em>. <a
-href="https://doi.org/10.48550/arXiv.2511.20439">https://doi.org/10.48550/arXiv.2511.20439</a>.
 </div>
 <div id="ref-li_blip-2_2023" class="csl-entry" role="listitem">
 Li, Junnan, Dongxu Li, Silvio Savarese, and Steven Hoi. 2023.

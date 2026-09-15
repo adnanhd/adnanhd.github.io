@@ -34,7 +34,7 @@
     "name": "Adnan Harun Dogan"
   },
   "mainEntityOfPage": "https://adnanhd.github.io/blogs/uncertainty-quantification/",
-  "datePublished": "2026-01-20"
+  "datePublished": "2025-04-16T11:56"
 }
         </script>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
@@ -49,56 +49,80 @@
             <article class="blog-body">
 <p><u>The UQ literature for deep nets splits along a methodological axis
 (how uncertainty is produced) and an operational axis (what guarantee is
-offered).</u> Bayesian methods (BNNs, deep ensembles, MC dropout,
-Laplace) produce a posterior predictive whose moments decompose cleanly
-into epistemic and aleatoric components <span class="citation"
-data-cites="kendall_gal_uncertainties_2017">(Kendall and Gal
-2017)</span>, at the cost of extra compute and the usual approximation
-concerns covered in Part III. Post-hoc calibration methods (Platt
-scaling, isotonic regression, temperature scaling <span class="citation"
-data-cites="guo_calibration_2017">(Guo et al. 2017)</span>) are free
-(single scalar added to softmax logits) but only correct the marginal
-confidence histogram without improving ranking. Conformal prediction
-<span class="citation"
+offered).</u></p>
+<p>Bayesian methods (BNNs, deep ensembles, MC dropout, Laplace) produce
+a posterior predictive whose moments decompose into epistemic and
+aleatoric components <span class="citation"
+data-cites="kendall_gal_uncertainties_2017 lakshminarayanan_deep_ensembles_2017">(Kendall
+and Gal 2017; Lakshminarayanan et al. 2017)</span>. The cost is extra
+compute and the usual approximation concerns covered in Part III. Prior
+networks <span class="citation" data-cites="malinin_prior_2018">(Malinin
+and Gales 2018)</span> reach the same decomposition from the other side,
+learning a distribution over categorical distributions directly and
+buying a single-forward-pass score in exchange for an auxiliary OOD
+training set.</p>
+<p>Post-hoc calibration methods (Platt scaling, isotonic regression,
+temperature scaling <span class="citation"
+data-cites="guo_calibration_2017">(Guo et al. 2017)</span>) are nearly
+free, a single scalar applied to the softmax logits. They correct the
+marginal confidence histogram and leave the ranking untouched. How much
+correction a modern network needs turns out to depend on its
+architecture family and pretraining scale <span class="citation"
+data-cites="minderer_revisiting_2021">(Minderer et al. 2021)</span>, and
+every fitted calibrator degrades under distribution shift <span
+class="citation" data-cites="ovadia_can_you_trust_2019">(Ovadia et al.
+2019)</span>.</p>
+<p>Conformal prediction <span class="citation"
 data-cites="vovk_algorithmic_2005 angelopoulos_gentle_2021">(Vovk et al.
 2005; Angelopoulos and Bates 2021)</span> sidesteps the probabilistic
 modeling question entirely and instead delivers a distribution-free
 finite-sample coverage guarantee at a target level
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>α</mi></mrow><annotation encoding="application/x-tex">1 - \alpha</annotation></semantics></math><a
 href="#fn1" class="footnote-ref" id="fnref1"
-role="doc-noteref"><sup>1</sup></a>; the trade-off is that individual
-set sizes can be large if the base model is poor. OOD detection is the
-sister literature that reuses these signals as scores for a binary
-"in-distribution vs. out-of-distribution" classifier <span
-class="citation"
+role="doc-noteref"><sup>1</sup></a>. The trade-off is that individual
+set sizes can be large if the base model is poor.</p>
+<p>OOD detection is the sister literature that reuses these signals as
+scores for a binary "in-distribution vs. out-of-distribution" classifier
+<span class="citation"
 data-cites="hendrycks_baseline_2017 liang_odin_2018 liu_energy_2020">(Hendrycks
-and Gimpel 2017; Liang et al. 2018; Liu et al. 2020)</span>.
-Probabilistic programming languages (Pyro, NumPyro, TFP, Stan) <span
+and Gimpel 2017; Liang et al. 2018; Liu et al. 2020)</span>, with a
+feature-space branch that scores distance from class prototypes rather
+than logit shape <span class="citation"
+data-cites="lee_mahalanobis_2018">(Lee et al. 2018)</span>.</p>
+<p>Probabilistic programming languages (Pyro, NumPyro, TFP, Stan) <span
 class="citation"
 data-cites="bingham_pyro_2019 phan_numpyro_2019 tran_edward_2018 carpenter_stan_2017">(Bingham
 et al. 2019; Phan et al. 2019; Tran et al. 2018; Carpenter et al.
-2017)</span> are the infrastructure layer that glues posteriors,
-calibrations, and predictive distributions into a coherent model.
-Bayesian RL <span class="citation"
+2017)</span> are the infrastructure layer that ties posteriors,
+calibrations, and predictive distributions into one model. Bayesian RL
+<span class="citation"
 data-cites="ghavamzadeh_brl_2015 osband_bootstrapped_dqn_2016 depeweg_decomposition_2018">(Ghavamzadeh
 et al. 2015; Osband et al. 2016; Depeweg et al. 2018)</span> applies the
 decomposition to a <em>dynamics</em> model and uses the epistemic
 component as an intrinsic reward driving Thompson sampling and
 information-directed exploration.</p>
-<p>Table <a href="tab:uq-sota">tab:uq-sota</a> summarizes the
-methodological landscape.</p>
+<p>Table <a href="tab:uq-sota">tab:uq-sota</a> summarizes the main
+method families and the metrics each one reports.</p>
 <div class="blog-table"><table id="tab:uq-sota">
-<caption>SoTA landscape for uncertainty quantification on deep nets. ECE
-is expected calibration error (lower is better, 15-bin equal-width on
-CIFAR / ImageNet); NLL is negative log-likelihood on the held-out test
-set; AUROC is OOD-detection area under the ROC curve (CIFAR-10 in-dist
-vs. SVHN out-of-dist, higher is better); Coverage reports the empirical
+<caption>Reported results for the main uncertainty-quantification
+methods on deep nets. ECE is expected calibration error (lower is
+better, 15-bin equal-width on CIFAR / ImageNet). NLL is negative
+log-likelihood on the held-out test set. AUROC is OOD-detection area
+under the ROC curve (CIFAR-10 in-distribution vs. SVHN
+out-of-distribution, higher is better). Coverage reports the empirical
 coverage of a prediction set at target
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>α</mi><mo>=</mo><mn>0.9</mn></mrow><annotation encoding="application/x-tex">1 - \alpha = 0.9</annotation></semantics></math>.
-Numbers are representative values from the cited papers; absolute
-figures depend on the backbone (most entries here assume ResNet-110 /
-ResNet-50 / DenseNet-BC unless noted), split, and binning choice. Blank
-cells mean the method does not report that metric.</caption>
+Read this as a composite drawn from separate papers, not a head-to-head
+study: the per-row citation names the paper that introduced the method,
+and does not certify that the digits on that row are the ones it
+printed, since backbone (ResNet-110, ResNet-50, DenseNet-BC and
+WideResNet all appear), calibration split and binning scheme differ
+between sources. The Mahalanobis row is a DenseNet with input
+pre-processing and multi-layer aggregation, which is why it sits above
+the logit-space detectors. For a matched head-to-head comparison under a
+single protocol, see the shift benchmark of <span class="citation"
+data-cites="ovadia_can_you_trust_2019">(Ovadia et al. 2019)</span>.
+Blank cells mean the method does not report that metric.</caption>
 <thead>
 <tr>
 <th>Method</th>
@@ -152,8 +176,8 @@ data-cites="kumar_verified_2019">(Kumar et al. 2019)</span></td>
 </tr>
 <tr>
 <td>Deep ensemble (5 models) <span class="citation"
-data-cites="kendall_gal_uncertainties_2017">(Kendall and Gal
-2017)</span></td>
+data-cites="lakshminarayanan_deep_ensembles_2017">(Lakshminarayanan et
+al. 2017)</span></td>
 <td>1.5%</td>
 <td>0.78</td>
 <td>93.7</td>
@@ -173,6 +197,14 @@ data-cites="liu_energy_2020">(Liu et al. 2020)</span></td>
 <td>-</td>
 <td>-</td>
 <td>98.5</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Mahalanobis, DenseNet <span class="citation"
+data-cites="lee_mahalanobis_2018">(Lee et al. 2018)</span></td>
+<td>-</td>
+<td>-</td>
+<td>99.8</td>
 <td>-</td>
 </tr>
 <tr>
@@ -263,8 +295,8 @@ data-cites="angelopoulos_gentle_2021">(Angelopoulos and Bates
 2021)</span> wrote an accessible tutorial for deep-learning
 practitioners, triggering rapid adoption. <u>The tutorial paper became
 the most-cited introduction to conformal prediction within three years
-of publication, demonstrating that exposition can be as impactful as
-novel theory in moving a field.</u></p>
+of publication, showing that exposition can be as impactful as novel
+theory in moving a field.</u></p>
 <p>OOD detection has its roots in the anomaly detection literature
 (Chandola et al. 2009 survey) but became a deep-learning-specific
 research program with <span class="citation"
@@ -335,6 +367,17 @@ Uncertainty Calibration."</span> <em>Advances in Neural Information
 Processing Systems</em> 32. <a
 href="https://arxiv.org/abs/1909.10155">https://arxiv.org/abs/1909.10155</a>.
 </div>
+<div id="ref-lakshminarayanan_deep_ensembles_2017" class="csl-entry"
+role="listitem">
+Lakshminarayanan, Balaji, Alexander Pritzel, and Charles Blundell. 2017.
+<span>"Simple and Scalable Predictive Uncertainty Estimation Using Deep
+Ensembles."</span> <em>NeurIPS</em>.
+</div>
+<div id="ref-lee_mahalanobis_2018" class="csl-entry" role="listitem">
+Lee, Kimin, Kibok Lee, Honglak Lee, and Jinwoo Shin. 2018. <span>"A
+Simple Unified Framework for Detecting Out-of-Distribution Samples and
+Adversarial Attacks."</span> <em>NeurIPS</em>.
+</div>
 <div id="ref-liang_odin_2018" class="csl-entry" role="listitem">
 Liang, Shiyu, Yixuan Li, and R. Srikant. 2018. <span>"Enhancing the
 Reliability of Out-of-Distribution Image Detection in Neural
@@ -347,6 +390,19 @@ Liu, Weitang, Xiaoyun Wang, John D. Owens, and Yixuan Li. 2020.
 <span>"Energy-Based Out-of-Distribution Detection."</span>
 <em>NeurIPS</em>.
 </div>
+<div id="ref-malinin_prior_2018" class="csl-entry" role="listitem">
+Malinin, Andrey, and Mark Gales. 2018. <span>"Predictive Uncertainty
+Estimation via Prior Networks."</span> <em>Advances in Neural
+Information Processing Systems</em> 31. <a
+href="https://arxiv.org/abs/1802.10501">https://arxiv.org/abs/1802.10501</a>.
+</div>
+<div id="ref-minderer_revisiting_2021" class="csl-entry"
+role="listitem">
+Minderer, Matthias, Josip Djolonga, Rob Romijnders, et al. 2021.
+<span>"Revisiting the Calibration of Modern Neural Networks."</span>
+<em>Advances in Neural Information Processing Systems</em> 34. <a
+href="https://arxiv.org/abs/2106.07998">https://arxiv.org/abs/2106.07998</a>.
+</div>
 <div id="ref-neal_bayesian_1996" class="csl-entry" role="listitem">
 Neal, Radford M. 1996. <em>Bayesian Learning for Neural Networks</em>.
 Springer.
@@ -356,6 +412,12 @@ role="listitem">
 Osband, Ian, Charles Blundell, Alexander Pritzel, and Benjamin Van Roy.
 2016. <span>"Deep Exploration via Bootstrapped DQN."</span>
 <em>NeurIPS</em>.
+</div>
+<div id="ref-ovadia_can_you_trust_2019" class="csl-entry"
+role="listitem">
+Ovadia, Yaniv, Emily Fertig, Jie Ren, et al. 2019. <span>"Can You Trust
+Your Model's Uncertainty? Evaluating Predictive Uncertainty Under
+Dataset Shift."</span> <em>NeurIPS</em>.
 </div>
 <div id="ref-phan_numpyro_2019" class="csl-entry" role="listitem">
 Phan, Du, Neeraj Pradhan, and Martin Jankowiak. 2019. <span>"Composable

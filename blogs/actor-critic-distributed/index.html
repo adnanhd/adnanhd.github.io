@@ -34,7 +34,7 @@
     "name": "Adnan Harun Dogan"
   },
   "mainEntityOfPage": "https://adnanhd.github.io/blogs/actor-critic-distributed/",
-  "datePublished": "2026-06-01"
+  "datePublished": "2026-03-21T16:40"
 }
         </script>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
@@ -54,32 +54,40 @@ and is not duplicated here. Columns track design axes that distinguish
 methods <strong>within</strong> these two families rather than across
 the whole book: policy class (deterministic, stochastic Gaussian,
 max-entropy, V-trace-corrected on-policy), the number of critic networks
-(a load-bearing hyperparameter for overestimation-bias control<a
-href="#fn1" class="footnote-ref" id="fnref1"
-role="doc-noteref"><sup>1</sup></a>), and the two canonical scoreboards
+(a load-bearing hyperparameter for overestimation-bias
+control[fn:s0-overestimation]), and the two canonical scoreboards
 (MuJoCo HalfCheetah-v2 reward at 1M env steps for continuous control;
 Atari-57 median human-normalized score for distributed agents). Entries
 marked <em>n.r.</em> are not reported in the original paper because the
 method targets only the other domain; entries marked
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>†</mi><annotation encoding="application/x-tex">\dagger</annotation></semantics></math>
-come from third-party reproductions<a href="#fn2" class="footnote-ref"
-id="fnref2" role="doc-noteref"><sup>2</sup></a> rather than the original
-paper.</p>
+come from third-party reproductions[fn:s0-reproductions] rather than the
+original paper.</p>
 <div class="blog-table"><table id="tbl:actor-critic-distributed-leaderboard">
-<caption>Actor-critic and distributed-RL leaderboard. Type
-abbreviations: DPG = deterministic policy gradient, Stoch-G = stochastic
-Gaussian policy, MaxEnt = maximum-entropy soft actor-critic, A-C async =
-asynchronous advantage actor-critic, V-trace = truncated
-importance-sampling correction (Espeholt 2018), Ape-X = centralized
-prioritized replay (Horgan 2018), NGU = Never-Give-Up intrinsic-reward
-population. Off-policy column: <em>Yes</em> uses replay;
-<em>partial</em> uses small replay or near-on-policy correction;
+<caption>Actor-critic and distributed-RL leaderboard. Each row's
+citation names the method's source paper, not necessarily the source of
+that row's benchmark numbers. Type abbreviations are DPG for
+deterministic policy gradient, Stoch-G for stochastic Gaussian policy,
+MaxEnt for maximum-entropy soft actor-critic, A-C async for asynchronous
+advantage actor-critic, V-trace for truncated importance-sampling
+correction (Espeholt 2018), Ape-X for centralized prioritized replay
+(Horgan 2018), and NGU for the Never-Give-Up intrinsic-reward
+population. In the off-policy column, <em>Yes</em> uses replay,
+<em>partial</em> uses a small replay or a near-on-policy correction, and
 <em>No</em> is fully on-policy. Critic count tracks the
-overestimation-control axis: 1 critic (DDPG, A2C/A3C, ACER, IMPALA) is
-the high-bias regime; 2 critics with min-target (TD3, SAC, MPO) is the
-variance-bias frontier. HalfCheetah-v2 reward at 1M env steps; Atari-57
-median human-normalized score from the original paper unless noted.
-Dashes mark unreported settings.</caption>
+overestimation-control axis, with 1 critic (DDPG, A2C/A3C, ACER, IMPALA)
+the high-bias regime and 2 critics with a min-target (TD3, SAC, MPO) the
+variance-bias frontier. HalfCheetah-v2 reward is at 1M env steps, and
+the Atari column is the median human-normalized score from the original
+paper unless noted. Two caveats on the Atari column. The A3C entry of
+344% is the <em>mean</em> human-normalized score of the one-day run in
+Table 1 of <span class="citation"
+data-cites="mnih_asynchronous_2016">(Mnih et al. 2016)</span>, not a
+median (its median is 68.2% at one day and 82.2% at four days), so that
+single cell is not on the same footing as IMPALA's 191.8% and R2D2's
+1920%, which genuinely are medians. The A2C entry is a third-party
+reproduction rather than a reported result. Dashes mark unreported
+settings.</caption>
 <thead>
 <tr>
 <th>Method</th>
@@ -209,8 +217,7 @@ data-cites="badia_agent57_2020">(Badia et al. 2020)</span></td>
 </tbody>
 </table></div>
 <p>The continuous-control column tracks a clean three-step monotone
-improvement driven by overestimation-bias control<a href="#fn3"
-class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>.
+improvement driven by overestimation-bias control[fn:s0-overestimation].
 <u>DDPG's single Q-network and OU exploration plateau near 3300</u>; TD3
 nearly triples this to 9636 by combining clipped twin critics, delayed
 actor updates, and target-policy smoothing; SAC pushes further to
@@ -221,30 +228,30 @@ is auto-tuned to match a target entropy. MPO arrives at a similar
 ballpark
 (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>9000)
 via a different route: EM-style decoupled policy improvement with a
-non-parametric weighting step, which is empirically more robust to
-learning-rate choice but rarely beats SAC on raw HalfCheetah numbers.
+non-parametric weighting step, which is empirically less sensitive to
+the learning rate but rarely beats SAC on raw HalfCheetah numbers.
 <u>The critic-count axis is the single most predictive design choice on
 this benchmark</u>: every method that crosses the 9000 line uses two
 critics with a min-target, and every method that stalls below 5000 uses
 one.</p>
 <p>The distributed column is a different scoreboard with a different
-bottleneck. A3C ran 16 CPU workers asynchronously to reach 344% Atari
-median HNS in 4 days, and the A2C synchronous variant matched it on a
-single GPU once vectorized environments became cheap. ACER folded
-experience replay into A3C with truncated importance sampling and
-Retrace, but its Atari median was only marginally above A3C and it lost
-the dominant-on-policy-AC title to PPO/SAC within six months.
-<u>IMPALA's V-trace correction broke the on-policy throughput
-ceiling</u>: by sending behaviour-policy probabilities alongside actions
-and correcting at the learner, IMPALA scaled linearly to roughly 500
-actors at 250k FPS, but its median 191.8% on Atari-57 trailed the
-prioritized-replay Ape-X / R2D2 line because off-policy correction is
-too aggressive at moderate staleness. <u>R2D2 closed that gap</u> to
-1920% by adding LSTM Q-networks with the burn-in trick over Ape-X-style
-replay, accepting mild staleness as a regularizer rather than correcting
-for it. Agent57 then layered NGU intrinsic rewards plus a 32-arm
-meta-controller on top of R2D2, becoming the first agent superhuman on
-all 57 games at the cost of
+bottleneck. A3C ran 16 CPU workers asynchronously to reach 344% mean
+human-normalized score on Atari after one day (68% median), and the A2C
+synchronous variant matched it on a single GPU once vectorized
+environments became cheap. ACER folded experience replay into A3C with
+truncated importance sampling and Retrace, but its Atari median was only
+marginally above A3C and it lost the dominant-on-policy-AC title to
+PPO/SAC within six months. <u>IMPALA's V-trace correction broke the
+on-policy throughput ceiling</u>: by sending behaviour-policy
+probabilities alongside actions and correcting at the learner, IMPALA
+scaled linearly to roughly 500 actors at 250k FPS, but its median 191.8%
+on Atari-57 trailed the prioritized-replay Ape-X / R2D2 line because
+off-policy correction is too aggressive at moderate staleness. <u>R2D2
+closed that gap</u> to 1920% by adding LSTM Q-networks with the burn-in
+trick over Ape-X-style replay, accepting mild staleness as a regularizer
+rather than correcting for it. Agent57 then layered NGU intrinsic
+rewards plus a 32-arm meta-controller on top of R2D2, becoming the first
+agent superhuman on all 57 games at the cost of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>USD
 10k compute per game. <u>The actor-critic and distributed lines converge
 in Agent57</u>: it is simultaneously a two-critic actor-critic (separate
@@ -324,33 +331,6 @@ Wang, Ziyu, Victor Bapst, Nicolas Heess, et al. 2017. <em>Sample
 href="https://doi.org/10.48550/arXiv.1611.01224">https://doi.org/10.48550/arXiv.1611.01224</a>.
 </div>
 </div>
-<section id="footnotes" class="footnotes footnotes-end-of-document"
-role="doc-endnotes">
-<hr />
-<ol>
-<li id="fn1"><p><em>Overestimation bias</em>: function-approximation
-Q-learning systematically over-estimates max-action values via Jensen's
-inequality on noisy targets; the bias compounds through Bellman
-bootstrapping. Clipped twin critics (TD3, SAC), Retrace truncation
-(ACER), and decoupled target networks (MPO) each address the same root
-cause.<a href="#fnref1" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn2"><p><em>Third-party reproductions</em>: numbers marked
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>†</mi><annotation encoding="application/x-tex">\dagger</annotation></semantics></math>
-come from systematic reproductions (Stable-Baselines3, Tianshou, OpenAI
-Baselines) rather than the original paper, and may differ by 10-20% from
-headline numbers due to MuJoCo version, reward-clipping conventions, and
-seed counts.<a href="#fnref2" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn3"><p><em>Overestimation bias</em>: function-approximation
-Q-learning systematically over-estimates max-action values via Jensen's
-inequality on noisy targets; the bias compounds through Bellman
-bootstrapping. Clipped twin critics (TD3, SAC), Retrace truncation
-(ACER), and decoupled target networks (MPO) each address the same root
-cause.<a href="#fnref3" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-</ol>
-</section>
 
             </article>
         </div>

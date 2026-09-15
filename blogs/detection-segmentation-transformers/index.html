@@ -34,7 +34,7 @@
     "name": "Adnan Harun Dogan"
   },
   "mainEntityOfPage": "https://adnanhd.github.io/blogs/detection-segmentation-transformers/",
-  "datePublished": "2026-05-06"
+  "datePublished": "2023-12-08T20:30"
 }
         </script>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
@@ -102,8 +102,14 @@ post-processing heuristic, which is the condition for keeping the
 NMS-free property. <em>Bought</em> gives what the restoration is worth,
 with the schedule and backbone attached, because these methods are only
 comparable at matched epochs. Figures are COCO val2017 with ResNet-50
-unless the cell states otherwise. Read the table downward and the
-chapter is one argument rather than a list of ten papers.</caption>
+unless the cell states otherwise. The per-row citation names the
+method's source paper, not the source of the specific figure in the
+<em>Bought</em> cell, and two of those figures should be treated as
+unverified: the DN-DETR row's 44.4 AP does not match the 44.1 AP
+reported in that paper's own 50-epoch ResNet-50 table, and the Group
+DETR row's +1.5 AP is quoted without its baseline configuration. Read
+the table downward and the chapter is one argument rather than a list of
+ten papers.</caption>
 <thead>
 <tr>
 <th>Method</th>
@@ -182,7 +188,7 @@ class="citation" data-cites="jia_detrs_2023">(Jia et al.
 2023)</span></td>
 <td>positive-sample density</td>
 <td>a second one-to-many head on shared decoder features</td>
-<td>+1.7 AP over DINO at 12 epochs</td>
+<td><del>1.7 AP over Deformable-DETR+</del> at 12 epochs</td>
 </tr>
 <tr>
 <td>Co-DETR

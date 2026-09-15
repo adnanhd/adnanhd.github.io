@@ -107,12 +107,23 @@ def _extract_section(text, prefix):
 
 
 def _strip_noise(org_text):
-    """Drop babel src blocks and property drawers - not wanted in prose blogs."""
+    """Drop babel src blocks and property drawers - not wanted in prose blogs.
+
+    Also neutralises a mid-line "\\\\ " (org's forced line break): pandoc's
+    org reader loops forever on it. Math lines keep their "\\\\" - there it
+    means a matrix row, and pandoc handles it fine."""
     org_text = re.sub(r"^#\+begin_src.*?^#\+end_src\s*$", "", org_text,
                       flags=re.S | re.M | re.I)
     org_text = re.sub(r"^\s*:PROPERTIES:.*?^\s*:END:\s*$", "", org_text,
                       flags=re.S | re.M | re.I)
-    return org_text
+    lines = []
+    for line in org_text.splitlines(keepends=True):
+        if not re.search(r"\\\(|\\\[|\$|\\begin\{", line):
+            # "\ " and "\\ " mid-line are org's escaped space and forced
+            # line break; pandoc's org reader loops forever on both.
+            line = re.sub(r"\\{1,2} ", " ", line)
+        lines.append(line)
+    return "".join(lines)
 
 
 def _title_of(text):

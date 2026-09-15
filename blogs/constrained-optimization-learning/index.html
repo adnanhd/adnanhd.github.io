@@ -34,7 +34,7 @@
     "name": "Adnan Harun Dogan"
   },
   "mainEntityOfPage": "https://adnanhd.github.io/blogs/constrained-optimization-learning/",
-  "datePublished": "2026-02-25"
+  "datePublished": "2024-09-26T09:52"
 }
         </script>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
@@ -61,7 +61,7 @@ differentiable-optimization) closes this loop by differentiating through
 the solver itself; the predictor learns to minimize
 <strong>regret</strong> on decisions, not error on parameters. Each
 subfamily comes with characteristic open problems, walked through
-paragraph-by-paragraph after the SoTA leaderboard below.</p>
+paragraph-by-paragraph after the family table below.</p>
 <p>The historical trajectory has three eras. Early
 <strong>implicit-layer</strong> work (2010-2017) established the
 gradient calculus for graphical-model inference <span class="citation"
@@ -143,19 +143,29 @@ class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a>,
 where a generic implicit-layer beats a problem-specific decomposition
 only on toy sizes.</p>
 <div class="blog-table"><table id="tbl:col-sota">
-<caption>Constrained-optimization-learning SoTA leaderboard. Method
-links to the chapter section and cites the canonical paper.
-Architecture/Layer = the differentiable mechanism (implicit KKT, prox,
-perturbed argmax, augmented Lagrangian, etc.). Loss = the training
-signal driving the predictor. Problem class abbreviates LP / QP / MILP /
-SOCP / Combinatorial (Comb) / Convex (Cvx). Constraint-sat =
-constraint-satisfaction rate (% of test instances feasible). Opt-gap =
-optimality gap (%) vs the exact-solver optimum. Speedup = wall-clock vs
-the classical solver (1x = parity). OOD = qualitative generalization to
-out-of-distribution constraints (high / med / low). Dashes mark
-unreported settings. Numbers are paper-reported headline values;
-settings differ across rows and only same-row reads are
-consistent.</caption>
+<caption>Constrained-optimization-learning families, one row per method.
+Method links to the chapter section and cites the canonical paper; the
+per-row citation names where the <em>method</em> was published and is
+not a source for the row's numbers. Architecture/Layer = the
+differentiable mechanism (implicit KKT, prox, perturbed argmax, or
+augmented Lagrangian). Loss = the training signal driving the predictor.
+Problem class abbreviates LP / QP / MILP / SOCP / Combinatorial (Comb) /
+Convex (Cvx). These four columns are descriptive and are drawn from the
+cited papers. <u>The last four columns are a composite estimate
+assembled for this table and not a set of measured results.</u>
+Constraint-sat, Opt-gap, Speedup and OOD are stated on incompatible
+benchmarks, hardware and problem sizes across rows, several papers
+report no such quantity at all, and the entries are best read as coarse
+ordinal indications of where a family sits rather than as figures that
+can be compared down a column or quoted elsewhere. Dashes mark
+quantities the cited paper does not report. Where this chapter needs a
+defensible number it quotes it in prose against a single paper and its
+setting: see the cone-aligned experiments of <span class="citation"
+data-cites="tang_cave_2024">(Tang and Khalil 2024)</span> for a
+same-hardware comparison of SPO+ against a cone-aligned loss, and <span
+class="citation" data-cites="klamkin_dual_2025">(Klamkin et al.
+2025)</span> for dual-feasibility and speedup measured on one benchmark
+family.</caption>
 <tbody>
 <tr>
 <td></td>
@@ -471,22 +481,21 @@ solving an inner linear system at every gradient step<a href="#fn11"
 class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a>,
 and is numerically delicate near a constraint boundary<a href="#fn12"
 class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a>.
-<u>The 100% constraint-satisfaction reported in the table for these rows
-reflects that the forward pass is a feasible solver call</u>; the OOD
-column flags whether the predictor's parameters generalize beyond the
-training distribution of constraints, which Domke's marginal-NLL recipe
-does not address while CvxpyLayers and Lorraine's hyperparameter
-approach do.</p>
+<u>Feasibility is not at issue for these rows, because the forward pass
+is a call to a feasible solver</u>; the OOD column flags whether the
+predictor's parameters generalize beyond the training distribution of
+constraints, which Domke's marginal-NLL recipe does not address while
+CvxpyLayers and Lorraine's hyperparameter approach do.</p>
 <p>The <strong>differentiable-optimization-layer</strong> line (OptNet, CvxpyLayers,
 DDN, BPQP) extended the implicit-layer recipe to general
 <strong>QP</strong> and <strong>DCP</strong> problems, packaging the
-<strong>KKT</strong>-Jacobian backward into PyTorch and JAX. The
-wall-clock cost of these layers (0.3-0.5x compared to a forward-only
-solver call) is dominated by an LU factorization on the KKT matrix at
+<strong>KKT</strong>-Jacobian backward into PyTorch and JAX. A training
+step with one of these layers is slower than a forward-only solver call,
+because the cost is dominated by a factorization of the KKT matrix at
 every step<a href="#fn13" class="footnote-ref" id="fnref13"
-role="doc-noteref"><sup>13</sup></a>, with BPQP
-reducing the constant factor by 5-10x via structure-aware factorization
-but not the asymptotic order; the implicit-layer family also fails to
+role="doc-noteref"><sup>13</sup></a>; BPQP attacks
+the constant factor with a structure-aware backward but leaves the
+asymptotic order alone, and the implicit-layer family also fails to
 exploit problem-specific decompositions that classical solvers use for
 free<a href="#fn14" class="footnote-ref" id="fnref14"
 role="doc-noteref"><sup>14</sup></a>. Within this line,
@@ -502,9 +511,11 @@ solver. SPO+ is a Fisher-consistent convex upper bound on the true
 regret, achieved with a single extra solver call per training point and
 gradients computed without backprop through the solver itself; this
 sidesteps the non-differentiable-solver obstacle<a href="#fn15"
-class="footnote-ref" id="fnref15" role="doc-noteref"><sup>15</sup></a>
-but pays for it with a 4.2% optimality gap at convergence (vs OptNet's
-0.3% on small QPs) because the surrogate is not the true regret<a
+class="footnote-ref" id="fnref15" role="doc-noteref"><sup>15</sup></a>,
+but because SPO+ is an upper bound on the SPO loss rather than the loss
+itself, its minimizer need not minimize regret and the residual regret
+at convergence is not driven to zero <span class="citation"
+data-cites="elmachtoub_smart_2020">(Elmachtoub and Grigas 2022)</span><a
 href="#fn16" class="footnote-ref" id="fnref16"
 role="doc-noteref"><sup>16</sup></a>. CaVE
 <u>extends the recipe to MILP by aligning the predicted cost vector to
@@ -533,8 +544,9 @@ does not vanish as the predictor improves.</u></p>
 Lee)
 fold an inner optimization (model fit on the train set) into an outer
 hyper-gradient (val loss). <u>Reverse-mode unrolling computes exact
-hyper-gradients but stores all inner-loop activations, limiting the
-inner horizon to ~20-50 steps</u> <span class="citation"
+hyper-gradients but stores every inner iterate, so memory grows linearly
+in the number of inner steps and the affordable horizon is set by
+whatever fits in device memory</u> <span class="citation"
 data-cites="franceschi_bilevel_2018">(Franceschi et al. 2018)</span>;
 <strong>Neumann-implicit</strong> methods <span class="citation"
 data-cites="lorraine_optimizing_2019">(Lorraine et al. 2020)</span>
@@ -549,30 +561,38 @@ family.</p>
 <strong>augmented-Lagrangian</strong> methods enforce constraints via a
 learned dual variable rather than a solver call, training a primal
 predictor and a dual predictor jointly with an augmented-Lagrangian
-objective. <u>The reported 99% constraint-satisfaction (vs 100% for
-solver-in-the-loop methods) is the price of dropping the inner solver
-from the training loop, recovered as an 8x training speedup</u>; the
+objective. <u>Klamkin et al. do not accept an infeasibility rate at all:
+a dual completion layer projects the network's output onto the dual
+feasible set, so every prediction is dual-feasible by construction and
+the learned bound is a valid certificate</u> <span class="citation"
+data-cites="klamkin_dual_2025">(Klamkin et al. 2025)</span>. What is
+traded away is exactness rather than feasibility, and the paper reports
+optimality gaps below 1% together with speedups of several orders of
+magnitude over a commercial solver on large linear programs; the
 <strong>prox</strong>-update on the dual variable is what stabilizes the
 alternation between primal-feasibility and primal-optimality<a
 href="#fn21" class="footnote-ref" id="fnref21"
 role="doc-noteref"><sup>21</sup></a>. Against the
-<strong>predict-then-optimize</strong> family, dual learning trades a
-small infeasibility rate for a much faster training loop and better
+<strong>predict-then-optimize</strong> family, dual learning drops the
+inner solver from the training loop entirely, which is what buys the
 scaling to large LP/QP instances.</p>
 <p>The table separates four eras: foundational implicit gradients
 (2010-2017), the differentiable-layer build-out (2017-2021),
 combinatorial and predict-then-optimize maturation (2018-2024), and the
 modern <strong>dual learning</strong> and <strong>cone-aligned</strong>
-recipes (2024-2025). Three readings. First, no single method dominates:
-implicit-layer methods are exact but slow (0.3-0.5x),
-predict-then-optimize is fast but has a 1-4% optimality floor,
-combinatorial is fast on integer problems but hurt by relaxation bias,
-and dual learning is fastest but trades a percent of feasibility.
-Second, OOD generalization is the unresolved axis: <u>the methods rated
-"high" (SPO+, CvxpyLayers, Lorraine, Perturbed-FY, FY, Meta-DCO, CaVE,
-Dual-OL) are those whose training signal is the downstream task, while
-methods rated "low" (Domke, GNN-NP, AttnTSP, SATNet, Kotary) overfit to
-the training instance distribution.</u> Third, the trend is toward
+recipes (2024-2025). Three readings, and they are readings of the
+<em>ordering</em> in the table rather than of its digits, which are a
+composite. First, no single method dominates: implicit-layer methods
+give exact gradients but pay a linear solve per backward pass,
+predict-then-optimize needs only forward solver calls but optimizes a
+surrogate whose floor is nonzero, combinatorial methods run on integer
+problems but carry relaxation bias, and dual learning drops the solver
+from the loop and scales furthest. Second, OOD generalization is the
+unresolved axis: <u>the methods rated "high" (SPO+, CvxpyLayers,
+Lorraine, Perturbed-FY, FY, Meta-DCO, CaVE, Dual-OL) are those whose
+training signal is the downstream task, while methods rated "low"
+(Domke, GNN-NP, AttnTSP, SATNet, Kotary) overfit to the training
+instance distribution.</u> Third, the trend is toward
 <strong>hybrid</strong> recipes: BPQP combines structured backward with
 task loss, CaVE combines cone alignment with decision-focused regret,
 and Dual-OL combines augmented-Lagrangian with primal-dual prediction;

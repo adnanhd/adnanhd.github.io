@@ -34,7 +34,7 @@
     "name": "Adnan Harun Dogan"
   },
   "mainEntityOfPage": "https://adnanhd.github.io/blogs/pac-bayes-generalization/",
-  "datePublished": "2026-01-06"
+  "datePublished": "2024-08-06T16:13"
 }
         </script>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
@@ -222,23 +222,36 @@ data-cites="negrea_defense_uc_2020">(Negrea et al. 2020)</span>
 partially defends uniform convergence by restricting attention to a
 hypothesis-class subset.</p>
 <div class="blog-table"><table id="tbl:pb-sota">
-<caption>PAC-Bayes / generalization-theory SoTA leaderboard. Method
+<caption>PAC-Bayes and generalization-theory SoTA leaderboard. Method
 links to the chapter section and cites the canonical paper. Bound class
 = the family (PAC-Bayes-classical, PAC-Bayes-spectral,
 PAC-Bayes-data-dep, Margin-spectral, Norm-product, Information-MI,
 Information-per-sample, Information-CMI, Sharpness-empirical,
 Impossibility, Random-label-baseline). Form = the schematic recipe or
-formula. Benchmark = the model / dataset reported in the original paper.
-Bound value = the headline number on a [0,1] loss (vacuous = greater
-than 1; analytic = no fielded number, only a closed form). Kendall
+formula. Benchmark = the model or dataset reported in the original
+paper. Bound value = the headline number on a [0,1] loss, where
+"vacuous" means greater than 1 and "analytic" means no fielded number,
+only a closed form. Kendall
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
 is from <span class="citation" data-cites="jiang_fantastic_2020">(Jiang
 et al. 2020)</span> across
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>10,000
-CNNs on CIFAR-10 / SVHN where available; - means the paper reports no
-rank-correlation experiment. Comment summarizes the principal
-limitation. Numbers are paper-reported headline values; settings differ
-across rows and only same-row reads are consistent.</caption>
+CNNs on CIFAR-10 and SVHN where available, and " - " means the paper
+reports no rank-correlation experiment. Comment summarizes the principal
+limitation. The first row is a group-label row rather than data:
+<em>Quality</em> labels the Bound-value and
+Kendall-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
+columns taken together, <em>Scope</em> labels the Comment column. Two
+caveats on the numbers. Settings differ across rows, so only same-row
+reads are consistent. And the
+Kendall-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
+entries in the two norm-product rows (Bartlett-Foster-Telgarsky, Jiang
+spectral-product) do not agree with the value <span class="citation"
+data-cites="jiang_fantastic_2020">(Jiang et al. 2020)</span> reports for
+its <code class="verbatim">spectral-orig</code> measure; Table <a
+href="tbl:jiang-2020-ranking">tbl:jiang-2020-ranking</a> carries that
+paper's own listing and is the authoritative read for the norm-product
+family.</caption>
 <tbody>
 <tr>
 <td></td>
@@ -565,8 +578,9 @@ id="fnref13" role="doc-noteref"><sup>13</sup></a>. The Dziugaite-Roy
 line broke this barrier by <strong>SGD-optimizing the bound
 itself</strong> on a 3-layer MLP<a href="#fn14" class="footnote-ref"
 id="fnref14" role="doc-noteref"><sup>14</sup></a>, reaching 0.161 on
-binary MNIST T-600; Perez-Ortiz tightened the recipe to 0.179 on full
-CIFAR-10 by combining a data-split prior (legal because
+binary MNIST T-600; Perez-Ortiz tightened the recipe to 0.2377 on
+CIFAR-10 with a 9-layer CNN by combining a prior learnt on a 70 percent
+split (legal because
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>
 does not see the training fold) with a tuned Catoni
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math><a

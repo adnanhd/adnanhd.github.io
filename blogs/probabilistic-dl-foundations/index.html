@@ -34,7 +34,7 @@
     "name": "Adnan Harun Dogan"
   },
   "mainEntityOfPage": "https://adnanhd.github.io/blogs/probabilistic-dl-foundations/",
-  "datePublished": "2026-02-17"
+  "datePublished": "2025-01-10T16:38"
 }
         </script>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
@@ -189,8 +189,7 @@ undirected models is score matching.</u> <span class="citation"
 data-cites="hyvarinen_score_2005">(Hyvärinen 2005)</span> proposed
 minimizing the expected squared difference between the model score
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>∇</mi><mi>x</mi></msub><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>p</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\nabla_x \log p_\theta(x)</annotation></semantics></math>
-and the data score, thereby bypassing the partition function
-entirely:</p>
+and the data score, so bypassing the partition function entirely:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi mathvariant="double-struck">𝔼</mi><msub><mi>p</mi><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">a</mi></mrow></msub></msub><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">[</mo><mstyle displaystyle="false"><mfrac><mn>1</mn><mn>2</mn></mfrac></mstyle><mo stretchy="false" form="postfix">∥</mo><msub><mi>∇</mi><mi>x</mi></msub><mi mathvariant="normal">log</mi><msub><mi>p</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup><mo>+</mo><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="prefix">(</mo><msubsup><mi>∇</mi><mi>x</mi><mn>2</mn></msubsup><mi mathvariant="normal">log</mi><msub><mi>p</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo stretchy="true" form="postfix">]</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">\begin{equation}
 \label{eq:rw-score-matching}
 J(\theta) = \mathbb{E}_{p_{\mathrm{data}}}\!\left[\tfrac{1}{2}\|\nabla_x \log p_\theta(x)\|^2 + \mathrm{tr}(\nabla_x^2 \log p_\theta(x))\right].
@@ -238,12 +237,14 @@ refers to sampling via Langevin dynamics
 rather than computing a posterior. The model family, the inference
 procedure, and the training objective are inseparable in a way that has
 no counterpart in the classical graphical-model view.</p>
-<p><u>The competitive landscape, summarized below, shows that by the
-mid-2010s purely discriminative deep classifiers surpassed generative
-graphical-model approaches on standard benchmarks</u>, though the latter
-retained advantages in small-data, interpretable, or structured-output
-settings that motivate the renewed interest in probabilistic deep
-learning covered in the remainder of this book.</p>
+<p><u>The comparison summarized below shows that by the mid-2010s purely
+discriminative deep classifiers had displaced generative pretraining on
+the large image benchmarks</u> <span class="citation"
+data-cites="krizhevsky_alexnet_2012">(Krizhevsky et al. 2012)</span>,
+though generative and structured models retained advantages in
+small-data, interpretable, and structured-output settings that motivate
+the renewed interest in probabilistic deep learning covered in the
+remainder of this book.</p>
 <h2
 id="inference-tractability-vs-model-generality-the-landscape">Inference
 Tractability vs Model Generality: The Landscape</h2>
@@ -339,7 +340,7 @@ diagonal/low-rank variants</td>
 <td>LDA (mean-field VB)</td>
 <td>Approx. (variational)</td>
 <td>Mean-field ELBO; closed-form coord. asc.</td>
-<td>Stochastic VI scales to 100M docs</td>
+<td>Stochastic VI scales to millions of docs</td>
 <td>Approx., conjugate structure</td>
 </tr>
 <tr>
@@ -417,19 +418,20 @@ amortized across all data. Fourth, score matching and diffusion models
 bypass the posterior concept entirely: inference is sampling, not
 density evaluation, and the training objective does not require
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>Z</mi><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\log Z(\theta)</annotation></semantics></math>
-at any step. Each row represents a response to the limitation of the row
-above it.</p>
+at any step. Each row responds to the limitation of the row above
+it.</p>
 <h2
 id="empirical-benchmark-classical-and-deep-models-on-mnist">Empirical
 Benchmark: Classical and Deep Models on MNIST</h2>
-<p>The inference-mechanism table above is qualitative; the quantitative
+<p>The inference-mechanism table above is qualitative. The quantitative
 companion below records where each family actually landed on a common
-benchmark (MNIST) alongside its native task. It carries the empirical
-fact that drove the renewed interest in probabilistic deep learning: by
-the mid-2010s purely discriminative deep networks had overtaken
-generative graphical-model approaches on raw test error, while the
-generative models kept their edge in small-data, interpretable, and
-structured-output regimes.</p>
+benchmark (MNIST) alongside its native task. What the rows support is
+narrower than the usual summary. On MNIST the generatively pretrained
+models and the discriminative convolutional network land within a few
+tenths of a point of each other, and the discriminative turn of the
+early 2010s was settled on larger image benchmarks <span
+class="citation" data-cites="krizhevsky_alexnet_2012">(Krizhevsky et al.
+2012)</span> rather than on this one.</p>
 <div class="blog-table"><table id="tbl:prob-foundations-benchmark">
 <caption>Classical-to-deep probabilistic models on MNIST and their
 native tasks. "MNIST err." is classification test error where the model
@@ -446,9 +448,14 @@ class="citation" data-cites="hinton_dbn_2006">(Hinton et al.
 2006)</span>; DBM <span class="citation"
 data-cites="salakhutdinov_dbm_2009">(Salakhutdinov and Hinton
 2009)</span>; SPEN <span class="citation"
-data-cites="belanger_spen_2016">(Belanger and McCallum 2016)</span>; MLP
-and CNN <span class="citation"
-data-cites="murphy_pml_intro_2022">(Murphy 2022)</span>.</caption>
+data-cites="belanger_spen_2016">(Belanger and McCallum 2016)</span>; DBM
+with dropout fine-tuning <span class="citation"
+data-cites="hinton_dropout_2012">(Hinton et al. 2012)</span>; CNN <span
+class="citation" data-cites="murphy_pml_intro_2022">(Murphy
+2022)</span>. Each citation names the source of the row's model and
+figure, not a common evaluation protocol: the rows were measured by
+different authors at different dates and are not a controlled
+head-to-head comparison.</caption>
 <thead>
 <tr>
 <th>Model family</th>
@@ -509,9 +516,9 @@ data-cites="murphy_pml_intro_2022">(Murphy 2022)</span>.</caption>
 <td>n/r</td>
 </tr>
 <tr>
-<td>Feed-forward MLP (ReLU, dropout)</td>
+<td>DBM + dropout fine-tuning</td>
 <td>2012</td>
-<td>Discriminative</td>
+<td>Gen. pretrain + disc.</td>
 <td>0.79 %</td>
 <td>n/r</td>
 </tr>
@@ -527,15 +534,21 @@ data-cites="murphy_pml_intro_2022">(Murphy 2022)</span>.</caption>
 <p>This benchmark makes the point the inference-mechanism table cannot.
 The deep generative graphical models (DBN, DBM) reach competitive MNIST
 classification once their learned features are fine-tuned with a
-discriminative head (1.25 % and 0.95 %), yet they are edged out on raw
-test error by a purely discriminative network (the MLP at 0.79 %). The
-CRF-to-SPEN and HMM-to-DBM transitions are the same move in two
-settings: replace a hand-designed compatibility or energy function with
-a neural network, keeping the probabilistic semantics while gaining
-representational capacity. The classical latent-variable models (HMM,
-Kalman, LDA, CRF) carry "n/r" because they target distinct problem
-shapes (time series, topic discovery, sequence labeling) and were never
-evaluated as MNIST classifiers.</p>
+discriminative head (1.25 % and 0.95 %), and the lowest error in the
+table, the 0.79 % of <span class="citation"
+data-cites="hinton_dropout_2012">(Hinton et al. 2012)</span>, was itself
+obtained by dropout fine-tuning of a generatively pretrained Boltzmann
+machine rather than by a network trained discriminatively from a random
+initialization. MNIST therefore does not record the discriminative turn.
+It records that on a small and nearly saturated benchmark the two
+traditions were hard to separate, which is why the argument had to be
+settled elsewhere. The CRF-to-SPEN and HMM-to-DBM transitions are the
+same move in two settings: replace a hand-designed compatibility or
+energy function with a neural network, keeping the probabilistic
+semantics while gaining representational capacity. The classical
+latent-variable models (HMM, Kalman, LDA, CRF) carry "n/r" because they
+target distinct problem shapes (time series, topic discovery, sequence
+labeling) and were never evaluated as MNIST classifiers.</p>
 <p>The remainder of this chapter develops each row in order, following
 the historical sequence rather than the table ordering, culminating in
 the deep variants that motivate the rest of the book.</p>
@@ -586,6 +599,12 @@ Hinton, Geoffrey E., Simon Osindero, and Yee-Whye Teh. 2006. <span>"A
 Fast Learning Algorithm for Deep Belief Nets."</span> <em>Neural
 Computation</em> 18 (7): 1527-54.
 </div>
+<div id="ref-hinton_dropout_2012" class="csl-entry" role="listitem">
+Hinton, Geoffrey E., Nitish Srivastava, Alex Krizhevsky, Ilya Sutskever,
+and Ruslan Salakhutdinov. 2012. <span>"Improving Neural Networks by
+Preventing Co-Adaptation of Feature Detectors."</span>
+<em>arXiv:1207.0580</em>.
+</div>
 <div id="ref-hyvarinen_score_2005" class="csl-entry" role="listitem">
 Hyvärinen, Aapo. 2005. <span>"Estimation of Non-Normalized Statistical
 Models by Score Matching."</span> <em>Journal of Machine Learning
@@ -613,6 +632,11 @@ Variational Bayes."</span> <em>ICLR</em>.
 role="listitem">
 Koller, Daphne, and Nir Friedman. 2009. <em>Probabilistic Graphical
 Models: Principles and Techniques</em>. MIT Press.
+</div>
+<div id="ref-krizhevsky_alexnet_2012" class="csl-entry" role="listitem">
+Krizhevsky, Alex, Ilya Sutskever, and Geoffrey E. Hinton. 2012.
+<span>"ImageNet Classification with Deep Convolutional Neural
+Networks."</span> <em>NeurIPS</em>, 1097-105.
 </div>
 <div id="ref-lafferty_crf_2001" class="csl-entry" role="listitem">
 Lafferty, John D., Andrew McCallum, and Fernando C. N. Pereira. 2001.

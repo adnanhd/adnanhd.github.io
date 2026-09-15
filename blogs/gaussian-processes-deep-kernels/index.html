@@ -34,7 +34,7 @@
     "name": "Adnan Harun Dogan"
   },
   "mainEntityOfPage": "https://adnanhd.github.io/blogs/gaussian-processes-deep-kernels/",
-  "datePublished": "2026-01-27"
+  "datePublished": "2025-04-25T21:36"
 }
         </script>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
@@ -47,19 +47,19 @@
             <h1>Gaussian Processes and Deep Kernel Learning</h1>
             <div class="blog-meta">GP regression, marginal likelihood, scalable approximations</div>
             <article class="blog-body">
-<p>Gaussian processes occupy a distinctive position in the probabilistic
-deep-learning landscape. They are <em>non-parametric</em>: the model
-complexity grows with the dataset rather than being fixed by a parameter
-count. They provide <em>exact Bayesian inference</em> for Gaussian
-regression with a conjugate Gaussian prior over functions, avoiding the
+<p>Gaussian processes occupy a distinctive position in probabilistic
+deep learning. They are <em>non-parametric</em>: the model complexity
+grows with the dataset rather than being fixed by a parameter count.
+They provide <em>exact Bayesian inference</em> for Gaussian regression
+with a conjugate Gaussian prior over functions, avoiding the
 approximations that Bayesian neural networks force onto the posterior.
 <u>And they deliver calibrated predictive variance almost by
 construction: posterior variance grows away from training points,
 shrinks near them, and reflects the interpolating geometry of the
 kernel.</u> The canonical reference <span class="citation"
 data-cites="rasmussen_williams_2006">(Rasmussen and Williams
-2006)</span> remains the single most-cited GP textbook and is the
-foundation on which this part rests.</p>
+2006)</span> is the standard GP textbook and the reference this part
+builds on.</p>
 <p>The main obstacle to GP deployment at deep-learning scales is the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">𝒪</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>N</mi><mn>3</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(N^3)</annotation></semantics></math>
 cost of inverting the
@@ -213,10 +213,10 @@ where the meta-training distribution does not cover the test
 distribution. The aggregation bottleneck (mean-pooling compresses all
 context into a fixed-size vector) prevents fine-grained interpolation
 between context points, producing smooth but sometimes over-smoothed
-predictions. Attentive Neural Processes (Kim et al. 2019) replace
-mean-pooling with cross-attention from target inputs to context pairs,
-recovering most of the GP-accuracy gap, and is the contemporary baseline
-for the family.</p>
+predictions. Attentive variants of the family replace mean-pooling with
+cross-attention from target inputs to context pairs, recovering most of
+the GP-accuracy gap, and are the contemporary baseline for the
+family.</p>
 <p>The final strand in this part is the <em>NNGP-NTK bridge</em>. <span
 class="citation" data-cites="neal_bayesian_1996">(Neal 1996)</span>
 first observed that a one-hidden-layer Bayesian neural network with a
@@ -252,16 +252,28 @@ They connect the GP literature of this part to the statistical-learning
 theory developed in Statistical DL Part
 III.</p>
 <div class="blog-table"><table id="tbl:gp-sota">
-<caption>GP / NNGP / NTK SoTA leaderboard. Architecture / kernel column
-gives the GP family (Full-GP, SVGP, KISS-GP, Deep-GP, DKL, NNGP, NTK).
-Loss / inference cell uses (key=value) for headline hyperparameters;
+<caption>GP / NNGP / NTK leaderboard, read as an ordering of method
+families rather than as a table of quoted results. The per-row citation
+names the method's source; it does not certify the row's numbers. The
+two UCI columns are a composite scored in a single reimplementation on
+the protein split
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>≈</mo><mn>45</mn><mo>,</mo><mn>730</mn></mrow><annotation encoding="application/x-tex">N \approx 45{,}730</annotation></semantics></math>),
+not an average over the Hernandez-Lobato nine-split suite and not quoted
+from the per-row papers, several of which report no UCI regression
+figures at all; the MNIST and CIFAR-10 columns are likewise illustrative
+placements, and the Myrtle-kernel CIFAR-10 entry in particular is not a
+result of the cited Neural Tangents software paper. Treat the digits as
+placeholders and the column orderings as the claim. Architecture /
+kernel gives the GP family (Full-GP, SVGP, KISS-GP, Deep-GP, DKL, NNGP,
+NTK). Loss / inference uses (key=value) for headline hyperparameters;
 ML-II = Type-II maximum likelihood, VI = variational inference, DSVI =
-doubly stochastic VI, ELBO = evidence lower bound. Data = headline
-benchmark. UCI NLL is averaged over the nine regression splits (boston,
-concrete, energy, kin8nm, naval, power, protein, wine, yacht); UCI RMSE
-is the protein split as representative. MNIST / CIFAR-10 =
-image-classification top-1 accuracy (%). Compute = asymptotic
-per-iteration cost class. Dashes mark unreported settings.</caption>
+doubly stochastic VI, ELBO = evidence lower bound. Data = the benchmark
+the cited paper actually ran. Compute = asymptotic per-iteration cost
+class. Dashes mark settings the row does not cover. The Neural Process
+family discussed above is not scored here because it shares no benchmark
+with the rest of the table; <span class="citation"
+data-cites="garnelo_neural_2018">(Garnelo et al. 2018)</span> is the
+entry point for it.</caption>
 <tbody>
 <tr>
 <td></td>
@@ -346,7 +358,7 @@ data-cites="damianou_deep_2013">(Damianou and Lawrence 2013)</span></td>
 <td>2013</td>
 <td>Deep-GP</td>
 <td>VEM (L=2, M=100)</td>
-<td>UCI protein</td>
+<td>toy 1D, step, motion capture, robot</td>
 <td>2.88</td>
 <td>4.27</td>
 <td> - </td>
@@ -421,11 +433,11 @@ data-cites="wilson_stochastic_2016">(Wilson et al. 2016b)</span></td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><msup><mi>M</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">BM^2</annotation></semantics></math></td>
 </tr>
 <tr>
-<td>Salimbeni orth. DKL <span class="citation"
+<td>Salimbeni orth. SVGP <span class="citation"
 data-cites="salimbeni_orthogonally_2018">(Salimbeni, Cheng, et al.
 2018)</span></td>
 <td>2018</td>
-<td>DKL</td>
+<td>Sparse-GP</td>
 <td>orth-decoupled VI</td>
 <td>UCI</td>
 <td>2.83</td>
@@ -569,41 +581,45 @@ recipe matters disproportionately to its incremental NLL gain.
 Damianou-Lawrence, where each layer's posterior is treated as a teacher
 signal for the next E-step) was eventually superseded by the cleaner
 stochastic DSVI gradient.</p>
-<p><strong>Deep kernel learning</strong> (Wilson DKL, SV-DKL, Salimbeni
-orthogonal-decoupled, Bayesian DKL of Ober et al.) puts a neural feature
-extractor in front of a GP kernel; on CIFAR-10 the headline numbers
-(93.0 / 93.2%) sit right next to the same backbone trained as a plain
-DCNN (92.4%), so the DKL gain over the deterministic baseline is real
-but small. The trouble is calibration: the feature extractor compresses
-training inputs onto coincident latents and predictive variance
-collapses<a href="#fn14" class="footnote-ref" id="fnref14"
-role="doc-noteref"><sup>14</sup></a>, and the ML-II marginal likelihood
-used for joint hyperparameter selection can itself overfit with a deep
-parameterization<a href="#fn15" class="footnote-ref" id="fnref15"
-role="doc-noteref"><sup>15</sup></a>. Ober et al.'s Bayesian-DKL
-diagnoses the pathology and recommends putting a prior on the
-feature-extractor weights, which substantially closes the gap to a
+<p><strong>Deep kernel learning</strong> (Wilson DKL, SV-DKL, Bayesian
+DKL of Ober et al.) puts a neural feature extractor in front of a GP
+kernel. On CIFAR-10 both DKL papers report their headline accuracy
+alongside the same backbone trained as a plain DCNN, and the reported
+gap is a fraction of a point, so the DKL gain over the deterministic
+baseline is real but small. The trouble is calibration: the feature
+extractor compresses training inputs onto coincident latents and
+predictive variance collapses<a href="#fn14" class="footnote-ref"
+id="fnref14" role="doc-noteref"><sup>14</sup></a>, and the ML-II
+marginal likelihood used for joint hyperparameter selection can itself
+overfit with a deep parameterization<a href="#fn15" class="footnote-ref"
+id="fnref15" role="doc-noteref"><sup>15</sup></a>. Ober et al.'s
+Bayesian-DKL diagnoses the pathology and recommends putting a prior on
+the feature-extractor weights, which substantially closes the gap to a
 properly Bayesian alternative at the cost of HMC sampling.</p>
 <figure id="fig:gp-family-timeline">
 <img src="figures/gp-family-timeline.svg" />
 <figcaption>GP family evolution from 2006 full-GP baselines to 2021
-Bayesian-DKL diagnostics. Marker shape and colour encode family (exact,
-sparse, deep-GP, DKL, NNGP/NTK); the dotted line marks the full-GP UCI
-baseline at NLL 2.97 (lower is better; the y-axis is inverted). Three
-observations match the table reading: (i) the <strong>sparse</strong>
-line (VFE, SVGP) lands within 0.1 NLL of the full-GP gold-standard while
-reducing per-iteration cost from
+Bayesian-DKL diagnostics, plotted against the same composite UCI protein
+axis as tbl:gp-sota. The plotted heights are not quoted results, and the
+NNGP/NTK markers in particular are placements rather than measurements,
+since none of the papers behind them reports a UCI regression number;
+read the figure as a family-versus-year layout and not as a comparison
+of digits. Marker shape and colour encode family (exact, sparse,
+deep-GP, DKL, NNGP/NTK); the dotted line marks the full-GP reference.
+Two readings survive the relabelling. The <strong>sparse</strong> line
+lands close to the full-GP reference while reducing per-iteration cost
+from
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">𝒪</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>N</mi><mn>3</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(N^3)</annotation></semantics></math>
 to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">𝒪</mi><mo stretchy="false" form="prefix">(</mo><mi>N</mi><msup><mi>M</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(NM^2)</annotation></semantics></math>,
-which is what made GPs viable on UCI big at
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>≈</mo><mn>2</mn><mo>×</mo><msup><mn>10</mn><mn>6</mn></msup></mrow><annotation encoding="application/x-tex">N \approx 2 \times 10^6</annotation></semantics></math>;
-(ii) the <strong>deep-GP</strong> line drops a further 0.07-0.10 NLL by
-adding compositional depth, but saturates at 3 layers; (iii) the
-<strong>NNGP/NTK</strong> line forms a horizontal band near the full-GP
-baseline, demonstrating that infinite-width Bayesian inference recovers
-GP-level NLL but does not surpass it because no feature learning happens
-in the kernel-only regime.</figcaption>
+which is what made GPs viable at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+in the millions; the <strong>deep-GP</strong> line improves on it by
+adding compositional depth and then saturates around three layers. The
+<strong>NNGP/NTK</strong> markers are drawn flat because the kernel-only
+regime does no feature learning, which is the qualitative claim the
+cited papers do support even though the specific heights are not
+theirs.</figcaption>
 </figure>
 <p>The <strong>NNGP</strong> / <strong>NTK</strong> family forms a
 parallel branch: the same arc-cosine kernel that drops out of an
@@ -615,9 +631,9 @@ extends this to multi-head attention. The persistent ceiling is the
 feature-learning gap<a href="#fn16" class="footnote-ref" id="fnref16"
 role="doc-noteref"><sup>16</sup></a>: the same paper's SGD-trained
 finite CNN with pooling sits 7.7 points above the NNGP-CNN-GAP number,
-which is the single most-cited reason to prefer practical neural
-networks over their infinite-width Bayesian limits despite the
-calibration story being on the GP side. Tuning
+which is the usual reason given for preferring practical neural networks
+over their infinite-width Bayesian limits despite the calibration story
+being on the GP side. Tuning
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msubsup><mi>σ</mi><mi>w</mi><mn>2</mn></msubsup><mo>,</mo><msubsup><mi>σ</mi><mi>b</mi><mn>2</mn></msubsup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\sigma_w^2, \sigma_b^2)</annotation></semantics></math>
 onto the <strong>edge of chaos</strong> is required to avoid degenerate
 fixed points<a href="#fn17" class="footnote-ref" id="fnref17"
@@ -639,12 +655,12 @@ question (data shape, batch availability, inducing-point structure).
 Second, deep GPs help modestly and saturate quickly<a href="#fn20"
 class="footnote-ref" id="fnref20" role="doc-noteref"><sup>20</sup></a>,
 so depth in the GP world is qualitatively different from depth in the
-deterministic-network world. Third, deep kernel learning reaches strong
-CIFAR-10 numbers but the original papers underreported variance-collapse
-pathologies that Ober et al.'s Bayesian-DKL diagnoses; the fix (full
-Bayes over feature-extractor weights) restores calibration at the cost
-of HMC sampling and effectively decommits the original DKL value
-proposition.</p>
+deterministic-network world. Third, deep kernel learning is competitive
+on CIFAR-10 but the original papers underreported the variance-collapse
+pathologies that Ober et al.'s Bayesian-DKL diagnoses. The fix, full
+Bayes over feature-extractor weights, restores calibration at the cost
+of HMC sampling and gives up the original DKL argument for using a GP
+read-out.</p>
 <h2 class="blog-refs-title">References</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 role="list">
@@ -777,9 +793,9 @@ FLOPs, with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">𝒪</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(N^2)</annotation></semantics></math>
 memory for storage; this caps full-GP training at roughly
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>≈</mo><mn>5</mn><mo>,</mo><mn>000</mn></mrow><annotation encoding="application/x-tex">N \approx 5{,}000</annotation></semantics></math>
-on commodity hardware and is the single fact that motivates the entire
-sparse / structured-kernel / matrix-vector-iteration literature.<a
-href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+on commodity hardware and motivates the sparse, structured-kernel, and
+matrix-vector-iteration literature.<a href="#fnref1"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn2"><p><em>Inducing-point budget</em>: too few
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
 loses accuracy near the boundaries; too many
@@ -855,9 +871,9 @@ FLOPs, with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">𝒪</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(N^2)</annotation></semantics></math>
 memory for storage; this caps full-GP training at roughly
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>≈</mo><mn>5</mn><mo>,</mo><mn>000</mn></mrow><annotation encoding="application/x-tex">N \approx 5{,}000</annotation></semantics></math>
-on commodity hardware and is the single fact that motivates the entire
-sparse / structured-kernel / matrix-vector-iteration literature.<a
-href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+on commodity hardware and motivates the sparse, structured-kernel, and
+matrix-vector-iteration literature.<a href="#fnref9"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn10"><p><em>Kernel design choice</em>: SE, Matern-3/2,
 Matern-5/2, rational-quadratic, periodic, and spectral-mixture kernels
 each impose different inductive biases (smoothness, bandwidth,

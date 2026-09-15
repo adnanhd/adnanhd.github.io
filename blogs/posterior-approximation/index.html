@@ -47,6 +47,39 @@
             <h1>Posterior Approximation: Variational Inference from Mean-Field to Cold Posteriors</h1>
             <div class="blog-meta">The ELBO, SVI, and the limits of Gaussian mean-field</div>
             <article class="blog-body">
+<h1 id="agenda">Agenda</h1>
+<p><u>The weight posterior of a deep network cannot be computed, and
+this chapter is four different admissions of that fact.</u> Variational
+inference replaces the posterior with the nearest member of a family
+chosen in advance and pays a family gap it cannot measure from the
+inside <span class="citation" data-cites="blei2017variational">(Blei et
+al. 2017)</span>. Markov chain Monte Carlo keeps the posterior exact and
+pays in serial compute. The Laplace approximation keeps the trained
+network and adds only curvature at the mode. Trajectory and ensemble
+methods give up on a posterior object entirely and average predictions
+instead. The four are presented in that order, each with its own failure
+mode and its own diagnostic.</p>
+<p>The chapter is organised around two results that constrain the whole
+area. The first is the full-batch HMC study of <span class="citation"
+data-cites="izmailov2021hmc">Izmailov et al. (2021)</span>, which is the
+only place in the literature where the exact posterior of a CIFAR-scale
+network has been sampled and every cheap method can be scored against
+it. Its headline is uncomfortable: the exact posterior wins in
+distribution by about a point and loses under corruption to methods that
+cost five orders of magnitude less. The second is the argument of <span
+class="citation" data-cites="wilson_izmailov_2020">Wilson and Izmailov
+(2020)</span> that deep ensembles are already doing approximate Bayesian
+model averaging across modes, which reframes the practical question from
+"how do we make a network Bayesian" to "which part of the posterior is a
+given method covering".</p>
+<p>Read the chapter with that pairing in mind. Accuracy against the true
+posterior and usefulness of the resulting predictive are different
+objectives that the benchmarks separate, and most of the design choices
+covered here (which family, which curvature surrogate, how many members,
+how much temperature) are choices about which of the two to optimise.
+The comparison tables and the recipes by compute budget near the end
+collect the answers; the sections before them explain what each method
+is actually approximating.</p>
 <h1 id="variational-inference-and-the-elbo">Variational Inference and
 the ELBO</h1>
 <p>Variational inference (VI) recasts posterior approximation as
@@ -97,8 +130,8 @@ coordinate ascent variational inference (CAVI), in which each factor
 of a mean-field factorization
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mo>∏</mo><mi>i</mi></msub><msub><mi>q</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>z</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">q(z) = \prod_i q_i(z_i)</annotation></semantics></math>
 is updated by</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>q</mi><mi>i</mi><mo>⋆</mo></msubsup><mo stretchy="false" form="prefix">(</mo><msub><mi>z</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo><mspace width="0.278em"></mspace><mo>∝</mo><mspace width="0.278em"></mspace><mrow><mi mathvariant="normal">exp</mi><mo>&#8289;</mo></mrow><mspace width="-0.167em"></mspace><mo minsize="180%" maxsize="180%" stretchy="true" form="prefix">(</mo><mi mathvariant="double-struck">𝔼</mi><mrow><mi>q</mi><mrow><mi>−</mi><mi>i</mi></mrow></mrow><mo stretchy="false" form="prefix">[</mo><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>z</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>z</mi><mrow><mi>−</mi><mi>i</mi></mrow></msub><mo>,</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mo minsize="180%" maxsize="180%" stretchy="true" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">\begin{equation}
-q_i^\star(z_i) \;\propto\; \exp\!\Big( \mathbb{E}{q{-i}}[\log p(z_i \mid z_{-i}, x)] \Big).
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>q</mi><mi>i</mi><mo>⋆</mo></msubsup><mo stretchy="false" form="prefix">(</mo><msub><mi>z</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo><mspace width="0.278em"></mspace><mo>∝</mo><mspace width="0.278em"></mspace><mrow><mi mathvariant="normal">exp</mi><mo>&#8289;</mo></mrow><mspace width="-0.167em"></mspace><mo minsize="180%" maxsize="180%" stretchy="true" form="prefix">(</mo><msub><mi mathvariant="double-struck">𝔼</mi><msub><mi>q</mi><mrow><mi>−</mi><mi>i</mi></mrow></msub></msub><mo stretchy="false" form="prefix">[</mo><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>z</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>z</mi><mrow><mi>−</mi><mi>i</mi></mrow></msub><mo>,</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mo minsize="180%" maxsize="180%" stretchy="true" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">\begin{equation}
+q_i^\star(z_i) \;\propto\; \exp\!\Big( \mathbb{E}_{q_{-i}}[\log p(z_i \mid z_{-i}, x)] \Big).
 \end{equation}</annotation></semantics></math></p>
 <p><u>The spirit of the paper is that intractability is almost always
 structural rather than merely numerical: a tractable graph inside an
@@ -256,13 +289,13 @@ basin-local: the trained
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>
 approximates a single mode rather than the full posterior.</u><a
 href="#fn2" class="footnote-ref" id="fnref2"
-role="doc-noteref"><sup>2</sup></a> Deep ensembles (Section id:prob-dl-swag-ensembles) address
-exactly this failure.</p>
+role="doc-noteref"><sup>2</sup></a> Deep ensembles, treated in the SWAG and deep-ensembles
+section, address exactly this failure.</p>
 <p>The Blei review's most underrated chapter is on variance reduction
 for gradient estimators. Score-function (REINFORCE) gradients of the
 ELBO take the form</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>∇</mi><mi>ϕ</mi></msub><mi mathvariant="script">ℒ</mi><mo stretchy="false" form="prefix">(</mo><mi>ϕ</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><mi mathvariant="double-struck">𝔼</mi><mrow><mi>q</mi><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo></mrow><mspace width="-0.167em"></mspace><mo minsize="120%" maxsize="120%" stretchy="true" form="prefix">[</mo><msub><mi>∇</mi><mi>ϕ</mi></msub><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mo>⋅</mo><mspace width="0.167em"></mspace><mo stretchy="false" form="prefix">(</mo><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo minsize="120%" maxsize="120%" stretchy="true" form="postfix">]</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}
-\nabla_\phi \mathcal{L}(\phi) \;=\; \mathbb{E}{q\phi(z)} \!\big[ \nabla_\phi \log q_\phi(z) \, \cdot \, (\log p(x, z) - \log q_\phi(z)) \big],
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>∇</mi><mi>ϕ</mi></msub><mi mathvariant="script">ℒ</mi><mo stretchy="false" form="prefix">(</mo><mi>ϕ</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><msub><mi mathvariant="double-struck">𝔼</mi><mrow><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><mspace width="-0.167em"></mspace><mo minsize="120%" maxsize="120%" stretchy="true" form="prefix">[</mo><msub><mi>∇</mi><mi>ϕ</mi></msub><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mo>⋅</mo><mspace width="0.167em"></mspace><mo stretchy="false" form="prefix">(</mo><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo minsize="120%" maxsize="120%" stretchy="true" form="postfix">]</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}
+\nabla_\phi \mathcal{L}(\phi) \;=\; \mathbb{E}_{q_\phi(z)} \!\big[ \nabla_\phi \log q_\phi(z) \, \cdot \, (\log p(x, z) - \log q_\phi(z)) \big],
 \end{equation}</annotation></semantics></math></p>
 <p>which is unbiased but has high variance because the log-likelihood
 ratio is a high-variance multiplier on a noisy score. Control variates,
@@ -278,16 +311,17 @@ structured latents (attention weights, tree-structured priors, Bernoulli
 latents) the score-function path is still the only generic option;
 continuous relaxations (Gumbel-Softmax, Concrete distribution) can fill
 the gap at the cost of bias.</p>
-<p>The paper's skeptical coda is worth quoting in paraphrase: <u>VI
-solves an optimization problem in a predetermined family. If the true
-posterior does not lie in (or near) that family, no amount of data will
-save the approximation.</u> This is a different failure mode from MCMC,
-which consistently estimates the true posterior given enough time.
-Choosing between VI and MCMC is therefore not "speed vs accuracy" but
-"different biases"; for deep learning, the implicit claim is that VI's
-biases are "acceptable" on downstream tasks, a claim that Ovadia et
-al.'s dataset-shift benchmark (Section id:prob-dl-ovadia) largely disputes for
-modern classifiers.</p>
+<p>The paper ends on a skeptical note, paraphrased here. <u>VI solves an
+optimization problem in a predetermined family. If the true posterior
+does not lie in (or near) that family, no amount of data will save the
+approximation.</u> This is a different failure mode from MCMC, which
+consistently estimates the true posterior given enough time. Choosing
+between VI and MCMC is therefore not "speed vs accuracy" but "different
+biases"; for deep learning, the implicit claim is that VI's biases are
+"acceptable" on downstream tasks, a claim that Ovadia et al.'s
+dataset-shift benchmark, read in the
+head-to-head section on dataset shift, largely disputes for modern
+classifiers.</p>
 <h2
 id="stochastic-variational-inference-hoffman-blei-wang-paisley-2013">Stochastic
 variational inference: Hoffman, Blei, Wang, Paisley (2013)</h2>
@@ -306,8 +340,8 @@ Robbins-Monro updates converge to the CAVI fixed point.</p>
 and local latents
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>z</mi><mrow><mn>1</mn><mo>:</mo><mi>N</mi></mrow></msub><annotation encoding="application/x-tex">z_{1:N}</annotation></semantics></math>,
 SVI alternates:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>ϕ</mi><mi>n</mi><mo>⋆</mo></msubsup><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><mi mathvariant="double-struck">𝔼</mi><mrow><mi>q</mi><mo stretchy="false" form="prefix">(</mo><mi>λ</mi><mo stretchy="false" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">[</mo><mi>η</mi><mi>ℓ</mi><mo stretchy="false" form="prefix">(</mo><mi>β</mi><mo>,</mo><msub><mi>x</mi><mi>n</mi></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mspace width="1.0em"></mspace><mrow><mtext mathvariant="normal">(local update for data point </mtext><mspace width="0.333em"></mspace></mrow><mi>n</mi><mo>∈</mo><mi mathvariant="script">ℬ</mi><mtext mathvariant="normal">)</mtext><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}
-\phi_n^\star \;=\; \mathbb{E}{q(\lambda)}[\eta\ell(\beta, x_n)] \quad \text{(local update for data point } n \in \mathcal{B}\text{)},
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>ϕ</mi><mi>n</mi><mo>⋆</mo></msubsup><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><msub><mi mathvariant="double-struck">𝔼</mi><mrow><mi>q</mi><mo stretchy="false" form="prefix">(</mo><mi>λ</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><mo stretchy="false" form="prefix">[</mo><msub><mi>η</mi><mi>ℓ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>β</mi><mo>,</mo><msub><mi>x</mi><mi>n</mi></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mspace width="1.0em"></mspace><mrow><mtext mathvariant="normal">(local update for data point </mtext><mspace width="0.333em"></mspace></mrow><mi>n</mi><mo>∈</mo><mi mathvariant="script">ℬ</mi><mtext mathvariant="normal">)</mtext><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}
+\phi_n^\star \;=\; \mathbb{E}_{q(\lambda)}[\eta_\ell(\beta, x_n)] \quad \text{(local update for data point } n \in \mathcal{B}\text{)},
 \end{equation}</annotation></semantics></math></p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>ρ</mi><mi>t</mi></msub><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><msub><mi>λ</mi><mi>t</mi></msub><mspace width="0.278em"></mspace><mo>+</mo><mspace width="0.278em"></mspace><msub><mi>ρ</mi><mi>t</mi></msub><mo minsize="180%" maxsize="180%" stretchy="true" form="prefix">(</mo><mi>α</mi><mo>+</mo><mstyle displaystyle="false"><mfrac><mi>N</mi><mrow><mo stretchy="false" form="prefix">|</mo><mi mathvariant="script">ℬ</mi><mo stretchy="false" form="prefix">|</mo></mrow></mfrac></mstyle><munder><mo>∑</mo><mrow><mi>n</mi><mo>∈</mo><mi mathvariant="script">ℬ</mi></mrow></munder><msub><mi mathvariant="double-struck">𝔼</mi><mrow><mi>q</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>z</mi><mi>n</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow></msub><mo stretchy="false" form="prefix">[</mo><mspace width="0.167em"></mspace><mi>t</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>n</mi></msub><mo>,</mo><msub><mi>z</mi><mi>n</mi></msub><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mo stretchy="false" form="postfix">]</mo><mo minsize="180%" maxsize="180%" stretchy="true" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}
 \lambda_{t+1} \;=\; (1 - \rho_t)\, \lambda_t \;+\; \rho_t \Big( \alpha + \tfrac{N}{|\mathcal{B}|} \textstyle\sum_{n \in \mathcal{B}} \mathbb{E}_{q(z_n)}[\, t(x_n, z_n) \,] \Big),
@@ -326,13 +360,12 @@ template for every minibatch-trained amortized-VI system: the ELBO
 decomposes as
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mi>n</mi></msub><msub><mrow><mi mathvariant="normal">E</mi><mi mathvariant="normal">L</mi><mi mathvariant="normal">B</mi><mi mathvariant="normal">O</mi></mrow><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">\sum_n \mathrm{ELBO}_n</annotation></semantics></math>,
 and a minibatch estimate is unbiased. Scaling to LDA on 3.3M Wikipedia
-articles, the SVI paper demonstrated that VI can be streaming,
-competitive on held-out perplexity with per-document MCMC at a small
-fraction of the compute <span class="citation"
-data-cites="hoffman2013svi">(Hoffman et al. 2013)</span>. The same
-architecture choice (global + local + amortization) is the skeleton of
-the VAE <span class="citation" data-cites="kingma_vae_2014">(Kingma and
-Welling 2014)</span>.</p>
+articles, the SVI paper showed that VI can be streaming, competitive on
+held-out perplexity with per-document MCMC at a small fraction of the
+compute <span class="citation" data-cites="hoffman2013svi">(Hoffman et
+al. 2013)</span>. The same architecture choice (global + local +
+amortization) is the skeleton of the VAE <span class="citation"
+data-cites="kingma_vae_2014">(Kingma and Welling 2014)</span>.</p>
 <p><u>A subtlety often glossed over: the natural-gradient update is
 parameter-invariant, which means SVI is immune to the Fisher-rotation
 pathology that afflicts naive gradient-descent VI.</u> In deep models
@@ -389,7 +422,7 @@ convergence near convergence.</p>
 <p><img src="figures/elbo-decomposition.svg" /></p>
 <h2 id="the-mean-field-gaussian-bnn-in-detail">The mean-field Gaussian
 BNN in detail</h2>
-<p>Before moving to the VAE, it is worth working out the mean-field
+<p>Before moving to the VAE, this section works out the mean-field
 Gaussian BNN (which <span class="citation"
 data-cites="blundell_bbb_2015">(Blundell et al. 2015)</span> calls
 "Bayes by Backprop") as a concrete instance of VI for weights. Place an
@@ -672,8 +705,8 @@ Welling (2014)</span> combined three ideas into a single paper that now
 defines the field: (i) amortized VI via a single recognition network
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo>∣</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">q_\phi(z \mid x)</annotation></semantics></math>;
 (ii) the reparameterization trick for pathwise gradients through
-stochastic nodes; and (iii) a /Gaussian-prior / Gaussian-encoder /
-Bernoulli-or-Gaussian-decoder_ instantiation that trains end-to-end with
+stochastic nodes; and (iii) a Gaussian-prior, Gaussian-encoder,
+Bernoulli-or-Gaussian-decoder instantiation that trains end-to-end with
 SGD.</p>
 <p>The per-datapoint ELBO takes the reparameterized form</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">ℒ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>;</mo><mi>θ</mi><mo>,</mo><mi>ϕ</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><msub><mi mathvariant="double-struck">𝔼</mi><mrow><mi>ϵ</mi><mo>∼</mo><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>ϵ</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><mspace width="-0.167em"></mspace><mo minsize="120%" maxsize="120%" stretchy="true" form="prefix">[</mo><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>p</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>∣</mo><mi>z</mi><mo>=</mo><msub><mi>g</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>ϵ</mi><mo>,</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo minsize="120%" maxsize="120%" stretchy="true" form="postfix">]</mo><mspace width="0.278em"></mspace><mo>−</mo><mspace width="0.278em"></mspace><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mspace width="-0.167em"></mspace><mo minsize="120%" maxsize="120%" stretchy="true" form="prefix">(</mo><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo>∣</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mo stretchy="false" form="postfix">∥</mo><mspace width="0.167em"></mspace><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo minsize="120%" maxsize="120%" stretchy="true" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}
@@ -708,7 +741,7 @@ variants (IWAE, semi-amortized VI, normalizing-flow posteriors) attack
 each of these.</p>
 <p>Derivation sketch of the reparameterization trick. The ELBO's
 reconstruction term is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="double-struck">𝔼</mi><mrow><mi>q</mi><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo>∣</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">[</mo><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>p</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>∣</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\mathbb{E}{q\phi(z \mid x)}[\log p_\theta(x \mid z)]</annotation></semantics></math>;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="double-struck">𝔼</mi><mrow><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo>∣</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><mo stretchy="false" form="prefix">[</mo><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>p</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>∣</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\mathbb{E}_{q_\phi(z \mid x)}[\log p_\theta(x \mid z)]</annotation></semantics></math>;
 its
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>-gradient
 requires pushing a derivative through an expectation whose measure
@@ -726,8 +759,8 @@ noise distribution and
 differentiable in
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>,
 then</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>∇</mi><mi>ϕ</mi></msub><mi mathvariant="double-struck">𝔼</mi><mrow><mi>q</mi><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo>∣</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">[</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><mi mathvariant="double-struck">𝔼</mi><mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>ϵ</mi><mo stretchy="false" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">[</mo><mi>∇</mi><mi>ϕ</mi><mi>f</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>g</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>ϵ</mi><mo>,</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}
-\nabla_\phi \mathbb{E}{q\phi(z \mid x)}[f(z)] \;=\; \mathbb{E}{p(\epsilon)}[\nabla\phi f(g_\phi(\epsilon, x))],
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>∇</mi><mi>ϕ</mi></msub><msub><mi mathvariant="double-struck">𝔼</mi><mrow><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo>∣</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><mo stretchy="false" form="prefix">[</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><msub><mi mathvariant="double-struck">𝔼</mi><mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>ϵ</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><mo stretchy="false" form="prefix">[</mo><msub><mi>∇</mi><mi>ϕ</mi></msub><mi>f</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>g</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>ϵ</mi><mo>,</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}
+\nabla_\phi \mathbb{E}_{q_\phi(z \mid x)}[f(z)] \;=\; \mathbb{E}_{p(\epsilon)}[\nabla_\phi f(g_\phi(\epsilon, x))],
 \end{equation}</annotation></semantics></math> which is the pathwise
 estimator. For Gaussian
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>,
@@ -770,8 +803,8 @@ fix is to use a free-bits variant that imposes a per-latent floor on the
 KL.</p>
 <p>The VAE as a rate-distortion optimizer. The ELBO can be rewritten
 as</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">ℒ</mi><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><mo>−</mo><mi mathvariant="double-struck">𝔼</mi><mrow><mi>p</mi><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">a</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><mi mathvariant="double-struck">𝔼</mi><mrow><mi>q</mi><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo>∣</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">[</mo><mi>−</mi><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>p</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>∣</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mspace width="0.278em"></mspace><mo>−</mo><mspace width="0.278em"></mspace><mi mathvariant="double-struck">𝔼</mi><mrow><mi>p</mi><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">a</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">[</mo><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo>∣</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><mo>−</mo><mi>D</mi><mo>−</mo><mi>R</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}
-\mathcal{L} \;=\; -\mathbb{E}{p{\mathrm{data}}(x)} \mathbb{E}{q\phi(z \mid x)}[-\log p_\theta(x \mid z)] \;-\; \mathbb{E}{p{\mathrm{data}}(x)}[\mathrm{KL}(q_\phi(z \mid x) \| p(z))] \;=\; -D - R,
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">ℒ</mi><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><mo>−</mo><msub><mi mathvariant="double-struck">𝔼</mi><mrow><msub><mi>p</mi><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">a</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><msub><mi mathvariant="double-struck">𝔼</mi><mrow><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo>∣</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><mo stretchy="false" form="prefix">[</mo><mi>−</mi><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>p</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>∣</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mspace width="0.278em"></mspace><mo>−</mo><mspace width="0.278em"></mspace><msub><mi mathvariant="double-struck">𝔼</mi><mrow><msub><mi>p</mi><mrow><mi mathvariant="normal">d</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">a</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><mo stretchy="false" form="prefix">[</mo><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo>∣</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">∥</mo><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><mo>−</mo><mi>D</mi><mo>−</mo><mi>R</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}
+\mathcal{L} \;=\; -\mathbb{E}_{p_{\mathrm{data}}(x)} \mathbb{E}_{q_\phi(z \mid x)}[-\log p_\theta(x \mid z)] \;-\; \mathbb{E}_{p_{\mathrm{data}}(x)}[\mathrm{KL}(q_\phi(z \mid x) \| p(z))] \;=\; -D - R,
 \end{equation}</annotation></semantics></math> where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>
 is the distortion (reconstruction negative-log-likelihood) and
@@ -810,11 +843,11 @@ cautionary point: <u>the encoder is an amortized approximator that can
 fail when the data density and the prior density are sharply
 mismatched.</u> The pathologies show up as holes in the aggregate
 posterior
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi mathvariant="double-struck">𝔼</mi><mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">[</mo><mi>q</mi><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo>∣</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">q(z) = \mathbb{E}{p(x)}[q\phi(z \mid x)]</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi mathvariant="double-struck">𝔼</mi><mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><mo stretchy="false" form="prefix">[</mo><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo>∣</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">q(z) = \mathbb{E}_{p(x)}[q_\phi(z \mid x)]</annotation></semantics></math>,
 which in turn produce poor samples from the prior. This is the deep
 motivation for aggregate-posterior matching (VampPrior, learned priors)
 in later work.</p>
-<p>The paper's denoising-autoencoder connection is worth flagging. If
+<p>The paper also connects the objective to denoising autoencoders. If
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>∣</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p_\theta(x \mid z)</annotation></semantics></math>
 is Gaussian and the encoder's mean
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mu_\phi(x)</annotation></semantics></math>
@@ -1010,15 +1043,14 @@ correction. The VAE's
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo>∣</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">q_\phi(z\mid x)</annotation></semantics></math>
 is also a posterior over latents, not weights; a BNN VAE that combines
 both exists but is expensive and rarely used.</p>
-<p>Two variants are worth registering because they sidestep these
-hazards along different axes. Conditional VAEs marginalize over the
-label explicitly, producing a principled per-class posterior that helps
-in semi-supervised settings. VQ-VAE replaces the Gaussian latent with a
-vector-quantized categorical latent and drops the KL term entirely; the
-resulting model has no proper ELBO but buys sharper samples and easier
-autoregressive priors. Training details, FID scores, and architecture
-search live in the Generative Models
-book; here we treat the VAE as a posterior-inference prototype.</p>
+<p>Two variants sidestep these hazards along different axes. Conditional
+VAEs marginalize over the label explicitly, producing a principled
+per-class posterior that helps in semi-supervised settings. VQ-VAE
+replaces the Gaussian latent with a vector-quantized categorical latent
+and drops the KL term entirely; the resulting model has no proper ELBO
+but buys sharper samples and easier autoregressive priors. Training
+details, FID scores, and architecture search live in the Generative Models book; here we
+treat the VAE as a posterior-inference prototype.</p>
 <div class="blog-table"><table>
 <thead>
 <tr>
@@ -1161,8 +1193,8 @@ correction for minibatch efficiency.</p>
 using Hamiltonian dynamics</h2>
 <p><span class="citation" data-cites="neal2011hmc">Neal (2011)</span>
 wrote the canonical tutorial on Hamiltonian Monte Carlo (HMC), and for
-BNNs it is impossible to overstate its role as the reference oracle. HMC
-augments the state
+BNNs it remains the reference against which the cheap methods are
+scored. HMC augments the state
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
 with an auxiliary momentum variable
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>∈</mo><msup><mi mathvariant="double-struck">ℝ</mi><mi>P</mi></msup></mrow><annotation encoding="application/x-tex">r \in \mathbb{R}^P</annotation></semantics></math>
@@ -1231,18 +1263,20 @@ differ from late-layer scales),
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mi>I</mi></mrow><annotation encoding="application/x-tex">M = I</annotation></semantics></math>
 leads to pathological step-size choices. Mass-matrix estimation from
 warm-up samples, or layer-wise diagonal mass matrices, dramatically
-improves mixing. For BNNs, Izmailov et al. find that a diagonal mass
-matrix with layer-wise rescaling suffices to reach effective sample
-sizes of a few hundred in a few hours of TPU time.</p>
+improves mixing. The BNN-scale exception is Izmailov et al.'s full-batch
+HMC study, which keeps the identity mass matrix and buys mixing with
+compute instead: roughly one posterior sample per hour on 512 TPUv3
+devices <span class="citation" data-cites="izmailov2021hmc">(Izmailov et
+al. 2021)</span>.</p>
 <p><u>A subtle observation: HMC's acceptance rate is not a mixing
 diagnostic.</u><a href="#fn3" class="footnote-ref" id="fnref3"
 role="doc-noteref"><sup>3</sup></a> High acceptance (say 99%) means
 proposals are close to current state, which means small
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>η</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math>
-and slow mixing. The optimal acceptance rate is approximately 65% for a
-leapfrog HMC in high dimension (Beskos-Pillai-Roberts-Sanz-Serna-Stuart
-2013), a rate that balances acceptance probability against per-proposal
-distance. Practitioners who tune toward 99% acceptance are wasting their
+and slow mixing. The optimal acceptance rate is about 65% for a leapfrog
+HMC in high dimension (Beskos-Pillai-Roberts-Sanz-Serna-Stuart 2013), a
+rate that balances acceptance probability against per-proposal distance.
+Practitioners who tune toward 99% acceptance are wasting their
 compute.</p>
 <h2 id="sgld-welling-teh-2011">SGLD: Welling &amp; Teh (2011)</h2>
 <p><span class="citation" data-cites="welling_sgld_2011">Welling and Teh
@@ -1260,10 +1294,10 @@ by a minibatch estimate
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mrow><mi>∇</mi><mi>U</mi></mrow><mo accent="true">̃</mo></mover><annotation encoding="application/x-tex">\widetilde{\nabla U}</annotation></semantics></math>
 based on
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">ℬ</mi><mo>⊂</mo><mi mathvariant="script">𝒟</mi></mrow><annotation encoding="application/x-tex">\mathcal{B} \subset \mathcal{D}</annotation></semantics></math>:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>θ</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><msub><mi>θ</mi><mi>t</mi></msub><mspace width="0.278em"></mspace><mo>−</mo><mspace width="0.278em"></mspace><mstyle displaystyle="false"><mfrac><msub><mi>η</mi><mi>t</mi></msub><mn>2</mn></mfrac></mstyle><mo minsize="180%" maxsize="180%" stretchy="true" form="prefix">(</mo><mi>∇</mi><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>θ</mi><mi>t</mi></msub><mo stretchy="false" form="postfix">)</mo><mspace width="0.278em"></mspace><mo>+</mo><mspace width="0.278em"></mspace><mstyle displaystyle="false"><mfrac><mi>N</mi><mrow><mo stretchy="false" form="prefix">|</mo><mi mathvariant="script">ℬ</mi><mo stretchy="false" form="prefix">|</mo></mrow></mfrac></mstyle><munder><mo>∑</mo><mrow><mi>i</mi><mo>∈</mo><mi mathvariant="script">ℬ</mi></mrow></munder><mi>∇</mi><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>θ</mi><mi>t</mi></msub><mo stretchy="false" form="postfix">)</mo><mo minsize="180%" maxsize="180%" stretchy="true" form="postfix">)</mo><mspace width="0.278em"></mspace><mo>+</mo><mspace width="0.278em"></mspace><msqrt><msub><mi>η</mi><mi>t</mi></msub></msqrt><mspace width="0.278em"></mspace><msub><mi>ξ</mi><mi>t</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>ξ</mi><mi>t</mi></msub><mo>∼</mo><mi mathvariant="script">𝒩</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><mi>I</mi><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">\begin{equation}
-\theta_{t+1} \;=\; \theta_t \;-\; \tfrac{\eta_t}{2} \Big( \nabla \log p(\theta_t) \;+\; \tfrac{N}{|\mathcal{B}|} \textstyle\sum_{i \in \mathcal{B}} \nabla \log p(x_i \mid \theta_t) \Big) \;+\; \sqrt{\eta_t} \; \xi_t, \qquad \xi_t \sim \mathcal{N}(0, I).
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>θ</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><msub><mi>θ</mi><mi>t</mi></msub><mspace width="0.278em"></mspace><mo>+</mo><mspace width="0.278em"></mspace><mstyle displaystyle="false"><mfrac><msub><mi>η</mi><mi>t</mi></msub><mn>2</mn></mfrac></mstyle><mo minsize="180%" maxsize="180%" stretchy="true" form="prefix">(</mo><mi>∇</mi><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>θ</mi><mi>t</mi></msub><mo stretchy="false" form="postfix">)</mo><mspace width="0.278em"></mspace><mo>+</mo><mspace width="0.278em"></mspace><mstyle displaystyle="false"><mfrac><mi>N</mi><mrow><mo stretchy="false" form="prefix">|</mo><mi mathvariant="script">ℬ</mi><mo stretchy="false" form="prefix">|</mo></mrow></mfrac></mstyle><munder><mo>∑</mo><mrow><mi>i</mi><mo>∈</mo><mi mathvariant="script">ℬ</mi></mrow></munder><mi>∇</mi><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>θ</mi><mi>t</mi></msub><mo stretchy="false" form="postfix">)</mo><mo minsize="180%" maxsize="180%" stretchy="true" form="postfix">)</mo><mspace width="0.278em"></mspace><mo>+</mo><mspace width="0.278em"></mspace><msqrt><msub><mi>η</mi><mi>t</mi></msub></msqrt><mspace width="0.278em"></mspace><msub><mi>ξ</mi><mi>t</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>ξ</mi><mi>t</mi></msub><mo>∼</mo><mi mathvariant="script">𝒩</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><mi>I</mi><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">\begin{equation}
+\theta_{t+1} \;=\; \theta_t \;+\; \tfrac{\eta_t}{2} \Big( \nabla \log p(\theta_t) \;+\; \tfrac{N}{|\mathcal{B}|} \textstyle\sum_{i \in \mathcal{B}} \nabla \log p(x_i \mid \theta_t) \Big) \;+\; \sqrt{\eta_t} \; \xi_t, \qquad \xi_t \sim \mathcal{N}(0, I).
 \end{equation}</annotation></semantics></math></p>
-<p>The brilliant observation is that as
+<p>The observation that carries the method is that as
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>η</mi><mi>t</mi></msub><mo>→</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\eta_t \to 0</annotation></semantics></math>,
 the Metropolis-Hastings correction becomes unnecessary: the ratio of
 minibatch-gradient-noise variance to injected-Gaussian-noise variance
@@ -1289,8 +1323,8 @@ SGLD does not target the exact posterior; it targets a perturbed
 distribution whose variance is inflated by the minibatch noise.
 <u>Practitioners who run SGLD at constant step size are implicitly
 trading bias for mixing speed, and the bias is often not small.</u></p>
-<p>The asymptotic analysis in Welling-Teh is worth spelling out. Write
-the minibatch gradient as
+<p>The asymptotic analysis in Welling and Teh runs as follows. Write the
+minibatch gradient as
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mrow><mi>∇</mi><mi>U</mi></mrow><mo accent="true">̃</mo></mover><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>∇</mi><mi>U</mi><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>ξ</mi><mi>B</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\widetilde{\nabla U}(\theta) = \nabla U(\theta) + \xi_B(\theta)</annotation></semantics></math>,
 where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ξ</mi><mi>B</mi></msub><annotation encoding="application/x-tex">\xi_B</annotation></semantics></math>
@@ -1324,8 +1358,8 @@ chain explores posterior) happens around the scale where injected noise
 matches curvature scale. Smith-Le (2018) and Mandt-Hoffman-Blei (2017)
 have formalized this as SGD-as-approximate-Bayesian-inference: at a
 constant learning rate, SGD with momentum has a stationary distribution
-that is approximately Gaussian, with covariance determined by the
-gradient-noise and curvature.</p>
+that is about Gaussian, with covariance determined by the gradient-noise
+and curvature.</p>
 <h2 id="sg-hmc-chen-fox-guestrin-2014">SG-HMC: Chen, Fox, Guestrin
 (2014)</h2>
 <p><span class="citation" data-cites="chen_sghmc_2014">Chen et al.
@@ -1362,7 +1396,7 @@ and friction must be tuned carefully.</p>
 <p><strong>Theorem 3.5</strong> (<em>SG-HMC stationarity,
 informal</em>). If the minibatch gradient has covariance
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">B(\theta)\, dt</annotation></semantics></math>
-(approximately) and the friction satisfies
+(about) and the friction satisfies
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo>≽</mo><mover><mi>B</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">C \succeq \widehat{B}</annotation></semantics></math>,
 then the discretized SDE above has the posterior as its (approximate)
 stationary distribution, with bias vanishing as step size
@@ -1377,10 +1411,10 @@ role="doc-noteref"><sup>4</sup></a> <u>The resulting samples approximate
 the exact posterior to within HMC's (very tight) numerical tolerance,
 and the paper uses them as a ground-truth reference against which
 cheaper approximations are measured.</u></p>
-<p>The headline findings are striking, and two of them run against what
-the field expected. First, on CIFAR-10 the exact posterior reaches 89.6
-percent test accuracy against 88.5 for a deep ensemble, 89.3 for SGLD,
-86.5 for mean-field VI and 83.4 for a single SGD run, so the ordering
+<p>Four findings stand out, and two of them run against what the field
+expected. First, on CIFAR-10 the exact posterior reaches 89.6 percent
+test accuracy against 88.5 for a deep ensemble, 89.3 for SGLD, 86.5 for
+mean-field VI and 83.4 for a single SGD run, so the ordering
 in-distribution is the expected one but the margin over the cheap
 methods is around a point. Second, that ordering <em>inverts</em> under
 corruption: deep ensembles and SGLD are consistently more robust on
@@ -1390,17 +1424,25 @@ effect does <em>not</em> appear in their runs, and when data
 augmentation is switched off they observe no cold-posterior effect at
 all, which is direct evidence for the
 augmentation-as-likelihood-misspecification hypothesis rather than for a
-defect in Bayesian inference. Fourth, the exact posterior is sensitive
-to prior scale: a standard Gaussian prior over weights is a poor match
-to real networks, and tuning prior scale is non-trivial <span
+defect in Bayesian inference. Fourth, and against the usual worry about
+weight priors, the Bayesian model average they obtain is largely
+insensitive to the prior: performance changes little across Gaussian
+prior scales spanning an order of magnitude, and little again when the
+Gaussian is swapped for a mixture-of-Gaussians or a logistic prior <span
 class="citation" data-cites="izmailov2021hmc">(Izmailov et al.
-2021)</span>.</p>
+2021)</span>. Prior-scale sensitivity is reported for the cheaper
+approximations rather than for the HMC oracle <span class="citation"
+data-cites="wenzel_cold_posteriors_2020">(Wenzel et al. 2020)</span>, a
+difference that should be read as a statement about the approximations
+as much as about the prior.</p>
 <p>For this chapter the take-away is two-sided. <u>HMC is the oracle
 in-distribution, and every cheap approximation leaves about a point of
 accuracy on the table</u>, but the oracle is not the best choice under
 shift, so "closer to the exact posterior" and "better deployed model"
 are different objectives. Ensembling a handful of cheap approximations
-remains the practical middle ground (SWAG + ensembling; see Section id:prob-dl-swag-ensembles).</p>
+remains the practical middle ground, which is SWAG plus ensembling as
+set out in the SWAG and
+deep-ensembles section.</p>
 <div class="blog-table"><table>
 <thead>
 <tr>
@@ -1460,11 +1502,14 @@ hit a target acceptance rate. NUTS is the default in Stan and PyMC, and
 it is effectively the standard for HMC on BNNs when HMC is used at all.
 Izmailov et al.'s full-batch HMC on CIFAR instead hand-tunes a fixed
 step size
-(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mo>≈</mo><mn>5</mn><mo>×</mo><msup><mn>10</mn><mrow><mi>−</mi><mn>5</mn></mrow></msup></mrow><annotation encoding="application/x-tex">\epsilon \approx 5 \times 10^{-5}</annotation></semantics></math>)
-and path length
-(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>=</mo><mn>50</mn><mtext mathvariant="normal">-</mtext><mn>100</mn></mrow><annotation encoding="application/x-tex">L = 50\text{-}100</annotation></semantics></math>)
-with an identity mass matrix - NUTS is impractical at that compute scale
-since its doubling procedure already multiplies cost by
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mo>=</mo><msup><mn>10</mn><mrow><mi>−</mi><mn>5</mn></mrow></msup></mrow><annotation encoding="application/x-tex">\epsilon = 10^{-5}</annotation></semantics></math>)
+and a fixed trajectory length, which at that step size works out to
+roughly
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>7</mn><mo>×</mo><msup><mn>10</mn><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">7 \times 10^{4}</annotation></semantics></math>
+leapfrog steps per sample, with an identity mass matrix <span
+class="citation" data-cites="izmailov2021hmc">(Izmailov et al.
+2021)</span>. NUTS is impractical at that compute scale since its
+doubling procedure already multiplies cost by
 2-4<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>
 per iteration.</p>
 <h2
@@ -1632,7 +1677,7 @@ the log-posterior at a mode:</p>
 \log p(\theta \mid \mathcal{D}) \;\approx\; \log p(\theta_{\mathrm{MAP}} \mid \mathcal{D}) \;-\; \tfrac{1}{2} (\theta - \theta_{\mathrm{MAP}})^\top H (\theta - \theta_{\mathrm{MAP}}),
 \end{equation}</annotation></semantics></math></p>
 <p>where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mo>=</mo><mi>−</mi><msup><mi>∇</mi><mn>2</mn></msup><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo>∣</mo><mi mathvariant="script">𝒟</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mrow><mi>θ</mi><mrow><mi mathvariant="normal">M</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">P</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">H = -\nabla^2 \log p(\theta \mid \mathcal{D})|{\theta{\mathrm{MAP}}}</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mo>=</mo><mi>−</mi><msup><mi>∇</mi><mn>2</mn></msup><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo>∣</mo><mi mathvariant="script">𝒟</mi><mo stretchy="false" form="postfix">)</mo><msub><mo stretchy="false" form="prefix">|</mo><msub><mi>θ</mi><mrow><mi mathvariant="normal">M</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">P</mi></mrow></msub></msub></mrow><annotation encoding="application/x-tex">H = -\nabla^2 \log p(\theta \mid \mathcal{D})|_{\theta_{\mathrm{MAP}}}</annotation></semantics></math>
 is the Hessian of the negative log-posterior. Exponentiating the
 quadratic gives the Laplace-approximate posterior</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo>∣</mo><mi mathvariant="script">𝒟</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.278em"></mspace><mo>≈</mo><mspace width="0.278em"></mspace><mi mathvariant="script">𝒩</mi><mspace width="-0.167em"></mspace><mo minsize="120%" maxsize="120%" stretchy="true" form="prefix">(</mo><msub><mi>θ</mi><mrow><mi mathvariant="normal">M</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">P</mi></mrow></msub><mo>,</mo><mspace width="0.167em"></mspace><msup><mi>H</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mo minsize="120%" maxsize="120%" stretchy="true" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">\begin{equation}
@@ -1651,8 +1696,9 @@ by maximizing the evidence: the famous ARD (automatic relevance
 determination) framework is a hierarchical extension.</p>
 <p><u>The spirit of the Laplace approximation is that a trained neural
 network is already a posterior-mode finder, and the only additional work
-is to quantify curvature.</u> This is an enormous practical advantage:
-no retraining, no architecture change, and the method is post hoc.</p>
+is to quantify curvature.</u> The practical consequence is that no
+retraining and no architecture change are needed, since the method is
+post hoc.</p>
 <p><u>The catch in 1992, and still the catch in 2026, is that
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>H</mi><annotation encoding="application/x-tex">H</annotation></semantics></math>
 is a
@@ -1732,8 +1778,8 @@ are independent (which they are not, since
 depends on
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
 through the network), so K-FAC is structurally biased; the bias is
-empirically small for wide networks, where the independence is
-approximately recovered by central-limit-theorem averaging.</p>
+empirically small for wide networks, where the independence is about
+recovered by central-limit-theorem averaging.</p>
 <p>Sampling from a K-FAC Gaussian exploits Kronecker structure. For
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mo>∼</mo><mi mathvariant="script">𝒩</mi><mo stretchy="false" form="prefix">(</mo><mover><mi>W</mi><mo accent="true">‾</mo></mover><mo>,</mo><mo stretchy="false" form="prefix">(</mo><mi>A</mi><mo>⊗</mo><mi>G</mi><msup><mo stretchy="false" form="postfix">)</mo><mrow><mi>−</mi><mn>1</mn></mrow></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">W \sim \mathcal{N}(\bar{W}, (A \otimes G)^{-1})</annotation></semantics></math>,
 a sample is generated as
@@ -1843,7 +1889,7 @@ and integrates analytically.</p>
 <p>Concretely, write
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>;</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mo>≈</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>;</mo><msub><mi>θ</mi><mrow><mi mathvariant="normal">M</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">P</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>J</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo>−</mo><msub><mi>θ</mi><mrow><mi mathvariant="normal">M</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">P</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(x; \theta) \approx f(x; \theta_{\mathrm{MAP}}) + J(x) (\theta - \theta_{\mathrm{MAP}})</annotation></semantics></math>
 with
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>∇</mi><mi>θ</mi></msub><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>;</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mrow><mi>θ</mi><mrow><mi mathvariant="normal">M</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">P</mi></mrow></mrow></mrow><annotation encoding="application/x-tex">J(x) = \nabla_\theta f(x; \theta)|{\theta{\mathrm{MAP}}}</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>∇</mi><mi>θ</mi></msub><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>;</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo><msub><mo stretchy="false" form="prefix">|</mo><msub><mi>θ</mi><mrow><mi mathvariant="normal">M</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">P</mi></mrow></msub></msub></mrow><annotation encoding="application/x-tex">J(x) = \nabla_\theta f(x; \theta)|_{\theta_{\mathrm{MAP}}}</annotation></semantics></math>.
 Then
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>;</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(x; \theta)</annotation></semantics></math>
 under
@@ -1884,11 +1930,11 @@ Gauss-Newton (GGN) are PSD by construction; most modern Laplace
 implementations therefore use the GGN. Adding
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mi>I</mi></mrow><annotation encoding="application/x-tex">\tau I</annotation></semantics></math>
 to
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>H</mi><annotation encoding="application/x-tex">H</annotation></semantics></math>
-(equivalently, a Gaussian prior with precision
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>)
-is essential both for numerical stability and as the explicit Bayesian
-prior, and Laplace plus L2 regularization coincide: weight decay with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>H</mi><annotation encoding="application/x-tex">H</annotation></semantics></math>,
+which is the same as a Gaussian prior with precision
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>,
+is needed for numerical stability and doubles as the explicit Bayesian
+prior. Laplace and L2 regularization coincide. Weight decay with
 coefficient
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>λ</mi><annotation encoding="application/x-tex">\lambda</annotation></semantics></math>
 is the Gaussian prior with precision
@@ -1957,13 +2003,14 @@ Laplace</h2>
 2023) treats only a subset of weights as Bayesian, keeping the rest at
 their MAP values. The choice of which weights to make Bayesian is itself
 a design dimension: last-layer Laplace is the simplest and often
-competitive;
-last-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>-layers
-Laplace adds more epistemic uncertainty at modest additional cost;
-Fisher-based subnet selection (pick the
+competitive.
+Last-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>-layers
+Laplace adds more epistemic uncertainty at modest extra cost.
+Fisher-based subnet selection picks the
 top-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
-parameters by Fisher magnitude) targets the "most important" parameters;
-random subnet selection is a surprisingly strong baseline.</p>
+parameters by Fisher magnitude, targeting the "most important"
+parameters. Random subnet selection is a surprisingly strong
+baseline.</p>
 <p><u>Why does subnet Laplace work? The weight posterior is nearly
 degenerate in most directions</u>: the Hessian has an eigenspectrum
 where a few directions carry most of the loss curvature and most
@@ -2075,7 +2122,10 @@ phase).</p>
 cross-basin.</u> Two independent SWAG runs from different
 initializations produce disjoint posterior samples. This is the explicit
 theoretical basis for MultiSWAG (ensemble of SWAGs), which combines
-within- and cross-basin uncertainty and is often state-of-the-art.</p>
+within- and cross-basin uncertainty and, on the CIFAR-10-C results
+reported by Wilson and Izmailov <span class="citation"
+data-cites="wilson_izmailov_2020">(Wilson and Izmailov 2020)</span>,
+matches or beats plain deep ensembles.</p>
 <p>The collection schedule in SWAG matters. The paper recommends: (i)
 train with standard SGD to near-convergence; (ii) switch to a larger,
 constant learning rate for the collection phase; (iii) collect one
@@ -2125,14 +2175,22 @@ recommend predicting both mean and variance and using the Gaussian NLL
 loss, so each member is a mini-uncertainty-model in its own right; the
 ensemble then captures both aleatoric (within-member variance) and
 epistemic (across-member variance) components.</p>
-<p>Empirically, on CIFAR-10 and CIFAR-100 a 5-member ensemble of ResNets
-drops ECE from roughly 3-5% for a single network to under 1%, while also
-reducing NLL and improving OOD detection AUROC. On ImageNet, similar
-trends hold <span class="citation"
+<p>Empirically, the paper reports NLL, Brier score and classification
+error rather than ECE or AUROC. On MNIST, SVHN and ImageNet, an ensemble
+of five to ten members lowers both NLL and Brier score relative to a
+single network, with the gain largest in the first few members, and on
+held-out OOD inputs (NotMNIST for an MNIST-trained model, unseen classes
+for SVHN) the ensemble's predictive entropy rises where the single
+network's stays low <span class="citation"
 data-cites="lakshminarayanan_deep_ensembles_2017">(Lakshminarayanan et
-al. 2017)</span>. <u>The paper's spirit is that the main source of
-useful uncertainty in deep networks is basin diversity, and the cheapest
-way to get it is brute force.</u></p>
+al. 2017)</span>. The ECE and AUROC framing of the same effect comes
+later, from the calibration literature <span class="citation"
+data-cites="guo_calibration_2017">(Guo et al. 2017)</span> and the shift
+benchmark <span class="citation"
+data-cites="ovadia_can_you_trust_2019">(Ovadia et al. 2019)</span>.
+<u>The paper's spirit is that the main source of useful uncertainty in
+deep networks is basin diversity, and the cheapest way to get it is
+brute force.</u></p>
 <p><u>A common misconception is that ensembles need explicit diversity
 enforcement</u> (different architectures, different data splits,
 adversarial training). The Lakshminarayanan paper and subsequent work
@@ -2222,15 +2280,15 @@ distribution approximates the Bayesian predictive is Bayesian in effect.
 Under this lens, deep ensembles are approximate Bayesian methods with a
 particular bias-variance trade-off that happens to work well in
 practice.</p>
-<p>The model-averaging-vs-model-selection distinction is crucial here.
-Classical Bayesian model averaging assumes a single hypothesis class and
-marginalizes over parameters. Wilson-Izmailov argue that model averaging
-across neural-network modes is in fact the most important form of
-marginalization in deep learning, because the loss landscape is the
+<p>The distinction between model averaging and model selection matters
+here. Classical Bayesian model averaging assumes a single hypothesis
+class and marginalizes over parameters. Wilson-Izmailov argue that model
+averaging across neural-network modes is in fact the most important form
+of marginalization in deep learning, because the loss landscape is the
 "hypothesis space" and modes correspond to distinct hypotheses. This
 reframes deep ensembles as a form of Bayesian model averaging in a
 mixture-of-modes hypothesis space, with uniform mode weights (a tenable
-default when mode volumes are approximately equal).</p>
+default when mode volumes are about equal).</p>
 <p>The prior-as-regularizer view, which Wilson-Izmailov also advance,
 treats the implicit prior induced by SGD + weight decay + architecture
 as a functional prior. Under this view, the choice of architecture is
@@ -2244,12 +2302,12 @@ open.</p>
 If the posterior
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>θ</mi><mo>∣</mo><mi mathvariant="script">𝒟</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p(\theta \mid \mathcal{D})</annotation></semantics></math>
 has modes
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><msubsup><mi>θ</mi><mi>k</mi><mo>⋆</mo></msubsup><mo stretchy="false" form="postfix">}</mo><msup><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>K</mi></msup></mrow><annotation encoding="application/x-tex">\{\theta^\star_k\}{k=1}^{K}</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><msubsup><mi>θ</mi><mi>k</mi><mo>⋆</mo></msubsup><msubsup><mo stretchy="false" form="postfix">}</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>K</mi></msubsup></mrow><annotation encoding="application/x-tex">\{\theta^\star_k\}_{k=1}^{K}</annotation></semantics></math>
 with local Gaussian-like shape, independent SGD runs from random
 initializations produce samples
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><msub><mi>θ</mi><mi>m</mi></msub><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\{\theta_m\}</annotation></semantics></math>
 that approximate draws from the mode-weighted distribution
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mi>k</mi></msub><msub><mi>w</mi><mi>k</mi></msub><mi>δ</mi><msubsup><mi>θ</mi><mi>k</mi><mo>⋆</mo></msubsup></mrow><annotation encoding="application/x-tex">\sum_k w_k \delta{\theta^\star_k}</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mi>k</mi></msub><msub><mi>w</mi><mi>k</mi></msub><msub><mi>δ</mi><msubsup><mi>θ</mi><mi>k</mi><mo>⋆</mo></msubsup></msub></mrow><annotation encoding="application/x-tex">\sum_k w_k \delta_{\theta^\star_k}</annotation></semantics></math>
 with weights
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>w</mi><mi>k</mi></msub><annotation encoding="application/x-tex">w_k</annotation></semantics></math>
 proportional to mode volumes. The ensemble predictive is then the
@@ -2283,13 +2341,19 @@ is standard; larger
 helps less than larger
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
 beyond these defaults.</p>
-<p><u>An engineering trick: one can share the final-layer batch-norm
-recomputation across SWAG samples within a member, amortizing the BN
-cost.</u> With this optimization, MultiSWAG predictive inference on a
-ResNet-50 is about
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>10</mn><mo>×</mo></mrow><annotation encoding="application/x-tex">10\times</annotation></semantics></math>
-the cost of a single forward pass per input, which is tolerable for most
-deployment scenarios.</p>
+<p><u>An engineering trick is to share the final-layer batch-norm
+recomputation across SWAG samples within a member, which amortizes the
+BN-refresh cost but not the forward passes themselves.</u> At the
+standard
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">M = 5</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mo>=</mo><mn>20</mn></mrow><annotation encoding="application/x-tex">S = 20</annotation></semantics></math>
+setting the predictive still costs
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>S</mi><mo>=</mo><mn>100</mn></mrow><annotation encoding="application/x-tex">MS = 100</annotation></semantics></math>
+forward passes per input, so MultiSWAG inference on a ResNet-50 is about
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>100</mn><mo>×</mo></mrow><annotation encoding="application/x-tex">100\times</annotation></semantics></math>
+a single forward pass. That is tolerable for batch or offline scoring
+and not for real-time serving, which is the reason the cheap-ensemble
+variants below exist.</p>
 <h2
 id="ensemble-size-scaling-ood-dominance-and-cheap-substitutes">Ensemble
 size scaling, OOD dominance, and cheap substitutes</h2>
@@ -2312,20 +2376,22 @@ since each member sees different augmentations and effectively learns a
 more diverse feature set.</p>
 <p><u>Ensembles dominate under distribution shift and on OOD
 detection.</u> In the Ovadia et al. dataset-shift benchmark, 5-member
-ensembles show the lowest ECE under shift while VI sits near the worst,
-and the OOD-detection AUROC advantage is the signature empirical benefit
-beyond calibration. The load-bearing mechanism is <strong>function-space
-diversity</strong>: cosine similarity of output disagreement (the
-normalized output-space variance between members) is the predictive
-quantity for calibration gain, and it falls off sharply on OOD inputs
-where members disagree on what the right prediction is. Ensembles do not
-eliminate overconfidence though; a committee of overconfident members
-can still be overconfident, but the direction of overconfidence is
-diversified and partially cancels in the average. A temperature
-rescaling on ensemble-averaged logits often improves NLL further,
-mirroring the cold-posterior effect in BNN VI. Cross-architecture
-ensembles can outperform same-architecture ensembles on OOD at the cost
-of more complex training.</p>
+ensembles show the lowest ECE under shift while mean-field VI sits near
+the worst <span class="citation"
+data-cites="ovadia_can_you_trust_2019">(Ovadia et al. 2019)</span>. The
+advantage on OOD detection, measured by AUROC in the later OOD
+literature, is the second empirical benefit beyond calibration. The
+load-bearing mechanism is <strong>function-space diversity</strong>:
+cosine similarity of output disagreement (the normalized output-space
+variance between members) is the predictive quantity for calibration
+gain, and it falls off sharply on OOD inputs where members disagree on
+what the right prediction is. Ensembles do not eliminate overconfidence
+though; a committee of overconfident members can still be overconfident,
+but the direction of overconfidence is diversified and partially cancels
+in the average. A temperature rescaling on ensemble-averaged logits
+often improves NLL further, mirroring the cold-posterior effect in BNN
+VI. Cross-architecture ensembles can outperform same-architecture
+ensembles on OOD at the cost of more complex training.</p>
 <p>The "equal-compute" framing tilts results. <u>Ensembles are biased in
 favor of high-capacity single architectures at equal FLOP cost</u> on
 accuracy, but not on calibration: a larger single model may match an
@@ -2419,41 +2485,53 @@ fine-grained OOD distinctions, raw ensembles remain preferable.</p>
 <p>This closing chapter positions the methods of the chapter against
 each other on the practitioner-relevant axes of test NLL, expected
 calibration error (ECE), OOD performance under distribution shift, and
-cost. It then lays out the Related Work in the form of a
-state-of-the-art table covering every paper cited in Part III.</p>
+cost. It then lays out the Related Work as a ranking table covering
+every paper cited in this chapter.</p>
 <h2 id="head-to-head-on-dataset-shift-ovadia-et-al.-2019">Head-to-head
 on dataset shift: Ovadia et al. (2019)</h2>
 <p><span class="citation" data-cites="ovadia_can_you_trust_2019">Ovadia
 et al. (2019)</span> ran the canonical dataset-shift benchmark: train a
 ResNet on CIFAR-10 / ImageNet / Criteo / MNIST, then evaluate on shifted
 versions (CIFAR-10-C, ImageNet-C, rotated MNIST) under a dozen
-corruption types at five severity levels. They compared single networks,
-MC Dropout, temperature scaling, VI-BNNs, SVI, SWAG, and deep ensembles
-on NLL, accuracy, and calibration (ECE, Brier score).</p>
-<p><u>The dominant finding is that deep ensembles and SWAG consistently
-outperform all other approximate-Bayesian methods under shift</u>, while
-VI-BNNs and MC Dropout degrade as fast as (or faster than) a well-tuned
-deterministic baseline. The calibration gap between ensembles and single
-networks widens under shift: the single network becomes dramatically
-overconfident while the ensemble retains a usable predictive
-uncertainty.</p>
-<p>The take-away for a practitioner is stark: if you want calibration
-under shift, train an ensemble. If you want cheaper-than-an-ensemble,
-use SWAG; if you want post-hoc, use Laplace last-layer. Variational
-methods remain useful for their structural properties (amortization,
-latent-variable modelling), but as pure uncertainty tools on shifted
-data they are not competitive <span class="citation"
-data-cites="ovadia_can_you_trust_2019">(Ovadia et al. 2019)</span>.</p>
-<p>A quantitative snapshot from the Ovadia paper. On CIFAR-10 at
-corruption severity 5 (worst case), typical numbers are: single-network
-accuracy 55%, ECE 20%+; 5-member ensemble accuracy 62%, ECE 8%; VI-BNN
-accuracy 58%, ECE 15%; SWAG accuracy 61%, ECE 10%. The gap between a
-deterministic baseline and an ensemble is what Bayesian deep learning
-should deliver, and all single-mode approximations under-deliver by a
-factor of 2-3x on the calibration metric under shift.</p>
-<p>The paper also introduces ECE-reliability diagrams as the canonical
-visualization: bin predictions by confidence, plot per-bin accuracy
-against confidence, and measure the gap between the diagonal (perfect
+corruption types at five severity levels. They compared a vanilla
+network, post-hoc temperature scaling, MC dropout, mean-field stochastic
+VI over all weights, last-layer SVI, last-layer dropout, and deep
+ensembles on NLL, accuracy, and calibration (ECE, Brier score). SWAG is
+not in their benchmark, so the SWAG entries elsewhere in this chapter
+come from Maddox et al. <span class="citation"
+data-cites="maddox_swag_2019">(Maddox et al. 2019)</span> and Wilson and
+Izmailov <span class="citation"
+data-cites="wilson_izmailov_2020">(Wilson and Izmailov 2020)</span> and
+are not directly commensurable with the Ovadia numbers.</p>
+<p><u>The dominant finding is that deep ensembles consistently
+outperform the other methods in the benchmark under shift</u>, while
+mean-field SVI and MC dropout degrade as fast as (or faster than) a
+well-tuned deterministic baseline. The calibration gap between ensembles
+and single networks widens under shift: the single network becomes
+dramatically overconfident while the ensemble retains a usable
+predictive uncertainty.</p>
+<p>The take-away for a practitioner is stark. If you want calibration
+under shift, train an ensemble. For a cheaper option, SWAG sits in the
+same within-plus-across-basin family at a fraction of the cost, and for
+a purely post-hoc option there is last-layer Laplace, though neither was
+measured in this benchmark. Variational methods remain useful for their
+structural properties (amortization, latent-variable modelling), but as
+pure uncertainty tools on shifted data they are not competitive <span
+class="citation" data-cites="ovadia_can_you_trust_2019">(Ovadia et al.
+2019)</span>.</p>
+<p>What the paper reports at corruption severity 5 is a distribution
+rather than a point: for each method it plots accuracy and ECE as a box
+plot over the corruption types at that severity, and the boxes overlap.
+The qualitative claim that survives that spread is the one above, that
+the ensemble's ECE stays usable while the deterministic baseline's grows
+several-fold, and that the single-mode approximations sit between them
+without closing the gap. Reading exact severity-5 percentages off those
+box plots is not something this chapter does.</p>
+<p>The paper's main visualisation is the reliability diagram <span
+class="citation" data-cites="guo_calibration_2017">(Guo et al.
+2017)</span>, which predates it by decades in the forecasting
+literature: bin predictions by confidence, plot per-bin accuracy against
+confidence, and measure the gap between the diagonal (perfect
 calibration) and the observed curve. The signed calibration error (over-
 vs under-confidence) is more informative than the absolute ECE; most
 methods are under-confident on shifted data (predictive entropy too
@@ -2463,8 +2541,9 @@ scaling alone (a single scalar applied to logits after training)
 recovers much of the calibration gap on in-distribution data but fails
 completely under shift.</u> This is because temperature scaling is a
 point operation; it cannot produce input-dependent uncertainty
-adjustments. Ensembles and SWAG, by contrast, produce input-dependent
-uncertainty through their sample spread on each input.</p>
+adjustments. Ensembles, and sample-based posteriors such as SWAG,
+produce input-dependent uncertainty through their sample spread on each
+input.</p>
 <div class="blog-table"><table>
 <thead>
 <tr>
@@ -2631,31 +2710,38 @@ data-cites="daxberger_laplace_redux_2021">(Daxberger et al.
 2021)</span>, and connected to hyperparameter learning by Immer et al.
 <span class="citation" data-cites="immer2021marginal">(Immer et al.
 2021)</span>.</p>
-<p>The /trajectory / ensemble line_ starts with deep ensembles <span
-class="citation"
+<p><u>The trajectory and ensemble line</u> starts with deep ensembles
+<span class="citation"
 data-cites="lakshminarayanan_deep_ensembles_2017">(Lakshminarayanan et
 al. 2017)</span>, is given a loss-landscape explanation by
 Fort-Hu-Lakshminarayanan <span class="citation"
 data-cites="fort2019loss">(Fort et al. 2019)</span>, compressed into
 within-basin Gaussians by SWAG <span class="citation"
 data-cites="maddox_swag_2019">(Maddox et al. 2019)</span>, and argued to
-be approximately Bayesian by Wilson-Izmailov <span class="citation"
+be about Bayesian by Wilson-Izmailov <span class="citation"
 data-cites="wilson_izmailov_2020">(Wilson and Izmailov 2020)</span>. The
 empirical case that ensembles dominate single-mode methods under shift
 is made by Ovadia et al. <span class="citation"
 data-cites="ovadia_can_you_trust_2019">(Ovadia et al. 2019)</span>.</p>
-<p>A few cross-cutting debates are worth flagging. The cold-posterior
-effect <span class="citation"
-data-cites="wenzel_cold_posteriors_2020">(Wenzel et al. 2020)</span>
-(BNN posteriors benefit from a likelihood temperature
+<p>Three cross-cutting debates remain open. The cold-posterior effect
+<span class="citation" data-cites="wenzel_cold_posteriors_2020">(Wenzel
+et al. 2020)</span> (BNN posteriors benefit from a likelihood
+temperature
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">T &lt; 1</annotation></semantics></math>)
 is not resolved; the current best hypothesis is that data augmentation
 introduces an effective likelihood mis-specification that tempering
 compensates. The prior-scale question in BNNs (what is the right scale
-for a Gaussian prior on weights?) is similarly open: Izmailov et al.
-find that the standard prior is too loose and that scale selection
-matters. The amortization-gap question (how much does a fixed encoder
-cost us relative to a per-datum optimum?) is being chipped away at by
+for a Gaussian prior on weights?) is similarly open, and the evidence
+points in two directions. Under full-batch HMC the Bayesian model
+average is largely insensitive to prior scale and to the prior family
+<span class="citation" data-cites="izmailov2021hmc">(Izmailov et al.
+2021)</span>, while prior misspecification remains one of the standing
+explanations for the cold-posterior effect seen with cheaper
+approximations <span class="citation"
+data-cites="wenzel_cold_posteriors_2020">(Wenzel et al. 2020)</span> and
+with the architectures studied by Fortuin et al. (2022). The
+amortization-gap question (how much does a fixed encoder cost us
+relative to a per-datum optimum?) is being chipped away at by
 semi-amortized VI, iterative-encoder variants, and flow-based
 posteriors.</p>
 <h2 id="practitioner-recipes-by-budget">Practitioner recipes by
@@ -2786,10 +2872,10 @@ quantification.</li>
 <li>Amortization is not free. Any method that shares parameters across
 data points (amortized VI, BatchEnsemble) pays an amortization gap that
 can be the dominant slack.</li>
-<li>Predictive inference is where the rubber meets the road. A method
-with an accurate posterior but a poor predictive (bad temperature, bad
-softmax-vs-probit choice) can lose to a method with a worse posterior
-but a better predictive.</li>
+<li>Predictive inference decides the outcome. A method with an accurate
+posterior but a poor predictive (bad temperature, bad softmax-vs-probit
+choice) can lose to a method with a worse posterior but a better
+predictive.</li>
 <li>Hyperparameter tuning is half the battle. Prior scale, learning-rate
 schedule, minibatch size, and mass-matrix / preconditioner choice
 dominate the performance of most of these methods.</li>
@@ -2853,7 +2939,7 @@ for most latents</td>
 </tr>
 <tr>
 <td>HMC</td>
-<td>Step-size bias</td>
+<td>Poor mixing, low acceptance</td>
 <td>Energy-conservation error
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>&gt;</mo><mn>0.01</mn></mrow><annotation encoding="application/x-tex">&gt; 0.01</annotation></semantics></math></td>
 <td>Smaller
@@ -2867,25 +2953,27 @@ related chapters and books</h2>
 <p>The posterior-approximation toolkit developed in this chapter
 connects to several other parts of the Probabilistic DL book and to the
 broader Bayesian ML literature.</p>
-<p>Part II (BNNs) introduced the weight-posterior formulation and the
-variational-BNN family (Bayes-by-Backprop, Flipout, MC Dropout). The
-VI-ELBO framework developed here is the theoretical backbone of those
-methods; conversely, the BNN posterior is the concrete target of the
-Laplace, SGLD, SG-HMC, and SWAG approximations developed here.</p>
-<p>Part IV (Gaussian Processes and Deep Kernels) covers a non-parametric
-alternative: instead of approximating a weight posterior, place a GP
-prior on functions and perform inference directly in function space.
-Last-layer Laplace and the NNGP/NTK correspondence (Neal 1996, Lee et
-al. 2019) are the bridges between these two worlds; in the
-infinite-width limit, a BNN with an appropriate prior is equivalent to a
-specific GP, and the Laplace posterior recovers the GP's predictive
-Gaussian.</p>
-<p>Part V (Uncertainty Quantification) takes the output of any of these
-methods and evaluates it on calibration, OOD detection, and selective
-prediction benchmarks. The Ovadia dataset-shift benchmark <span
-class="citation" data-cites="ovadia_can_you_trust_2019">(Ovadia et al.
-2019)</span> lives there; its conclusions shape the practitioner recipes
-of Section id:prob-dl-recipes.</p>
+<p>The Bayesian-neural-network chapter
+introduced the weight-posterior formulation and the variational-BNN
+family (Bayes-by-Backprop, Flipout, MC Dropout). The VI-ELBO framework
+developed here is the theoretical backbone of those methods; conversely,
+the BNN posterior is the concrete target of the Laplace, SGLD, SG-HMC,
+and SWAG approximations developed here.</p>
+<p>The Gaussian-process and
+deep-kernel chapter covers a non-parametric alternative: instead of
+approximating a weight posterior, place a GP prior on functions and
+perform inference directly in function space. Last-layer Laplace and the
+NNGP/NTK correspondence (Neal 1996, Lee et al. 2019) are the bridges
+between these two worlds; in the infinite-width limit, a BNN with an
+appropriate prior is equivalent to a specific GP, and the Laplace
+posterior recovers the GP's predictive Gaussian.</p>
+<p>The uncertainty-quantification chapter
+takes the output of any of these methods and evaluates it on
+calibration, OOD detection, and selective prediction benchmarks. The
+Ovadia dataset-shift benchmark <span class="citation"
+data-cites="ovadia_can_you_trust_2019">(Ovadia et al. 2019)</span> lives
+there; its conclusions shape the
+practitioner recipes by budget.</p>
 <p>The Generative Models book owns the VAE as a generative tool: FID
 scores, latent-space interpolation, conditional-VAE architectures, and
 the whole diffusion-model family that grew out of VAE's probabilistic
@@ -3025,8 +3113,7 @@ three effects.</p>
 alternative roads</h2>
 <p>The posterior-approximation story in deep learning is often told as
 "VI then MCMC then Laplace then ensembles", but this linearizes a much
-messier history. A few alternative roads are worth mentioning for
-context.</p>
+messier history. Several alternative roads give context.</p>
 <p>Expectation Propagation (Minka 2001) is an inner approximation in
 moment-matching form: approximate each factor of the posterior by a
 simpler factor in the same exponential family, and update factors by
@@ -3125,10 +3212,14 @@ extracting posterior information from the same underlying
 stochastic-gradient process.</p>
 <h1 id="benchmark-details-and-numbers">Benchmark Details and
 Numbers</h1>
-<p>This section collects the quantitative numbers cited throughout the
-chapter into one place for easy reference. The numbers are
-representative, with spread across seeds and architectures; they are
-meant as rough guides, not exact benchmarks.</p>
+<p>This section collects the quantitative claims made throughout the
+chapter into one place for reference. The tables below are composites
+assembled across papers that differ in backbone, schedule and
+augmentation policy, so they record the ordering the literature reports
+rather than measured results from any single controlled experiment.
+Where a row's method was not evaluated in the study the table cites, the
+caption says so. Use them as rough guides and go to the cited papers for
+numbers.</p>
 <h2 id="cifar-10-classification">CIFAR-10 classification</h2>
 <p>On CIFAR-10 with a ResNet-20 or similar backbone,
 in-distribution:</p>
@@ -3235,9 +3326,9 @@ SWAG)</td>
 </tbody>
 </table></div>
 <h2 id="cifar-10-c-at-severity-5">CIFAR-10-C at severity 5</h2>
-<p>Under corruption severity 5 (the hardest OOD-C level), the numbers
-deteriorate dramatically. The relative ranking of methods, however,
-becomes even clearer:</p>
+<p>Under corruption severity 5 (the hardest OOD-C level), every method
+loses a large fraction of its accuracy and calibration. The relative
+ranking, however, becomes clearer:</p>
 <div class="blog-table"><table>
 <thead>
 <tr>
@@ -3305,7 +3396,7 @@ becomes even clearer:</p>
 </tbody>
 </table></div>
 <p><u>The headline is that all single-mode methods degrade similarly
-under shift; the step-function improvement comes from going to an
+under shift, and the step-function improvement comes from going to an
 ensemble.</u> MultiSWAG's additional gain over plain ensembles is modest
 but non-zero, and the storage cost is higher.</p>
 <h2 id="ood-detection-auroc">OOD detection AUROC</h2>
@@ -3519,7 +3610,7 @@ the across-sample disagreement exceeds a threshold. Optionally, ensemble
 3 fine-tuned models from different seeds, each with its own Laplace, and
 combine.</p>
 <p>Expected results. Accuracy on non-abstained examples rises to 90%+,
-with 20% of examples abstained (approximately the adversarial-paraphrase
+with 20% of examples abstained (about the adversarial-paraphrase
 fraction). The epistemic/aleatoric decomposition correctly identifies
 paraphrases as high-epistemic, high-aleatoric (the model disagrees
 across samples and the task is intrinsically ambiguous).</p>
@@ -3543,10 +3634,10 @@ on in-distribution test and
 on the extrapolation set, with no uncertainty estimates.</p>
 <p>Recipe. Train with Gaussian NLL loss (predicting both mean and
 variance); train 5 ensemble members with different seeds; fit SWAG to
-each member; additionally tune prior scale by marginal-likelihood
-gradient ascent <span class="citation"
-data-cites="immer2021marginal">(Immer et al. 2021)</span>. At inference,
-sample weights, compute predictive Gaussians, mixture them.</p>
+each member; also tune prior scale by marginal-likelihood gradient
+ascent <span class="citation" data-cites="immer2021marginal">(Immer et
+al. 2021)</span>. At inference, sample weights, compute predictive
+Gaussians, mixture them.</p>
 <p>Expected results. On in-distribution test,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>R</mi><mn>2</mn></msup><annotation encoding="application/x-tex">R^2</annotation></semantics></math>
 is unchanged (~0.85), but the predictive variance is now well-calibrated
@@ -3581,12 +3672,12 @@ disagrees about the Q-values of those actions, and greedy actions
 otherwise. Sample efficiency typically improves by 30-50% on
 hard-exploration tasks.</p>
 <p>Why not BNN for RL? BNN Q-networks exist (Azizzadenesheli et al.
-2018) but are harder to tune than ensembles; the ensemble approach is
-simpler, more robust, and roughly as effective. This is a general
-pattern: <u>when you want epistemic uncertainty for decision-making, an
-ensemble is usually the right first choice</u>.</p>
-<h1 id="deep-dive-predictive-distributions">Deep Dive: Predictive
-Distributions</h1>
+2018) but are harder to tune than ensembles, and the ensemble approach
+is simpler, less sensitive to hyperparameters, and roughly as effective.
+The pattern is general. <u>When you want epistemic uncertainty for
+decision-making, an ensemble is usually the right first choice</u>.</p>
+<h1 id="detailed-look-predictive-distributions">Detailed look:
+Predictive Distributions</h1>
 <p>Posterior approximation is only half the battle; the other half is
 combining the approximate posterior with a predictive model to produce
 usable uncertainty on test inputs. This section collects the
@@ -3627,15 +3718,15 @@ to the logits:
 with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
 tuned on a validation set by minimizing NLL. It is a zero-training-cost
-calibration that works remarkably well on in-distribution data but fails
-under shift.</p>
+calibration that works well on in-distribution data and fails under
+shift.</p>
 <p>Vector scaling and matrix scaling generalize to per-class or
 full-affine transformations of logits; they are more expressive but more
 prone to overfitting the validation set.</p>
 <p>Platt scaling for binary classification and isotonic regression for
 general classification are non-parametric calibration methods; they work
-on any predictive and are robust but require sufficient validation
-data.</p>
+on any predictive and make no parametric assumption, but require enough
+validation data.</p>
 <p>Focal loss and label smoothing are training-time regularizers that
 improve calibration. They are orthogonal to the Bayesian methods of this
 chapter and can be combined with them.</p>
@@ -3699,9 +3790,9 @@ as</p>
 \mathbb{H}[p(y \mid x, \mathcal{D})] \;=\; \underbrace{\mathbb{E}_{p(\theta \mid \mathcal{D})} \mathbb{H}[p(y \mid x, \theta)]}_{\text{aleatoric}} \;+\; \underbrace{\mathrm{MI}[y; \theta \mid x, \mathcal{D}]}_{\text{epistemic}},
 \end{equation}</annotation></semantics></math> where the mutual
 information term is the epistemic uncertainty. For ensembles with
-categorical outputs this reduces to the formula in Section id:prob-dl-swag-lakshminarayanan2017;
-for continuous outputs or structured predictions the decomposition still
-holds with appropriate entropy definitions.</p>
+categorical outputs this reduces to the formula in the deep-ensembles
+section; for continuous outputs or structured predictions the
+decomposition still holds with appropriate entropy definitions.</p>
 <p><u>The practical use of this decomposition is in downstream
 decision-making</u>: high aleatoric uncertainty means the input is
 fundamentally ambiguous (two classes look alike), high epistemic
@@ -3863,17 +3954,23 @@ al. 2019)</span> approximates the within-basin posterior from the SGD
 trajectory at negligible cost; deep ensembles <span class="citation"
 data-cites="lakshminarayanan_deep_ensembles_2017 fort2019loss wilson_izmailov_2020">(Lakshminarayanan
 et al. 2017; Fort et al. 2019; Wilson and Izmailov 2020)</span>
-approximate the cross-basin structure; the combination is empirical
-state-of-the-art on calibration-under-shift.</li>
+approximate the cross-basin structure, and the combination gives the
+lowest calibration error under shift among the methods compared in this
+chapter.</li>
 <li>Under dataset shift <span class="citation"
 data-cites="ovadia_can_you_trust_2019">(Ovadia et al. 2019)</span>,
-ensembles and SWAG dominate; VI and MC Dropout are not competitive.</li>
+ensembles dominate the methods benchmarked, and mean-field VI and MC
+dropout are not competitive. SWAG was not in that benchmark; the case
+for it under shift rests on <span class="citation"
+data-cites="maddox_swag_2019">(Maddox et al. 2019)</span> and <span
+class="citation" data-cites="wilson_izmailov_2020">(Wilson and Izmailov
+2020)</span>.</li>
 <li>No method is a free lunch: HMC is the most accurate in-distribution
 and the least robust under corruption, at a compute cost five orders of
-magnitude above a single SGD run; ensembles are simple but
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>×</mo></mrow><annotation encoding="application/x-tex">M\times</annotation></semantics></math>
-the compute; Laplace is cheap but captures only a single mode; VI is
-fast but loses variance and mode coverage.</li>
+magnitude above a single SGD run. Ensembles are simple but cost
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+times the compute. Laplace is cheap but captures only a single mode. VI
+is fast but loses variance and mode coverage.</li>
 <li>For an engineer shipping a classifier under shift, the default
 recipe is: train 5 independent networks, optionally apply SWAG to each,
 ensemble the predictions, and calibrate with temperature scaling on a
@@ -3931,7 +4028,7 @@ must place mass everywhere
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
 does, often by inflating variance to cover multimodal structure.</p>
 <p>For multimodal targets, this asymmetry is the single most important
-conceptual point in VI. Standard ELBO-based VI uses reverse KL, hence
+conceptual point in VI. Standard ELBO-based VI uses reverse KL, so
 single-mode behavior;
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>-divergences
 interpolate between the two and can trade off the extremes.</p>
@@ -3940,8 +4037,8 @@ natural gradient</h2>
 <p>The Fisher information of a parametric family
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mi>ϕ</mi></msub><annotation encoding="application/x-tex">q_\phi</annotation></semantics></math>
 is</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mo stretchy="false" form="prefix">(</mo><mi>ϕ</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><mi mathvariant="double-struck">𝔼</mi><mrow><mi>q</mi><mi>ϕ</mi></mrow><mspace width="-0.167em"></mspace><mo minsize="120%" maxsize="120%" stretchy="true" form="prefix">[</mo><msub><mi>∇</mi><mi>ϕ</mi></msub><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><msub><mi>∇</mi><mi>ϕ</mi></msub><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><msup><mo stretchy="false" form="postfix">)</mo><mi>⊤</mi></msup><mo minsize="120%" maxsize="120%" stretchy="true" form="postfix">]</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">\begin{equation}
-I(\phi) \;=\; \mathbb{E}{q\phi}\!\big[ \nabla_\phi \log q_\phi(z) \, \nabla_\phi \log q_\phi(z)^\top \big].
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mo stretchy="false" form="prefix">(</mo><mi>ϕ</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><msub><mi mathvariant="double-struck">𝔼</mi><msub><mi>q</mi><mi>ϕ</mi></msub></msub><mspace width="-0.167em"></mspace><mo minsize="120%" maxsize="120%" stretchy="true" form="prefix">[</mo><msub><mi>∇</mi><mi>ϕ</mi></msub><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><msub><mi>∇</mi><mi>ϕ</mi></msub><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><msup><mo stretchy="false" form="postfix">)</mo><mi>⊤</mi></msup><mo minsize="120%" maxsize="120%" stretchy="true" form="postfix">]</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">\begin{equation}
+I(\phi) \;=\; \mathbb{E}_{q_\phi}\!\big[ \nabla_\phi \log q_\phi(z) \, \nabla_\phi \log q_\phi(z)^\top \big].
 \end{equation}</annotation></semantics></math> It equals the Hessian of
 the KL divergence from
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mi>ϕ</mi></msub><annotation encoding="application/x-tex">q_\phi</annotation></semantics></math>
@@ -3951,7 +4048,7 @@ in the limit
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mo>→</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\epsilon \to 0</annotation></semantics></math>,
 and defines the Fisher-Rao metric on the statistical manifold. The
 natural gradient is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>∇</mi><mo accent="true">̃</mo></mover><mi>ϕ</mi><mi mathvariant="script">ℒ</mi><mo>=</mo><mi>I</mi><mo stretchy="false" form="prefix">(</mo><mi>ϕ</mi><msup><mo stretchy="false" form="postfix">)</mo><mrow><mi>−</mi><mn>1</mn></mrow></msup><mi>∇</mi><mi>ϕ</mi><mi mathvariant="script">ℒ</mi></mrow><annotation encoding="application/x-tex">\tilde{\nabla}\phi \mathcal{L} = I(\phi)^{-1} \nabla\phi \mathcal{L}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>∇</mi><mo accent="true">̃</mo></mover><mi>ϕ</mi></msub><mi mathvariant="script">ℒ</mi><mo>=</mo><mi>I</mi><mo stretchy="false" form="prefix">(</mo><mi>ϕ</mi><msup><mo stretchy="false" form="postfix">)</mo><mrow><mi>−</mi><mn>1</mn></mrow></msup><msub><mi>∇</mi><mi>ϕ</mi></msub><mi mathvariant="script">ℒ</mi></mrow><annotation encoding="application/x-tex">\tilde{\nabla}_\phi \mathcal{L} = I(\phi)^{-1} \nabla_\phi \mathcal{L}</annotation></semantics></math>,
 which is the steepest-ascent direction in the Fisher-Rao metric and is
 reparametrization-invariant: applying any invertible change of
 coordinates to
@@ -3997,11 +4094,11 @@ K-FAC-style factorizations for dense and convolutional layers.</p>
 <h2 id="monte-carlo-gradient-estimators">Monte Carlo gradient
 estimators</h2>
 <p>For expectations
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi><mo stretchy="false" form="prefix">(</mo><mi>ϕ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi mathvariant="double-struck">𝔼</mi><mrow><mi>q</mi><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">[</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">J(\phi) = \mathbb{E}{q\phi(z)}[f(z)]</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>J</mi><mo stretchy="false" form="prefix">(</mo><mi>ϕ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi mathvariant="double-struck">𝔼</mi><mrow><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><mo stretchy="false" form="prefix">[</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">J(\phi) = \mathbb{E}_{q_\phi(z)}[f(z)]</annotation></semantics></math>,
 two generic estimators exist:</p>
 <p>Score function (REINFORCE):</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>∇</mi><mi>ϕ</mi></msub><mi>J</mi><mo>=</mo><mi mathvariant="double-struck">𝔼</mi><mrow><mi>q</mi><mi>ϕ</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">[</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><msub><mi>∇</mi><mi>ϕ</mi></msub><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">\begin{equation}
-\nabla_\phi J = \mathbb{E}{q\phi(z)}[f(z) \nabla_\phi \log q_\phi(z)].
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>∇</mi><mi>ϕ</mi></msub><mi>J</mi><mo>=</mo><msub><mi mathvariant="double-struck">𝔼</mi><mrow><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><mo stretchy="false" form="prefix">[</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><msub><mi>∇</mi><mi>ϕ</mi></msub><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>q</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>z</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">\begin{equation}
+\nabla_\phi J = \mathbb{E}_{q_\phi(z)}[f(z) \nabla_\phi \log q_\phi(z)].
 \end{equation}</annotation></semantics></math> Unbiased, high variance,
 applicable whenever
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>q</mi><mi>ϕ</mi></msub></mrow><annotation encoding="application/x-tex">\log q_\phi</annotation></semantics></math>
@@ -4012,8 +4109,8 @@ is differentiable in
 with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mo>∼</mo><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>ϵ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\epsilon \sim p(\epsilon)</annotation></semantics></math>
 parameter-free,</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>∇</mi><mi>ϕ</mi></msub><mi>J</mi><mo>=</mo><mi mathvariant="double-struck">𝔼</mi><mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>ϵ</mi><mo stretchy="false" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">[</mo><mi>∇</mi><mi>ϕ</mi><mi>f</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>g</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>ϵ</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">\begin{equation}
-\nabla_\phi J = \mathbb{E}{p(\epsilon)}[\nabla\phi f(g_\phi(\epsilon))].
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>∇</mi><mi>ϕ</mi></msub><mi>J</mi><mo>=</mo><msub><mi mathvariant="double-struck">𝔼</mi><mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><mi>ϵ</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><mo stretchy="false" form="prefix">[</mo><msub><mi>∇</mi><mi>ϕ</mi></msub><mi>f</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>g</mi><mi>ϕ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>ϵ</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">\begin{equation}
+\nabla_\phi J = \mathbb{E}_{p(\epsilon)}[\nabla_\phi f(g_\phi(\epsilon))].
 \end{equation}</annotation></semantics></math> Unbiased, typically much
 lower variance, applicable only for reparameterizable distributions.</p>
 <p>For discrete
@@ -4089,10 +4186,47 @@ is the equivalent number of independent samples.</p>
 <p>For BNN posteriors,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
 can be in the thousands even for well-tuned HMC; thinning the chain to
-approximately
+about
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">E</mi><mi mathvariant="normal">S</mi><mi mathvariant="normal">S</mi></mrow><annotation encoding="application/x-tex">\mathrm{ESS}</annotation></semantics></math>
 samples and averaging gives the best bias-variance trade-off for
 posterior-predictive estimates.</p>
+<h1 id="outlook">Outlook</h1>
+<p>The open question left by this chapter is not which approximation is
+best but why the ranking flips between the two evaluations anyone cares
+about. The exact posterior wins in distribution and loses under
+corruption <span class="citation" data-cites="izmailov2021hmc">(Izmailov
+et al. 2021)</span>, which means either that the posterior is the wrong
+target under shift or that CIFAR-10-C is measuring something other than
+what the Bayesian argument promises. Nobody has separated those two
+readings, and until someone does, "closer to the posterior" cannot be
+used as an argument for a method on its own. The same ambiguity sits
+underneath the cold-posterior effect <span class="citation"
+data-cites="wenzel_cold_posteriors_2020">(Wenzel et al. 2020)</span>,
+where the augmentation explanation now has the strongest evidence but
+has not been shown to account for the whole effect.</p>
+<p>Two gaps are narrower and more tractable. The compute gap between the
+oracle and the practical methods is five orders of magnitude, and
+nothing in between has been tried seriously: cyclic SG-MCMC <span
+class="citation" data-cites="zhang_cyclical_sgmcmc_2020">(Zhang et al.
+2020)</span> and MultiSWAG <span class="citation"
+data-cites="wilson_izmailov_2020">(Wilson and Izmailov 2020)</span> are
+the current occupants of the two-to-ten-times band, and neither has been
+scored against the HMC samples that Izmailov et al. released. The
+evaluation gap is worse. Every ranking in this chapter rests on image
+classification under synthetic corruption, and whether it survives on
+regression, sequence models, or real rather than simulated shift is
+untested.</p>
+<p>The neighbouring chapters take up the pieces that are not this
+chapter's own. The Gaussian-process
+and deep-kernel chapter takes the function-space route that the
+weight-space methods here keep running into, and the infinite-width
+correspondence there is what makes last-layer Laplace as strong as it
+is. The uncertainty-quantification chapter
+takes any predictive produced here and asks whether it is calibrated,
+including the conformal machinery that gives coverage guarantees no
+posterior approximation provides. The generative reading of the same VAE
+object, with its architectures and sample-quality metrics, belongs to
+the Generative Models book.</p>
 <h1 class="unnumbered" id="footnotes">Footnotes</h1>
 <h2 class="blog-refs-title">References</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
@@ -4122,6 +4256,13 @@ Effortless Bayesian Deep Learning."</span> <em>NeurIPS</em>.
 Fort, Stanislav, Huiyi Hu, and Balaji Lakshminarayanan. 2019.
 <span>"Deep Ensembles: A Loss Landscape Perspective."</span> <em>arXiv
 Preprint arXiv:1912.02757</em>.
+</div>
+<div id="ref-guo_calibration_2017" class="csl-entry" role="listitem">
+Guo, Chuan, Geoff Pleiss, Yu Sun, and Kilian Q. Weinberger. 2017.
+<span>"On Calibration of Modern Neural Networks."</span> <em>Proceedings
+of the 34th International Conference on Machine Learning</em>, 1321-30.
+<a
+href="https://arxiv.org/abs/1706.04599">https://arxiv.org/abs/1706.04599</a>.
 </div>
 <div id="ref-higgins2017betavae" class="csl-entry" role="listitem">
 Higgins, Irina, Loic Matthey, Arka Pal, et al. 2017. <span>"Beta-VAE:
@@ -4215,6 +4356,12 @@ Really?"</span> <em>ICML</em>.
 Wilson, Andrew Gordon, and Pavel Izmailov. 2020. <span>"Bayesian Deep
 Learning and a Probabilistic Perspective of Generalization."</span>
 <em>NeurIPS</em>.
+</div>
+<div id="ref-zhang_cyclical_sgmcmc_2020" class="csl-entry"
+role="listitem">
+Zhang, Ruqi, Chunyuan Li, Jianyi Zhang, Changyou Chen, and Andrew Gordon
+Wilson. 2020. <span>"Cyclical Stochastic Gradient MCMC for Bayesian Deep
+Learning."</span> <em>ICLR</em>.
 </div>
 </div>
 <section id="footnotes" class="footnotes footnotes-end-of-document"

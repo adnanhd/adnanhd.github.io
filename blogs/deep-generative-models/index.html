@@ -34,7 +34,7 @@
     "name": "Adnan Harun Dogan"
   },
   "mainEntityOfPage": "https://adnanhd.github.io/blogs/deep-generative-models/",
-  "datePublished": "2026-04-28"
+  "datePublished": "2023-04-19T22:35"
 }
         </script>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
@@ -164,7 +164,23 @@ data-cites="debortoli_diffusion_2021">(De Bortoli et al. 2021)</span>.
 instantiations of a common transport-map framework, with architectural
 and training-objective choices distinguishing them rather than
 fundamental paradigm differences.</u></p>
-<p><img src="figures/dgm-taxonomy.svg" /></p>
+<figure id="fig:dgm-taxonomy">
+<img src="figures/dgm-taxonomy.svg" />
+<figcaption>Taxonomy of deep generative models across five paradigms
+(VAE, GAN, Flow, Diffusion, AR), each shown with its training objective,
+headline equation, sampling procedure, two structural strengths (green
++) and two costs (red -), and representative architectures. The ribbon
+at top names the modern unifying view: Score SDE, Flow Matching, and the
+Schrodinger Bridge formulations cast all five as different
+parameterisations of the same transport-map problem; what distinguishes
+them is the choice of training objective and the constraint on the
+parametric family rather than a fundamental paradigm difference.
+Coloured bars at the bottom give a rough indicative-only quality ranking
+on standard image benchmarks (illustrative; exact FID rankings depend on
+dataset, resolution, and conditioning); diffusion and AR currently sit
+at the top, GAN on aligned-portrait data remains competitive, flows lag
+on images but lead on tabular density.</figcaption>
+</figure>
 <p>The five paradigms are the VAE, the GAN, the flow, the score-based model and the diffusion model, and each
 is detailed in the sections that follow, with its core formulation, its
 key extensions, its practical training considerations, its architectural

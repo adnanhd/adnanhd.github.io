@@ -34,7 +34,7 @@
     "name": "Adnan Harun Dogan"
   },
   "mainEntityOfPage": "https://adnanhd.github.io/blogs/bayesian-neural-networks/",
-  "datePublished": "2026-02-10"
+  "datePublished": "2025-02-25T15:45"
 }
         </script>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
@@ -106,11 +106,11 @@ variance) with epistemic uncertainty (posterior concentration over
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>),
 and that the MC-Dropout predictive variance does not shrink with more
 data as a true posterior should.</p>
-<p>Flow-based posteriors extend the variational family beyond Gaussian:
+<p>Flow-based posteriors extend the variational family beyond Gaussian.
 <span class="citation"
 data-cites="rezende_normalizing_flows_2015">(Rezende and Mohamed
-2015)</span> introduced planar and radial flows for latent-variable VI;
-<span class="citation" data-cites="louizos_mnf_2017">(Louizos and
+2015)</span> introduced planar and radial flows for latent-variable VI,
+and <span class="citation" data-cites="louizos_mnf_2017">(Louizos and
 Welling 2017)</span> adapted this to weight-space by multiplicative
 normalizing flows (MNF), where a flow transforms an auxiliary random
 variable that scales Gaussian weight samples, yielding a richer,
@@ -128,18 +128,20 @@ points on the same continuum.</p>
 table</h2>
 <div class="blog-table"><table id="tbl:bnn-sota-comparison">
 <caption>Uncertainty-quantification methods for BNNs compared on image
-classification (MNIST LeNet5, CIFAR10 ResNet20) and UCI regression (avg
-over 10 datasets). NLL = negative log-likelihood (nats, lower better).
-ECE = expected calibration error (%, lower better). Accuracy in
-parentheses. OOD-AUROC is CIFAR10 vs SVHN. <strong>This is a composite,
-not a controlled comparison.</strong> No paper reports all four columns
-on a common backbone, so the rows are aligned by method and not by
-experiment; the per-row citation names the method's source, not the
-source of that row's numbers. Treat the column orderings as the claim
-and the digits as indicative, and see <span class="citation"
-data-cites="ovadia_can_you_trust_2019">(Ovadia et al. 2019)</span> for
-the one study that does run these methods head to head under a fixed
-protocol.</caption>
+classification (MNIST LeNet5, CIFAR10 ResNet20) and UCI regression. The
+UCI column is a single placeholder digit per method rather than a
+measured quantity, since the suite is reported per dataset and
+per-dataset NLLs on it span several nats. NLL = negative log-likelihood
+(nats, lower better). ECE = expected calibration error (%, lower
+better). Accuracy in parentheses. OOD-AUROC is CIFAR10 vs SVHN.
+<strong>This is a composite, not a controlled comparison.</strong> No
+paper reports all four columns on a common backbone, so the rows are
+aligned by method and not by experiment; the per-row citation names the
+method's source, not the source of that row's numbers. Treat the column
+orderings as the claim and the digits as indicative, and see <span
+class="citation" data-cites="ovadia_can_you_trust_2019">(Ovadia et al.
+2019)</span> for the one study that does run these methods head to head
+under a fixed protocol.</caption>
 <tbody>
 <tr>
 <td></td>
@@ -254,11 +256,11 @@ al. 2019)</span></td>
 </tr>
 </tbody>
 </table></div>
-<p>Takeaway: <u>deep ensembles and HMC set the calibration ceiling;
-among scalable single-model VI methods, Flipout and MNF posteriors are
-Pareto-dominant on the accuracy/NLL/ECE frontier, while MC Dropout is
-the cheapest-to-deploy option at the cost of visible
-mis-calibration.</u></p>
+<p>The takeaway is an ordering rather than a set of gaps. <u>Deep
+ensembles and HMC set the calibration ceiling. Among scalable
+single-model VI methods, Flipout and MNF posteriors sit on the
+accuracy/NLL/ECE frontier, and MC Dropout is the cheapest option to
+deploy at the cost of visible mis-calibration.</u></p>
 <h2 class="blog-refs-title">References</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 role="list">

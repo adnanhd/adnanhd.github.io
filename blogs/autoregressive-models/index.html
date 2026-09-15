@@ -34,7 +34,7 @@
     "name": "Adnan Harun Dogan"
   },
   "mainEntityOfPage": "https://adnanhd.github.io/blogs/autoregressive-models/",
-  "datePublished": "2026-04-21"
+  "datePublished": "2023-07-17T15:40"
 }
         </script>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
@@ -105,27 +105,33 @@ data-cites="henighan_scaling_2020">(Henighan et al. 2020)</span>, ViT
 scaling <span class="citation" data-cites="zhai_scaling_2022">(Zhai et
 al. 2022)</span>, and hardware-lottery analysis <span class="citation"
 data-cites="hooker_hardware_2020">(Hooker 2020)</span>.</p>
-<p>The state-of-the-art landscape on standard image-generation
-benchmarks shows AR models reaching parity with and in places exceeding
-diffusion. The leaderboard below collates the headline numbers
-(ImageNet-256 FID for class-conditional, zero-shot MS-COCO FID for
-text-to-image where applicable; tokenizer column reports the discrete
-code source; latency is per-image at the listed resolution; "Cite"
-anchors to the in-chapter section).</p>
+<p>Current results on standard image-generation benchmarks show AR
+models reaching parity with and in places exceeding diffusion. The
+leaderboard below collates the headline numbers (ImageNet-256 FID for
+class-conditional, zero-shot MS-COCO FID for text-to-image where
+applicable, tokenizer column reports the discrete code source, latency
+is per-image at the listed resolution, and the per-row citation names
+the method's source paper).</p>
 <div class="blog-table"><table id="tbl:ar-leaderboard">
-<caption>Autoregressive image-generation leaderboard. ImageNet-256 FID
-is class-conditional; COCO-FID is zero-shot at
-256<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>256;
-latency is wall-clock seconds per image at the listed deployment
-resolution. Tokenizer column lists the discrete code source. Empty cells
-denote not-reported or not-applicable. Models tagged "masked" use
-parallel iterative decoding; "next-scale" use coarse-to-fine scale
-autoregression; "raster-AR" use sequential next-token. The "first AR
-model to beat diffusion on ImageNet" milestone is VAR-d30 at 2.0B
-parameters, reaching FID 1.92 by sampling and 1.73 with rejection
-sampling, against DiT-XL/2's 2.27 at 675M <span class="citation"
-data-cites="peebles_scalable_2023">(Peebles and Xie 2023)</span>. The
-comparison is not parameter-matched, so read it as "a
+<caption>Autoregressive image-generation leaderboard, assembled across
+papers rather than from any single head-to-head study. ImageNet-256 FID
+is class-conditional, COCO-FID is zero-shot at
+256<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>256,
+and latency is wall-clock seconds per image at the listed deployment
+resolution, measured on whatever hardware each paper used and therefore
+not portable between rows. The per-row citation names the method's
+source paper, not a common measurement protocol. Tokenizer column lists
+the discrete code source. Empty cells denote not-reported or
+not-applicable. Models tagged "masked" use parallel iterative decoding,
+"next-scale" use coarse-to-fine scale autoregression, and "raster-AR"
+use sequential next-token. Two cells should be read with caution and are
+discussed in the note below the table: VQ-VAE-2's parameter count and
+LlamaGen-3B's COCO-FID. The "first AR model to beat diffusion on
+ImageNet" milestone is VAR-d30 at 2.0B parameters, reaching FID 1.92 by
+sampling and 1.73 with rejection sampling, against DiT-XL/2's 2.27 at
+675M <span class="citation" data-cites="peebles_scalable_2023">(Peebles
+and Xie 2023)</span>. The comparison is not parameter-matched, so read
+it as "a
 3<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>
 larger AR model finally cleared the diffusion baseline", not as an
 efficiency result.</caption>
@@ -321,17 +327,53 @@ data-cites="zhuang_vargpt_2025">(Zhuang et al. 2025)</span></td>
 </tr>
 </tbody>
 </table></div>
-<p>(*) VQ-VAE-2's 13B figure aggregates the top-prior 48-layer
-Transformer (~12B) with the bottom-prior 20-layer PixelCNN (~1B);
-per-paper accounting practice varies. "GE" denotes GenEval composite
-score (text-to-image alignment, higher is better, 0-1) and "VB" denotes
-VBench composite (text-to-video, higher is better, 0-100); these
-benchmarks are not directly comparable to FID. Pixel-level rows report
-bits-per-dimension instead of FID because Inception-v3 features are
-uninformative at
+<p>(*) The VQ-VAE-2 parameter cell is not a measured figure. The paper
+reports layer counts and hidden widths for its two PixelCNN-style priors
+but no aggregate parameter count, so the ~13B entry is an inference
+someone made downstream and should not be quoted as the paper's number.
+The LlamaGen-3B COCO-FID cell carries the same warning for a different
+reason: LlamaGen's text-conditional model is the 775M variant, the 3.1B
+model is class-conditional only, and the paper evaluates the text model
+qualitatively without reporting a zero-shot MS-COCO FID. Read that cell
+as unsourced rather than as a LlamaGen result. "GE" denotes GenEval
+composite score (text-to-image alignment, higher is better, 0-1) and
+"VB" denotes VBench composite (text-to-video, higher is better, 0-100).
+Neither is comparable to FID. Pixel-level rows report bits-per-dimension
+instead of FID because Inception-v3 features are uninformative at
 32<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>32
 resolution.</p>
-<p><img src="figures/ar-causal-masking.svg" /></p>
+<p>The table is restricted to image models reporting FID or a
+text-to-image alignment composite, which leaves out several papers
+covered later in the chapter because they report on incomparable
+benchmarks: VideoGPT, TATS, Phenaki and MCVD report FVD on BAIR,
+UCF-101, Kinetics-600 and Cityscapes, ARDM reports bits-per-character on
+Text8 and bits-per-dimension on CIFAR-10, and Semantic-Diffusion reports
+Cityscapes and ADE20K FID under a segmentation-conditioned protocol.
+Those numbers are given in the sections that discuss each paper. Folding
+them into one column would imply a comparison the benchmarks do not
+support.</p>
+<figure id="fig:ar-causal-masking">
+<img src="figures/ar-causal-masking.svg" />
+<figcaption>Three masking regimes that govern autoregressive visual
+generation. Left: a raster-scan causal mask on a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>4</mn><mo>×</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">4 \times 4</annotation></semantics></math>
+token grid, where the model predicting position 9 (red) sees only the 9
+preceding tokens (blue) and is blind to the future (gray). Middle: VAR's
+block-causal scale mask flips this. Tokens within a scale attend
+bidirectionally to each other, while only earlier scales are visible
+across the block boundary, which is what enables parallel decoding
+inside each scale step. Right: MaskGIT's cosine schedule
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>γ</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">cos</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>π</mi><mi>t</mi><mi>/</mi><mn>2</mn><mi>T</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\gamma(t) = \cos(\pi t / 2T)</annotation></semantics></math>
+replaces token-level causality entirely with iterative parallel
+decoding. At each of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><mn>8</mn></mrow><annotation encoding="application/x-tex">T = 8</annotation></semantics></math>
+steps the model unmasks a chunk of high-confidence tokens and re-masks
+the rest, and because the cosine falls slowly at first the early steps
+commit few tokens and the late steps commit many. The three diagrams
+capture the dominant axis of design variation in modern AR-image work,
+which is not what the network does but what its attention is permitted
+to see, and at what granularity.</figcaption>
+</figure>
 <h2 class="blog-refs-title">References</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 role="list">

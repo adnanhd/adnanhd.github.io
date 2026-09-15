@@ -34,7 +34,7 @@
     "name": "Adnan Harun Dogan"
   },
   "mainEntityOfPage": "https://adnanhd.github.io/blogs/bayesian-optimization/",
-  "datePublished": "2026-03-04"
+  "datePublished": "2025-06-20T09:19"
 }
         </script>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
@@ -52,8 +52,8 @@ back to work on efficient global optimization (EGO) <span
 class="citation" data-cites="jones_efficient_1998">(Jones et al.
 1998)</span>, which introduced expected improvement as an acquisition
 function for response surface optimization. The theoretical framework
-using Gaussian processes draws heavily from the comprehensive treatment
-in <span class="citation"
+using Gaussian processes draws heavily on the standard textbook
+treatment in <span class="citation"
 data-cites="rasmussen_gaussian_2006">(Rasmussen and Williams
 2006)</span>.</p>
 <p>Modern tutorials <span class="citation"
@@ -67,12 +67,13 @@ data-cites="srinivas_gaussian_2012">(Srinivas et al. 2012)</span>
 established regret bounds connecting Bayesian optimization to the bandit
 literature.</p>
 <p>Practical Bayesian optimization for machine learning hyperparameter
-tuning was demonstrated by <span class="citation"
+tuning was shown by <span class="citation"
 data-cites="snoek_practical_2012">(Snoek et al. 2012)</span>, showing
-that careful GP prior design leads to state-of-the-art performance.
-High-dimensional extensions include random embeddings <span
-class="citation" data-cites="wang_bayesian_2016">(Wang et al.
-2016)</span>, local trust regions <span class="citation"
+that careful GP prior design produced test errors below the best
+hand-tuned results reported at the time. High-dimensional extensions
+include random embeddings <span class="citation"
+data-cites="wang_bayesian_2016">(Wang et al. 2016)</span>, local trust
+regions <span class="citation"
 data-cites="eriksson_scalable_2019">(Eriksson et al. 2019)</span>, and
 sparse axis-aligned subspaces <span class="citation"
 data-cites="eriksson_high-dimensional_2021">(Eriksson and Jankowiak
@@ -85,7 +86,7 @@ data-cites="brochu_portfolio_2011">(Brochu et al. 2011)</span> combine
 multiple acquisition strategies. Multi-fidelity methods <span
 class="citation"
 data-cites="kandasamy_multi-fidelity_2017 li_multi-fidelity_2020 swersky_freeze-thaw_2014">(Kandasamy
-et al. 2017; Li et al. 2020; Swersky et al. 2014)</span> leverage cheap
+et al. 2017; Li et al. 2020; Swersky et al. 2014)</span> use cheap
 approximations to accelerate optimization. Transfer learning <span
 class="citation"
 data-cites="feurer_practical_2022 swersky_multi-task_2013">(Feurer et
@@ -125,11 +126,13 @@ top-down as exploitation/exploration first, then scalability, then
 dimensionality, then setting-specific extensions.</p>
 <div class="blog-table"><table id="tbl:bo-related-work-leaderboard">
 <caption>Leaderboard of canonical BO methods organised by regime.
-<em>Surrogate</em> records the inference primitive; <em>Acq.</em>
-records the acquisition rule; <em>Regime</em> records when the method is
-the right default; <em>Headline</em> records a representative empirical
-result. The chapter weaves each row into prose with full
-citations.</caption>
+<em>Surrogate</em> records the inference primitive, <em>Acq.</em> the
+acquisition rule, <em>Regime</em> when the method is the right default,
+and <em>Headline result</em> one claim the cited paper makes for itself.
+The headline column reproduces each paper's own reported figure on its
+own benchmark; the rows are not measurements from a common head-to-head
+study and should not be compared across rows as if they were. The
+chapter weaves each row into prose with full citations.</caption>
 <thead>
 <tr>
 <th>Method</th>
@@ -146,7 +149,7 @@ et al. 1998)</span></td>
 <td>Kriging</td>
 <td>EI</td>
 <td>low-D smooth deterministic</td>
-<td>first BO convergence proof, 14 yr predates regret bounds</td>
+<td>EI acquisition plus the 1 percent stopping rule</td>
 </tr>
 <tr>
 <td>GP-UCB <span class="citation"
@@ -164,7 +167,7 @@ data-cites="hernandez-lobato_predictive_2014">(Hernández-Lobato et al.
 <td>exact GP + EP</td>
 <td>PES</td>
 <td>low-D, very expensive evals</td>
-<td>20-30 percent over EI on Branin and Hartmann-6</td>
+<td>lower regret than EI on Branin and Hartmann-6</td>
 </tr>
 <tr>
 <td>GP-Hedge <span class="citation"
@@ -262,7 +265,7 @@ data-cites="kandasamy_multi-fidelity_2017">(Kandasamy et al.
 <td>MF-GP</td>
 <td>cost-UCB</td>
 <td>continuous fidelity</td>
-<td>7x speedup on neural-net tuning, 10x on supernova LL</td>
+<td>lower regret per unit cost, NN tuning and supernova LL</td>
 </tr>
 <tr>
 <td>DNN-MFBO <span class="citation"

@@ -34,7 +34,7 @@
     "name": "Adnan Harun Dogan"
   },
   "mainEntityOfPage": "https://adnanhd.github.io/blogs/trust-region-methods/",
-  "datePublished": "2026-06-08"
+  "datePublished": "2026-02-06T14:58"
 }
         </script>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
@@ -49,25 +49,25 @@
             <article class="blog-body">
 <p><u>The trust-region family is the longest-running active line in
 policy optimization</u>, persisting from Schulman's 2015 KL-constrained
-natural gradient through the clipped surrogate that defines today's RLHF
+natural gradient through the clipped surrogate that defines current RLHF
 pipelines. Where the broader RL leaderboard in the policy-gradient foundations chapter
 surveys foundations, off-policy actor-critics, distributed and
-model-based methods together, this chapter narrows to one design axis:
-how each variant enforces or approximates a <strong><a
-href="wiki:Trust_region">trust region</a></strong> on the policy update.
-TRPO enforces
+model-based methods together, this chapter narrows to one design axis.
+Each variant enforces or approximates a <strong><a
+href="wiki:Trust_region">trust region</a></strong> on the policy update
+in a different way. TRPO enforces
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>D</mi><mrow><mi>K</mi><mi>L</mi></mrow></msub><mspace width="-0.167em"></mspace><mo>≤</mo><mspace width="-0.167em"></mspace><mi>δ</mi></mrow><annotation encoding="application/x-tex">D_{KL}\!\le\!\delta</annotation></semantics></math>
-exactly via line-search; PPO-KL adds
+exactly via line-search. PPO-KL adds
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mi>β</mi><msub><mi>D</mi><mrow><mi>K</mi><mi>L</mi></mrow></msub></mrow><annotation encoding="application/x-tex">-\beta D_{KL}</annotation></semantics></math>
 as a soft penalty with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
-adapted by target-KL feedback; PPO-clip drops the KL apparatus and clips
+adapted by target-KL feedback. PPO-clip drops the KL apparatus and clips
 the ratio
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>t</mi></msub><mo>∈</mo><mo stretchy="false" form="prefix">[</mo><mn>1</mn><mo>−</mo><mi>ϵ</mi><mo>,</mo><mn>1</mn><mo>+</mo><mi>ϵ</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">r_t \in [1-\epsilon, 1+\epsilon]</annotation></semantics></math>
-(an empirically softer trust region whose measured KL routinely exceeds
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>t</mi></msub><mo>∈</mo><mo stretchy="false" form="prefix">[</mo><mn>1</mn><mo>−</mo><mi>ϵ</mi><mo>,</mo><mn>1</mn><mo>+</mo><mi>ϵ</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">r_t \in [1-\epsilon, 1+\epsilon]</annotation></semantics></math>,
+an empirically softer trust region whose measured KL routinely exceeds
 the bound
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
-implies); ACKTR substitutes K-FAC for conjugate gradient; GRPO removes
+implies. ACKTR substitutes K-FAC for conjugate gradient. GRPO removes
 the critic entirely. The methods below differ on four dimensions covered
 in detail across the chapter: (1) how the KL bound is imposed (hard
 line-search, soft penalty, clipped ratio, or none), (2) the surrogate
@@ -75,23 +75,32 @@ objective form, (3) whether a learned critic is required, and (4) the
 domain (MuJoCo locomotion, Atari, MOBA games, or LLM reasoning) where
 the variant was first deployed.</p>
 <div class="blog-table"><table id="tbl:trust-region-leaderboard">
-<caption>Trust-region method leaderboard, focused on this chapter. KL
-bound = how the trust region is enforced;
+<caption>Trust-region methods covered in this chapter, arranged by how
+the trust region is enforced. KL bound records the enforcement
+mechanism, where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
-is hard radius for line-search variants,
+is the hard radius for line-search variants,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
-is the soft-penalty coefficient,
+the soft-penalty coefficient and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
 the clip half-width. Surrogate type contrasts the importance-weighted
 advantage form
 (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>t</mi></msub><mover><mi>A</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">r_t \hat{A}</annotation></semantics></math>),
 its clipped composition, and the dual-clip three-way max. Critic
-indicates whether a learned value head is required. Reported reward
-gives the canonical headline number from each paper at the standard step
-budget; dashes mark unreported settings. Cross-domain numbers (MuJoCo
-HalfCheetah-v2 reward at 1M steps vs LLM MATH accuracy) are not directly
-comparable; the column reproduces what each paper reports rather than a
-shared metric.</caption>
+indicates whether a learned value head is required. <strong>The last
+column is not a leaderboard and its HalfCheetah figures are illustrative
+placeholders rather than measured results.</strong> The 2015 TRPO paper
+reports Swimmer, Hopper and Walker plus Atari and has no HalfCheetah
+task, the GAE paper reports cart-pole, 3D biped, quadruped and 3D
+humanoid, and no common HalfCheetah-at-1M protocol is shared across the
+four MuJoCo rows, so the five values form a composite that no single
+source supports. Only the DPPO, dual-clip and GRPO entries reproduce
+quantities their own papers state. The per-row citation names the
+method's source paper, never the row's numbers. For an actual
+head-to-head between PPO and TRPO under matched code-level settings, see
+<span class="citation"
+data-cites="engstrom_implementation_2020">(Engstrom et al. 2020)</span>,
+discussed in the implementation-details section.</caption>
 <thead>
 <tr>
 <th>Method</th>
@@ -100,7 +109,7 @@ shared metric.</caption>
 <th>Surrogate type</th>
 <th>Critic</th>
 <th>Domain</th>
-<th>Reported reward</th>
+<th>Reported figure (illustrative)</th>
 </tr>
 </thead>
 <tbody>
@@ -211,24 +220,30 @@ data-cites="shao_deepseekmath_2024">(Shao et al. 2024)</span></td>
 </tbody>
 </table></div>
 <p>Reading the table chronologically traces the trust-region trade-off
-curve. <u>TRPO 2015 sets the operational ceiling on KL enforcement</u>:
-a hard
+curve, with the caveat that the last column is a composite and carries
+no ranking. <u>TRPO 2015 sets the operational ceiling on KL
+enforcement</u> with a hard
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mo>=</mo><mn>0.01</mn></mrow><annotation encoding="application/x-tex">\delta = 0.01</annotation></semantics></math>
 bound enforced by conjugate gradient on the Fisher-vector product plus a
 backtracking line search, giving the monotonic-improvement guarantee at
 the cost of second-order machinery and ~10 CG iterations per update.
 ACKTR keeps the natural-gradient direction but replaces CG with K-FAC's
-block-diagonal Kronecker factorization, getting roughly 4900 HalfCheetah
-reward at comparable wall-clock to PPO. PPO-clip 2017 then drops the KL
-apparatus entirely in favor of a clipped ratio surrogate, and the
-empirical reality (already noted in <span class="citation"
+block-diagonal Kronecker factorization <span class="citation"
+data-cites="wu_scalable_2017">(Wu et al. 2017)</span>. Its reported
+comparison is against A2C and TRPO on MuJoCo and Atari, on sample
+efficiency per environment step and on added per-update cost over
+first-order SGD. It predates PPO by about a month and reports no
+wall-clock comparison against it, so any PPO-parity claim for ACKTR is a
+later addition rather than a result in the paper. PPO-clip 2017 then
+drops the KL apparatus entirely in favor of a clipped ratio surrogate,
+and the empirical reality (already noted in <span class="citation"
 data-cites="engstrom_implementation_2020">(Engstrom et al. 2020)</span>)
 is that <strong>measured KL routinely exceeds what
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
-would imply</strong>; what actually limits divergence is the small epoch
+would imply</strong>. What actually limits divergence is the small epoch
 count plus learning-rate annealing, with the clip acting as a soft
 attenuator on outlier gradients. PPO-KL is the original paper's
-adaptive-penalty variant; it underperforms the clip on standard MuJoCo
+adaptive-penalty variant. It underperforms the clip on standard MuJoCo
 and is rarely used outside the DPPO terrain-locomotion regime where the
 asymmetric
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
@@ -248,8 +263,8 @@ advantage estimate; this halves training memory for LLMs (where
 critic-of-policy-size is prohibitive) and uses an unbiased KL estimator
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mrow><mi>r</mi><mi>e</mi><mi>f</mi></mrow></msub><mi>/</mi><msub><mi>π</mi><mi>θ</mi></msub><mo>−</mo><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>π</mi><mrow><mi>r</mi><mi>e</mi><mi>f</mi></mrow></msub><mi>/</mi><msub><mi>π</mi><mi>θ</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\pi_{ref}/\pi_\theta - \log(\pi_{ref}/\pi_\theta) - 1</annotation></semantics></math>
 rather than the log-ratio form, becoming the de facto RLHF backbone for
-reasoning models. <u>The two-decade arc shows convergence on a single
-recipe</u>: clipped or KL-penalized <a
+reasoning models. <u>The decade-long arc converges on a single
+recipe</u>, namely clipped or KL-penalized <a
 href="wiki:Importance_sampling">importance-weighted</a> surrogates with
 code-level optimizations <span class="citation"
 data-cites="engstrom_implementation_2020">(Engstrom et al. 2020)</span>

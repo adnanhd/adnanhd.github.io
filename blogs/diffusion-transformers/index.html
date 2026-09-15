@@ -34,7 +34,7 @@
     "name": "Adnan Harun Dogan"
   },
   "mainEntityOfPage": "https://adnanhd.github.io/blogs/diffusion-transformers/",
-  "datePublished": "2026-04-14"
+  "datePublished": "2023-10-06T12:40"
 }
         </script>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
@@ -188,18 +188,28 @@ data-cites="guo_animatediff_2024">(Guo et al. 2024)</span></td>
 </table></div>
 <div class="blog-table"><table id="tab:diffusion-sota">
 <caption>Selected diffusion / flow / transformer milestones on standard
-benchmarks. FID rows mix ImageNet 256×256 (class-conditional), CIFAR-10
-(unconditional), and zero-shot MS-COCO (text-to-image) at the resolution
-called out by each paper. FVD covers UCF-101 zero-shot text-to-video.
-NFE = inference function evaluations at the reported FID. Citations
-point to the original sources cataloged in subsequent sections. The
-ImageNet 256 rows are quoted from the common re-benchmark in the DiT
-paper's Table 2 rather than from each original paper, so they are
-commensurable with each other. Two figures often mis-quoted at this
-resolution are corrected here. BigGAN's widely repeated 7.4 FID is its
-128×128 number, and at 256×256 BigGAN-deep is 6.95. ADM's 2.97 is
-ImageNet 128×128 with classifier guidance, and the ADM cascade at
-256×256 is 3.94.</caption>
+benchmarks. FID rows mix ImageNet 256×256 (class-conditional), CIFAR-10,
+and zero-shot MS-COCO (text-to-image) at the resolution called out by
+each paper. The CIFAR-10 rows are unconditional for DDPM, DDIM and
+consistency distillation, and class-conditional for EDM, which is the
+setting its 1.79 belongs to; EDM's unconditional figure is 1.97. FVD
+covers UCF-101 zero-shot text-to-video. NFE = inference function
+evaluations at the reported FID. Citations point to the original sources
+cataloged in subsequent sections. The ImageNet 256 rows are quoted from
+the common re-benchmark in the DiT paper's Table 2 rather than from each
+original paper, so they are commensurable with each other. Two figures
+often mis-quoted at this resolution are corrected here. BigGAN's widely
+repeated 7.4 FID is its 128×128 number, and at 256×256 BigGAN-deep is
+6.95. ADM's 2.97 is ImageNet 128×128 with classifier guidance, and the
+ADM cascade at 256×256 is 3.94. The bits/dim rows report likelihood
+rather than FID, and the 2.94 for Improved DDPM is its CIFAR-10 figure;
+its ImageNet 64×64 likelihood is 3.53. Four rows carry n/a in the FID
+column (SDXL,
+PixArt-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>,
+DALL-E 3, SD3): these papers report no FID on a benchmark commensurable
+with the rows above, so they are listed for backbone, scale and sampling
+budget only and must not be read as a quality ranking against the FID
+rows.</caption>
 <thead>
 <tr>
 <th>Model</th>
@@ -247,7 +257,7 @@ et al. 2021)</span></td>
 data-cites="nichol_improved_2021">(Nichol and Dhariwal 2021)</span></td>
 <td>2021</td>
 <td>U-Net</td>
-<td>ImageNet 64 (bpd 2.94)</td>
+<td>CIFAR-10 (bpd 2.94)</td>
 <td>-</td>
 <td>250</td>
 <td>100M</td>
@@ -279,7 +289,7 @@ data-cites="dhariwal_diffusion_2021">(Dhariwal and Nichol
 data-cites="karras_elucidating_2022">(Karras et al. 2022)</span></td>
 <td>2022</td>
 <td>U-Net</td>
-<td>CIFAR-10 uncond</td>
+<td>CIFAR-10 cls-cond</td>
 <td>1.79</td>
 <td>35</td>
 <td>56M</td>
@@ -430,15 +440,15 @@ data-cites="blattmann_stable_2023">(Blattmann, Dockhorn, et al.
 </tr>
 </tbody>
 </table></div>
-<p><u>Diffusion models have emerged as the dominant paradigm for
-generative modeling</u>, surpassing GANs in image quality while offering
-stable training and mode coverage. The foundational work on Denoising
-Diffusion Probabilistic Models (DDPM) <span class="citation"
-data-cites="ho_denoising_2020">(Ho et al. 2020)</span> demonstrated that
+<p><u>Diffusion models are now the most widely used family of generative
+models</u>, surpassing GANs in image quality while offering stable
+training and mode coverage. The foundational work on Denoising Diffusion
+Probabilistic Models (DDPM) <span class="citation"
+data-cites="ho_denoising_2020">(Ho et al. 2020)</span> showed that
 iteratively denoising samples from Gaussian noise produces high-quality
-images, achieving state-of-the-art FID scores on CIFAR-10 (3.17) and
-competitive results on LSUN.[fn:s0-ddpm-impl] This work established the
-connection between diffusion models and denoising score matching, providing both theoretical
+images, reporting an FID of 3.17 on CIFAR-10, the lowest published at
+the time, and competitive results on LSUN.[fn:s0-ddpm-impl] This work
+established the connection between diffusion models and denoising score matching, providing both theoretical
 grounding and practical training recipes.</p>
 <p>Subsequent work focused on accelerating sampling, which originally
 required 1000+ steps. Denoising Diffusion Implicit
@@ -457,52 +467,52 @@ generation.</p>
 <p><u>The architecture evolution moved from U-Net to Transformer
 backbones.</u> Diffusion Models Beat GANs <span class="citation"
 data-cites="dhariwal_diffusion_2021">(Dhariwal and Nichol 2021)</span>
-demonstrated that architectural improvements (attention at multiple
+showed that architectural improvements (attention at multiple
 resolutions, adaptive group normalization) and classifier guidance
 enable diffusion models to surpass BigGAN on ImageNet. The EDM framework
 <span class="citation" data-cites="karras_elucidating_2022">(Karras et
-al. 2022)</span> unified the design space, achieving SOTA FID of 1.79 on
-CIFAR-10 through careful analysis of noise schedules, preconditioning,
-and sampling.</p>
+al. 2022)</span> unified the design space, reaching an FID of 1.79 on
+class-conditional CIFAR-10 (1.97 unconditional) through careful analysis
+of noise schedules, preconditioning, and sampling.</p>
 <p>The Diffusion Transformer (DiT) <span
 class="citation" data-cites="peebles_scalable_2023">(Peebles and Xie
 2023)</span> replaced U-Net with a Vision Transformer operating on
-latent patches, demonstrating clean scaling laws: higher compute
-(GFLOPs) consistently yields lower FID. DiT-XL/2 achieved 2.27 FID on
-ImageNet 256×256, establishing transformers as viable diffusion
-backbones. U-ViT <span class="citation"
+latent patches, showing clean scaling laws: higher compute (GFLOPs)
+consistently yields lower FID. DiT-XL/2 achieved 2.27 FID on ImageNet
+256×256, establishing transformers as viable diffusion backbones. U-ViT <span class="citation"
 data-cites="bao_all_2023">(Bao et al. 2023)</span> showed that
 <u>treating time, condition, and image patches uniformly as tokens with
 long skip connections achieves comparable results with simpler
 architecture</u>.</p>
-<p>Text-to-image synthesis scaled these techniques dramatically. Latent Diffusion Models (LDM) <span
-class="citation" data-cites="rombach_high-resolution_2022">(Rombach et
-al. 2022)</span> <u>moved diffusion to the latent space of a pretrained
-autoencoder, reducing computation by 4-16× while maintaining
-quality</u>. GLIDE <span class="citation"
-data-cites="nichol_glide_2022">(Nichol et al. 2022)</span> demonstrated
-classifier-free guidance outperforms CLIP guidance for photorealism.
-Imagen <span class="citation"
+<p>Text-to-image synthesis scaled these techniques to billions of
+parameters and web-scale data. Latent
+Diffusion Models (LDM) <span class="citation"
+data-cites="rombach_high-resolution_2022">(Rombach et al. 2022)</span>
+<u>moved diffusion to the latent space of a pretrained autoencoder,
+reducing computation by 4-16× while maintaining quality</u>. GLIDE <span
+class="citation" data-cites="nichol_glide_2022">(Nichol et al.
+2022)</span> showed classifier-free guidance outperforms CLIP guidance
+for photorealism. Imagen <span class="citation"
 data-cites="saharia_photorealistic_2022">(Saharia et al. 2022)</span>
 showed that scaling the text encoder (T5-XXL) matters more than scaling
-the image model, achieving breakthrough text-image alignment. DALL-E 2
-<span class="citation" data-cites="ramesh_hierarchical_2022">(Ramesh et
-al. 2022)</span> used a two-stage approach: CLIP prior generating image
-embeddings, then diffusion decoder.</p>
-<p>The Stable Diffusion family
-democratized text-to-image. SDXL <span class="citation"
-data-cites="podell_sdxl_2023">(Podell et al. 2023)</span> scaled to 3×
-larger U-Net with dual text encoders, achieving quality competitive with
-closed-source models.
+the image model, and reported markedly better text-image alignment on
+DrawBench. DALL-E 2 <span class="citation"
+data-cites="ramesh_hierarchical_2022">(Ramesh et al. 2022)</span> used a
+two-stage approach, a CLIP prior generating image embeddings followed by
+a diffusion decoder.</p>
+<p>The Stable Diffusion family made
+text-to-image generation widely available through open weights. SDXL
+<span class="citation" data-cites="podell_sdxl_2023">(Podell et al.
+2023)</span> scaled to 3× larger U-Net with dual text encoders,
+achieving quality competitive with closed-source models.
 PixArt-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
 <span class="citation" data-cites="chen_pixart-_2023">(Chen et al.
-2023)</span> demonstrated efficient training by decomposing into stages
-(pixel dependency, text alignment, aesthetics), requiring only 10.8% of
-Stable Diffusion's training compute. Stable Diffusion 3 <span
-class="citation" data-cites="esser_scaling_2024">(Esser et al.
-2024)</span> introduced the MM-DiT architecture
-with separate weights for image and text modalities and rectified flow
-formulation.</p>
+2023)</span> showed efficient training by decomposing into stages (pixel
+dependency, text alignment, aesthetics), requiring only 10.8% of Stable
+Diffusion's training compute. Stable Diffusion 3 <span class="citation"
+data-cites="esser_scaling_2024">(Esser et al. 2024)</span> introduced
+the MM-DiT architecture with separate weights for
+image and text modalities and rectified flow formulation.</p>
 <p><u>Video generation extended these techniques temporally.</u> The
 mechanism is the same in all four papers below. A frame-wise image
 denoiser already exists and works, so the video model keeps it and
@@ -522,15 +532,15 @@ and trained only those layers, freezing the spatial weights. Stable
 Video Diffusion <span class="citation"
 data-cites="blattmann_stable_2023">(Blattmann, Dockhorn, et al.
 2023)</span> kept that recipe and moved the variable to the data,
-demonstrating the importance of curation for video quality. AnimateDiff
-<span class="citation" data-cites="guo_animatediff_2024">(Guo et al.
+showing the importance of curation for video quality. AnimateDiff <span
+class="citation" data-cites="guo_animatediff_2024">(Guo et al.
 2024)</span> pushed the separation furthest and showed motion modules
 can animate any personalized text-to-image model without retraining,
 which is the claim that motion and appearance are learned in disjoint
 parameter sets.</p>
 <p>Flow matching <span class="citation"
 data-cites="lipman_flow_2023">(Lipman et al. 2023)</span> provided an
-alternative training paradigm for continuous normalizing flows. <u>Instead of
+alternative training objective for continuous normalizing flows. <u>Instead of
 learning a score function, flow matching directly regresses a velocity
 field that transports noise to data</u>; the score
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>∇</mi><mi>x</mi></msub><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><msub><mi>p</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\nabla_x \log p_t(x)</annotation></semantics></math>

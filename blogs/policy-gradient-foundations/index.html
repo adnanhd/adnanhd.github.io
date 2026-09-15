@@ -34,7 +34,7 @@
     "name": "Adnan Harun Dogan"
   },
   "mainEntityOfPage": "https://adnanhd.github.io/blogs/policy-gradient-foundations/",
-  "datePublished": "2026-06-15"
+  "datePublished": "2026-01-09T18:34"
 }
         </script>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
@@ -75,7 +75,7 @@ data-cites="sutton_learning_1988">(Sutton 1988)</span> introduced the
 bootstrap update
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>s</mi><mi>t</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>←</mo><mi>V</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>s</mi><mi>t</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>α</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>r</mi><mi>t</mi></msub><mo>+</mo><mi>γ</mi><mi>V</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>s</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mi>V</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>s</mi><mi>t</mi></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">V(s_t) \gets V(s_t) + \alpha (r_t + \gamma V(s_{t+1}) - V(s_t))</annotation></semantics></math>
 that learns from incomplete sequences rather than waiting for episode
-termination as Monte Carlo methods do; Watkins's Q-learning <span
+termination as Monte Carlo methods do. Watkins's Q-learning <span
 class="citation" data-cites="watkins_q-learning_1992">(Watkins and Dayan
 1992)</span> is the off-policy variant that learns the optimal
 action-value function under any sufficiently-exploratory behaviour
@@ -86,8 +86,8 @@ data-cites="tesauro_temporal_1995">(Tesauro 1995)</span>, a
 backgammon-playing neural network trained from self-play TD updates that
 reached world-championship strength with a single hidden-layer MLP and
 roughly 1.5M training games. <u>TD-Gammon is the historical anchor for
-the entire deep-RL programme: it proved that bootstrap targets plus
-self-generated experience could exceed engineered evaluation
+the entire deep-RL programme, because it proved that bootstrap targets
+plus self-generated experience could exceed engineered evaluation
 functions</u>, predating AlphaGo's same-template victory by two decades.
 Rainbow <span class="citation" data-cites="hessel_rainbow_2018">(Hessel
 et al. 2018)</span> combined six independent DQN extensions (Double DQN,
@@ -95,7 +95,7 @@ Prioritised Replay, Dueling networks, Multi-step returns, Distributional
 Q-learning, NoisyNets) and showed that the combination beats each
 individual component on Atari-57 median HNS, with ablation revealing
 Prioritised Replay and Multi-step returns as the two highest-impact
-additions; <u>Rainbow's ablation methodology became the template for
+additions. <u>Rainbow's ablation methodology became the template for
 later combinatorial agent design (R2D2, Agent57), and the field's quiet
 observation is that the six-component bundle has not been displaced by
 any single subsequent value-based innovation</u>, which is why the 2018
@@ -112,7 +112,7 @@ Trust Region Policy Optimization (TRPO) <span
 class="citation" data-cites="schulman_trust_2017">(Schulman et al.
 2015)</span> formalized this intuition with <a
 href="wiki:Kullback%E2%80%93Leibler_divergence">KL-divergence</a>
-constraints guaranteeing monotonic improvement; Proximal Policy Optimization (PPO) <span
+constraints guaranteeing monotonic improvement. Proximal Policy Optimization (PPO) <span
 class="citation" data-cites="schulman_proximal_2017">(Schulman et al.
 2017)</span> <u>simplified TRPO with a clipped surrogate objective that
 became the de facto on-policy default.</u> Both inherit the
@@ -143,13 +143,13 @@ class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a>
 cost: importance ratios explode under policy mismatch and require either
 V-trace, Retrace, or implicit conservatism.</p>
 <p><u>Sparse-reward tasks pose a distinct problem that the off-policy
-continuous-control methods above do not solve</u>: when the reward
+continuous-control methods above do not solve.</u> When the reward
 signal is nonzero only at goal achievement, the replay buffer is
 dominated by failed trajectories from which no value learning occurs.
 Hindsight Experience Replay <span class="citation"
 data-cites="andrychowicz_hindsight_2017">(Andrychowicz et al.
 2017)</span> addresses this by <em>relabelling</em> failed trajectories
-with an achieved state as if it had been the goal: every trajectory
+with an achieved state as if it had been the goal, so every trajectory
 becomes a successful demonstration of reaching <em>some</em> goal, even
 if not the intended one, and the mechanism is straightforward (sample
 additional
@@ -157,16 +157,16 @@ additional
 tuples with the goal replaced by a future state along the same
 trajectory). HER enables DDPG to solve manipulation tasks (robotic
 pushing, sliding, and pick-and-place with binary completion rewards)
-that fail entirely without it; a separate didactic bit-flipping
-environment demonstrates learning curves in the paper but is not the
-main claim. <u>The skeptical reading is that HER is essentially a
-curriculum trick that exploits the goal-conditioned-MDP structure rather
-than a general-purpose algorithm</u>: tasks without goal conditioning
-(Atari, locomotion) cannot use HER directly, and even within
-goal-conditioned regimes HER amplifies the data's nearest-state coverage
-bias rather than expanding it; the recipe nevertheless propagated to
-GoalGAN, RIG, and the broader sparse-reward goal-conditioned RL family
-without significant modification.</p>
+that fail entirely without it. A separate didactic bit-flipping
+environment shows learning curves in the paper but is not the main
+claim. <u>The skeptical reading is that HER is a curriculum trick
+exploiting the goal-conditioned-MDP structure rather than a
+general-purpose algorithm.</u> Tasks without goal conditioning (Atari,
+locomotion) cannot use HER directly, and even within goal-conditioned
+regimes HER amplifies the data's nearest-state coverage bias rather than
+expanding it. The recipe still propagated to GoalGAN, RIG, and the
+broader sparse-reward goal-conditioned RL family without significant
+modification.</p>
 <p><u>The distributed line is four answers to one question, what travels
 from an actor to a learner.</u> A3C <span class="citation"
 data-cites="mnih_asynchronous_2016">(Mnih et al. 2016)</span> ships
@@ -205,22 +205,22 @@ policy optimization, trading sample efficiency for
 class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> and
 the <strong>sim-to-real gap</strong><a href="#fn7" class="footnote-ref"
 id="fnref7" role="doc-noteref"><sup>7</sup></a> when transferring to
-physical hardware. Long training runs additionally surface
-<strong>plasticity loss</strong><a href="#fn8" class="footnote-ref"
-id="fnref8" role="doc-noteref"><sup>8</sup></a>, where late-stage
-networks can no longer absorb new tasks.</p>
+physical hardware. Long training runs also surface <strong>plasticity
+loss</strong><a href="#fn8" class="footnote-ref" id="fnref8"
+role="doc-noteref"><sup>8</sup></a>, where late-stage networks can no
+longer absorb new tasks.</p>
 <p><u>Recent work extends policy optimization to offline and
 language-model settings.</u> Conservative Q-Learning (CQL) <span
 class="citation" data-cites="kumar_conservative_2020">(Kumar et al.
 2020)</span> learns conservative value functions that lower-bound true
-values; Implicit Q-Learning (IQL) <span class="citation"
+values. Implicit Q-Learning (IQL) <span class="citation"
 data-cites="kostrikov_offline_2022">(Kostrikov et al. 2022)</span>
-avoids out-of-distribution actions via expectile regression; Decision
+avoids out-of-distribution actions via expectile regression. Decision
 Transformer <span class="citation" data-cites="chen_decision_2021">(Chen
 et al. 2021)</span> recasts RL as sequence modeling. All three confront
 <strong>offline RL distribution shift</strong><a href="#fn9"
-class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a>:
-behaviour-policy mismatch with the target. Direct Preference
+class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a>,
+the behaviour policy's mismatch with the target. Direct Preference
 Optimization (DPO) <span class="citation"
 data-cites="rafailov_direct_2024">(Rafailov et al. 2023)</span>
 simplifies RLHF for language models by deriving a closed-form policy
@@ -237,7 +237,7 @@ conservative methods for offline learning (CQL, IQL, DPO).
 <u>Implementation details often matter as much as algorithmic
 innovations</u> <span class="citation"
 data-cites="engstrom_implementation_2020">(Engstrom et al. 2020)</span>,
-and the same applies to the evaluation protocol: <span class="citation"
+and the same applies to the evaluation protocol. <span class="citation"
 data-cites="agarwal_precipice_2021">(Agarwal et al. 2021)</span>
 (NeurIPS 2021 Outstanding) showed that a typical 3-seed Atari/DMC
 benchmark sweep cannot statistically distinguish methods that differ by
@@ -248,7 +248,7 @@ intervals; their re-evaluation of canonical RL papers re-orders several
 method rankings, and the IQM+stratified-bootstrap protocol is now the de
 facto standard for any new deep-RL comparison.</p>
 <div class="blog-table"><table id="tbl:rl-sota">
-<caption>RL SoTA leaderboard across the four-chapter book. Algo class =
+<caption>RL leaderboard across the four-chapter book. Algo class =
 on/off-policy + model-free/-based + offline. Loss/Update gives headline
 hyperparameters:
 clip-PPO(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>)
@@ -258,13 +258,28 @@ KL-TRPO(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><seman
 entropy(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>)
 = max-entropy temperature,
 Bellman-Q(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>)
-= discount, MCTS(N) = simulations per move. Atari HNS = median
-human-normalized score on Atari-57. HalfCheetah-v2 = MuJoCo reward at 1M
-env steps. DMControl avg = average score across the 28-task DMControl
-suite at 1M steps. Sample efficiency = environment frames or steps to a
-benchmark threshold. Wall-clock = canonical reported training time.
-Dashes mark unreported settings; * marks numbers from third-party
-reproductions rather than the original paper.</caption>
+= discount, MCTS(N) = simulations per move. Atari HNS = human-normalized
+score on Atari-57, median where the source paper reports one.
+HalfCheetah-v2 = MuJoCo reward at 1M env steps. DMControl avg = average
+score across the 28-task DMControl suite at 1M steps. Sample efficiency
+= environment frames or steps to a benchmark threshold. Wall-clock =
+canonical reported training time. Dashes mark unreported settings; *
+marks numbers from third-party reproductions rather than the original
+paper. Two metric caveats apply to cells that cannot be compared like
+for like. The A3C entry (344) is the mean human-normalized score of the
+feed-forward one-day variant in <span class="citation"
+data-cites="mnih_asynchronous_2016">(Mnih et al. 2016)</span>, not a
+median; the corresponding median is 68.2, which is below DQN's. The
+Agent57 row reports the paper's own headline (superhuman on all 57
+games); its mean human-normalized score is roughly 4,766 and its median
+roughly 1,933. On the continuous-control side the DDPG, TRPO, ACKTR and
+PPO HalfCheetah figures are HalfCheetah-v1 results, and the DDPG figure
+in particular is the DDPG baseline tabulated in <span class="citation"
+data-cites="fujimoto_addressing_2018">(Fujimoto et al. 2018)</span>
+rather than a number from <span class="citation"
+data-cites="lillicrap_continuous_2019">(Lillicrap et al. 2019)</span>;
+the v2 label applies cleanly only to the SAC and DreamerV3
+rows.</caption>
 <tbody>
 <tr>
 <td></td>
@@ -473,7 +488,7 @@ data-cites="lillicrap_continuous_2019">(Lillicrap et al.
 OU-noise</td>
 <td>MuJoCo</td>
 <td> - </td>
-<td>~3300</td>
+<td>~3300*</td>
 <td> - </td>
 <td>1M steps</td>
 <td> - </td>
@@ -666,60 +681,70 @@ id="fnref11" role="doc-noteref"><sup>11</sup></a> as the structural
 bottleneck their successors aim to fix. <u>The trust-region / proximal
 family (TRPO, PPO, ACKTR, GRPO) is unusually persistent</u>: nearly
 every major LLM-RL pipeline since 2017 uses some clipped or KL-penalized
-variant of PPO, including the GRPO that powers DeepSeek-R1. All are
+variant of PPO, including the GRPO used to train DeepSeek-R1. All are
 <strong>on-policy</strong> and pay the sample-inefficiency tax<a
 href="#fn12" class="footnote-ref" id="fnref12"
 role="doc-noteref"><sup>12</sup></a> of discarding data each update,
 traded for monotonic-improvement guarantees and stability under
 hyperparameter changes.</p>
 <p><u>The off-policy actor-critic family (DDPG, TD3, SAC) stratifies
-cleanly by overestimation control</u>: DDPG is unstable from a single
-Q-network, TD3 fixes overestimation with clipped double-Q + delayed
-policy updates + target smoothing, and SAC adds maximum-entropy
+cleanly by overestimation control</u>. DDPG is unstable from a single
+Q-network, TD3 fixes overestimation with clipped double-Q plus delayed
+policy updates plus target smoothing, and SAC adds maximum-entropy
 <strong>exploration</strong><a href="#fn13" class="footnote-ref"
 id="fnref13" role="doc-noteref"><sup>13</sup></a> under an automatically
 tuned temperature. All three rely on experience replay and an
 <strong>off-policy correction</strong><a href="#fn14"
 class="footnote-ref" id="fnref14" role="doc-noteref"><sup>14</sup></a>
-that DDPG/TD3 sidestep via deterministic policies and SAC handles via
-the soft Bellman backup. <u>The line moves monotonically on one
-number.</u> HalfCheetah-v2 reward at 1M environment steps goes from
-DDPG's ~3,300 to TD3's ~9,500 to SAC's ~11,000, each figure as reported
-by that method's own authors on the v2 task at the same step budget.<a
-href="#fn15" class="footnote-ref" id="fnref15"
+that DDPG and TD3 sidestep via deterministic policies and SAC handles
+via the soft Bellman backup. <u>The line moves monotonically on one
+number.</u> HalfCheetah reward at 1M environment steps goes from DDPG's
+~3,300 to TD3's ~9,500 to SAC's ~11,000. The DDPG and TD3 figures are
+the HalfCheetah-v1 results reported in <span class="citation"
+data-cites="fujimoto_addressing_2018">(Fujimoto et al. 2018)</span>, and
+that paper's own re-tuned DDPG reaches ~8,600 on the same task, so part
+of the DDPG-to-TD3 gap is an implementation gap rather than an
+algorithmic one.<a href="#fn15" class="footnote-ref" id="fnref15"
 role="doc-noteref"><sup>15</sup></a></p>
-<p><u>The distributed line (A3C, IMPALA, R2D2, Agent57) chases
-throughput</u>: A3C ran asynchronously on 16 CPU cores in 4 days; IMPALA
-scaled to 1k+ CPUs with V-trace correction<a href="#fn16"
+<p><u>The distributed line (A3C, IMPALA, R2D2, Agent57) optimizes for
+throughput.</u> A3C ran asynchronously on 16 CPU cores for 4 days.
+IMPALA scaled to 1k+ CPUs, with V-trace correction<a href="#fn16"
 class="footnote-ref" id="fnref16" role="doc-noteref"><sup>16</sup></a>
-decoupling actors from learners; R2D2 added recurrent state and
-prioritized replay to push Atari median HNS to 1,920%; Agent57 became
+decoupling actors from learners. R2D2 added recurrent state and
+prioritized replay, pushing Atari median HNS to 1,920%. Agent57 became
 the first agent superhuman on all 57 Atari games via adaptive
 Never-Give-Up intrinsic motivation. The <strong>plasticity
 loss</strong><a href="#fn17" class="footnote-ref" id="fnref17"
-role="doc-noteref"><sup>17</sup></a> hazard is most acute here:
+role="doc-noteref"><sup>17</sup></a> hazard is most acute here, since
 80-billion-frame training runs routinely degrade learning capacity in
 late epochs.</p>
 <figure id="fig:rl-method-timeline">
 <img src="figures/rl-method-timeline.svg" />
 <figcaption>RL method evolution from 1992 REINFORCE foundations to 2024
 LLM-alignment offline methods. Marker shape and colour encode algorithm
-class; the dotted line marks the HNS=100% human baseline on Atari-57.
-Three observations match the table reading. (i) Foundations and
-continuous-control methods (greyed at the bottom) sit at 0 HNS because
-Atari is not their canonical benchmark; their progress shows up in the
-HalfCheetah-v2 column instead. (ii) Atari median HNS climbs from DQN
-(79%) through A3C (344%) and PPO (250%) to R2D2 (1,920%) and Agent57
-(~4,763%, superhuman on all 57 games), a 60x range that reflects raw
-scale (frames + actors) more than any single algorithmic insight. (iii)
-Model-based methods (MuZero, DreamerV3) are sample-efficient on the same
-axis, achieving comparable or better Atari HNS at one to two orders of
-magnitude fewer frames.</figcaption>
+class, and the dotted line marks the HNS=100% human baseline on
+Atari-57. Three observations match the table reading. (i) Foundations
+and continuous-control methods (greyed at the bottom) sit at 0 HNS
+because Atari is not their canonical benchmark, and their progress shows
+up in the HalfCheetah column instead. (ii) Reported human-normalized
+score climbs from DQN (79%) through PPO (250%) to R2D2 (1,920%), a range
+of roughly 24x that reflects raw scale (frames and actors) more than any
+single algorithmic insight. (iii) Model-based methods (MuZero,
+DreamerV3) are sample-efficient on the same axis, achieving comparable
+or better Atari HNS at one to two orders of magnitude fewer frames. Two
+plotted values are means rather than medians and are therefore not
+comparable with the rest of the axis: A3C's 344% is the mean
+human-normalized score of the feed-forward one-day variant in <span
+class="citation" data-cites="mnih_asynchronous_2016">(Mnih et al.
+2016)</span>, whose median is 68.2% and thus below DQN's, and Agent57's
+~4,763% is likewise a mean, against a median near 1,933%. On medians
+alone Agent57 and R2D2 are close, and the separation the plot shows at
+the right-hand edge is largely a metric artifact.</figcaption>
 </figure>
 <p><u>The model-based and world-model line (AlphaGo, AlphaZero, MuZero,
-DreamerV2/V3) shifts the bottleneck from data to compute</u>: MuZero
+DreamerV2/V3) shifts the bottleneck from data to compute.</u> MuZero
 wins Go, chess, shogi, and Atari with the <strong>same</strong>
-MCTS-on-learned-dynamics recipe; DreamerV3 reaches comparable Atari HNS
+MCTS-on-learned-dynamics recipe. DreamerV3 reaches comparable Atari HNS
 on roughly two orders of magnitude fewer environment frames by training
 a Recurrent State-Space Model and rolling out actor-critic
 <strong>inside</strong> the latent imagination. The cost is
@@ -730,10 +755,10 @@ href="#fn19" class="footnote-ref" id="fnref19"
 role="doc-noteref"><sup>19</sup></a> that the world-model regularly
 fails to close on physical hardware.</p>
 <p><u>The offline frontier (CQL, IQL, Decision Transformer, GRPO, DPO)
-shares a common abandonment of the on-policy data assumption</u>; the
+shares a common abandonment of the on-policy data assumption.</u> The
 methods diverge on how to address <strong>offline RL distribution
 shift</strong><a href="#fn20" class="footnote-ref" id="fnref20"
-role="doc-noteref"><sup>20</sup></a>: CQL learns a conservative value
+role="doc-noteref"><sup>20</sup></a>. CQL learns a conservative value
 function that lower-bounds the true
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Q</mi><annotation encoding="application/x-tex">Q</annotation></semantics></math>,
 IQL avoids querying out-of-distribution actions via expectile regression
@@ -742,24 +767,27 @@ return-conditions a sequence model, and DPO derives an implicit
 Bradley-Terry preference reward sidestepping <strong>reward shaping
 fragility</strong><a href="#fn21" class="footnote-ref" id="fnref21"
 role="doc-noteref"><sup>21</sup></a> altogether. GRPO sits between
-on-policy and offline: the rollouts come from the current policy but are
-pooled across a group of completions, eliminating the per-prompt
+on-policy and offline, since the rollouts come from the current policy
+but are pooled across a group of completions, eliminating the per-prompt
 critic.</p>
 <p>The table separates five eras: foundations (1992-2008), trust-region
 / proximal (2015-2024), off-policy continuous control (2014-2018),
 distributed Atari (2016-2020), and offline + model-based (2020-2024).
 Three readings. <u>First, the trust-region and proximal family is the
-most algorithmically conservative line in modern RL</u>: the same
+most algorithmically conservative line in modern RL.</u> The same
 clipping idea from PPO 2017 anchors GRPO 2024 and the RLHF training of
 every major instruction-tuned LLM. Second, the off-policy actor-critic
-family monotonically improves on the same HalfCheetah-v2 axis from DDPG
-(~3,300) to SAC (~11,000), a 3.3x gain over three years driven entirely
-by overestimation control and entropy regularization. Third, the
-model-based and offline lines compress the
+family improves monotonically on the same HalfCheetah axis from DDPG
+(~3,300) to SAC (~11,000) over three years, attributed in those papers
+to overestimation control and entropy regularization, though the
+tuned-DDPG baseline of ~8,600 in <span class="citation"
+data-cites="fujimoto_addressing_2018">(Fujimoto et al. 2018)</span>
+shows that implementation quality accounts for a large share of the
+first step. Third, the model-based and offline lines compress the
 <strong>credit-assignment</strong><a href="#fn22" class="footnote-ref"
 id="fnref22" role="doc-noteref"><sup>22</sup></a> horizon by either
 learning a world model or by treating RL as supervised sequence
-modeling; both substantially reduce environment interaction at the cost
+modeling. Both reduce environment interaction substantially at the cost
 of new failure modes (model exploitation, conservatism penalty,
 reward-model overfitting).</p>
 <h2 class="blog-refs-title">References</h2>
@@ -1093,20 +1121,21 @@ explode when target and behaviour policies diverge; V-trace, Retrace,
 and clipping each trade variance for bias.<a href="#fnref14"
 class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn15"><p><em>What a single MuJoCo number is worth</em>: the
-HalfCheetah figures quoted here come from the originating papers, each
-averaging a handful of seeds on its own MuJoCo build. <span
-class="citation" data-cites="henderson_deep_2018">(Henderson et al.
-2018)</span> showed that seed selection, environment version and
-reward-scaling convention move MuJoCo returns far enough to reorder
-methods outright, and <span class="citation"
-data-cites="agarwal_precipice_2021">(Agarwal et al. 2021)</span> showed
-that a 3-seed sweep cannot separate methods differing by less than
-roughly 10% in median return, recommending interquartile mean with
-stratified-bootstrap intervals in place of mean or median. The
-DDPG-to-TD3-to-SAC ordering is wide enough to survive both objections. A
-few hundred reward between adjacent rows of the leaderboard is not, and
-should be read as a tie.<a href="#fnref15" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+HalfCheetah figures quoted here come from whichever paper tabulated
+them, each averaging a handful of seeds on its own MuJoCo build, and the
+DDPG and TD3 entries both come from the TD3 paper's table rather than
+from two independent sources. <span class="citation"
+data-cites="henderson_deep_2018">(Henderson et al. 2018)</span> showed
+that seed selection, environment version and reward-scaling convention
+move MuJoCo returns far enough to reorder methods outright, and <span
+class="citation" data-cites="agarwal_precipice_2021">(Agarwal et al.
+2021)</span> showed that a 3-seed sweep cannot separate methods
+differing by less than roughly 10% in median return, recommending
+interquartile mean with stratified-bootstrap intervals in place of mean
+or median. The DDPG-to-TD3-to-SAC ordering is wide enough to survive
+both objections. A few hundred reward between adjacent rows of the
+leaderboard is not, and should be read as a tie.<a href="#fnref15"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn16"><p><em>Off-policy correction</em>: importance ratios
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>a</mi><mo>∣</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>μ</mi><mo stretchy="false" form="prefix">(</mo><mi>a</mi><mo>∣</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\pi_\theta(a \mid s) / \mu(a \mid s)</annotation></semantics></math>
 explode when target and behaviour policies diverge; V-trace, Retrace,

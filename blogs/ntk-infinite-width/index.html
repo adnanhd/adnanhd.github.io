@@ -34,7 +34,7 @@
     "name": "Adnan Harun Dogan"
   },
   "mainEntityOfPage": "https://adnanhd.github.io/blogs/ntk-infinite-width/",
-  "datePublished": "2025-12-30"
+  "datePublished": "2024-10-10T19:27"
 }
         </script>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
@@ -78,7 +78,7 @@ exactly at CIFAR-10 scale. The critique then emerges in three papers:
 <span class="citation" data-cites="chizat_lazy_2019">(Chizat et al.
 2019)</span> diagnoses the NTK regime as <em>lazy</em> via the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>-scaling
-and demonstrates that feature-learning (rich) regimes exist; <span
+and shows that feature-learning (rich) regimes exist; <span
 class="citation" data-cites="mei_mean_field_2018">(Mei et al.
 2018)</span> gives the mean-field PDE as an explicit feature-learning
 limit; <span class="citation" data-cites="yang_hu_2021">(Yang and Hu
@@ -209,8 +209,198 @@ hierarchy; variational DGP approximations recover finite-width
 corrections in a different expansion.</li>
 </ul>
 <h2 id="cross-paper-sota-positioning">Cross-paper SoTA positioning</h2>
-<p>How do the papers of Part III position against each other in the SoTA
-landscape? A few observations:</p>
+<p>How do the papers of Part III position against each other on
+published benchmarks? A few observations.</p>
+<p>The two leaderboard tables below (<a
+href="tbl:ntk-sota-comparison">tbl:ntk-sota-comparison</a> and <a
+href="tbl:ntk-sgd-gap">tbl:ntk-sgd-gap</a>) compare accuracies, which
+only the papers that report accuracies can enter. Table <a
+href="tbl:ntk-part3-claims">tbl:ntk-part3-claims</a> covers the rest of
+the part on its own terms, one row per paper, so that the theory papers
+are held to a stated claim and a stated number rather than surveyed in
+prose.</p>
+<div class="blog-table"><table id="tbl:ntk-part3-claims">
+<caption>Every paper of Part III with the claim it is cited for here,
+the setting that claim is made in, and its headline quantity. The cite
+key in the first column is the source of that row's number as well as of
+the claim; each figure is quoted in the body of this chapter at the
+point where the paper is discussed. Rows whose headline column reads "no
+benchmark claim" are theory papers that report no accuracy number, which
+is itself the reason they cannot appear in the two accuracy
+leaderboards.</caption>
+<thead>
+<tr>
+<th>Paper</th>
+<th>Claim it is cited for</th>
+<th>Setting</th>
+<th>Headline quantity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="citation" data-cites="neal_priors_1996">(Neal
+1996)</span></td>
+<td>Infinite-width weight prior induces a GP over functions</td>
+<td>One hidden layer, Gaussian priors</td>
+<td>no benchmark claim</td>
+</tr>
+<tr>
+<td><span class="citation" data-cites="jacot_ntk_2018">(Jacot et al.
+2018)</span></td>
+<td>Tangent kernel concentrates at initialization and stays constant
+under gradient flow</td>
+<td>FC networks, NTK parameterization, squared loss</td>
+<td>no benchmark claim; synthetic concentration checks only</td>
+</tr>
+<tr>
+<td><span class="citation" data-cites="lee_nngp_2018">(Lee et al.
+2018)</span></td>
+<td>Deep NNGP regression is a strong training-free baseline</td>
+<td>FC NNGP, sequential width limit</td>
+<td>MNIST 1.21% test error at depth 5; CIFAR-10 44.3% test error at
+depth 20</td>
+</tr>
+<tr>
+<td><span class="citation" data-cites="matthews_gaussian_2018">(Matthews
+et al. 2018)</span></td>
+<td>The NNGP limit holds jointly in all widths, and finite networks
+approach it slowly</td>
+<td>Functional CLT, linear-envelope activations</td>
+<td>visibly non-Gaussian marginals at width 50, indistinguishable at
+width 5000</td>
+</tr>
+<tr>
+<td><span class="citation" data-cites="lee_wide_2019">(Lee et al.
+2019)</span></td>
+<td>A wide network follows its own linearization for the whole
+trajectory</td>
+<td>FC and convolutional networks, CIFAR-10</td>
+<td>network-to-linearization discrepancy
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">𝒪</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mrow><mi>−</mi><mn>1</mn><mi>/</mi><mn>2</mn></mrow></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(n^{-1/2})</annotation></semantics></math></td>
+</tr>
+<tr>
+<td><span class="citation" data-cites="arora_exact_2019">(Arora et al.
+2019)</span></td>
+<td>Exact CNTK is computable at CIFAR-10 scale and falls short of the
+matching CNN</td>
+<td>CNTK-V and CNTK-GAP, depths 3-21</td>
+<td>best kernel 77.43% against best matching CNN 83.75%</td>
+</tr>
+<tr>
+<td><span class="citation" data-cites="chizat_lazy_2019">(Chizat et al.
+2019)</span></td>
+<td>Lazy training is a property of output scaling, not of neural
+networks</td>
+<td>Teacher-student, and VGG-11 / ResNet-18 on CIFAR-10</td>
+<td>lazy test MSE
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mn>0.5</mn></mrow><annotation encoding="application/x-tex">\approx 0.5</annotation></semantics></math>
+against rich
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mn>0.005</mn></mrow><annotation encoding="application/x-tex">\approx 0.005</annotation></semantics></math>;
+both
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+extremes 5-10 points worse on CIFAR-10</td>
+</tr>
+<tr>
+<td><span class="citation" data-cites="mei_mean_field_2018">(Mei et al.
+2018)</span></td>
+<td>The
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi>/</mi><mi>n</mi></mrow><annotation encoding="application/x-tex">1/n</annotation></semantics></math>-scaled
+limit is a Wasserstein gradient flow that learns features</td>
+<td>Two-layer networks, 1-D teacher-student</td>
+<td>mean-field test loss
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">𝒪</mi><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mi>/</mi><msup><mi>t</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(1/t^2)</annotation></semantics></math>
+against NTK
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">𝒪</mi><mo stretchy="false" form="prefix">(</mo><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>t</mi><mi>/</mi><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(\log t / t)</annotation></semantics></math></td>
+</tr>
+<tr>
+<td><span class="citation" data-cites="chizat_bach_2018">(Chizat and
+Bach 2018)</span></td>
+<td>Overparameterized two-layer flows converge globally in measure
+space</td>
+<td>2-homogeneous activations, infinitely many particles</td>
+<td>qualitative convergence, no rate</td>
+</tr>
+<tr>
+<td><span class="citation" data-cites="yang_hu_2021">(Yang and Hu
+2021)</span></td>
+<td>Every width scaling is trivial, kernel, or feature-learning, with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>P
+distinguished</td>
+<td>abc-parameterization, widths 128-8192</td>
+<td>optimal
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>η</mi></mrow><annotation encoding="application/x-tex">\log\eta</annotation></semantics></math>
+flat under
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>P,
+shifts as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi>/</mi><mi>n</mi></mrow><annotation encoding="application/x-tex">1/n</annotation></semantics></math>
+under standard</td>
+</tr>
+<tr>
+<td><span class="citation" data-cites="hanin_nica_2019">(Hanin and Nica
+2019)</span></td>
+<td>Depth-to-width ratio, not width, controls kernel fluctuation</td>
+<td>FC ReLU, initialization kernel</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="prefix">[</mo><msub><mi mathvariant="normal">Θ</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mi mathvariant="script">𝒪</mi><mo stretchy="false" form="prefix">(</mo><mi>L</mi><mi>/</mi><mi>n</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathrm{Var}[\Theta_0] = \mathcal{O}(L/n)</annotation></semantics></math>,
+log-normal diagonal of variance
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mi>/</mi><mi>n</mi></mrow><annotation encoding="application/x-tex">L/n</annotation></semantics></math></td>
+</tr>
+<tr>
+<td><span class="citation" data-cites="roberts_principles_2022">(Roberts
+et al. 2022)</span></td>
+<td>Finite width is a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi>/</mi><mi>n</mi></mrow><annotation encoding="application/x-tex">1/n</annotation></semantics></math>
+effective theory whose leading correction is feature learning</td>
+<td>FC networks at criticality</td>
+<td>NTK prediction error
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mi>/</mi><mi>n</mi><mo>+</mo><mn>1</mn><mi>/</mi><mi>N</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi mathvariant="script">𝒪</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>L</mi><mn>3</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(1/n + 1/N)\,\mathcal{O}(L^3)</annotation></semantics></math>;
+tanh cutoff
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>c</mi></msub><mo>≈</mo><mn>0.3</mn></mrow><annotation encoding="application/x-tex">r_c \approx 0.3</annotation></semantics></math></td>
+</tr>
+<tr>
+<td><span class="citation"
+data-cites="lee_finite_nngp_infinite_nngp_2020">(Lee et al.
+2020)</span></td>
+<td>Practically trained finite CNNs leave the linearization early and
+beat the infinite-width kernels</td>
+<td>5 architectures, 4 datasets, wide width sweep</td>
+<td>linearized model plateaus
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mn>70</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">\approx 70\%</annotation></semantics></math>
+against
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mn>85</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">\approx 85\%</annotation></semantics></math>
+for the full network</td>
+</tr>
+<tr>
+<td><span class="citation"
+data-cites="geiger_disentangling_2020">(Geiger et al. 2020)</span></td>
+<td>Test accuracy is non-monotone in the lazy-rich scaling
+parameter</td>
+<td>10-layer CNN on CIFAR-10,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>∈</mo><mo stretchy="false" form="prefix">[</mo><msup><mn>10</mn><mrow><mi>−</mi><mn>2</mn></mrow></msup><mo>,</mo><msup><mn>10</mn><mn>2</mn></msup><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\alpha \in [10^{-2}, 10^2]</annotation></semantics></math></td>
+<td>lazy-to-optimal gap
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">\approx 3</annotation></semantics></math>-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>4</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">4\%</annotation></semantics></math>,
+optimum at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>α</mi><mo>⋆</mo></msup><mo>≈</mo><mn>0.1</mn></mrow><annotation encoding="application/x-tex">\alpha^\star \approx 0.1</annotation></semantics></math></td>
+</tr>
+<tr>
+<td><span class="citation"
+data-cites="woodworth_kernel_rich_2020">(Woodworth et al.
+2020)</span></td>
+<td>Kernel and rich regimes converge to different interpolants,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ℓ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\ell_2</annotation></semantics></math>
+against
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ℓ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\ell_1</annotation></semantics></math></td>
+<td>Diagonal linear networks; 2-layer ReLU on MNIST</td>
+<td>MNIST
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>85</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">85\%</annotation></semantics></math>
+at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\alpha = 1</annotation></semantics></math>
+against
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>97</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">97\%</annotation></semantics></math>
+at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mn>0.01</mn></mrow><annotation encoding="application/x-tex">\alpha = 0.01</annotation></semantics></math></td>
+</tr>
+</tbody>
+</table></div>
 <p><span class="citation" data-cites="jacot_ntk_2018">(Jacot et al.
 2018)</span> established the theoretical framework but did not push
 benchmark numbers. Its empirical section was limited to small synthetic
@@ -274,8 +464,8 @@ kernel regression with a kernel whose eigenvalues decay as
 the test error on a target with coefficients
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mi>k</mi></msub><mo>∼</mo><msup><mi>k</mi><mrow><mi>−</mi><mi>β</mi></mrow></msup></mrow><annotation encoding="application/x-tex">\beta_k \sim k^{-\beta}</annotation></semantics></math>
 scales as</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="double-struck">𝔼</mi><mo stretchy="false" form="prefix">[</mo><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi><mspace width="0.222em"></mspace><mi mathvariant="normal">e</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="postfix">]</mo><mspace width="0.278em"></mspace><mo>∼</mo><mspace width="0.278em"></mspace><msubsup><mi>n</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow><mrow><mi>−</mi><mrow><mi mathvariant="normal">min</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>α</mi><mo>,</mo><mn>2</mn><mi>β</mi><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>α</mi></mrow></msubsup><mo>+</mo><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">z</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi><mspace width="0.222em"></mspace><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">s</mi></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}
-\mathbb{E}[\mathrm{test\ error}] \;\sim\; n_{\mathrm{train}}^{-\min(\alpha, 2\beta - 1)/\alpha} + \mathrm{regularization\ terms},
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="double-struck">𝔼</mi><mo stretchy="false" form="prefix">[</mo><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="postfix">]</mo><mspace width="0.278em"></mspace><mo>∼</mo><mspace width="0.278em"></mspace><msubsup><mi>n</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow><mrow><mi>−</mi><mrow><mi mathvariant="normal">min</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>α</mi><mo>,</mo><mn>2</mn><mi>β</mi><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>α</mi></mrow></msubsup><mo>+</mo><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">z</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">s</mi></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}
+\mathbb{E}[\mathrm{test error}] \;\sim\; n_{\mathrm{train}}^{-\min(\alpha, 2\beta - 1)/\alpha} + \mathrm{regularization terms},
 \end{equation}</annotation></semantics></math></p>
 <p>which is a <em>power law in training-set size</em>. The exponent
 depends on the kernel's spectral decay (architecture-dependent) and the
@@ -530,14 +720,14 @@ CIFAR-10.</p>
 <p>Transformers. The NTK gap is unclear. Attention-NTKs <span
 class="citation" data-cites="hron_attention_2020">(Hron et al.
 2020)</span> are computable but have not been benchmarked extensively
-against SGD-trained Transformers; the order of limits matters
-(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>d</mi><mi>k</mi></msub><mo>→</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">d_k \to \infty</annotation></semantics></math>
-before
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mo>→</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">H \to \infty</annotation></semantics></math>,
-or the kernel degenerates), and the resulting NTK has no closed form
-because the softmax requires a double Gaussian integral evaluated by
-Hermite quadrature. On a single-layer infinite-attention experiment with
-IMDB sentiment, NNGP achieves
+against SGD-trained Transformers; the order of limits matters:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>d</mi><mi>k</mi></msub><annotation encoding="application/x-tex">d_k</annotation></semantics></math>
+must go to infinity before
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>H</mi><annotation encoding="application/x-tex">H</annotation></semantics></math>,
+or the kernel degenerates. The resulting NTK has no closed form, because
+the softmax requires a double Gaussian integral evaluated by Hermite
+quadrature. On a single-layer infinite-attention experiment with IMDB
+sentiment, NNGP achieves
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>90.1</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">90.1\%</annotation></semantics></math>,
 NTK
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>90.4</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">90.4\%</annotation></semantics></math>,
@@ -575,12 +765,11 @@ plus sum-pooling, with the number of message-passing rounds
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
 entering as a hyperparameter (sweet spot
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">k = 2</annotation></semantics></math>-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>3</mn><annotation encoding="application/x-tex">3</annotation></semantics></math>).
-The cheap, monotone, kernel-favourable picture for graphs may reflect
-the relatively shallow (2-4 layer) depth of typical GNN architectures,
-which keeps them in a more NTK-favorable regime; it also suggests
-feature learning is <em>less</em> critical for graph-classification than
-for vision, an inversion of the standard NTK-versus-feature-learning
-narrative.</p>
+The kernel-favourable picture for graphs may reflect the shallow (2-4
+layer) depth of typical GNN architectures, which keeps them in a more
+NTK-favorable regime. It also suggests that feature learning matters
+less for graph classification than for vision, an inversion of the
+standard NTK-versus-feature-learning narrative.</p>
 <p><u>The overall pattern is that simpler, shallower, more homogeneous
 architectures are better-described by the NTK, and more sophisticated
 architectures exhibit larger gaps.</u> This is consistent with the
@@ -594,7 +783,7 @@ provide a computable baseline against which to measure. Before the NTK,
 generalization analyses of deep networks were either very loose (VC
 dimension, Rademacher complexity) or required strong unverified
 assumptions (PAC-Bayes with specific posterior priors). The NTK changed
-the landscape by delivering:</p>
+this by delivering:</p>
 <ol>
 <li>An explicit upper bound on capacity: the NTK's RKHS norm ball of
 radius
@@ -635,21 +824,22 @@ counter-evidence</h2>
 NTK-as-theory-of-deep-learning framing with evidence that finite
 networks behave in ways the NTK cannot predict.</u></p>
 <p>Shift-invariance and data augmentation. <span class="citation"
-data-cites="li_enhanced_ntk_2019">(Li et al. 2019)</span> showed that
-data augmentation is not equivalent to any kernel, and hence the benefit
-of augmentation is invisible to NTK regression. Yet augmentation adds
-2-5% test accuracy on CIFAR-10 in practical training. This rules out any
-argument that the NTK plus appropriate data processing recovers CNN
-accuracy; some benefit of training must come from outside the
-kernel-regression framework.</p>
+data-cites="li_enhanced_ntk_2019">(Li et al. 2019)</span> show that flip
+augmentation is exactly a kernel symmetrization, while crop augmentation
+is not representable as a single Gram matrix, so the benefit of the
+latter is invisible to NTK regression. Yet augmentation adds 2-5% test
+accuracy on CIFAR-10 in practical training. The kernel framework
+therefore absorbs the group-averaged part of a training recipe and not
+the distribution-dependent part; some benefit of training comes from
+outside kernel regression.</p>
 <p>Catastrophic forgetting and transfer learning. A trained network can
 be fine-tuned on a new task with transfer of learned features. The NTK
 has no mechanism for this: the kernel is fixed at initialization, so
 fine-tuning a kernel-regression predictor on a new task is just
-re-running kernel regression with the same kernel, which cannot leverage
-prior training. The empirical fact of successful transfer learning
-(BERT, GPT, CLIP, etc.) is therefore evidence against the NTK as a
-complete theory of deep-network training.</p>
+re-running kernel regression with the same kernel, which cannot use
+anything from the prior training run. The empirical fact of successful
+transfer learning in BERT, GPT and CLIP is therefore evidence against
+the NTK as a complete theory of deep-network training.</p>
 <p>Adversarial robustness. <span class="citation"
 data-cites="tsipras_robustness_2019">(Tsipras et al. 2019)</span> and
 subsequent work show that adversarial-robustly trained networks have
@@ -697,8 +887,8 @@ regime is tractable via Tensor Programs but computationally heavy. None
 of them overlap with the <em>practical</em> regime of deep-learning
 training, which involves finite but large networks with complex
 architectures and training recipes.</p>
-<p>A concrete manifestation: the regime analysis of Chapter 3 says that
-practical networks with
+<p>A concrete manifestation: the regime analysis of the lazy-versus-rich chapter says
+that practical networks with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
 in an intermediate range are in an <em>interpolating</em> regime where
 neither the lazy nor the rich theory directly applies. The description
@@ -746,6 +936,11 @@ Arora, Sanjeev, Simon S. Du, Wei Hu, Zhiyuan Li, Ruslan Salakhutdinov,
 and Ruosong Wang. 2019. <span>"On Exact Computation with an Infinitely
 Wide Neural Net."</span> <em>Advances in Neural Information Processing
 Systems (NeurIPS)</em>.
+</div>
+<div id="ref-chizat_bach_2018" class="csl-entry" role="listitem">
+Chizat, Lenaic, and Francis Bach. 2018. <span>"On the Global Convergence
+of Gradient Descent for over-Parameterized Models Using Optimal
+Transport."</span> <em>NeurIPS</em>.
 </div>
 <div id="ref-chizat_lazy_2019" class="csl-entry" role="listitem">
 Chizat, Lenaïc, Edouard Oyallon, and Francis Bach. 2019. <span>"On Lazy

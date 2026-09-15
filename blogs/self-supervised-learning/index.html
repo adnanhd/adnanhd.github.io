@@ -34,7 +34,7 @@
     "name": "Adnan Harun Dogan"
   },
   "mainEntityOfPage": "https://adnanhd.github.io/blogs/self-supervised-learning/",
-  "datePublished": "2026-04-03"
+  "datePublished": "2024-05-18T15:47"
 }
         </script>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
@@ -63,8 +63,8 @@ trajectory.</u> Early SSL methods (2014-2018) produced features useful
 for downstream tasks but fell substantially behind supervised
 pretraining; the bar to beat was set by DeCAF <span class="citation"
 data-cites="donahue_decaf_2014">(Donahue et al. 2014)</span>, which
-first demonstrated that mid-layer activations of a supervised ImageNet
-CNN transfer as off-the-shelf features to almost any downstream
+first showed that mid-layer activations of a supervised ImageNet CNN
+transfer as off-the-shelf features to almost any downstream
 classification task, founding the pretrain-then-finetune paradigm that
 SSL would later challenge. <u>The 2019-2020 period saw SSL close the gap
 with supervised learning on ImageNet linear probing</u>; by 2021-2022,
@@ -94,26 +94,28 @@ rotated copies of each image in the same minibatch to avoid BatchNorm
 drift from rotation-mean shifts; rotations were implemented via
 flip+transpose rather than interpolation to avoid aliasing artifacts
 that would otherwise let the network cheat on low-level cues. RotNet
-reached 54.0% ImageNet linear probing and 54.4% PASCAL VOC 2007
-detection (only 2.4 points below supervised ImageNet pretraining);
-<u>its failure mode is rotation-invariant classes like jellyfish or
-aerial views, for which the canonical-orientation prior provides no
-learning signal</u><a href="#fn1" class="footnote-ref" id="fnref1"
-role="doc-noteref"><sup>1</sup></a><a href="#fn2" class="footnote-ref"
-id="fnref2" role="doc-noteref"><sup>2</sup></a>. Jigsaw puzzle solving
-<span class="citation" data-cites="noroozi_unsupervised_2016">(Noroozi
-and Favaro 2016)</span> predicted which permutation of a 3x3 tile grid
-had been applied, reducing the intractable 9!=362,880 permutation space
-to 100 or 1000 Hamming-well-separated permutations. Noroozi and Favaro's
-Context-Free Network (CFN) used a Siamese-ennead architecture (9
-shared-weight CNN branches each seeing one tile, with cross-tile
-information only at the final FC fusion) and inserted gaps between tiles
-to block edge-alignment shortcuts. A further subtlety is the defense
-against chromatic aberration: natural lenses induce color fringing
-toward the image edges, which would trivially localize tiles; countered
-with per-tile channel-mean subtraction or grayscale training<a
-href="#fn3" class="footnote-ref" id="fnref3"
-role="doc-noteref"><sup>3</sup></a>. <u>Jigsaw reached 45.7% ImageNet
+reached 54.0% on ImageNet and 54.4% PASCAL VOC 2007 detection (only 2.4
+points below supervised ImageNet pretraining); the 54.0% is not the same
+measurement as the per-layer frozen-conv linear probes that
+DeepCluster's Table 1 reports for the same network, so the two should
+not be read against each other without checking which protocol each
+paper used[fn:s0-probe-protocol]. <u>Its failure mode is
+rotation-invariant classes like jellyfish or aerial views, for which the
+canonical-orientation prior provides no learning
+signal</u>[fn:s0-semantic-narrow][fn:s0-invariance-fixed]. Jigsaw puzzle
+solving <span class="citation"
+data-cites="noroozi_unsupervised_2016">(Noroozi and Favaro 2016)</span>
+predicted which permutation of a 3x3 tile grid had been applied,
+reducing the intractable 9!=362,880 permutation space to 100 or 1000
+Hamming-well-separated permutations. Noroozi and Favaro's Context-Free
+Network (CFN) used a Siamese-ennead architecture (9 shared-weight CNN
+branches each seeing one tile, with cross-tile information only at the
+final FC fusion) and inserted gaps between tiles to block edge-alignment
+shortcuts. A further subtlety is the defense against chromatic
+aberration: natural lenses induce color fringing toward the image edges,
+which would trivially localize tiles; countered with per-tile
+channel-mean subtraction or grayscale
+training[fn:s0-shortcut-vulnerable]. <u>Jigsaw reached 45.7% ImageNet
 linear probing and 51.8% VOC detection.</u> Colorization <span
 class="citation" data-cites="zhang_colorful_2016">(Zhang et al.
 2016)</span> reached 39.6% via a 313-way classification formulation
@@ -124,8 +126,7 @@ specifically the <em>cross-channel encoder</em> variant where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>→</mo><mi>a</mi><mi>b</mi></mrow><annotation encoding="application/x-tex">L \to ab</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mi>b</mi><mo>→</mo><mi>L</mi></mrow><annotation encoding="application/x-tex">ab \to L</annotation></semantics></math>
-are jointly trained<a href="#fn4" class="footnote-ref" id="fnref4"
-role="doc-noteref"><sup>4</sup></a>. <strong>These methods demonstrated
+are jointly trained[fn:s0-semantic-narrow]. <strong>These methods showed
 that self-generated supervision could learn useful features, but their
 reliance on specific geometric or chromatic priors limited
 generalization</strong>; <u>modern methods (instance discrimination,
@@ -137,7 +138,13 @@ LP / FT / kNN = linear-probe / fine-tune / nearest-neighbour top-1 (%).
 COCO box / mask = AP under Mask R-CNN-FPN. ADE = ADE20K mIoU (UperNet).
 VOC = VOC07 detection mAP. iNat = iNaturalist-2018 LP top-1. Loss cell
 uses (key=value) for headline hyperparameters; CE = cross-entropy. *
-marks zero-shot. Dashes mark unreported settings.</caption>
+marks zero-shot. Dashes mark unreported settings. Rows are compiled from
+each method's own paper, so the per-row citation names the source of the
+method and of its reported figures, not a single controlled
+re-evaluation. The pretext rows in particular were measured under
+evaluation protocols that changed between 2016 and 2018, and the
+AlexNet-era numbers should be read against the caveat in the DeepCluster
+section rather than as a like-for-like column.</caption>
 <tbody>
 <tr>
 <td></td>
@@ -538,11 +545,10 @@ al. 2021)</span></td>
 through in chronological order.</u> Early <strong>pretext</strong>
 methods (RotNet, Jigsaw, Colorization) reach modest LP via hand-crafted
 self-supervisory tasks but suffer the same structural limitations: a
-hand-crafted signal is too narrow for high-level features<a href="#fn5"
-class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> and
-is vulnerable to low-level shortcuts the network exploits in place of
-real understanding<a href="#fn6" class="footnote-ref" id="fnref6"
-role="doc-noteref"><sup>6</sup></a>.</p>
+hand-crafted signal is too narrow for high-level
+features[fn:s0-semantic-narrow] and is vulnerable to low-level shortcuts
+the network exploits in place of real
+understanding[fn:s0-shortcut-vulnerable].</p>
 <p><strong>Contrastive</strong> methods learn representations by
 <u>maximizing agreement between augmented views of the same image while
 pushing apart views of different images</u> <span class="citation"
@@ -551,15 +557,13 @@ established the foundation by treating each image as its own class;
 <strong>queue</strong>-based memory banks and momentum encoders <span class="citation"
 data-cites="he_momentum_2020">(He et al. 2020)</span> enabled efficient
 <strong>contrastive</strong> learning at scale by sidestepping the
-large-batch dependence<a href="#fn7" class="footnote-ref" id="fnref7"
-role="doc-noteref"><sup>7</sup></a> that simple end-to-end variants like
-SimCLR require, at the cost of a queue whose features drift from the
-current encoder during training<a href="#fn8" class="footnote-ref"
-id="fnref8" role="doc-noteref"><sup>8</sup></a>. <u>A deeper limitation
-cuts across the entire contrastive family: the augmentation pipeline
-declares which transformations should be invariant rather than letting
-the network learn them</u><a href="#fn9" class="footnote-ref"
-id="fnref9" role="doc-noteref"><sup>9</sup></a>.</p>
+large-batch dependence[fn:s0-large-batch] that simple end-to-end
+variants like SimCLR require, at the cost of a queue whose features
+drift from the current encoder during training[fn:s0-queue-stale]. <u>A
+deeper limitation cuts across the entire contrastive family: the
+augmentation pipeline declares which transformations should be invariant
+rather than letting the network learn
+them</u>[fn:s0-invariance-fixed].</p>
 <p><strong>Non-contrastive</strong> methods including BYOL, SimSiam, and Barlow Twins <u>achieve competitive results
 without explicit negative pairs, challenging the assumption that
 negatives are necessary for avoiding collapse.</u> They rely on
@@ -567,10 +571,8 @@ architectural asymmetries (a <strong>predictor</strong> head,
 <strong>stop-gradient</strong>, or a <strong>momentum encoder</strong>)
 or on <strong>redundancy reduction</strong> objectives to prevent degenerate
 solutions; why these recipes avoid the trivial constant solution
-remains contested<a href="#fn10" class="footnote-ref" id="fnref10"
-role="doc-noteref"><sup>10</sup></a> and the methods are notoriously
-hyperparameter-sensitive<a href="#fn11" class="footnote-ref"
-id="fnref11" role="doc-noteref"><sup>11</sup></a>.</p>
+remains contested[fn:s0-collapse-mystery] and the methods are
+notoriously hyperparameter-sensitive[fn:s0-hp-fragile].</p>
 <figure id="fig:ssl-family-timeline">
 <img src="figures/ssl-family-timeline.svg" />
 <figcaption>SSL family evolution from 2016 pretext methods to 2024
@@ -588,21 +590,18 @@ finally crosses the supervised line at LP 86.4% in 2024.</figcaption>
 class="citation" data-cites="bao_beit_2022">(Bao et al. 2022)</span>,
 trains models to reconstruct masked portions of images. MAE <span
 class="citation" data-cites="he_masked_2021">(He et al. 2022)</span>
-demonstrated that <u>simple pixel reconstruction with high masking
-ratios produces excellent representations</u>; BEiT <span
-class="citation" data-cites="bao_beit_2022">(Bao et al. 2022)</span>
-introduced a discrete <strong>tokenizer</strong> trained offline as a
-separate dVAE pre-stage, which adds compute and constrains downstream by
-fixing the visual vocabulary<a href="#fn12" class="footnote-ref"
-id="fnref12" role="doc-noteref"><sup>12</sup></a>. A persistent
-diagnostic for the <strong>masked modeling</strong> family is the
-linear-probe / fine-tune disagreement: MAE reports weak LP yet strong
-FT, while BEiT and its derivatives sit elsewhere on the same axis<a
-href="#fn13" class="footnote-ref" id="fnref13"
-role="doc-noteref"><sup>13</sup></a>. Most 2021+ recipes (MAE, BEiT,
-MoCo v3, DINO) are also <strong>ViT</strong>-only and have not
-transferred well to ResNets<a href="#fn14" class="footnote-ref"
-id="fnref14" role="doc-noteref"><sup>14</sup></a>.</p>
+showed that <u>simple pixel reconstruction with high masking ratios
+produces excellent representations</u>; BEiT <span class="citation"
+data-cites="bao_beit_2022">(Bao et al. 2022)</span> introduced a
+discrete <strong>tokenizer</strong> trained offline as a separate dVAE
+pre-stage, which adds compute and constrains downstream by fixing the
+visual vocabulary[fn:s0-tokenizer-offline]. A persistent diagnostic for
+the <strong>masked modeling</strong> family is the linear-probe /
+fine-tune disagreement: MAE reports weak LP yet strong FT, while BEiT
+and its derivatives sit elsewhere on the same axis[fn:s0-lp-ft-gap].
+Most 2021+ recipes (MAE, BEiT, MoCo v3, DINO) are also
+<strong>ViT</strong>-only and have not transferred well to
+ResNets[fn:s0-vit-only].</p>
 <p><strong>Self-distillation</strong> methods (DINO, iBOT, DINOv2) and
 <strong>clustering</strong> methods (SwAV via <strong>Sinkhorn</strong>
 assignment + <strong>multi-crop</strong>) form a third strand: a
@@ -613,18 +612,15 @@ self-distillation with masked modeling and large-scale scaling
 (ViT-g/14, 142M curated images) to produce the first SSL backbone
 matching supervised on every transfer benchmark</u>; the price is
 production-scale compute beyond academic budgets and a closed-source
-data-curation pipeline<a href="#fn15" class="footnote-ref" id="fnref15"
-role="doc-noteref"><sup>15</sup></a>.</p>
+data-curation pipeline[fn:s0-compute-cost].</p>
 <p>Vision-language <strong>language supervision</strong> methods like CLIP <span class="citation"
 data-cites="radford_learning_2021">(Radford et al. 2021)</span> and
 ALIGN <span class="citation" data-cites="jia_scaling_2021">(Jia et al.
-2021)</span> leverage <u>natural language supervision to learn
-transferable visual representations, enabling zero-shot transfer</u> and
-catalyzing research in multimodal learning. They also inherit web-text
-bias<a href="#fn16" class="footnote-ref" id="fnref16"
-role="doc-noteref"><sup>16</sup></a> and the same compute scaling
-limits<a href="#fn17" class="footnote-ref" id="fnref17"
-role="doc-noteref"><sup>17</sup></a>.</p>
+2021)</span> use <u>natural language supervision to learn transferable
+visual representations, enabling zero-shot transfer</u> and catalyzing
+research in multimodal learning. They also inherit web-text
+bias[fn:s0-web-bias] and the same compute scaling
+limits[fn:s0-compute-cost].</p>
 <p>The table separates four eras: pretext-based (2016-2018), contrastive
 (2018-2021), non-contrastive + clustering + masked (2020-2022), and the
 modern "best of both" line (DINOv2, iBOT, MAE-derivatives). Three
@@ -1082,90 +1078,6 @@ Representations (ICLR)</em>, January. <a
 href="https://doi.org/10.48550/arXiv.2111.07832">https://doi.org/10.48550/arXiv.2111.07832</a>.
 </div>
 </div>
-<section id="footnotes" class="footnotes footnotes-end-of-document"
-role="doc-endnotes">
-<hr />
-<ol>
-<li id="fn1"><p><em>Semantic narrowness</em>: a hand-crafted pretext
-signal (rotation, color, puzzle) is too narrow for high-level features
-and breaks for any class whose canonical orientation or palette is
-undefined.<a href="#fnref1" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn2"><p><em>Invariance hand-fixing</em>: the augmentation
-pipeline <em>declares</em> which transformations should be invariant
-rather than learning them; covariant features (orientation, depth) are
-sacrificed.<a href="#fnref2" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn3"><p><em>Shortcut vulnerability</em>: low-level cues
-(chromatic aberration, edge alignment) defeat the task without explicit
-defenses (gaps, channel-mean subtraction, grayscale training).<a
-href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn4"><p><em>Semantic narrowness</em>: a hand-crafted pretext
-signal (rotation, color, puzzle) is too narrow for high-level features
-and breaks for any class whose canonical orientation or palette is
-undefined.<a href="#fnref4" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn5"><p><em>Semantic narrowness</em>: a hand-crafted pretext
-signal (rotation, color, puzzle) is too narrow for high-level features
-and breaks for any class whose canonical orientation or palette is
-undefined.<a href="#fnref5" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn6"><p><em>Shortcut vulnerability</em>: low-level cues
-(chromatic aberration, edge alignment) defeat the task without explicit
-defenses (gaps, channel-mean subtraction, grayscale training).<a
-href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn7"><p><em>Large-batch dependence</em>: SimCLR-class methods
-need batch
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≥</mo><mn>4</mn><mo>,</mo><mn>096</mn></mrow><annotation encoding="application/x-tex">\ge 4{,}096</annotation></semantics></math>
-to populate informative negatives, requiring TPU-scale compute and
-LARS-style optimizers.<a href="#fnref7" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn8"><p><em>Queue staleness</em>: memory-bank features drift
-from the current encoder; the queue's effective freshness depends on the
-EMA momentum and feature dimension.<a href="#fnref8"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn9"><p><em>Invariance hand-fixing</em>: the augmentation
-pipeline <em>declares</em> which transformations should be invariant
-rather than learning them; covariant features (orientation, depth) are
-sacrificed.<a href="#fnref9" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn10"><p><em>Collapse mystery</em>: why no-negative methods
-avoid the trivial constant solution remains contested
-(BatchNorm-statistics theories disputed; stop-gradient role only
-partially understood).<a href="#fnref10" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn11"><p><em>Hyperparameter fragility</em>: temperature, EMA
-momentum, predictor depth, centering and sharpening must be hand-tuned
-per dataset; transfer of recipes across architectures is unreliable.<a
-href="#fnref11" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn12"><p><em>Offline tokenizer dependence</em>: a pretrained
-dVAE adds a separate compute stage and dramatically constrains
-downstream by fixing the discrete vocabulary.<a href="#fnref12"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn13"><p><em>LP-FT gap</em>: linear-probe and fine-tune metrics
-disagree by large margins (MAE has weak LP yet strong FT), making
-single-metric comparison misleading.<a href="#fnref13"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn14"><p><em>ViT-only recipes</em>: most 2021+ recipes (DINO,
-MoCo v3, MAE, BEiT) do not transfer to ResNets; the convolutional case
-has been comparatively under-served since 2021.<a href="#fnref14"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn15"><p><em>Production-scale compute</em>: pretraining on
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≥</mo><msup><mn>10</mn><mn>8</mn></msup></mrow><annotation encoding="application/x-tex">\ge 10^8</annotation></semantics></math>
-images costs millions of GPU-hours, beyond academic budgets, and most
-data-curation pipelines are closed source.<a href="#fnref15"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn16"><p><em>Web-text bias</em>: alt-text supervision inherits
-stereotype, popularity-skew, and quality artifacts; produces biased
-zero-shot classifiers without an obvious mitigation.<a href="#fnref16"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn17"><p><em>Production-scale compute</em>: pretraining on
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≥</mo><msup><mn>10</mn><mn>8</mn></msup></mrow><annotation encoding="application/x-tex">\ge 10^8</annotation></semantics></math>
-images costs millions of GPU-hours, beyond academic budgets, and most
-data-curation pipelines are closed source.<a href="#fnref17"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-</ol>
-</section>
 
             </article>
         </div>

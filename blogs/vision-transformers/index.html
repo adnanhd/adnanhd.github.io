@@ -34,7 +34,7 @@
     "name": "Adnan Harun Dogan"
   },
   "mainEntityOfPage": "https://adnanhd.github.io/blogs/vision-transformers/",
-  "datePublished": "2026-05-13"
+  "datePublished": "2023-09-10T17:14"
 }
         </script>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
@@ -47,27 +47,27 @@
             <h1>Vision Transformers: ViT, Self-Attention, and the CNN Comparison</h1>
             <div class="blog-meta">The ViT architecture and its trade-offs against CNNs</div>
             <article class="blog-body">
-<p><u>Vision Transformers (ViT) represent a paradigm shift from CNNs to
-pure attention-based architectures.</u> The foundational ViT paper <span class="citation"
+<p><u>Vision Transformers (ViT) replace the convolutional backbone with
+a pure attention architecture.</u> The foundational ViT paper <span class="citation"
 data-cites="dosovitskiy_image_2021">(Dosovitskiy et al. 2021)</span>
-demonstrated that a standard Transformer encoder, applied directly to
-sequences of image patches, achieves excellent results on image
-classification when pretrained on sufficient data (ImageNet-21K <span
-class="citation" data-cites="deng_imagenet_2009">(Deng et al.
-2009)</span> or JFT-300M). ViT-Huge achieved 88.55% top-1 accuracy on
-ImageNet, matching state-of-the-art CNNs while using substantially fewer
-computational resources during training. <u>The key insight: inductive
-biases of convolutions are not strictly necessary; transformers learn
-these from data.</u></p>
+showed that a standard Transformer encoder, applied directly to
+sequences of image patches, achieves strong image classification when
+pretrained on sufficient data (ImageNet-21K <span class="citation"
+data-cites="deng_imagenet_2009">(Deng et al. 2009)</span> or JFT-300M).
+ViT-Huge achieved 88.55% top-1 accuracy on ImageNet, matching the best
+reported CNNs of the time (BiT-L, Noisy Student) at lower pretraining
+compute. <u>The paper's reading is that convolutional inductive biases
+are not strictly necessary, because a transformer can learn them from
+data.</u></p>
 <p>Data efficiency became the focus of subsequent work. DeiT <span class="citation"
 data-cites="touvron_training_2021">(Touvron et al. 2021)</span> showed
 ViT can be trained on ImageNet-1K alone using strong regularization,
-achieving 81.8% top-1 accuracy without external data (83.1% with
+achieving 81.8% top-1 accuracy without external data (83.4% with
 distillation from a RegNetY-16GF teacher). DeiT introduced knowledge
-distillation via a distillation token, demonstrating that ViT benefits
-from CNN-style inductive biases transferred through distillation. DeiT
-III <span class="citation" data-cites="touvron_deit_2022">(Touvron et
-al. 2022)</span> pushed this further with improved training recipes,
+distillation via a distillation token, showing that ViT benefits from
+CNN-style inductive biases transferred through distillation. DeiT III
+<span class="citation" data-cites="touvron_deit_2022">(Touvron et al.
+2022)</span> pushed this further with improved training recipes,
 achieving 85.2% with ViT-H/14.</p>
 <p><u>Hierarchical designs addressed the computational limitations of
 global attention.</u> Swin Transformer
@@ -76,11 +76,11 @@ global attention.</u> Swin Transformer
 within local windows while enabling cross-window connections through
 shifting. <u>This achieves linear complexity and provides multi-scale
 feature maps compatible with dense prediction.</u> Swin achieved 87.3%
-on ImageNet and set new state-of-the-art on COCO detection (58.7 box AP)
-and ADE20K segmentation (53.5 mIoU). Swin Transformer V2 <span
-class="citation" data-cites="liu_swin_2022">(Ze Liu et al. 2022)</span>
-scaled to 3B parameters with techniques for training stability (residual
-post-normalization, scaled cosine attention).</p>
+on ImageNet and, at publication, the best reported COCO detection (58.7
+box AP) and ADE20K segmentation (53.5 mIoU) figures. Swin Transformer V2
+<span class="citation" data-cites="liu_swin_2022">(Ze Liu et al.
+2022)</span> scaled to 3B parameters with techniques for training
+stability (residual post-normalization, scaled cosine attention).</p>
 <p>Alternative hierarchical approaches emerged. Pyramid
 Vision Transformer (PVT) <span class="citation"
 data-cites="wang_pyramid_2021">(Wang et al. 2021)</span> uses spatial
@@ -133,17 +133,17 @@ internal workspace. With registers present, the high-norm artifact
 disappears from patch tokens, attention maps become spatially smooth,
 and dense prediction improves. <u>The intervention requires no change to
 the training recipe, the loss function, or the backbone
-architecture.</u> The paper reports new state of the art for
-self-supervised models on dense visual prediction tasks and demonstrates
-improvements in object discovery quality with larger models. The caveat
-is that register count
+architecture.</u> The paper reports the best figures at publication for
+self-supervised models on dense visual prediction tasks and improvements
+in object discovery quality with larger models. The caveat is that
+register count
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">r = 4</annotation></semantics></math>
 is a hyperparameter tuned on DINOv2-scale models; smaller ViTs trained
 on less data show less severe artifact behaviour and smaller gains from
 registers. MAE <span class="citation"
-data-cites="he_masked_2021">(He et al. 2021)</span> demonstrated that
-masking 75% of patches and reconstructing provides strong pretraining,
-with ViT-Huge achieving 87.8% accuracy using only ImageNet-1K. BEiT <span class="citation"
+data-cites="he_masked_2021">(He et al. 2021)</span> showed that masking
+75% of patches and reconstructing provides strong pretraining, with
+ViT-Huge achieving 87.8% accuracy using only ImageNet-1K. BEiT <span class="citation"
 data-cites="bao_beit_2022">(Bao et al. 2022)</span> predicted discrete
 visual tokens from masked patches. SimMIM <span class="citation"
 data-cites="xie_simmim_2022">(Xie et al. 2022)</span> showed simple
@@ -162,16 +162,23 @@ data-cites="chen_empirical_2021">(X. Chen et al. 2021)</span> showed ViT
 optimizes differently from CNNs, with sensitivity to optimizer, weight
 decay, and learning rate schedules. "How to train your ViT" <span
 class="citation" data-cites="steiner_how_2022">(Steiner et al.
-2022)</span> provided comprehensive training recipes. Sharpness-aware minimization (SAM) <span
-class="citation" data-cites="foret_sharpness-aware_2021">(Foret et al.
-2021)</span> improved ViT generalization by optimizing for flatter
-minima. Adversarial robustness analysis <span class="citation"
+2022)</span> provided a systematic study of data, augmentation and
+regularization for ViT training. Sharpness-aware
+minimization (SAM) <span class="citation"
+data-cites="foret_sharpness-aware_2021">(Foret et al. 2021)</span>
+improved ViT generalization by optimizing for flatter minima.
+Adversarial robustness analysis <span class="citation"
 data-cites="naseer_intriguing_2021">(Naseer et al. 2021)</span> <span
 class="citation" data-cites="shao_adversarial_2022">(Shao et al.
 2022)</span> found ViT more robust than CNNs due to attention's global
-context. Studies on when transformers beat CNNs <span class="citation"
-data-cites="chen_when_2022">(X. Chen et al. 2022)</span> identified data
-scale and model capacity as key factors.</p>
+context. The data-scale crossover between the two families is measured
+in the original ViT paper <span class="citation"
+data-cites="dosovitskiy_image_2021">(Dosovitskiy et al. 2021)</span>;
+the narrower claim of <span class="citation"
+data-cites="chen_when_2022">(X. Chen et al. 2022)</span> is that a
+sharpness-aware optimizer lets ViTs beat ResNets on ImageNet-1K from
+scratch, with neither large-scale pretraining nor strong
+augmentation.</p>
 <p>Cross-attention between scales improved multi-scale reasoning. CrossViT <span class="citation"
 data-cites="chen_crossvit_2021">(C.-F. Chen et al. 2021)</span> uses
 dual-branch architecture with different patch sizes, fusing via
@@ -189,6 +196,13 @@ keeping the convolution and importing only the recipe. Sorted by where
 the bias is stored rather than by accuracy, the families read as
 follows.</p>
 <div class="blog-table"><table id="tbl:vit-prior-reintroduction">
+<caption>Where each family of post-ViT work puts the convolutional prior
+back. The rows are sorted by the site of the prior rather than by
+accuracy, so the table is a classification of mechanisms and not a
+ranking; the per-row citations name the papers in each family and not
+the source of any single number. The last column records what the
+mechanism costs, which is the axis the accuracy tables in this chapter
+do not show.</caption>
 <thead>
 <tr>
 <th>Family</th>
@@ -272,13 +286,21 @@ data-cites="liu_convnet_2022">(Zhuang Liu et al. 2022)</span></td>
 <p>The field converged on: (1) hierarchical designs for dense prediction
 (Swin), (2) strong regularization for data-efficient training (DeiT),
 (3) self-supervised pretraining for label efficiency (MAE, DINO), (4)
-hybrid CNN-Transformer architectures for mobile deployment, and (5) the
-critical importance of training recipes matching architectural
-choices.</p>
+hybrid CNN-Transformer architectures for mobile deployment, and (5)
+training recipes matched to the architectural choice, which move
+accuracy as much as the choice itself does.</p>
 <p>Related-work leaderboard (representative numbers, ImageNet-1K top-1
-unless noted, COCO box AP with Mask R-CNN or HTC++ as cited in source
-papers, ADE20K mIoU with UperNet):</p>
+unless noted):</p>
 <div class="blog-table"><table id="tbl:vit-related-work-leaderboard">
+<caption>Cross-paper leaderboard for the backbones discussed above. Each
+row carries the citation for the method, and the numbers are the ones
+that paper reports for that model, so the columns are not a controlled
+comparison: the detection head varies by row (Mask R-CNN, Cascade Mask
+R-CNN or HTC++ as the source paper used it), segmentation is ADE20K mIoU
+under UperNet where reported, and the pretraining corpus in the last
+column differs by orders of magnitude across rows. Blank entries marked
+(n/a) are results the source paper does not report for that model; they
+are not zeros or failures.</caption>
 <thead>
 <tr>
 <th>Backbone family</th>
@@ -405,8 +427,8 @@ data-cites="liu_convnet_2022">(Zhuang Liu et al. 2022)</span></td>
 al. 2021)</span></td>
 <td>632M</td>
 <td>87.8%</td>
-<td>53.3 (ViTDet)</td>
-<td>53.6</td>
+<td>(n/a)</td>
+<td>(n/a)</td>
 <td>ImageNet-1K SSL</td>
 </tr>
 <tr>
@@ -437,11 +459,11 @@ data-cites="xie_simmim_2022">(Xie et al. 2022)</span></td>
 <td>ImageNet-1K SSL</td>
 </tr>
 <tr>
-<td>EfficientFormer-L7 <span class="citation"
+<td>EfficientFormer-L7 (7.0ms iPhone 12) <span class="citation"
 data-cites="li_efficientformer_2022">(Li et al. 2022)</span></td>
 <td>82M</td>
 <td>83.3%</td>
-<td>1.6ms (iPhone)</td>
+<td>(n/a)</td>
 <td>(n/a)</td>
 <td>ImageNet-1K</td>
 </tr>

@@ -34,7 +34,7 @@
     "name": "Adnan Harun Dogan"
   },
   "mainEntityOfPage": "https://adnanhd.github.io/blogs/optimal-transport/",
-  "datePublished": "2026-03-11"
+  "datePublished": "2024-02-04T11:48"
 }
         </script>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
@@ -95,46 +95,45 @@ href="#fn9" class="footnote-ref" id="fnref9"
 role="doc-noteref"><sup>9</sup></a>, walked through method-by-method
 after the table.</p>
 <div class="blog-table"><table id="tbl:ot-sota">
-<caption>OT SoTA leaderboard. Method links to the chapter section and
-cites the canonical paper. Solver = the actual computational kernel (LP,
-Sinkhorn, projection-1D, ICNN, ODE). Loss = the training signal
+<caption>Structural placement of the OT literature on the
+feasibility-vs-fidelity surface. Method links to the chapter section and
+cites the canonical paper; Solver names the computational kernel (LP,
+Sinkhorn, projection-1D, ICNN, ODE); Loss names the training signal
 (transport cost, regularized dual, KL-marginal, displacement-velocity
-MSE). Problem = the OT family (continuous OT / discrete OT / unbalanced
-/ GW / Schrödinger). Accuracy = relative
+MSE); Problem names the OT family (continuous / discrete / unbalanced /
+GW / Schrödinger); 1D-&gt;100D records whether the same algorithm
+transfers from low to high dimension without algorithmic surgery. Those
+five columns are read off the cited papers. <strong>The three remaining
+columns are illustrative and are not measured results.</strong> No
+benchmark producing a common relative
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>W</mi><mn>2</mn><mn>2</mn></msubsup><annotation encoding="application/x-tex">W_2^2</annotation></semantics></math>
-error on the synthetic Gaussian pair
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">𝒩</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>→</mo><mi mathvariant="script">𝒩</mi><mo stretchy="false" form="prefix">(</mo><mi>m</mi><mo>,</mo><mi mathvariant="normal">Σ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{N}(0,I_d) \to \mathcal{N}(m, \Sigma)</annotation></semantics></math>
-where the closed-form Bures-Wasserstein gives ground truth (lower is
-better, smaller
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ε</mi><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math>
-reduces bias). Compute = wall-clock per 1000-sample pair on a single CPU
-core (M means matrix-only; ODE means 50 NFE). Scale columns: 1D-&gt;100D
-= whether the same algorithm transfers from low to high dimension
-without algorithmic surgery; Memory = working-set size for n=10k
-samples. Dashes mark unreported / not-applicable settings.</caption>
+error or a common wall-clock figure across these methods was run for
+this chapter, and none of the cited papers reports one; the entries are
+order-of-magnitude placements meant to be read as a ranking of families,
+not as numbers to quote. Each row's citation names the source of the
+<em>method</em>, not the source of the row's numbers. Two rows (OT
+flow-matching, Schrödinger-bridge) carry no citation because the
+bibliography holds no entry for them. For complexity statements that
+<em>are</em> sourced, see the algorithm-complexity table and <span
+class="citation"
+data-cites="dvurechensky_computational_2018">(Dvurechensky et al.
+2018)</span>; for measured solver comparisons, see the cited papers' own
+experimental sections, quoted with their settings in the body text
+below.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>Year</th>
+<th>Solver</th>
+<th>Loss</th>
+<th>Problem</th>
+<th>W2 err (illustr.)</th>
+<th>t/1k (illustr.)</th>
+<th>1D-&gt;100D</th>
+<th>Mem</th>
+</tr>
+</thead>
 <tbody>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td>Accuracy</td>
-<td>Compute</td>
-<td>Scale</td>
-<td></td>
-</tr>
-<tr>
-<td>Method</td>
-<td>Year</td>
-<td>Solver</td>
-<td>Loss</td>
-<td>Problem</td>
-<td>W2 err</td>
-<td>t/1k</td>
-<td>1D-&gt;100D</td>
-<td>Mem</td>
-</tr>
 <tr>
 <td>Hungarian / network-simplex</td>
 <td>1955</td>
@@ -346,9 +345,9 @@ data-cites="seguy_large-scale_2018">(Seguy et al. 2018)</span></td>
 <td>O(net)</td>
 </tr>
 <tr>
-<td>ICNN saddle-point <span class="citation"
-data-cites="amos_input_2017">(Amos et al. 2017)</span></td>
-<td>2017</td>
+<td>ICNN-OT saddle-point <span class="citation"
+data-cites="makkuva_optimal_2020">(Makkuva et al. 2020)</span></td>
+<td>2020</td>
 <td>ICNN-pair</td>
 <td>min-max-Brenier</td>
 <td>continuous</td>
@@ -434,8 +433,8 @@ data-cites="peyre_computational_2020">(Peyré and Cuturi
 <p>The table groups the literature into five generations, each a
 response to the feasibility-vs-fidelity tension. The sub-sections below
 follow the same logic. The table below summarizes the structural
-trade-offs of each lineage; individual method numbers are in the SoTA
-leaderboard above.</p>
+trade-offs of each lineage, with the same caveat about its error
+column.</p>
 <div class="blog-table"><table>
 <thead>
 <tr>
@@ -600,20 +599,26 @@ manifolds, projection averages over informative-and-uninformative
 directions equally and underestimates the true distance.</p>
 <figure id="fig:ot-family-timeline">
 <img src="figures/ot-family-timeline.svg" />
-<figcaption>OT family evolution from 1955 exact-LP solvers to 2023
-production-grade <strong>flow-matching</strong> and
-<strong>Schrödinger-bridge</strong> dynamics. Marker shape and colour
-encode family; the dotted line marks the exact-LP ground truth (zero
-relative error). Three observations match the table reading: (i) the
-<strong>exact-LP</strong> and <strong>foundations</strong> era achieves
-zero error but does not scale; (ii) the 2013-2018
-<strong>entropic</strong> and <strong>sliced</strong> cluster trades
-5-15% bias for two-to-three-orders-of-magnitude speedup, with
-<strong>Sinkhorn divergences</strong> recovering 1-3% accuracy via
-debiasing; (iii) the 2018-2023 <strong>neural-OT</strong> and
-<strong>flow</strong> line, scaled by min-max ICNN potentials and ODE
-integration of OT-coupled velocity fields, reaches 2-3% accuracy on
-continuous problems where direct Sinkhorn is infeasible.</figcaption>
+<figcaption>OT family evolution from 1955 exact-LP solvers to the 2023
+<strong>flow-matching</strong> and <strong>Schrödinger-bridge</strong>
+dynamics. Marker shape and colour encode family; the dotted line marks
+the exact-LP ground truth of zero relative error. <strong>The vertical
+axis is illustrative and not measured</strong>: the plotted error values
+are the same composite placements as in the leaderboard table above,
+drawn to order the families rather than to report a benchmark, and they
+should not be quoted as results. What the figure is meant to show is the
+shape of the trade-off, which the cited papers do support qualitatively:
+(i) the <strong>exact-LP</strong> and <strong>foundations</strong> era
+is unbiased by construction but does not scale past roughly
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><msup><mn>10</mn><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">n = 10^4</annotation></semantics></math>;
+(ii) the 2013-2018 <strong>entropic</strong> and <strong>sliced</strong>
+cluster accepts a regularization or projection bias in exchange for
+orders-of-magnitude faster solves, with <strong>Sinkhorn
+divergences</strong> recovering part of the lost accuracy by debiasing
+at the cost of three solver runs; (iii) the 2018-2023
+<strong>neural-OT</strong> and <strong>flow</strong> line moves the cost
+offline into training and applies to continuous problems on which direct
+Sinkhorn cannot form a cost matrix at all.</figcaption>
 </figure>
 <p>Both sliced and entropic methods still assume the source and target
 live in the same metric space and carry equal total mass. Many practical
@@ -654,28 +659,34 @@ approximation, blocking application to the continuous high-dimensional
 distributions that arise in generative modeling. Generation 5 abandons
 the matrix entirely.</p>
 <p><strong>Neural-OT</strong> methods <span class="citation"
-data-cites="korotin_neural_2023 seguy_large-scale_2018 amos_input_2017">(Korotin
-et al. 2023; Seguy et al. 2018; Amos et al. 2017)</span> parameterize
+data-cites="korotin_neural_2023 seguy_large-scale_2018 makkuva_optimal_2020">(Korotin
+et al. 2023; Seguy et al. 2018; Makkuva et al. 2020)</span> parameterize
 Kantorovich potentials
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>,</mo><mi>g</mi></mrow><annotation encoding="application/x-tex">f, g</annotation></semantics></math>
 (or the Brenier potential
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>)
 as neural networks and solve the dual saddle-point min-max objective by
-stochastic gradient ascent-descent. <strong>Input convex neural
-networks</strong> (ICNNs) <span class="citation"
-data-cites="amos_input_2017">(Amos et al. 2017)</span> enforce the
-convexity required by Brenier's theorem via non-negative weights and
-convex non-decreasing activations; this guarantees the gradient
+stochastic gradient ascent-descent. The ICNN saddle-point solver is due
+to Makkuva et al. <span class="citation"
+data-cites="makkuva_optimal_2020">(Makkuva et al. 2020)</span>; the
+architecture it builds on, the <strong>input convex neural
+network</strong> (ICNN) of Amos, Xu and Kolter <span class="citation"
+data-cites="amos_input_2017">(Amos et al. 2017)</span>, was introduced
+for structured prediction and control and contains no transport
+objective of its own. ICNNs enforce the convexity required by Brenier's
+theorem via non-negative weights and convex non-decreasing activations;
+this guarantees the gradient
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>∇</mi><msub><mi>ϕ</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">T(x) = \nabla \phi_\theta(x)</annotation></semantics></math>
 is a valid Brenier map. The price is the <strong>adversarial</strong>
 training instability of all GAN-class objectives<a href="#fn16"
 class="footnote-ref" id="fnref16" role="doc-noteref"><sup>16</sup></a>:
-hyperparameter sensitivity, mode collapse, and oscillation; mitigated by
-careful learning-rate scheduling, gradient penalties, and warm-starting
-from Sinkhorn-derived initial maps. <strong>JKOnet</strong> <span
-class="citation" data-cites="bunne_proximal_2022">(Bunne et al.
-2022)</span> uses ICNNs to discretize Wasserstein gradient flows via the
-<strong>JKO scheme</strong>, learning energy landscapes from population
+hyperparameter sensitivity, mode collapse, and oscillation. These are
+mitigated by careful learning-rate scheduling, gradient penalties, and
+warm-starting from Sinkhorn-derived initial maps.
+<strong>JKOnet</strong> <span class="citation"
+data-cites="bunne_proximal_2022">(Bunne et al. 2022)</span> uses ICNNs
+to discretize Wasserstein gradient flows via the <strong>JKO
+scheme</strong>, learning energy landscapes from population
 snapshots.</p>
 <h2
 id="generation-5-2022-2024-flow-matching-schrödinger-bridges-and-unification">Generation
@@ -720,23 +731,26 @@ occupies the bottom-left: zero error but computationally prohibitive
 beyond
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>≈</mo><msup><mn>10</mn><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">n \approx 10^4</annotation></semantics></math>.
 The <strong>entropic</strong> family (orange circles) breaks left by
-trading 2-15% bias for massive GPU parallelism; Sinkhorn divergences
-(orange) pull back toward the fidelity axis via debiasing. The
-<strong>sliced</strong> family (green diamonds) achieves the highest
+trading a regularization bias for parallelism on GPU; Sinkhorn
+divergences (orange) pull back toward the fidelity axis via debiasing.
+The <strong>sliced</strong> family (green diamonds) achieves the highest
 speed by projecting to 1D, at the cost of projection bias that degrades
 on non-Gaussian manifolds. The <strong>unbalanced</strong> and
 <strong>GW</strong> families (purple hexagons, brown triangles) are off
 the main Pareto curve because they address different
 <em>formulation</em> problems (mass inequality, cross-space matching)
 rather than trading bias for speed. The <strong>neural</strong> family
-(red triangles) accepts slow training (hours) to reach good bias at
+(red triangles) accepts slow training (hours) to reach usable bias at
 continuous-measure scale where Sinkhorn cannot form the cost matrix. The
 <strong>flow-matching / Schrödinger bridge</strong> family (cyan
-squares) combines OT-coupled paths with neural ODE integration, reaching
-1-2% relative error at inference-time speeds competitive with entropic
-OT. The convergence of all five lineages onto the upper-left region
-(2-3% error, GPU-feasible) is the defining achievement of the 2022-2024
-period.</figcaption>
+squares) combines OT-coupled paths with neural ODE integration at
+inference-time speeds competitive with entropic OT. Both axes are
+<strong>ordinal scores assigned for this figure, not
+measurements</strong>; they carry the same caveat as the leaderboard
+table, and the figure is an argument about the shape of the trade-off
+rather than a report of benchmark results. Read that way, the movement
+of all five lineages toward the upper-left region over 2022-2024 is the
+period's characteristic development.</figcaption>
 </figure>
 <h2 class="blog-refs-title">References</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
@@ -873,6 +887,14 @@ Le, Tam, Makoto Yamada, Kenji Fukumizu, and Marco Cuturi. 2019.
 <span>Wasserstein</span> <span>Distances</span>."</span> <em>Advances in
 Neural Information Processing Systems (<span>NeurIPS</span>)</em> 32. <a
 href="http://arxiv.org/abs/1902.00342">http://arxiv.org/abs/1902.00342</a>.
+</div>
+<div id="ref-makkuva_optimal_2020" class="csl-entry" role="listitem">
+Makkuva, Ashok Vardhan, Amirhossein Taghvaei, Sewoong Oh, and Jason D.
+Lee. 2020. <span>"Optimal Transport Mapping via Input Convex Neural
+Networks."</span> <em>International Conference on Machine Learning
+(<span>ICML</span>)</em>, Proceedings of machine learning research, vol.
+119: 6672-81. <a
+href="http://arxiv.org/abs/1908.10962">http://arxiv.org/abs/1908.10962</a>.
 </div>
 <div id="ref-memoli_gromovwasserstein_2011" class="csl-entry"
 role="listitem">

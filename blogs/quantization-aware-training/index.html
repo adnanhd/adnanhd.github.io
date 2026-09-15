@@ -34,7 +34,7 @@
     "name": "Adnan Harun Dogan"
   },
   "mainEntityOfPage": "https://adnanhd.github.io/blogs/quantization-aware-training/",
-  "datePublished": "2025-12-09"
+  "datePublished": "2025-11-14T18:22"
 }
         </script>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
@@ -91,56 +91,46 @@ mismatch</strong><a href="#fn4" class="footnote-ref" id="fnref4"
 role="doc-noteref"><sup>4</sup></a> that all later QAT analyses must
 absorb. <span class="citation" data-cites="esser_learned_2020">(Esser et
 al. 2020)</span> introduced the learned step-size formulation (LSQ),
-demonstrating that the <strong>learnable-scale</strong> itself can be
-treated as a first-class trainable parameter; the gradient-scale factor
+showing that the <strong>learnable-scale</strong> itself can be treated
+as a first-class trainable parameter; the gradient-scale factor
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo>=</mo><mn>1</mn><mi>/</mi><msqrt><mrow><msub><mi>N</mi><mi>W</mi></msub><msub><mi>q</mi><mi mathvariant="normal">max</mi></msub></mrow></msqrt></mrow><annotation encoding="application/x-tex">g = 1/\sqrt{N_W q_{\max}}</annotation></semantics></math>
 it derives is what prevents one of the dominant
 <strong>training-instability</strong><a href="#fn5" class="footnote-ref"
 id="fnref5" role="doc-noteref"><sup>5</sup></a> modes when scales
 co-train with weights.</p>
 <div class="blog-table"><table id="tbl:qat-sota">
-<caption>QAT/PTQ SoTA leaderboard. Method links to the chapter section.
-Bits = weight/activation precision (e.g., 4/8 = 4-bit weights, 8-bit
-activations; 4/16 = weight-only with FP16 activations; 1/1 = fully
-binary). Vision (IN1k) reports ImageNet-1k top-1 (%) and
+<caption>QAT/PTQ SoTA leaderboard. Method links to the chapter section
+and carries the source citation. Bits = weight/activation precision
+(e.g., 4/8 = 4-bit weights, 8-bit activations; 4/16 = weight-only with
+FP16 activations; 1/1 = fully binary). IN1k Top-1 is ImageNet-1k top-1
+(%) with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Δ</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math>
-from the FP32 baseline of the listed backbone (negative = drop). NLP
-(GLUE) reports the GLUE-average over 8 tasks for BERT-base derivatives.
-LLM (WT) reports WikiText-2/103 perplexity for LLaMA-7B unless stated;
-lower is better. System reports the model-size compression ratio over
-FP32 (e.g., 4x at INT8, 8x at INT4) and where measured the speedup over
-FP32/FP16 on the originating paper's reference hardware. Loss/Algo cell
-uses (key=value) for headline hyperparameters; CE = cross-entropy, MSE =
-mean-squared error. Dashes mark unreported settings.</caption>
+measured from the FP32 baseline of the listed backbone (negative =
+drop). GLUE Avg is the GLUE-average over 8 tasks for BERT-base
+derivatives. WT PPL is WikiText-2/103 perplexity for LLaMA-7B unless
+stated, and lower is better. Comp is the model-size compression ratio
+over FP32 (e.g., 4x at INT8, 8x at INT4), Speedup is the measured gain
+over FP32/FP16 on the originating paper's reference hardware where
+reported. The Loss/Algo cell uses (key=value) for headline
+hyperparameters, with CE = cross-entropy and MSE = mean-squared error.
+Dashes mark unreported settings.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>Year</th>
+<th>Backbone</th>
+<th>Loss/Algo</th>
+<th>Data</th>
+<th>Bits</th>
+<th>IN1k Top-1</th>
+<th><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Δ</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math></th>
+<th>GLUE Avg</th>
+<th>WT PPL</th>
+<th>Comp</th>
+<th>Speedup</th>
+</tr>
+</thead>
 <tbody>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td>Vision (IN1k)</td>
-<td></td>
-<td></td>
-<td>NLP (GLUE)</td>
-<td>LLM (WT)</td>
-<td>System</td>
-<td></td>
-</tr>
-<tr>
-<td>Method</td>
-<td>Year</td>
-<td>Backbone</td>
-<td>Loss/Algo</td>
-<td>Data</td>
-<td>Bits</td>
-<td>Top-1</td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Δ</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math></td>
-<td>Avg</td>
-<td>PPL</td>
-<td>Comp</td>
-<td>Speedup</td>
-</tr>
 <tr>
 <td>Vanhoucke (prod. INT8) <span class="citation"
 data-cites="vanhoucke_improving_2011">(Vanhoucke et al.
