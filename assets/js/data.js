@@ -291,31 +291,6 @@ function initLinkableBoxes() {
   });
 }
 
-function initTimelineFilter() {
-  const chips = document.querySelectorAll(".timeline-filter");
-  if (!chips.length) return;
-  // Cards, their rail markers and the position bars all carry a
-  // timeline-<type> class, so one selector filters the whole rail.
-  const items = document.querySelectorAll(
-    "#timeline-container .timeline-item, #timeline-container .rail-marker," +
-    " #timeline-container .tl-posbar",
-  );
-
-  function setType(type) {
-    chips.forEach((c) =>
-      c.classList.toggle("active", (c.getAttribute("data-tl-type") || "") === type),
-    );
-    items.forEach((el) => {
-      const show = !type || el.classList.contains("timeline-" + type);
-      el.style.display = show ? "" : "none";
-    });
-  }
-
-  chips.forEach((c) =>
-    c.addEventListener("click", () => setType(c.getAttribute("data-tl-type") || "")),
-  );
-}
-
 // Refresh the GitHub sidebar metrics live on top of the baked values: total
 // stars across all public repos + merged PRs. Cached in sessionStorage to stay
 // under GitHub's 60 req/hr unauthenticated limit. Scholar (citations / h-index
@@ -495,7 +470,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initTimelinePosHover();
   initTimelineAnchors();
   initBlogFilter();
-  initTimelineFilter();
   initLinkableBoxes();
   initStats();
   initLocalTime();

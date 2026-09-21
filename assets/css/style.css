@@ -1168,6 +1168,9 @@ a:hover {
     max-width: 1140px;
 }
 .timeline-filter {
+    /* links to the pre-built per-filter rails, styled as chips */
+    display: inline-block;
+    text-decoration: none;
     padding: 4px 12px;
     font-size: 0.82em;
     color: var(--text-secondary);

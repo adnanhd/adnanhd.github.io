@@ -815,6 +815,26 @@ _TL_FILTER_ORDER = [
 # Employment and unpaid research both answer "where was he": one chip.
 _TL_POSITION_TYPES = ("experience", "research")
 
+
+def _tl_keeps(e, key):
+    """Does the `key` filter keep this event?"""
+    if not key:
+        return True
+    if key == "newsitem":
+        return bool(e.get("news_text") or e.get("has_news"))
+    if key == "position":
+        return e["type"] in _TL_POSITION_TYPES
+    return e["type"] == key
+
+
+def _tl_keeps_bar(item, key):
+    """Does the `key` filter keep this position's bar?"""
+    if not key:
+        return True
+    if key == "position":
+        return item.get("_section") in _TL_POSITION_TYPES
+    return key == "degree" and item.get("_section") == "education"
+
 def _timeline_exp_event(item, ev_type):
     """Build a timeline event from an education/experience/research record.
     The `id` field is the slug used to match a publication's `source:`
@@ -1127,7 +1147,7 @@ def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False
     return card_html + rail_marker
 
 
-def render_timeline(data):
+def render_timeline(data, only="", sub=False):
     """Cartesian timeline: vertical axis is time, absolute Y per event.
     Range entries (B.Sc., M.Sc., experience positions) get min-height
     proportional to their duration so they visibly span their years.
@@ -1283,6 +1303,16 @@ def render_timeline(data):
     # the degree cards on the right. All atomic cards (papers, news
     # moments) share the wide left column.
     card_events = events
+    # A filter page (timeline/<key>/) lays out only the events its chip
+    # keeps, so the rail collapses instead of holding the gaps. The chip
+    # row always lists every filter, whichever page you are on.
+    chip_types = {e["type"] for e in card_events}
+    if any(e.get("news_text") or e.get("has_news") for e in card_events):
+        chip_types.add("newsitem")
+    if chip_types & set(_TL_POSITION_TYPES):
+        chip_types.add("position")
+    if only:
+        card_events = [e for e in card_events if _tl_keeps(e, only)]
 
     for e in card_events:
         if e.get("pos_id") and not e.get("pos_color"):
@@ -1320,12 +1350,14 @@ def render_timeline(data):
     # stacks same-year papers vertically.
     for e in left:
         e["_lane"] = 0
-    n_left = 1
+    # A filter can empty a whole side; then that side claims no width and
+    # the rail slides over instead of leaving half the page blank.
+    n_left = 1 if left else 0
     # Right side is a single column: degree cards and education news
     # stack; the per-lane post-pass resolves any vertical overlap.
     for e in right:
         e["_lane"] = 0
-    n_right = 1 if right else 1
+    n_right = 1 if right else 0
 
     # ---- VARIABLE-BAND LAYOUT: every year gets its own band whose
     # height is just enough to hold the densest column's content for
@@ -1507,18 +1539,17 @@ def render_timeline(data):
     # (also what the responsive single-column collapse reads top-to-bottom).
     card_events.sort(key=lambda e: e["_end"] or 0, reverse=True)
 
-    # Type-filter chips. Only show chips for types actually present.
-    present_types = {e["type"] for e in card_events}
-    if present_types & set(_TL_POSITION_TYPES):
-        present_types.add("position")
-    if any(e.get("news_text") or e.get("has_news") for e in card_events):
-        present_types.add("newsitem")
-    chips = ['<button class="timeline-filter active" data-tl-type="">All</button>']
-    for type_key, label in _TL_FILTER_ORDER:
-        if type_key in present_types:
-            chips.append(
-                f'<button class="timeline-filter" data-tl-type="{type_key}">{label}</button>'
-            )
+    # Type-filter chips: plain links to the per-filter builds.
+    def _chip(key, label):
+        if sub:
+            href = f"../{key}/" if key else "../../index.html?tab=timeline"
+        else:
+            href = f"timeline/{key}/" if key else "?tab=timeline"
+        active = " active" if key == only else ""
+        return f'<a class="timeline-filter{active}" href="{href}">{label}</a>'
+
+    chips = [_chip("", "All")]
+    chips += [_chip(k, label) for k, label in _TL_FILTER_ORDER if k in chip_types]
     controls = (
         f'<div class="timeline-controls">{"".join(chips)}</div>'
         if len(chips) > 1 else ""
@@ -1597,6 +1628,8 @@ def render_timeline(data):
     # over the months it covers inside that block.
     spans = []
     for pid, item in raw_parents.items():
+        if not _tl_keeps_bar(item, only):
+            continue
         sfrac = _date_frac(item.get("start_date"))
         efrac = _date_frac(item.get("end_date")) or sfrac
         if sfrac is None:
