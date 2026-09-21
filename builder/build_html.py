@@ -1012,7 +1012,7 @@ def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False
         rail_marker = (
             f'<div class="rail-marker rail-marker-{side} timeline-{e["type"]}"{pos_attr} aria-hidden="true" '
             f'style="top: {top_px:.1f}px; --lane-ratio: {lane_ratio:.6f}; '
-            f'--dot-color: {color};"></div>'
+            f'--dot-color: {color};"><i class="rail-dot-hit"></i></div>'
         )
         return (
             f'<div id="{anchor}" class="timeline-item timeline-{e["type"]} timeline-{side} timeline-newsitem"{pos_attr} '
@@ -1401,42 +1401,51 @@ def render_timeline(data):
     year_label_y = {}
     month_header_y = {}
     cursor = 0.0
+
+    def _needs(events):
+        """Lowest rail line on which every one of `events` would still sit
+        exactly on the line, clearing whatever its own column already holds.
+        Empty months ask for nothing and stay collapsed."""
+        if not events:
+            return -1e9
+        return max(lane_cursor.get(e.get("_colkey"), -1e9) + GAP + DOT_LIFT
+                   for e in events)
+
+    def _place(line, events):
+        """Anchor a month's cards on its rail line. The line has already
+        cleared the columns these cards belong to, so the first card of
+        each column lands on it; further cards of the same month and
+        column stack underneath."""
+        col_next = {}
+        for e in events:
+            ck = e.get("_colkey")
+            y = max(col_next.get(ck, line), lane_cursor.get(ck, -1e9) + GAP)
+            e["_top_px"] = y - DOT_LIFT
+            lane_cursor[ck] = e["_top_px"] + e["_est_h"]
+            col_next[ck] = y + MIN_MONTH
+
     # Newest year on top. Each pill heads its own year; beneath it the
     # months run Dec -> Jan, so time descends the page without a break.
+    # Quiet months collapse to MIN_MONTH; a month whose cards need room
+    # pushes its own line down, which keeps every card on its date.
     for Y in range(yr_max, yr_min - 1, -1):
         cursor = max(cursor, TOP_PAD - 34)
         # The pill above a block is the BOUNDARY: start of year Y+1,
         # end of year Y - months below it belong to year Y.
         year_label_y[Y + 1] = cursor
-        cursor += YEAR_GAP - MIN_MONTH  # Dec lands YEAR_GAP below the pill
+        prev = cursor + YEAR_GAP - MIN_MONTH   # so Dec lands YEAR_GAP below
         for M in range(12, 1, -1):
-            cursor += MIN_MONTH
-            month_header_y[(Y, M)] = cursor
-            # Same-month cards stack PER COLUMN: a busy right column
-            # never pushes a free left column's card off its date line.
-            col_next = {}
-            for e in by_month.get((Y, M), []):
-                ck = e.get("_colkey")
-                y = max(cursor if ck not in col_next else col_next[ck],
-                        lane_cursor.get(ck, -1e9) + GAP)
-                e["_top_px"] = y - DOT_LIFT
-                lane_cursor[ck] = e["_top_px"] + e["_est_h"]
-                col_next[ck] = y + MIN_MONTH
-                cursor = max(cursor, y)
-        # January owns no rail stretch of its own: its events anchor on
-        # the year pill line itself; their cards may run on past the
-        # pill, the per-column cursors absorb that.
-        jan_y = cursor + YEAR_GAP
+            evs = by_month.get((Y, M), [])
+            line = max(prev + MIN_MONTH, _needs(evs))
+            month_header_y[(Y, M)] = line
+            _place(line, evs)
+            prev = line
+        # January owns no label of its own: its line IS the year pill.
+        evs = by_month.get((Y, 1), [])
+        jan_y = max(prev + YEAR_GAP, _needs(evs))
         month_header_y[(Y, 1)] = jan_y
-        col_next = {}
-        for e in by_month.get((Y, 1), []):
-            ck = e.get("_colkey")
-            y = max(jan_y if ck not in col_next else col_next[ck],
-                    lane_cursor.get(ck, -1e9) + GAP)
-            e["_top_px"] = y - DOT_LIFT
-            lane_cursor[ck] = e["_top_px"] + e["_est_h"]
-            col_next[ck] = y + MIN_MONTH
-        cursor = jan_y  # the next year pill sits exactly on January's line
+        _place(jan_y, evs)
+        cursor = jan_y
     year_label_y[yr_min] = cursor  # closing boundary sits on the last Jan line
     cursor += 8
     order = card_events
