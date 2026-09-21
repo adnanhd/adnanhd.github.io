@@ -1,114 +1,16 @@
 // Theme management and page navigation
 // Content is pre-rendered by build.py — this file only handles interactive behavior.
 
-const VALID_PAGES = ["about", "cv", "blogs", "timeline"];
-
 // Apply the visual state for a page (toggle sections, nav, scroll). Does NOT
 // touch history -- callers decide whether to push/replace the URL.
 // Show the pre-built rail for ?filter=<key>; the others stay hidden.
-function applyTimelineFilter(filter) {
-  document.querySelectorAll(".timeline-view").forEach((v) => {
-    v.hidden = (v.getAttribute("data-filter") || "") !== (filter || "");
-  });
-}
-
-function applyPage(pageId, scrollTo, filter) {
-  if (!VALID_PAGES.includes(pageId)) pageId = "about";
-  applyTimelineFilter(filter);
-
-  document.querySelectorAll(".page-section").forEach((page) => {
-    page.classList.remove("active");
-  });
-  var section = document.getElementById(pageId);
-  section.classList.add("active");
-
-  document.querySelectorAll(".nav-link").forEach((link) => {
-    link.classList.remove("active");
-  });
-  var navLink = document.querySelector(`[data-page="${pageId}"]`);
-  if (navLink) navLink.classList.add("active");
-
-  // Scroll to a specific element within the page if requested.
-  // Double rAF lets the layout settle (section just toggled display).
-  if (scrollTo) {
-    var target = document.getElementById(scrollTo);
-    if (target) {
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() =>
-          target.scrollIntoView({ behavior: "smooth", block: "center" })
-        )
-      );
-      return;
-    }
-  }
-
-  // Scroll to top and move focus for accessibility
-  window.scrollTo(0, 0);
-  section.focus({ preventScroll: true });
-}
-
-// Navigate to a page, writing a GitHub-style ?tab=<page> URL (plus an optional
-// #anchor for a subsection). push=false replaces the current history entry
-// (used on initial load / canonicalizing legacy #hash links).
-function showPage(pageId, scrollTo, push, filter) {
-  if (!VALID_PAGES.includes(pageId)) return false;
-  // keep whatever else the address carries (blog tags, for instance)
-  var params = new URLSearchParams(window.location.search);
-  params.set("tab", pageId);
-  if (filter) params.set("filter", filter);
-  else params.delete("filter");
-  var url = "?" + params.toString().replace(/%2C/g, ",") +
-            (scrollTo ? "#" + scrollTo : "");
-  if (push === false) history.replaceState(null, "", url);
-  else history.pushState(null, "", url);
-  applyPage(pageId, scrollTo, filter);
-  return false;
-}
-
-// Parse the current URL into {tab, scrollTo}, accepting both the new
-// ?tab=<page>#anchor form and the legacy #page or #page:section form.
-function parseRoute() {
-  var params = new URLSearchParams(window.location.search);
-  var tab = params.get("tab");
-  var filter = params.get("filter");
-  var hash = window.location.hash.replace("#", "");
-  var scrollTo = hash || null;
-  if (!tab && hash) {
-    var parts = hash.split(":");
-    if (VALID_PAGES.includes(parts[0])) {
-      tab = parts[0];
-      scrollTo = parts[1] || null;
-    }
-  }
-  if (!VALID_PAGES.includes(tab)) tab = "about";
-  return { tab: tab, scrollTo: scrollTo, filter: filter };
-}
-
-// Initial route: canonicalize whatever URL we landed on to the ?tab= form.
-function initRoute() {
-  var r = parseRoute();
-  showPage(r.tab, r.scrollTo, false, r.filter);
-}
-
-// Follow an internal ?tab= link string (e.g. "?tab=cv#resume-papers").
-// Returns true if it was a valid tab link and navigation happened.
-function navigateTab(href, push) {
-  var u = new URL(href, window.location.href);
-  var q = new URLSearchParams(u.search);
-  var tab = q.get("tab");
-  if (!tab || !VALID_PAGES.includes(tab)) return false;
-  showPage(tab, u.hash ? u.hash.slice(1) : null, push !== false, q.get("filter"));
-  return true;
-}
-
-// Intercept clicks on internal ?tab= links so they navigate without a reload.
-function initTabLinks() {
-  document.addEventListener("click", (e) => {
-    var a = e.target.closest("a");
-    if (!a) return;
-    var href = a.getAttribute("href");
-    if (!href || href[0] !== "?") return;
-    if (navigateTab(href)) e.preventDefault();
+// ?filter=<key> picks one of the rails the build already laid out.
+function initTimelineFilter() {
+  const views = document.querySelectorAll(".timeline-view");
+  if (!views.length) return;
+  const want = new URLSearchParams(window.location.search).get("filter") || "";
+  views.forEach((v) => {
+    v.hidden = (v.getAttribute("data-filter") || "") !== want;
   });
 }
 
@@ -207,15 +109,11 @@ function initLinkableHeaders() {
     var section = h2.closest(".content-section");
     var container = section.querySelector("[id]");
     if (!container) return;
-    var page = h2.closest(".page-section");
-    if (!page) return;
+
     h2.style.cursor = "pointer";
     h2.title = "Copy link to section";
     h2.addEventListener("click", function () {
-      var params = new URLSearchParams(window.location.search);
-      params.set("tab", page.id);
-      var anchor = "?" + params.toString().replace(/%2C/g, ",") + "#" + container.id;
-      history.replaceState(null, "", anchor);
+      history.replaceState(null, "", window.location.search + "#" + container.id);
       container.scrollIntoView({ behavior: "smooth" });
     });
   });
@@ -228,7 +126,7 @@ function initTimelineAnchors() {
     el.style.cursor = "pointer";
     el.title = "Copy link to this point";
     el.addEventListener("click", function () {
-      history.replaceState(null, "", "?tab=timeline#" + el.id);
+      history.replaceState(null, "", window.location.search + "#" + el.id);
       el.scrollIntoView({ behavior: "smooth", block: "center" });
     });
   });
@@ -263,10 +161,13 @@ function initBlogFilter() {
       : "No posts tagged " + tags + ".";
   }
 
-  // pagefind reports "/blogs/foo/", the listing links "blogs/foo/index.html"
-  const norm = (u) =>
-    u.replace(/^.*?\/\/[^/]*/, "").replace(/index\.html$/, "")
-     .replace(/^\//, "").replace(/\/$/, "");
+  // pagefind reports "/blogs/foo/", the listing links "../blogs/foo/index.html"
+  // and the site may sit under a subpath, so compare the tail of the path.
+  const norm = (u) => {
+    const path = new URL(u, window.location.href).pathname
+      .replace(/index\.html$/, "").replace(/\/$/, "");
+    return path.split("/").slice(-2).join("/");
+  };
 
   const tagged = (item) => {
     const tags = " " + (item.getAttribute("data-tags") || "") + " ";
@@ -313,7 +214,8 @@ function initBlogFilter() {
     tried = true;
     try {
       // resolve against the page, not against this script's own folder
-      const url = new URL("pagefind/pagefind.js", document.baseURI).href;
+      const root = document.documentElement.getAttribute("data-root") || "";
+      const url = new URL(root + "pagefind/pagefind.js", document.baseURI).href;
       lib = await import(url);
       await lib.options({ excerptLength: 40 });
     } catch (e) {
@@ -380,7 +282,7 @@ function initBlogFilter() {
     if (writeUrl) {
       const picked = [...active].join(",");
       history.replaceState(null, "",
-        "?tab=blogs" + (picked ? "&tags=" + picked : "") + window.location.hash);
+        (picked ? "?tags=" + picked : window.location.pathname) + window.location.hash);
     }
   }
 
@@ -443,12 +345,7 @@ function initLinkableBoxes() {
   boxes.forEach((box) => {
     function go() {
       const href = box.getAttribute("data-href");
-      if (!href) return;
-      if (href[0] === "?") {
-        navigateTab(href);
-      } else {
-        window.location.href = href;
-      }
+      if (href) window.location.href = href;
     }
     box.addEventListener("click", (e) => {
       if (e.target.closest("a")) return;
@@ -634,8 +531,7 @@ function initAppointment() {
 
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
-  initRoute();
-  initTabLinks();
+  initTimelineFilter();
   initCategoryToggles();
   initImageLightbox();
   initLinkableHeaders();
@@ -648,8 +544,3 @@ document.addEventListener("DOMContentLoaded", () => {
   initAppointment();
 });
 
-// Back/forward buttons change ?tab= without a reload -> re-apply the page.
-window.addEventListener("popstate", () => {
-  var r = parseRoute();
-  applyPage(r.tab, r.scrollTo, r.filter);
-});

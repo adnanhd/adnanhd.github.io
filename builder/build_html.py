@@ -1925,9 +1925,9 @@ def generate_sitemap(bio, blogs_data):
 
     urls = [
         (f"{site_url}/", today, "1.0"),
-        (f"{site_url}/?tab=cv", today, "0.9"),
-        (f"{site_url}/?tab=blogs", today, "0.8"),
-        (f"{site_url}/?tab=timeline", today, "0.7"),
+        (f"{site_url}/cv/", today, "0.9"),
+        (f"{site_url}/blogs/", today, "0.8"),
+        (f"{site_url}/timeline/", today, "0.7"),
     ]
     for blog in (blogs_data or {}).get("blogs", []):
         if blog.get("path"):

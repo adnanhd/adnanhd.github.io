@@ -12,6 +12,7 @@ Usage:
     python -m builder
 """
 
+import re
 import sys
 import shutil
 import subprocess
@@ -95,8 +96,14 @@ def main():
     for placeholder, html in replacements.items():
         output = output.replace(placeholder, html)
 
-    OUTPUT_PATH.write_text(output)
-    print(f"Built {OUTPUT_PATH} ({len(output):,} bytes)")
+    # One page per tab, each carrying only its own section. Navigation is
+    # plain links between real files, so a refresh lands where it should
+    # without JavaScript deciding anything.
+    for tab, out_path, depth in TAB_PAGES:
+        page = _tab_page(output, tab, depth)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(page)
+        print(f"Built {out_path} ({len(page):,} bytes)")
 
     # Project landing pages (publications + works)
     generate_project_pages(data)
@@ -134,3 +141,56 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# tab -> (file, how many directories deep it sits)
+TAB_PAGES = [
+    ("about", BASE_DIR / "index.html", 0),
+    ("cv", BASE_DIR / "cv" / "index.html", 1),
+    ("blogs", BASE_DIR / "blogs" / "index.html", 1),
+    ("timeline", BASE_DIR / "timeline" / "index.html", 1),
+]
+# spelled out, so the links work off the filesystem too, not just a server
+TAB_PATHS = {
+    "about": "index.html",
+    "cv": "cv/index.html",
+    "blogs": "blogs/index.html",
+    "timeline": "timeline/index.html",
+}
+
+
+def _tab_page(html, tab, depth):
+    """Cut the whole-site render down to one tab and fix its paths."""
+    up = "../" * depth
+    for other in TAB_PATHS:
+        if other != tab:
+            html = re.sub(
+                rf'<section id="{other}" class="page-section.*?</section>',
+                "", html, flags=re.S)
+    html = html.replace(f'<section id="{tab}" class="page-section',
+                        f'<section id="{tab}" class="page-section active')
+    html = html.replace('class="page-section active active"',
+                        'class="page-section active"')
+    # nav marker for the page we are on
+    html = html.replace(f'class="nav-link" data-page="{tab}"',
+                        f'class="nav-link active" data-page="{tab}"')
+    if tab != "about":
+        html = html.replace('class="nav-link active" data-page="about"',
+                            'class="nav-link" data-page="about"')
+    if depth:
+        # tell the scripts how to reach the site root (pagefind lives there)
+        html = html.replace("<html lang=\"en\">",
+                            f'<html lang="en" data-root="{up}">', 1)
+        # every site-relative path needs the hop out of this folder
+        def rel(m):
+            attr, val = m.group(1), m.group(2)
+            skip = ("http", "//", "#", "?", "/", "mailto:", "tel:", "data:", "..")
+            return m.group(0) if val.startswith(skip) else f'{attr}="{up}{val}"'
+        html = re.sub(r'(href|src)="([^"]*)"', rel, html)
+    # ?tab=x[&...][#y] -> the file that now holds x
+    def link(m):
+        target = TAB_PATHS[m.group(1)]
+        rest = (m.group(2) or "").replace("&filter=", "?filter=")
+        rest = rest.replace("&tags=", "?tags=")
+        return f'href="{up}{target}{rest}"'
+    html = re.sub(r'href="\?tab=(about|cv|blogs|timeline)([^"]*)"', link, html)
+    return html

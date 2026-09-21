@@ -314,20 +314,6 @@ a:hover {
     border-bottom-color: var(--accent-color);
 }
 
-/* Until data.js runs, the address decides which link reads as current -
-   otherwise About stays underlined for a moment after every refresh. */
-html[data-tab] .nav-link.active {
-    color: var(--text-secondary);
-    border-bottom-color: transparent;
-}
-html[data-tab="about"] .nav-link[data-page="about"],
-html[data-tab="cv"] .nav-link[data-page="cv"],
-html[data-tab="blogs"] .nav-link[data-page="blogs"],
-html[data-tab="timeline"] .nav-link[data-page="timeline"] {
-    color: var(--accent-color);
-    border-bottom-color: var(--accent-color);
-}
-
 /* Theme Toggle Button */
 .theme-toggle {
     background: none;
@@ -389,18 +375,6 @@ html[data-tab="timeline"] .nav-link[data-page="timeline"] {
 }
 
 .page-section.active {
-    display: block;
-}
-
-/* The head script stamps data-tab from the address, so the right section
-   is up on the first paint instead of About flashing past. */
-html[data-tab] .page-section {
-    display: none;
-}
-html[data-tab="about"] #about,
-html[data-tab="cv"] #cv,
-html[data-tab="blogs"] #blogs,
-html[data-tab="timeline"] #timeline {
     display: block;
 }
 
