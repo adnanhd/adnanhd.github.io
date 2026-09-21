@@ -965,6 +965,18 @@ a:hover {
     right: calc(100% - var(--rail-x) + 7px);
     width: calc((var(--rail-gap) - 7px) + var(--lane-ratio) * (var(--left-side-w) + var(--lane-gap)));
 }
+/* Period cards (a position, a degree) are drawn on the rail as their
+   coloured bar, so the marker drops its dot - which would read as a point
+   event on the end date - and starts its arm on the bar instead. */
+.rail-marker-span::after { content: none; }
+.rail-marker-span.rail-marker-right::before {
+    top: var(--arm-y, 24px);
+    left: calc(var(--rail-x) + var(--bar-off, 14px));
+    width: calc((var(--rail-gap) - var(--bar-off, 14px))
+                + var(--lane-ratio) * (var(--right-side-w) + var(--lane-gap)));
+    background: color-mix(in srgb, var(--dot-color, var(--border-color)) 45%, transparent);
+}
+
 /* Start-of-range marker: small hollow dot exactly at the start date,
    no arm. */
 .rail-marker-startdot::after {

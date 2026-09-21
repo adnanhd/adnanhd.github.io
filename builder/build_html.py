@@ -983,7 +983,8 @@ def _date_frac(date_str):
     return None
 
 
-def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False):
+def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False,
+                          bar_off=None, bar_top=None):
     """Render a single timeline card with absolute positioning + lane info."""
     side, color = _TIMELINE_TYPE_META.get(e["type"], ("right", "var(--accent-color)"))
     if e.get("pos_color"):
@@ -1090,12 +1091,27 @@ def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False
     # correctly, and the arm extends precisely to the rail for every
     # lane.
     lane_ratio = lane / max(1, lanes)
+    # A card that covers a period (a position, a degree) is already drawn on
+    # the rail as its coloured bar, so it gets the arm but no dot: a dot
+    # would read as a point event on its end date and compete with the news
+    # item that marks the real moment.
+    span = bool(e.get("end_date"))
+    span_cls = " rail-marker-span" if span else ""
+    hit = "" if span else '<i class="rail-dot-hit"></i>'
+    # The arm of a period card has to start ON its bar, which sits to the
+    # LEFT of the rail, so it visibly ties bar and card together.
+    bar_var = f" --bar-off: {bar_off}px;" if span and bar_off else ""
+    # Meet the bar exactly where it ends: its tip carries the day, so it can
+    # sit a few px off the month line the card was anchored on.
+    drop = (bar_top - top_px) if (span and bar_top is not None) else 0
+    if 0 < drop < 60:
+        bar_var += f" --arm-y: {drop:.0f}px;"
     # The marker carries the same timeline-<type> class as its card so the
     # type filter (initTimelineFilter) hides a card together with its dot+arm.
     rail_marker = (
-        f'<div class="rail-marker rail-marker-{side} timeline-{e["type"]}"{pos_attr} aria-hidden="true" '
-        f'style="top: {top_px:.1f}px; --lane-ratio: {lane_ratio:.6f}; '
-        f'--dot-color: {color};"><i class="rail-dot-hit"></i></div>'
+        f'<div class="rail-marker rail-marker-{side}{span_cls} timeline-{e["type"]}"{pos_attr} aria-hidden="true" '
+        f'style="top: {top_px:.1f}px; --lane-ratio: {lane_ratio:.6f};{bar_var} '
+        f'--dot-color: {color};">{hit}</div>'
     )
     # rail-marker is placed AFTER the card so the `.timeline-item:hover +
     # .rail-marker` sibling combinator can light up the right dot.
@@ -1415,37 +1431,43 @@ def render_timeline(data):
         """Anchor a month's cards on its rail line. The line has already
         cleared the columns these cards belong to, so the first card of
         each column lands on it; further cards of the same month and
-        column stack underneath."""
+        column stack underneath. Returns the lowest dot it placed, which
+        the next month's line has to clear - otherwise a January dot ends
+        up level with the November label."""
         col_next = {}
+        last = -1e9
         for e in events:
             ck = e.get("_colkey")
             y = max(col_next.get(ck, line), lane_cursor.get(ck, -1e9) + GAP)
             e["_top_px"] = y - DOT_LIFT
             lane_cursor[ck] = e["_top_px"] + e["_est_h"]
             col_next[ck] = y + MIN_MONTH
+            last = max(last, y)
+        return last
 
     # Newest year on top. Each pill heads its own year; beneath it the
     # months run Dec -> Jan, so time descends the page without a break.
     # Quiet months collapse to MIN_MONTH; a month whose cards need room
     # pushes its own line down, which keeps every card on its date.
+    carry = -1e9      # lowest dot of the block above, which Dec must clear
     for Y in range(yr_max, yr_min - 1, -1):
         cursor = max(cursor, TOP_PAD - 34)
         # The pill above a block is the BOUNDARY: start of year Y+1,
         # end of year Y - months below it belong to year Y.
         year_label_y[Y + 1] = cursor
-        prev = cursor + YEAR_GAP - MIN_MONTH   # so Dec lands YEAR_GAP below
+        prev = max(cursor + YEAR_GAP - MIN_MONTH, carry)  # Dec: YEAR_GAP below
         for M in range(12, 1, -1):
             evs = by_month.get((Y, M), [])
             line = max(prev + MIN_MONTH, _needs(evs))
             month_header_y[(Y, M)] = line
-            _place(line, evs)
-            prev = line
+            prev = max(line, _place(line, evs))
         # January owns no label of its own: its line IS the year pill.
         evs = by_month.get((Y, 1), [])
         jan_y = max(prev + YEAR_GAP, _needs(evs))
         month_header_y[(Y, 1)] = jan_y
-        _place(jan_y, evs)
+        last = _place(jan_y, evs)
         cursor = jan_y
+        carry = max(jan_y, last)
     year_label_y[yr_min] = cursor  # closing boundary sits on the last Jan line
     cursor += 8
     order = card_events
@@ -1526,6 +1548,35 @@ def render_timeline(data):
     # span, colour-matched to that position's publications, fanned out
     # on the left flank of the rail. Hovering a publication lights up
     # its bar and vice versa (initTimelinePosHover).
+    # ---- PERIOD CARDS RIDE THEIR BAR ---------------------------------
+    # A position or a degree is not a point in time: the rail already
+    # carries its coloured bar, so the card is free to sit anywhere
+    # beside that bar. Each one slides to the first free stretch of its
+    # own span, which keeps it out of crowded months like January 2025.
+    # A card stops at the next period's tip: past that it would sit below
+    # something that ended earlier, which reads as the wrong order.
+    periods = sorted((e for e in card_events if e["_end"] > e["_start"]),
+                     key=lambda e: e["_end"], reverse=True)
+    for i, e in enumerate(periods):
+        top, bot = _y_at_date(e["_end"]), _y_at_date(e["_start"])
+        if top is None or bot is None:
+            continue
+        if i + 1 < len(periods):
+            bot = min(bot, _y_at_date(periods[i + 1]["_end"]) or bot)
+        h, ck = e["_est_h"], e.get("_colkey")
+        # Work in card-top coordinates: the arm sits DOT_LIFT below the
+        # card's top edge, and it has to land on the bar's own tip, which
+        # carries the day (Jul 17), not just the month line.
+        y = top - DOT_LIFT
+        for b0, b1 in sorted((o["_top_px"], o["_top_px"] + o["_est_h"])
+                             for o in card_events
+                             if o is not e and o.get("_colkey") == ck):
+            if b1 <= y or b0 - GAP - y >= h:
+                continue          # neighbour is above, or the card fits here
+            y = b1 + GAP
+        if y + DOT_LIFT <= bot:
+            e["_top_px"] = y
+
     # Position bars, split per year block so each segment lies exactly
     # over the months it covers inside that block.
     spans = []
@@ -1537,6 +1588,8 @@ def render_timeline(data):
         spans.append({"_start": sfrac, "_end": efrac, "_pid": pid, "_item": item})
     # Greedy interval colouring: non-overlapping spans share the lane
     # nearest the rail, so the bars sit snugly side by side.
+    bar_offsets = {}   # position id -> px the bar is fanned off the rail
+    bar_tops = {}      # position id -> y of the bar's tip (its end date)
     spans.sort(key=lambda sp: sp["_end"], reverse=True)
     lane_free = []  # per lane: the start (oldest frac) of its last bar
     for sp in spans:
@@ -1558,6 +1611,7 @@ def render_timeline(data):
         who = _md_strip(item.get("company") or item.get("institution", ""))
         tip = esc(f'{who} - {role} ({dates})')
         offset = 14 + sp["_lane"] * 7
+        bar_offsets[sp["_pid"]] = offset
         color = pos_colors.get(sp["_pid"], "#6c71c4")
         # Exact endpoints: each tip at its date's own coordinate, nudged
         # 4px off the boundary line so it reads inside its month.
@@ -1566,6 +1620,7 @@ def render_timeline(data):
         if y0 is None or y1 is None:
             continue
         top, hgt = min(y0, y1), abs(y1 - y0)
+        bar_tops[sp["_pid"]] = top
         parts.append(
             f'<div class="tl-posbar timeline-{ {"experience": "experience", "research": "research", "education": "degree"}[item["_section"]] }" '
             f'data-pos="{esc(sp["_pid"])}" title="{tip}" '
@@ -1583,7 +1638,8 @@ def render_timeline(data):
         height_px = None
         parts.append(_render_timeline_card(
             e, top_px, height_px, lane=e.get("_lane", 0), lanes=n_lanes,
-            slim=slim,
+            slim=slim, bar_off=bar_offsets.get(e.get("pos_id")),
+            bar_top=bar_tops.get(e.get("pos_id")),
         ))
 
     parts.append('</div>')
