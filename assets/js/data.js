@@ -5,8 +5,16 @@ const VALID_PAGES = ["about", "cv", "blogs", "timeline"];
 
 // Apply the visual state for a page (toggle sections, nav, scroll). Does NOT
 // touch history -- callers decide whether to push/replace the URL.
-function applyPage(pageId, scrollTo) {
+// Show the pre-built rail for ?filter=<key>; the others stay hidden.
+function applyTimelineFilter(filter) {
+  document.querySelectorAll(".timeline-view").forEach((v) => {
+    v.hidden = (v.getAttribute("data-filter") || "") !== (filter || "");
+  });
+}
+
+function applyPage(pageId, scrollTo, filter) {
   if (!VALID_PAGES.includes(pageId)) pageId = "about";
+  applyTimelineFilter(filter);
 
   document.querySelectorAll(".page-section").forEach((page) => {
     page.classList.remove("active");
@@ -42,19 +50,27 @@ function applyPage(pageId, scrollTo) {
 // Navigate to a page, writing a GitHub-style ?tab=<page> URL (plus an optional
 // #anchor for a subsection). push=false replaces the current history entry
 // (used on initial load / canonicalizing legacy #hash links).
-function showPage(pageId, scrollTo, push) {
+function showPage(pageId, scrollTo, push, filter) {
   if (!VALID_PAGES.includes(pageId)) return false;
-  var url = "?tab=" + pageId + (scrollTo ? "#" + scrollTo : "");
+  // keep whatever else the address carries (blog tags, for instance)
+  var params = new URLSearchParams(window.location.search);
+  params.set("tab", pageId);
+  if (filter) params.set("filter", filter);
+  else params.delete("filter");
+  var url = "?" + params.toString().replace(/%2C/g, ",") +
+            (scrollTo ? "#" + scrollTo : "");
   if (push === false) history.replaceState(null, "", url);
   else history.pushState(null, "", url);
-  applyPage(pageId, scrollTo);
+  applyPage(pageId, scrollTo, filter);
   return false;
 }
 
 // Parse the current URL into {tab, scrollTo}, accepting both the new
 // ?tab=<page>#anchor form and the legacy #page or #page:section form.
 function parseRoute() {
-  var tab = new URLSearchParams(window.location.search).get("tab");
+  var params = new URLSearchParams(window.location.search);
+  var tab = params.get("tab");
+  var filter = params.get("filter");
   var hash = window.location.hash.replace("#", "");
   var scrollTo = hash || null;
   if (!tab && hash) {
@@ -65,22 +81,23 @@ function parseRoute() {
     }
   }
   if (!VALID_PAGES.includes(tab)) tab = "about";
-  return { tab: tab, scrollTo: scrollTo };
+  return { tab: tab, scrollTo: scrollTo, filter: filter };
 }
 
 // Initial route: canonicalize whatever URL we landed on to the ?tab= form.
 function initRoute() {
   var r = parseRoute();
-  showPage(r.tab, r.scrollTo, false);
+  showPage(r.tab, r.scrollTo, false, r.filter);
 }
 
 // Follow an internal ?tab= link string (e.g. "?tab=cv#resume-papers").
 // Returns true if it was a valid tab link and navigation happened.
 function navigateTab(href, push) {
   var u = new URL(href, window.location.href);
-  var tab = new URLSearchParams(u.search).get("tab");
+  var q = new URLSearchParams(u.search);
+  var tab = q.get("tab");
   if (!tab || !VALID_PAGES.includes(tab)) return false;
-  showPage(tab, u.hash ? u.hash.slice(1) : null, push !== false);
+  showPage(tab, u.hash ? u.hash.slice(1) : null, push !== false, q.get("filter"));
   return true;
 }
 
@@ -192,10 +209,12 @@ function initLinkableHeaders() {
     if (!container) return;
     var page = h2.closest(".page-section");
     if (!page) return;
-    var anchor = "?tab=" + page.id + "#" + container.id;
     h2.style.cursor = "pointer";
     h2.title = "Copy link to section";
     h2.addEventListener("click", function () {
+      var params = new URLSearchParams(window.location.search);
+      params.set("tab", page.id);
+      var anchor = "?" + params.toString().replace(/%2C/g, ",") + "#" + container.id;
       history.replaceState(null, "", anchor);
       container.scrollIntoView({ behavior: "smooth" });
     });
@@ -217,45 +236,198 @@ function initTimelineAnchors() {
 
 function initBlogFilter() {
   const search = document.getElementById("blog-search");
-  const filters = document.querySelectorAll(".blog-filter");
-  const items = document.querySelectorAll("#blog-posts .blog-item");
+  const tagBox = document.getElementById("tag-search");
+  const chips = document.querySelectorAll(".blog-filter");
+  const list = document.getElementById("blog-posts");
+  const items = [...document.querySelectorAll("#blog-posts .blog-item")];
   if (!items.length) return;
-  let activeTag = "";
+  const active = new Set();
+  let ranked = null;          // urls in relevance order, or null for "no query"
+  let excerpts = {};          // url -> the matched passage, already marked up
 
-  function apply() {
-    const q = ((search && search.value) || "").trim().toLowerCase();
+  // Say so in plain words when a query or a tag leaves nothing.
+  function note() {
+    let box = document.getElementById("blog-empty");
+    if (!box) {
+      box = document.createElement("p");
+      box.id = "blog-empty";
+      box.className = "blog-empty";
+      list.parentElement.insertBefore(box, list.nextSibling);
+    }
+    const left = items.filter((i) => i.style.display !== "none").length;
+    const q = ((search && search.value) || "").trim();
+    const tags = [...active].join(", ");
+    box.hidden = left > 0;
+    box.textContent = q
+      ? 'No results for "' + q + '"' + (tags ? " in " + tags : "") + "."
+      : "No posts tagged " + tags + ".";
+  }
+
+  // pagefind reports "/blogs/foo/", the listing links "blogs/foo/index.html"
+  const norm = (u) =>
+    u.replace(/^.*?\/\/[^/]*/, "").replace(/index\.html$/, "")
+     .replace(/^\//, "").replace(/\/$/, "");
+
+  const tagged = (item) => {
+    const tags = " " + (item.getAttribute("data-tags") || "") + " ";
+    return !active.size ||
+      [...active].some((t) => tags.indexOf(" " + t + " ") !== -1);
+  };
+
+  function render() {
     items.forEach((item) => {
-      const tags = " " + (item.getAttribute("data-tags") || "") + " ";
-      const hay = item.getAttribute("data-search") || "";
-      const matchTag = !activeTag || tags.indexOf(" " + activeTag + " ") !== -1;
-      const matchText = !q || hay.indexOf(q) !== -1;
-      item.style.display = matchTag && matchText ? "" : "none";
+      const href = norm(item.querySelector(".blog-link").getAttribute("href"));
+      const hit = !ranked || ranked.indexOf(href) !== -1;
+      item.style.display = hit && tagged(item) ? "" : "none";
+      // show the passage that matched, with the words marked
+      let ex = item.querySelector(".blog-excerpt");
+      if (hit && excerpts[href]) {
+        if (!ex) {
+          ex = document.createElement("p");
+          ex.className = "blog-excerpt";
+          item.appendChild(ex);
+        }
+        ex.innerHTML = "..." + excerpts[href] + "...";
+      } else if (ex) {
+        ex.remove();
+      }
+    });
+    note();
+    if (ranked) {
+      // pagefind hands back the best match first, so follow its order
+      ranked.forEach((href) => {
+        const row = items.find(
+          (i) => norm(i.querySelector(".blog-link").getAttribute("href")) === href);
+        if (row) list.appendChild(row);
+      });
+    } else {
+      items.forEach((i) => list.appendChild(i));   // back to date order
+    }
+  }
+
+  // The full text lives in the pagefind index next to the posts; until it
+  // loads (or if it is missing) the row's own title/summary/tags answer.
+  let lib = null, tried = false;
+  async function index() {
+    if (lib || tried) return lib;
+    tried = true;
+    try {
+      // resolve against the page, not against this script's own folder
+      const url = new URL("pagefind/pagefind.js", document.baseURI).href;
+      lib = await import(url);
+      await lib.options({ excerptLength: 60 });
+    } catch (e) {
+      lib = null;
+    }
+    return lib;
+  }
+
+  function fallback(q) {
+    const terms = q.split(/\s+/);
+    return items
+      .filter((i) => terms.every(
+        (t) => (i.getAttribute("data-head") || "").indexOf(t) !== -1))
+      .map((i) => norm(i.querySelector(".blog-link").getAttribute("href")));
+  }
+
+  let timer = null;
+  async function apply() {
+    const q = ((search && search.value) || "").trim().toLowerCase();
+    if (!q) {
+      ranked = null;
+      excerpts = {};
+      render();
+      return;
+    }
+    const pf = await index();
+    if (!pf) {
+      ranked = fallback(q);
+      excerpts = {};
+      render();
+      return;
+    }
+    const res = await pf.search(q);
+    // ten is plenty on screen, and each one carries the passage it matched
+    const data = await Promise.all(res.results.slice(0, 10).map((r) => r.data()));
+    ranked = data.map((d) => norm(d.url));
+    excerpts = {};
+    data.forEach((d) => { excerpts[norm(d.url)] = d.excerpt; });
+    render();
+  }
+
+  function queue() {
+    clearTimeout(timer);
+    timer = setTimeout(apply, 120);
+  }
+
+  // Tags are addressable and stack: ?tab=blogs&tags=optimization,papers
+  function sync(writeUrl) {
+    const row = document.querySelector(".tag-chips");
+    chips.forEach((c) =>
+      c.classList.toggle("active", active.has(c.getAttribute("data-tag"))),
+    );
+    // chosen tags move to the front, so they stay visible on the one row
+    if (row) {
+      [...chips]
+        .filter((c) => active.has(c.getAttribute("data-tag")))
+        .forEach((c) => row.insertBefore(c, row.firstChild));
+      [...chips]
+        .filter((c) => !active.has(c.getAttribute("data-tag")))
+        .sort((a, b) => a.textContent.localeCompare(b.textContent))
+        .forEach((c) => row.appendChild(c));
+    }
+    render();
+    if (writeUrl) {
+      const picked = [...active].join(",");
+      history.replaceState(null, "",
+        "?tab=blogs" + (picked ? "&tags=" + picked : "") + window.location.hash);
+    }
+  }
+
+  function toggle(tag) {
+    if (!tag) return;
+    if (active.has(tag)) active.delete(tag);
+    else active.add(tag);
+    sync(true);
+  }
+
+  if (search) search.addEventListener("input", queue);
+
+  // The tag row is long, so it has its own box: typing narrows the chips,
+  // and a selected chip always stays on screen.
+  if (tagBox) {
+    tagBox.addEventListener("input", () => {
+      const t = tagBox.value.trim().toLowerCase();
+      chips.forEach((c) => {
+        const tag = c.getAttribute("data-tag") || "";
+        c.hidden = t && !active.has(tag) && tag.indexOf(t) === -1;
+      });
     });
   }
 
-  function setTag(tag) {
-    activeTag = tag || "";
-    filters.forEach((b) =>
-      b.classList.toggle("active", (b.getAttribute("data-tag") || "") === activeTag),
-    );
-    apply();
+  const more = document.querySelector(".tags-toggle");
+  if (more) {
+    more.addEventListener("click", () => {
+      const row = document.querySelector(".tag-chips");
+      const open = row.classList.toggle("expanded");
+      more.setAttribute("aria-expanded", open ? "true" : "false");
+      more.textContent = open ? "less" : "more";
+    });
   }
 
-  if (search) search.addEventListener("input", apply);
-  // #tag links inline in the listing drive the same filter.
+  chips.forEach((c) =>
+    c.addEventListener("click", () => toggle(c.getAttribute("data-tag"))),
+  );
   document.querySelectorAll("#blog-posts .blog-tag-inline").forEach((a) =>
     a.addEventListener("click", (ev) => {
       ev.preventDefault();
-      setTag(a.getAttribute("data-tag") || "");
+      toggle(a.getAttribute("data-tag"));
     }),
   );
-  filters.forEach((btn) =>
-    btn.addEventListener("click", () => setTag(btn.getAttribute("data-tag") || "")),
-  );
-  // Clicking a tag chip on a card activates that filter.
-  document.querySelectorAll("#blog-posts .blog-tag").forEach((chip) =>
-    chip.addEventListener("click", () => setTag(chip.getAttribute("data-tag") || "")),
-  );
+
+  (new URLSearchParams(window.location.search).get("tags") || "")
+    .split(",").filter(Boolean).forEach((t) => active.add(t));
+  sync(false);
 }
 
 function initLinkableBoxes() {
@@ -479,5 +651,5 @@ document.addEventListener("DOMContentLoaded", () => {
 // Back/forward buttons change ?tab= without a reload -> re-apply the page.
 window.addEventListener("popstate", () => {
   var r = parseRoute();
-  applyPage(r.tab, r.scrollTo);
+  applyPage(r.tab, r.scrollTo, r.filter);
 });

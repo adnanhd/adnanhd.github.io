@@ -1686,6 +1686,26 @@ a:hover {
 .blog-list .blog-item::marker {
     color: var(--text-tertiary);
 }
+.blog-empty {
+    margin: 8px 0 0 2px;
+    font-size: 0.9em;
+    color: var(--text-secondary);
+}
+
+/* The passage a search matched, shown under the row it belongs to. */
+.blog-excerpt {
+    margin: 2px 0 8px 0;
+    font-size: 0.85em;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+.blog-excerpt mark {
+    padding: 0 2px;
+    border-radius: 2px;
+    color: inherit;
+    background: color-mix(in srgb, var(--accent-color) 22%, transparent);
+}
+
 .blog-list .blog-link {
     display: inline;
     color: var(--link-color);
@@ -1798,9 +1818,45 @@ a:hover {
     border-color: var(--accent-color);
 }
 
-.blog-filters {
+/* One row of tags by default: the box narrows them, the toggle opens
+   the rest. */
+.tag-chips {
     display: flex;
     flex-wrap: wrap;
+    gap: 8px;
+    flex: 1 1 auto;
+    max-height: 30px;
+    overflow: hidden;
+}
+.tag-chips.expanded {
+    max-height: none;
+}
+.tags-toggle {
+    flex: 0 0 auto;
+    padding: 2px 8px;
+    font-size: 0.78em;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.tag-search {
+    /* sits on the same line as the chips it narrows */
+    flex: 0 0 auto;
+    width: 150px;
+    padding: 4px 10px;
+    font-size: 0.82em;
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+}
+
+.blog-filters {
+    display: flex;
+    align-items: flex-start;
     gap: 8px;
 }
 

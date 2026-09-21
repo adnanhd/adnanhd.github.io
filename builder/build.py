@@ -12,9 +12,12 @@ Usage:
     python -m builder
 """
 
+import sys
+import shutil
+import subprocess
+
 from .build_config import BASE_DIR, OUTPUT_PATH, TEMPLATE_PATH
 from .build_html import (
-    _TL_FILTER_ORDER,
     generate_rss,
     generate_sitemap,
     render_bio,
@@ -32,7 +35,7 @@ from .build_html import (
     render_sidebar,
     render_social_posts,
     render_teaching,
-    render_timeline,
+    render_timeline_views,
     render_works,
 )
 from .build_projects import generate_project_pages
@@ -84,7 +87,7 @@ def main():
         "{{TEACHING}}": render_teaching(data),
         "{{HONORS}}": render_honors(data),
         "{{NEWS}}": render_news(data),
-        "{{TIMELINE}}": render_timeline(data),
+        "{{TIMELINE}}": render_timeline_views(data),
         "{{SOCIAL_POSTS}}": render_social_posts(data),
     }
 
@@ -98,9 +101,19 @@ def main():
     # Project landing pages (publications + works)
     generate_project_pages(data)
 
-    # One standalone page per timeline filter, so a filtered view is a real
-    # pre-built rail behind its own link instead of a client-side trick.
-    generate_timeline_pages(data, bio)
+    # Search index over the generated post and project pages (pagefind).
+    # The blog search box queries it at runtime, so the listing no longer
+    # has to carry the full text of every post as an attribute.
+    if shutil.which("pagefind"):
+        subprocess.run(
+            ["pagefind", "--site", str(BASE_DIR), "--glob",
+             "{blogs,projects}/**/*.html", "--output-path",
+             str(BASE_DIR / "pagefind")],
+            check=False, capture_output=True,
+        )
+        print(f"Built {BASE_DIR / 'pagefind'}")
+    else:
+        print("pagefind not found: search index left as is", file=sys.stderr)
 
     # Sitemap
     sitemap_path = BASE_DIR / "sitemap.xml"
@@ -121,63 +134,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-TIMELINE_PAGE = """<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="description" content="{description}" />
-        <title>{title} - {name}</title>
-        <link rel="canonical" href="{url}" />
-        <link rel="stylesheet" href="../../assets/css/vendor.css" />
-        <link rel="stylesheet" href="../../assets/css/style.css?v={css_hash}" />
-        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
-    </head>
-    <body>
-        <div class="page-layout">
-            <main class="main-content">
-                <section class="page-section active" aria-label="Timeline">
-                    <div class="content-section">
-                        <a href="../../index.html?tab=timeline" class="blog-back">&larr; Back to the timeline</a>
-                        <h2>{title}</h2>
-{timeline}
-                    </div>
-                </section>
-            </main>
-        </div>
-        <script>
-            const saved = localStorage.getItem("theme");
-            if (saved) document.documentElement.setAttribute("data-theme", saved);
-            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
-                document.documentElement.setAttribute("data-theme", "dark");
-        </script>
-    </body>
-</html>
-"""
-
-
-def generate_timeline_pages(data, bio):
-    """Write timeline/<filter>/index.html for every filter chip."""
-    site = bio.get("site_url", "").rstrip("/")
-    written = 0
-    for key, label in _TL_FILTER_ORDER:
-        html = render_timeline(data, only=key, sub=True)
-        if "timeline-item" not in html:
-            continue                       # nothing under this filter
-        # the page sits two levels down, so in-site paths need the hop
-        for rel in ("assets/", "projects/", "blogs/"):
-            html = html.replace(f'src="{rel}', f'src="../../{rel}')
-            html = html.replace(f'href="{rel}', f'href="../../{rel}')
-        out = BASE_DIR / "timeline" / key
-        out.mkdir(parents=True, exist_ok=True)
-        (out / "index.html").write_text(TIMELINE_PAGE.format(
-            name=esc(bio["name"]),
-            title=esc(f"{label} on the timeline"),
-            description=esc(f"{label} from the timeline of {bio['name']}."),
-            url=esc(f"{site}/timeline/{key}/"),
-            css_hash=file_hash(BASE_DIR / "assets" / "css" / "style.css"),
-            timeline=html,
-        ))
-        written += 1
-    print(f"Built {written} timeline filter pages")

@@ -319,9 +319,9 @@ def render_social_posts(data):
     if not cards:
         return ""
     return (
-        '<div class="content-section" id="social-posts-section">'
+        '<div class="content-section" id="media-posts-section">'
         '<h2>Media Posts</h2>'
-        f'<div id="recent-posts" class="social-grid">{"".join(cards)}</div>'
+        f'<div id="media-posts" class="social-grid">{"".join(cards)}</div>'
         '</div>'
     )
 
@@ -1147,7 +1147,7 @@ def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False
     return card_html + rail_marker
 
 
-def render_timeline(data, only="", sub=False):
+def render_timeline(data, only=""):
     """Cartesian timeline: vertical axis is time, absolute Y per event.
     Range entries (B.Sc., M.Sc., experience positions) get min-height
     proportional to their duration so they visibly span their years.
@@ -1350,14 +1350,14 @@ def render_timeline(data, only="", sub=False):
     # stacks same-year papers vertically.
     for e in left:
         e["_lane"] = 0
-    # A filter can empty a whole side; then that side claims no width and
-    # the rail slides over instead of leaving half the page blank.
-    n_left = 1 if left else 0
+    # Both sides always claim their width, empty or not: the rail has to
+    # stay at the same x in every filter's view, or it jumps as you switch.
+    n_left = 1
     # Right side is a single column: degree cards and education news
     # stack; the per-lane post-pass resolves any vertical overlap.
     for e in right:
         e["_lane"] = 0
-    n_right = 1 if right else 0
+    n_right = 1
 
     # ---- VARIABLE-BAND LAYOUT: every year gets its own band whose
     # height is just enough to hold the densest column's content for
@@ -1541,10 +1541,7 @@ def render_timeline(data, only="", sub=False):
 
     # Type-filter chips: plain links to the per-filter builds.
     def _chip(key, label):
-        if sub:
-            href = f"../{key}/" if key else "../../index.html?tab=timeline"
-        else:
-            href = f"timeline/{key}/" if key else "?tab=timeline"
+        href = f"?tab=timeline&filter={key}" if key else "?tab=timeline"
         active = " active" if key == only else ""
         return f'<a class="timeline-filter{active}" href="{href}">{label}</a>'
 
@@ -1739,12 +1736,21 @@ def render_blog_controls(blogs_data):
     for blog in blogs:
         all_tags |= _effective_tags(blog.get("tags") or [], parent_map)
 
-    chips = ['<button class="blog-filter active" data-tag="">All</button>']
+    # Every tag keeps its chip; the box above narrows the row instead of
+    # the build deciding which tags matter.
+    chips = []
     for tag in sorted(all_tags):
         chips.append(
             f'<button class="blog-filter" data-tag="{esc(tag)}">{esc(_pretty_tag(tag))}</button>'
         )
-    filters = f'<div class="blog-filters">{"".join(chips)}</div>' if all_tags else ""
+    filters = (
+        '<div class="blog-filters">'
+        '<input type="search" id="tag-search" class="tag-search" '
+        'placeholder="Filter tags..." aria-label="Filter tags" />'
+        f'<div class="tag-chips">{"".join(chips)}</div>'
+        '<button class="tags-toggle" type="button" aria-expanded="false">more</button>'
+        '</div>'
+    ) if all_tags else ""
     return (
         '<div class="blog-controls">'
         '<input type="search" id="blog-search" class="blog-search" '
@@ -1772,17 +1778,11 @@ def render_blogs(blogs_data, selected_only=False):
         own_tags = sorted(blog.get("tags") or [])
         eff_tags = sorted(_effective_tags(own_tags, parent_map))
         data_tags = " ".join(eff_tags)
-        search = " ".join([blog.get("title", ""), blog.get("description", "")] + eff_tags).lower()
+        head = " ".join([blog.get("title", ""), blog.get("description", "")] + eff_tags).lower()
         # Fold the post's full text into the search haystack: unique
         # words from the generated page, so the search box reaches the
         # article bodies, not just the ten listing lines.
-        page = BASE_DIR / blog.get("path", "")
-        if page.is_file():
-            body = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ",
-                          page.read_text(errors="ignore"), flags=re.S)
-            body = re.sub(r"<[^>]+>", " ", body)
-            words = sorted(set(re.findall(r"[a-z0-9][a-z0-9'-]{2,}", body.lower())))
-            search += " " + " ".join(words)
+        page = None
 
         # One plain bullet per post: "18 Mar 2020: Title #tag #tag",
         # title links to the post page, #tags drive the filter above.
@@ -1792,7 +1792,7 @@ def render_blogs(blogs_data, selected_only=False):
             for t in own_tags
         )
         parts.append(
-            f'<li class="blog-item" data-tags="{esc(data_tags)}" data-search="{esc(search)}">'
+            f'<li class="blog-item" data-tags="{esc(data_tags)}" data-head="{esc(head)}">'
             f'<span class="blog-date">{esc(format_date(blog.get("date", ""), short=True))}</span>'
             f': <a href="{esc(blog["path"])}" class="blog-link">{esc(blog["title"])}</a>'
             f' {inline_tags}</li>'
@@ -1989,3 +1989,16 @@ def generate_rss(bio, blogs_data):
         "  </channel>\n"
         "</rss>"
     )
+
+
+def render_timeline_views(data):
+    """Every filter's rail, pre-built, in the one page. `?filter=<key>`
+    picks which one is shown; the others sit hidden next to it."""
+    views = [f'<div class="timeline-view" data-filter="">{render_timeline(data)}</div>']
+    for key, _label in _TL_FILTER_ORDER:
+        html = render_timeline(data, only=key)
+        if "timeline-item" not in html:
+            continue                       # nothing under this filter
+        views.append(
+            f'<div class="timeline-view" data-filter="{key}" hidden>{html}</div>')
+    return "\n".join(views)
