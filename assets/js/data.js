@@ -294,10 +294,11 @@ function initLinkableBoxes() {
 function initTimelineFilter() {
   const chips = document.querySelectorAll(".timeline-filter");
   if (!chips.length) return;
-  // Cards and their rail markers both carry a timeline-<type> class, so a
-  // single selector toggles each event together with its dot+arm.
+  // Cards, their rail markers and the position bars all carry a
+  // timeline-<type> class, so one selector filters the whole rail.
   const items = document.querySelectorAll(
-    "#timeline-container .timeline-item, #timeline-container .rail-marker",
+    "#timeline-container .timeline-item, #timeline-container .rail-marker," +
+    " #timeline-container .tl-posbar",
   );
 
   function setType(type) {

@@ -806,12 +806,14 @@ _TIMELINE_TYPE_META = {
 
 # Order + labels for the timeline type-filter chips (only present types show).
 _TL_FILTER_ORDER = [
-    ("experience",  "Experience"),
-    ("research",    "Research"),
+    ("newsitem",    "News"),
     ("publication", "Publications"),
+    ("position",    "Positions"),
     ("degree",      "Education"),
     ("award",       "Awards"),
 ]
+# Employment and unpaid research both answer "where was he": one chip.
+_TL_POSITION_TYPES = ("experience", "research")
 
 def _timeline_exp_event(item, ev_type):
     """Build a timeline event from an education/experience/research record.
@@ -993,6 +995,11 @@ def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False
     anchor = f"tl-{slugify(e['title'])}"
     slim_cls = " timeline-slim" if slim else ""
 
+    # A paper that carries a news line answers the News filter too;
+    # jobs and research projects share the Positions chip.
+    news_cls = " timeline-newsitem" if e.get("has_news") else ""
+    if e["type"] in _TL_POSITION_TYPES:
+        news_cls += " timeline-position"
     date = esc(format_date(e["date"]))
     if e.get("end_date"):
         date += f' <span class="timeline-dash">-</span> {esc(format_date(e["end_date"]))}'
@@ -1011,7 +1018,7 @@ def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False
         ]
         lane_ratio = lane / max(1, lanes)
         rail_marker = (
-            f'<div class="rail-marker rail-marker-{side} timeline-{e["type"]}"{pos_attr} aria-hidden="true" '
+            f'<div class="rail-marker rail-marker-{side} timeline-{e["type"]} timeline-newsitem"{pos_attr} aria-hidden="true" '
             f'style="top: {top_px:.1f}px; --lane-ratio: {lane_ratio:.6f}; '
             f'--dot-color: {color};"><i class="rail-dot-hit"></i></div>'
         )
@@ -1078,7 +1085,7 @@ def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False
         style += f" min-height: {height_px:.1f}px;"
     plain_cls = "" if e["type"] == "publication" else " timeline-plain"
     card_html = (
-        f'<div id="{anchor}" class="timeline-item timeline-{e["type"]} timeline-{side}{slim_cls}{plain_cls}"{pos_attr} '
+        f'<div id="{anchor}" class="timeline-item timeline-{e["type"]} timeline-{side}{slim_cls}{plain_cls}{news_cls}"{pos_attr} '
         f'style="{style}">{"".join(body)}</div>'
     )
 
@@ -1101,15 +1108,17 @@ def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False
     # The arm of a period card has to start ON its bar, which sits to the
     # LEFT of the rail, so it visibly ties bar and card together.
     bar_var = f" --bar-off: {bar_off}px;" if span and bar_off else ""
-    # Meet the bar exactly where it ends: its tip carries the day, so it can
-    # sit a few px off the month line the card was anchored on.
-    drop = (bar_top - top_px) if (span and bar_top is not None) else 0
+    # Join the bar a touch below its tip (~0.25cm) rather than at the very
+    # end: the bar then reads as running past the join, a soft T instead of
+    # an L. The tip itself carries the day, so it can sit a few px off the
+    # month line the card was anchored on.
+    drop = (bar_top - top_px + 9) if (span and bar_top is not None) else 0
     if 0 < drop < 60:
         bar_var += f" --arm-y: {drop:.0f}px;"
     # The marker carries the same timeline-<type> class as its card so the
     # type filter (initTimelineFilter) hides a card together with its dot+arm.
     rail_marker = (
-        f'<div class="rail-marker rail-marker-{side}{span_cls} timeline-{e["type"]}"{pos_attr} aria-hidden="true" '
+        f'<div class="rail-marker rail-marker-{side}{span_cls} timeline-{e["type"]}{news_cls}"{pos_attr} aria-hidden="true" '
         f'style="top: {top_px:.1f}px; --lane-ratio: {lane_ratio:.6f};{bar_var} '
         f'--dot-color: {color};">{hit}</div>'
     )
@@ -1230,6 +1239,9 @@ def render_timeline(data):
                     meta_rows.append((role_label, f"{esc(role)}, {esc(span)}"))
         events.append({
             "date": paper.get("date"), "type": "publication",
+            # its news line lives on the card itself, so the News filter
+            # has to keep the card
+            "has_news": bool(paper.get("news")),
             "title": paper.get("title", ""),
             "authors": paper.get("authors", ""),
             "subtitle": paper.get("venue_short") or paper.get("venue", ""),
@@ -1497,6 +1509,10 @@ def render_timeline(data):
 
     # Type-filter chips. Only show chips for types actually present.
     present_types = {e["type"] for e in card_events}
+    if present_types & set(_TL_POSITION_TYPES):
+        present_types.add("position")
+    if any(e.get("news_text") or e.get("has_news") for e in card_events):
+        present_types.add("newsitem")
     chips = ['<button class="timeline-filter active" data-tl-type="">All</button>']
     for type_key, label in _TL_FILTER_ORDER:
         if type_key in present_types:
@@ -1622,7 +1638,7 @@ def render_timeline(data):
         top, hgt = min(y0, y1), abs(y1 - y0)
         bar_tops[sp["_pid"]] = top
         parts.append(
-            f'<div class="tl-posbar timeline-{ {"experience": "experience", "research": "research", "education": "degree"}[item["_section"]] }" '
+            f'<div class="tl-posbar timeline-{ {"experience": "experience", "research": "research", "education": "degree"}[item["_section"]] }{" timeline-position" if item["_section"] in _TL_POSITION_TYPES else ""}" '
             f'data-pos="{esc(sp["_pid"])}" title="{tip}" '
             f'style="top: {top:.1f}px; height: {max(hgt, 8):.1f}px; '
             f'left: calc(var(--rail-x) + {offset}px); --dot-color: {color};"></div>')
