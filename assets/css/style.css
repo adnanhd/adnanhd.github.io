@@ -1013,8 +1013,10 @@ a:hover {
     color: var(--accent-color);
 }
 
-/* Atomic news moments on the timeline: dated one-liners. */
-.timeline-newsitem {
+/* Atomic news moments on the timeline: dated one-liners. A publication
+   that carries a news line answers the News filter through the same class,
+   but stays a proper card, so it keeps its box. */
+.timeline-newsitem:not(.timeline-publication) {
     background: transparent;
     border: none;
     padding: 4px 8px;
