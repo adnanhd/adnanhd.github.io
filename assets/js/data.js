@@ -315,7 +315,7 @@ function initBlogFilter() {
       // resolve against the page, not against this script's own folder
       const url = new URL("pagefind/pagefind.js", document.baseURI).href;
       lib = await import(url);
-      await lib.options({ excerptLength: 60 });
+      await lib.options({ excerptLength: 40 });
     } catch (e) {
       lib = null;
     }

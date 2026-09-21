@@ -59,12 +59,18 @@
                 } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
                     document.documentElement.setAttribute("data-theme", "dark");
                 }
+                // Same idea for the tab: mark it before the first paint, or the
+                // page shows About for a moment and then swaps.
+                var tab = new URLSearchParams(location.search).get("tab");
+                if (["about", "cv", "blogs", "timeline"].indexOf(tab) !== -1) {
+                    document.documentElement.setAttribute("data-tab", tab);
+                }
             })();
         </script>
         <!-- Self-hosted fonts + subsetted icons (no third-party requests). -->
         <link rel="stylesheet" href="assets/css/vendor.css?v=4bbc1d8d" />
-        <link rel="stylesheet" href="assets/css/style.css?v=d336646f" />
-        <script defer src="assets/js/data.js?v=6a63f5c3"></script>
+        <link rel="stylesheet" href="assets/css/style.css?v=a7bd58c4" />
+        <script defer src="assets/js/data.js?v=0d911f1a"></script>
     </head>
     <body>
         <noscript>
