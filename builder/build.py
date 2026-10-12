@@ -114,6 +114,10 @@ def main():
     # The blog search box queries it at runtime, so the listing no longer
     # has to carry the full text of every post as an attribute.
     if shutil.which("pagefind"):
+        # pagefind names its files by content hash and never removes the
+        # old ones, so the folder is emptied first or every build leaves a
+        # stale index behind.
+        shutil.rmtree(BASE_DIR / "pagefind", ignore_errors=True)
         subprocess.run(
             ["pagefind", "--site", str(BASE_DIR), "--glob",
              "{blogs,projects}/**/*.html", "--output-path",
