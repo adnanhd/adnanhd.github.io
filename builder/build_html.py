@@ -631,7 +631,7 @@ def _render_resume_item(title, subtitle, date, description="", logo=None,
         parts.append(f'<div class="resume-advisor"><strong>{esc(advisor_label)}:</strong> {linkify_names_html(_md_to_html(advisor))}</div>')
 
     if description:
-        parts.append(f"<p>{esc(description)}</p>")
+        parts.append(f"<p>{_md_to_html(description)}</p>")
 
     if bullets:
         parts.append('<ul class="resume-bullets">')

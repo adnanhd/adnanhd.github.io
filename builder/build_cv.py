@@ -317,15 +317,24 @@ def render_research(data):
         if "](" not in company and r.get("logo_link"):
             company_tex = _href(r["logo_link"], company_tex)
         body = f"\\textbf{{{company_tex}}}"
-        body += f"\\\\ \\emph{{{tex_escape(r.get('position', ''))}}}"
-        if r.get("description"):
-            body += f"\\\\ {_tex_with_links(r['description'])}"
+        # The description's first sentence is the project in one line and
+        # takes the italic line under the name (the section title already
+        # says these are undergraduate projects); each later sentence is a
+        # thing done in it, one bullet each, worded to fill its line.
+        sentences = [s.rstrip(".") for s in re.split(r"(?<=[.!?])\s+(?=[A-Z])", r.get("description") or "") if s]
+        summary = _tex_with_links(sentences[0]) if sentences else tex_escape(r.get("position", ""))
+        body += f"\\\\ \\emph{{{summary}}}"
+        sep = "\\\\ "
+        if sentences[1:]:
+            items = "\n".join(f"  \\item {_tex_with_links(s)}" for s in sentences[1:])
+            body += f"\n\\begin{{cvsublist}}\n{items}\n\\end{{cvsublist}}\n"
+            sep = ""
         # Advisor on the left, location pushed to the right margin.
         loc = f"\\hfill\\emph{{{tex_escape(r['location'])}}}" if r.get("location") else ""
         if r.get("advisor"):
-            body += f"\\\\ Advisor: {tex_linkify_names(_tex_with_links(r['advisor']))}{loc}"
+            body += f"{sep}Advisor: {tex_linkify_names(_tex_with_links(r['advisor']))}{loc}"
         elif loc:
-            body += f"\\\\ {loc}"
+            body += f"{sep}{loc}"
         parts.append(_entry(r, _month_range(r.get('start_date'), r.get('end_date')), body))
     return "\n".join(parts)
 
