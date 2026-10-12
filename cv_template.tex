@@ -54,7 +54,9 @@
 \setlength{\bodyw}{\dimexpr\textwidth-\datew-0.4cm-0.4pt\relax}
 
 % \cventry[logo]{date}{body}: date (and optional logo beneath it) in the
-% left column, a thin vertical rule, then the body in the right column
+% left column, a thin vertical rule, then the body in the right column.
+% The gap below is a bare \vskip, which a following heading's own space
+% absorbs; \vspace would hide it and the two would stack.
 \newsavebox{\cvbox}
 \newcommand{\cventry}[3][]{%
   \sbox{\cvbox}{\begin{minipage}[t]{\bodyw}\raggedright #3\end{minipage}}%
@@ -63,7 +65,7 @@
     \ifx\relax#1\relax\else\\[5pt]\includegraphics[height=0.72cm,width=2.1cm,keepaspectratio]{#1}\fi
   \end{minipage}\hspace{0.15cm}%
   {\color{rulegray}\vrule width 0.4pt height \ht\cvbox depth \dp\cvbox}\hspace{0.25cm}%
-  \usebox{\cvbox}\par\vspace{9pt}}
+  \usebox{\cvbox}\par\vskip 9pt\relax}
 
 % \cvfield{label}{value}: right-aligned label for the personal-info block
 \newcommand{\cvfield}[2]{%
@@ -95,7 +97,15 @@
 \section*{Education}
 {{EDUCATION}}
 
-\section*{Research Interests}
+% Three lines long, so it needs less room kept free than a full section.
+\Needspace*{5\baselineskip}\oldsection*{Selected Graduate Coursework}
+{{COURSEWORK}}
+
+% A paragraph and a keyword line, so it fits where a full section would not.
+\Needspace*{10\baselineskip}\oldsection*{Research Interests}
+% Set the paragraph a line shorter when the spacing allows, so no lone
+% word is left on its last line.
+\looseness=-1
 {{INTERESTS}}
 
 \section*{Publications}

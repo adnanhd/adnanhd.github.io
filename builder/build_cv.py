@@ -147,6 +147,14 @@ def render_interests(data):
     return text
 
 
+def render_coursework(data):
+    """One bold-labelled line per course group, the course codes linked."""
+    groups = data["bio"].get("selected_coursework") or {}
+    return " \\\\\n".join(
+        f"\\textbf{{{tex_escape(group)}:}} {', '.join(_tex_with_links(c) for c in courses)}"
+        for group, courses in groups.items() if courses)
+
+
 def _all_awards(data):
     """Awards attached to degrees, positions and research projects, plus
     standalone honors. Publication awards are excluded: they render as
@@ -345,13 +353,15 @@ def render_teaching(data):
 
 def render_skills(data):
     skills = (data.get("extracurricular") or {}).get("skills") or {}
-    # Research-area categories (those echoed in the research keywords)
-    # already live in the Research Interests section; the CV's Computer
-    # Skills keeps only the genuinely technical ones.
+    # Research-area categories (those echoed in the research keywords, or
+    # carrying a coursework group on the resume) already live in the
+    # Research Interests section; the CV's Computer Skills keeps only the
+    # genuinely technical ones.
     keywords = {k.lower() for k in data["bio"].get("research_keywords") or []}
+    keywords |= {c.lower() for c in (data["bio"].get("resume_coursework_categories") or {}).values()}
     if isinstance(skills, dict):
         return "\n".join(
-            f"\\cvfield{{{tex_escape(cat)}}}{{{tex_escape(', '.join(items))}}}"
+            f"\\cvfield{{{tex_escape(cat)}}}{{{', '.join(_tex_with_links(i) for i in items)}}}"
             for cat, items in skills.items()
             if items and cat.lower() not in keywords
         )
@@ -417,6 +427,7 @@ def build_cv_pdf(data):
         "{{EMPLOYMENT}}": render_employment(data),
         "{{EDUCATION}}": render_education(data),
         "{{INTERESTS}}": render_interests(data),
+        "{{COURSEWORK}}": render_coursework(data),
         "{{AWARDS}}": render_awards(data),
         "{{PUBLICATIONS}}": render_publications(data),
         "{{RESEARCH}}": render_research(data),

@@ -59,6 +59,8 @@ def tex_linkify_names(text):
 # Items not listed (incl. research interests) render as plain text.
 _SKILL_ICONS = {
     "python/pytorch": "pytorch",
+    "python": "python",
+    "pytorch": "pytorch",
     "c/c++": "cplusplus",
     "c++": "cplusplus",
     "ros2": "ros",
@@ -366,12 +368,25 @@ def render_skills(data):
     def _joined(items):
         return ", ".join(_fmt(s) for s in items)
 
+    # A research-area category carries the linked codes of the coursework
+    # group mapped to it (bio.yaml resume_coursework_categories), so the
+    # courses sit beside the area they ground instead of on lines of their own.
+    bio = data.get("bio") or {}
+    groups = bio.get("selected_coursework") or {}
+    codes = {}
+    for group, category in (bio.get("resume_coursework_categories") or {}).items():
+        links = [m.group(0) for course in groups.get(group) or [] for m in _MD_LINK.finditer(course)]
+        if links:
+            codes[category] = f" ({_tex_with_links(', '.join(links))})"
+
     if isinstance(skills, dict):
+        # The resume shows the research areas only; the technical categories
+        # (languages, libraries, DevOps) stay in the CV's Computer Skills.
         lines = []
         for category, items in skills.items():
-            if not items:
+            if not items or category not in codes:
                 continue
-            lines.append(f"\\textbf{{{tex_escape(category)}}}{{: {_joined(items)}}}")
+            lines.append(f"\\textbf{{{tex_escape(category)}{codes.get(category, '')}}}{{: {_joined(items)}}}")
         return " \\\\\n     ".join(lines)
     return f"\\textbf{{Skills}}{{: {_joined(skills)}}}"
 

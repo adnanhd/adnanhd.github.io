@@ -202,6 +202,28 @@ def render_bio(bio):
     return "\n".join(f"<p>{p.strip()}</p>" for p in paragraphs if p.strip())
 
 
+def render_coursework(bio):
+    """One line per course group of bio.yaml selected_coursework, the
+    course codes linked to the catalog, as in the CV PDF. The lines take
+    the CV page's own detail-line style (resume-coursework, like the thesis
+    and advisor lines): small secondary text, a bold label, plain links."""
+    def _course(text):
+        out, last = [], 0
+        for m in _MD_LINK_RE.finditer(text):
+            out.append(esc(text[last:m.start()]))
+            out.append(f'<a href="{esc(m.group(2))}" target="_blank" '
+                       f'rel="noopener noreferrer">{esc(m.group(1))}</a>')
+            last = m.end()
+        out.append(esc(text[last:]))
+        return "".join(out)
+
+    groups = bio.get("selected_coursework") or {}
+    return "\n".join(
+        f'<div class="resume-coursework"><strong>{esc(group)}:</strong> '
+        f'{", ".join(_course(c) for c in courses)}</div>'
+        for group, courses in groups.items() if courses)
+
+
 # Metric badges shown beneath the relevant sidebar link. Values are baked
 # from bio.yaml `metrics:` so the badges always show real numbers; GitHub's
 # stars/PRs are then refreshed live on top by initStats() in data.js.

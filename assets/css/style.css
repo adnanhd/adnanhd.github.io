@@ -648,6 +648,23 @@ a:hover {
     text-decoration: underline;
 }
 
+/* Selected Graduate Coursework lines on the CV page: the same detail-line
+   style as the thesis and advisor lines. */
+.resume-coursework {
+    color: var(--text-secondary);
+    font-size: 0.85em;
+    margin-bottom: 2px;
+}
+
+.resume-coursework a {
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+.resume-coursework a:hover {
+    text-decoration: underline;
+}
+
 .resume-commitment {
     color: var(--text-muted);
     font-size: 0.8em;
@@ -1342,6 +1359,12 @@ a:hover {
     display: flex;
     flex-direction: column;
     gap: 30px;
+}
+
+/* The CV page reuses the grid for one-line APA references, which the
+   card gap above spreads far apart. */
+#resume-papers.publications-grid {
+    gap: 8px;
 }
 
 /* Compact Publication Cards - For Resume page (APA reference style) */
