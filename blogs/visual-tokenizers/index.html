@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="The encoder-quantizer-decoder pipeline for discretizing images and video, and how the quantizer moved from a learned codebook to a parameter-free sign to a sign on the unit sphere." />
+        <title>Visual Tokenizers: From Vector Quantization to Binary Spherical Codes - Adnan Harun Dogan</title>
+        <link rel="canonical" href="https://adnanhd.github.io/blogs/visual-tokenizers/" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="Visual Tokenizers: From Vector Quantization to Binary Spherical Codes" />
+        <meta property="og:description" content="The encoder-quantizer-decoder pipeline for discretizing images and video, and how the quantizer moved from a learned codebook to a parameter-free sign to a sign on the unit sphere." />
+        <meta property="og:url" content="https://adnanhd.github.io/blogs/visual-tokenizers/" />
+        <meta property="og:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Visual Tokenizers: From Vector Quantization to Binary Spherical Codes" />
+        <meta name="twitter:description" content="The encoder-quantizer-decoder pipeline for discretizing images and video, and how the quantizer moved from a learned codebook to a parameter-free sign to a sign on the unit sphere." />
+        <meta name="twitter:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Visual Tokenizers: From Vector Quantization to Binary Spherical Codes",
+  "description": "The encoder-quantizer-decoder pipeline for discretizing images and video, and how the quantizer moved from a learned codebook to a parameter-free sign to a sign on the unit sphere.",
+  "url": "https://adnanhd.github.io/blogs/visual-tokenizers/",
+  "image": "https://adnanhd.github.io/assets/img/profile.jpeg",
+  "author": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan",
+    "url": "https://adnanhd.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan"
+  },
+  "mainEntityOfPage": "https://adnanhd.github.io/blogs/visual-tokenizers/",
+  "datePublished": "2026-10-06T14:30"
+}
+        </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../blogs/index.html" class="blog-back">&larr; Back to blogs</a>
+            <h1>Visual Tokenizers: From Vector Quantization to Binary Spherical Codes</h1>
+            <div class="blog-meta">VQ-VAE, lookup-free quantization, and binary spherical quantization</div>
+            <article class="blog-body">
+<p><u>The quantizer at the bottleneck of a visual tokenizer has gone
+through three designs in under a decade, each removing a degree of
+freedom from the last and asking a different mechanism to keep the
+resulting codebook from collapsing onto a handful of codes.</u> VQ-VAE
+<span class="citation" data-cites="oord_neural_2018">(Oord et al.
+2017)</span> opened the line: a nearest-neighbour lookup into a learned
+table of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
+vectors, trained with a reconstruction loss whose gradient is carried
+past the non-differentiable
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">arg</mi><mo>&#8289;</mo></mrow><mi mathvariant="normal">min</mi></mrow><annotation encoding="application/x-tex">\arg\min</annotation></semantics></math>
+by the straight-through estimator (STE) <span
+class="citation" data-cites="bengio_estimating_2013">(Bengio et al.
+2013)</span>, a vector-quantization loss that moves the table toward the
+encoder's outputs, and a commitment loss that holds the encoder's
+outputs near the table (full treatment, including the ELBO reading and
+the EMA codebook update, in Vector Quantization
+and Discrete Representations and VQ-VAE:
+Discrete Latent Codes). VQGAN <span class="citation"
+data-cites="esser_taming_2021">(Esser et al. 2021)</span> kept the
+lookup and added a perceptual and an adversarial loss on top of the
+pixel loss, the recipe every later tokenizer in this chapter reuses.
+DALL-E's discrete variational autoencoder (dVAE) <span class="citation"
+data-cites="ramesh_zero-shot_2021">(Ramesh et al. 2021)</span>, a branch
+outside that recipe that keeps no perceptual or adversarial loss and
+maximizes the relaxed evidence lower bound alone, with a logit-Laplace
+reconstruction likelihood (Section 2.1, Appendices A.2 and A.3),
+replaces VQ-VAE's straight-through route with a Gumbel-softmax
+relaxation <span class="citation"
+data-cites="jang_gumbel-softmax_2017">(Jang et al. 2017)</span> of the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>-way
+assignment, relies on the Kullback-Leibler term of its evidence lower
+bound against a uniform prior over the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>8192</mn></mrow><annotation encoding="application/x-tex">K = 8192</annotation></semantics></math>
+codes, raised to a weight of 6.6, to keep the codebook in use (Section
+2.1), and takes its tokens as the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">arg</mi><mo>&#8289;</mo></mrow><mi mathvariant="normal">max</mi></mrow><annotation encoding="application/x-tex">\arg\max</annotation></semantics></math>
+of the encoder logits with no Gumbel noise added (Section 2.2); the two
+routes are compared in VQ-VAE's
+Hard Assignment vs. dVAE's Gumbel-Softmax Relaxation. The practical
+trouble with a learned codebook is scale: reconstruction keeps improving
+as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
+grows, but generation quality on top of it degrades, and a large
+codebook spends a correspondingly large number of embedding parameters
+that mostly sit unused, the dead-code collapse that VQGAN-LC's smart
+initialization and use-aware resets (discussed in Vector Quantization and Discrete
+Representations) are built to fight.</p>
+<p>MAGVIT-v2's lookup-free quantization (LFQ) <span class="citation"
+data-cites="yu_language_2024">(Yu et al. 2024)</span> answers by
+removing the lookup rather than scaling it: the codebook's embedding
+dimension is reduced to zero, so quantization becomes a per-dimension
+sign against an implicit codebook of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><mi>−</mi><mn>1</mn><mo>,</mo><mn>1</mn><msup><mo stretchy="false" form="postfix">}</mo><mi>L</mi></msup></mrow><annotation encoding="application/x-tex">\{-1,1\}^L</annotation></semantics></math>
+that stores no parameters and costs no distance computation, and an
+explicit entropy penalty, adapted
+from an entropy-based clustering objective and from a
+codebook-utilization loss in MaskGIT <span
+class="citation" data-cites="chang_maskgit_2022">(Chang et al.
+2022)</span>, substitutes for the vector-quantization and commitment
+losses a learned codebook needs. The trade is that nothing bounds how
+far a quantized code can sit from the latent that produced it, since the
+latent itself is never normalized.</p>
+<p>Binary spherical quantization (BSQ) <span class="citation"
+data-cites="zhao_image_2025">(Zhao et al. 2025)</span> keeps LFQ's
+per-dimension sign but first projects the latent onto the unit
+hypersphere, so the implicit codebook becomes the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>2</mn><mi>L</mi></msup><annotation encoding="application/x-tex">2^L</annotation></semantics></math>
+corners of a hypercube inscribed in that sphere rather than an
+unconstrained hypercube. The projection bounds the distance between a
+latent and its code by a constant depending only on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>,
+which the paper argues removes the need for a commitment loss, and it
+reuses LFQ's entropy penalty unchanged, evaluated on the normalized
+latent. Both LFQ and BSQ report reconstruction quality primarily as reconstruction FID (rFID)
+rather than the generation FID used to score a downstream generative
+prior, because the tokenizer and the prior are trained in two separate
+stages and a reconstruction-only metric isolates the tokenizer's own
+contribution.</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-bengio_estimating_2013" class="csl-entry" role="listitem">
+Bengio, Yoshua, Nicholas Léonard, and Aaron Courville. 2013.
+<span>"Estimating or Propagating Gradients Through Stochastic Neurons
+for Conditional Computation."</span> <em>arXiv</em>. <a
+href="https://arxiv.org/abs/1308.3432">https://arxiv.org/abs/1308.3432</a>.
+</div>
+<div id="ref-chang_maskgit_2022" class="csl-entry" role="listitem">
+Chang, Huiwen, Han Zhang, Lu Jiang, Ce Liu, and William T. Freeman.
+2022. <span>"<span>MaskGIT</span>: <span>Masked</span>
+<span>Generative</span> <span>Image</span>
+<span>Transformer</span>."</span> <em>IEEE/CVF Conference on Computer
+Vision and Pattern Recognition (CVPR)</em>, February. <a
+href="https://doi.org/10.48550/arXiv.2202.04200">https://doi.org/10.48550/arXiv.2202.04200</a>.
+</div>
+<div id="ref-esser_taming_2021" class="csl-entry" role="listitem">
+Esser, Patrick, Robin Rombach, and Björn Ommer. 2021. <span>"Taming
+Transformers for High-Resolution Image Synthesis."</span>
+<em>Proceedings of the IEEE/CVF Conference on Computer Vision and
+Pattern Recognition</em>, 12873-83.
+</div>
+<div id="ref-jang_gumbel-softmax_2017" class="csl-entry"
+role="listitem">
+Jang, Eric, Shixiang Gu, and Ben Poole. 2017. <em>Categorical
+<span>Reparameterization</span> with
+<span>Gumbel</span>-<span>Softmax</span></em>. <a
+href="https://doi.org/10.48550/arXiv.1611.01144">https://doi.org/10.48550/arXiv.1611.01144</a>.
+</div>
+<div id="ref-oord_neural_2018" class="csl-entry" role="listitem">
+Oord, Aaron van den, Oriol Vinyals, and Koray Kavukcuoglu. 2017.
+<span>"Neural <span>Discrete</span> <span>Representation</span>
+<span>Learning</span>."</span> <em>Advances in Neural Information
+Processing Systems</em>, May. <a
+href="https://doi.org/10.48550/arXiv.1711.00937">https://doi.org/10.48550/arXiv.1711.00937</a>.
+</div>
+<div id="ref-ramesh_zero-shot_2021" class="csl-entry" role="listitem">
+Ramesh, Aditya, Mikhail Pavlov, Gabriel Goh, et al. 2021.
+<span>"Zero-<span>Shot</span> <span>Text</span>-to-<span>Image</span>
+<span>Generation</span>."</span> <em>International Conference on Machine
+Learning (ICML)</em>, February. <a
+href="https://doi.org/10.48550/arXiv.2102.12092">https://doi.org/10.48550/arXiv.2102.12092</a>.
+</div>
+<div id="ref-yu_language_2024" class="csl-entry" role="listitem">
+Yu, Lijun, José Lezama, Nitesh B. Gundavarapu, et al. 2024.
+<span>"Language Model Beats Diffusion - Tokenizer Is Key to Visual
+Generation."</span> <em>International Conference on Learning
+Representations (ICLR)</em>. <a
+href="https://arxiv.org/abs/2310.05737">https://arxiv.org/abs/2310.05737</a>.
+</div>
+<div id="ref-zhao_image_2025" class="csl-entry" role="listitem">
+Zhao, Yue, Yuanjun Xiong, and Philipp Krähenbühl. 2025. <span>"Image and
+Video Tokenization with Binary Spherical Quantization."</span>
+<em>International Conference on Learning Representations (ICLR)</em>. <a
+href="https://arxiv.org/abs/2406.07548">https://arxiv.org/abs/2406.07548</a>.
+</div>
+</div>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

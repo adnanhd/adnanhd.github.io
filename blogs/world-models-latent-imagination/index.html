@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="The recurrent state-space model, planning in latent space with PlaNet, learning behaviours by latent imagination with Dreamer, and discrete world models with DreamerV2." />
+        <title>World Models and Latent Imagination: PlaNet, Dreamer, and DreamerV2 - Adnan Harun Dogan</title>
+        <link rel="canonical" href="https://adnanhd.github.io/blogs/world-models-latent-imagination/" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Adnan Harun Dogan" />
+        <meta property="og:title" content="World Models and Latent Imagination: PlaNet, Dreamer, and DreamerV2" />
+        <meta property="og:description" content="The recurrent state-space model, planning in latent space with PlaNet, learning behaviours by latent imagination with Dreamer, and discrete world models with DreamerV2." />
+        <meta property="og:url" content="https://adnanhd.github.io/blogs/world-models-latent-imagination/" />
+        <meta property="og:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="World Models and Latent Imagination: PlaNet, Dreamer, and DreamerV2" />
+        <meta name="twitter:description" content="The recurrent state-space model, planning in latent space with PlaNet, learning behaviours by latent imagination with Dreamer, and discrete world models with DreamerV2." />
+        <meta name="twitter:image" content="https://adnanhd.github.io/assets/img/profile.jpeg" />
+        <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "World Models and Latent Imagination: PlaNet, Dreamer, and DreamerV2",
+  "description": "The recurrent state-space model, planning in latent space with PlaNet, learning behaviours by latent imagination with Dreamer, and discrete world models with DreamerV2.",
+  "url": "https://adnanhd.github.io/blogs/world-models-latent-imagination/",
+  "image": "https://adnanhd.github.io/assets/img/profile.jpeg",
+  "author": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan",
+    "url": "https://adnanhd.github.io/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Adnan Harun Dogan"
+  },
+  "mainEntityOfPage": "https://adnanhd.github.io/blogs/world-models-latent-imagination/",
+  "datePublished": "2026-09-23T21:35"
+}
+        </script>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+    </head>
+    <body>
+        <div class="blog-page">
+            <a href="../../blogs/index.html" class="blog-back">&larr; Back to blogs</a>
+            <h1>World Models and Latent Imagination: PlaNet, Dreamer, and DreamerV2</h1>
+            <div class="blog-meta">Recurrent state-space models, latent planning, imagined actor-critic</div>
+            <article class="blog-body">
+<p><u>A world-model agent replaces the environment with a learned
+simulator, and the sharpest way to compare the designs on offer is to
+ask what each one purchases and what it costs, not which paper came
+first.</u> Three papers from the same research group, using the same
+latent-dynamics substrate, disagree about two things: how an action gets
+chosen once a model exists, and what objective should shape the latent
+that the model reasons in. Because the group held one variable fixed
+while changing the other, the sequence reads less like a lineage and
+more like an ablation study conducted across four years and three
+publications.</p>
+<p>The shared substrate is the <strong>Recurrent State-Space
+Model</strong> (RSSM), introduced with PlaNet
+<span class="citation" data-cites="hafner_learning_2019">(Hafner et al.
+2019)</span>. Its claim is that a single latent variable cannot do two
+jobs at once: remember reliably across many steps, and represent more
+than one plausible future at the next step. The RSSM splits the state
+into a deterministic path
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>h</mi><mi>t</mi></msub><annotation encoding="application/x-tex">h_t</annotation></semantics></math>
+that carries information forward without injecting noise, and a
+stochastic path
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>s</mi><mi>t</mi></msub><annotation encoding="application/x-tex">s_t</annotation></semantics></math>
+that samples a new hypothesis about the present observation at every
+step. <span class="citation" data-cites="hafner_learning_2019">(Hafner
+et al. 2019)</span> ablates both halves separately and reports that
+removing either breaks planning: a purely deterministic recurrent
+network commits to one trajectory and has nothing left to search over,
+while a purely stochastic state-space model resamples away the very
+information a plan needs to hold onto. That split is inherited unchanged
+by Dreamer <span class="citation"
+data-cites="hafner_dream_2020">(Hafner et al. 2020)</span> and by DreamerV2 <span class="citation"
+data-cites="hafner_mastering_2022">(Hafner et al. 2022)</span>, and it
+is the one component none of the three papers touches.</p>
+<p>What does change, and changes exactly once between the first two
+papers, is how the model gets turned into a decision. PlaNet has no
+policy network at all: at every environment step it samples a thousand
+candidate action sequences, rolls each one forward through the RSSM for
+twelve steps, keeps the hundred that scored best, refits the sampling
+distribution, and repeats the whole search ten times before executing
+only the first action of the refitted mean (Algorithm 2). Dreamer
+deletes that search entirely and replaces it with an actor and a critic,
+both trained on trajectories that are imagined rather than executed,
+using a value gradient that is computed by backpropagating through the
+model rather than estimated from environment returns. The two papers
+report scores of 332 and 823 respectively on the same twenty-task
+DeepMind Control benchmark at the same five-million-step budget <span
+class="citation"
+data-cites="hafner_learning_2019 hafner_dream_2020">(Hafner et al. 2019,
+2020)</span>. Since the world model contributing those states is
+unchanged, the entire gap between 332 and 823 is attributable to the
+substitution of a critic that reasons past a fixed horizon for a planner
+that reasons only up to one.</p>
+<p>The second axis, orthogonal to the first, is what objective trains
+the latent. All three papers train it by pixel reconstruction: the RSSM
+is fit to predict the observation, not only the reward. DreamerV2 reports the sharpest documented
+instance of what this costs. On Atari's Video Pinball the object that
+determines the score, the ball, occupies roughly one pixel of the frame,
+and a reconstruction loss allocates its gradient by area rather than by
+relevance, so the model is barely pressed to represent the one thing
+that matters. A separate lineage rejects the reconstruction objective
+outright: MuZero <span class="citation"
+data-cites="schrittwieser_mastering_2020">(Schrittwieser et al.
+2020)</span> trains its latent against predicted reward, value and
+policy targets only, and never reconstructs a pixel. Chapter 4 works through that
+design in detail; the point to carry from here is that MuZero's
+reward-only supervision is not obviously cheaper, since it is
+bootstrapped from a tree search whose visit-count distribution is a far
+richer training signal than a scalar reward, and MuZero is trained on
+orders of magnitude more environment frames than any Dreamer variant.
+Dreamer's own representation ablation is consistent with this trade:
+reward prediction alone, with no reconstruction and no contrastive term,
+was not sufficient to learn a usable representation in its experiments
+<span class="citation" data-cites="hafner_dream_2020">(Hafner et al.
+2020)</span>.</p>
+<div class="blog-table"><table id="tbl:latent-imagination-lineage">
+<caption>The latent-imagination line, sorted by year. The headline
+column quotes each paper's own reported figure on its own benchmark and
+the benchmarks differ down the column, so the numbers rank nothing
+across rows: PlaNet and Dreamer report DeepMind Control Suite returns at
+5e6 steps, DreamerV2 reports a gamer-normalized Atari median at 200M
+frames, and World Models reports a single CarRacing score. Read the
+column as what each paper claimed to have shown. <em>Action
+selection</em> and <em>latent objective</em> are the two axes this
+Related Work is organised around: the first changes between PlaNet and
+Dreamer while the world model stays fixed, the second changes between
+Dreamer and DreamerV2 while the actor-critic stays fixed.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>Year</th>
+<th>World model</th>
+<th>Action selection</th>
+<th>Latent</th>
+<th>Headline result as reported</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>World Models <span class="citation"
+data-cites="ha_world_2018">(Ha and Schmidhuber 2018)</span></td>
+<td>2018</td>
+<td>VAE plus MDN-RNN, trained on random rollouts</td>
+<td>CMA-ES over a tiny linear controller</td>
+<td>Gaussian, 32-dim</td>
+<td>CarRacing-v0 at 906 plus or minus 21, above the prior 591 to 838
+range</td>
+</tr>
+<tr>
+<td>PlaNet <span class="citation"
+data-cites="hafner_learning_2019">(Hafner et al. 2019)</span></td>
+<td>2019</td>
+<td>RSSM, deterministic plus stochastic path</td>
+<td>CEM replanning at every step, no policy network</td>
+<td>Gaussian, 30-dim diagonal</td>
+<td>six DMC tasks at model-free level using 40 to 500 times fewer
+episodes than D4PG</td>
+</tr>
+<tr>
+<td>Dreamer <span class="citation"
+data-cites="hafner_dream_2020">(Hafner et al. 2020)</span></td>
+<td>2020</td>
+<td>RSSM, unchanged from PlaNet</td>
+<td>learned actor, analytic value gradients through imagination</td>
+<td>Gaussian, as PlaNet</td>
+<td>823 average over 20 DMC tasks at 5e6 steps, against D4PG's 786 at
+1e8</td>
+</tr>
+<tr>
+<td>DreamerV2 <span class="citation"
+data-cites="hafner_mastering_2022">(Hafner et al. 2022)</span></td>
+<td>2021</td>
+<td>RSSM with categorical posterior</td>
+<td>learned actor, Reinforce on Atari and dynamics backprop on
+continuous control</td>
+<td>32 categoricals of 32 classes</td>
+<td>Atari gamer-normalized median 2.15 at 200M frames, against Rainbow's
+1.47</td>
+</tr>
+<tr>
+<td>DreamerV3 <span class="citation"
+data-cites="hafner_mastering_2023">(Hafner et al. 2023)</span></td>
+<td>2023</td>
+<td>RSSM plus symlog transforms</td>
+<td>learned actor, as DreamerV2</td>
+<td>categorical, as DreamerV2</td>
+<td>one fixed hyperparameter set across more than 150 tasks in the
+paper's domains</td>
+</tr>
+</tbody>
+</table></div>
+<p><u>The honest summary of the two toggles is that they do not have
+equal weight.</u> The action-selection toggle, PlaNet to Dreamer, buys a
+factor of roughly 2.5 in score and a factor of roughly 3.7 in wall
+clock, eleven hours down to three per million steps, for zero change to
+the world model. The latent-objective toggle, Dreamer to DreamerV2, buys
+human-level Atari, but the paper's own ablation attributes more of that
+gain to a regularisation change, KL balancing, than to the categorical
+latent that gives the paper its title: 0.25 down to 0.19 without the
+categoricals, 0.25 down to 0.16 without the balancing <span
+class="citation" data-cites="hafner_mastering_2022">(Hafner et al.
+2022)</span>. Neither number should be read as validating world models
+against model-free alternatives in general; a footnote below takes up
+the separate question of how fragile a single aggregate benchmark
+statistic is to the choice of normalisation and to outlier tasks <span
+class="citation" data-cites="agarwal_precipice_2021">(Agarwal et al.
+2021)</span>.[fn:s0-agarwal-caveat]</p>
+<h2 class="blog-refs-title">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-agarwal_precipice_2021" class="csl-entry" role="listitem">
+Agarwal, Rishabh, Max Schwarzer, Pablo Samuel Castro, Aaron Courville,
+and Marc G. Bellemare. 2021. <span>"Deep Reinforcement Learning at the
+Edge of the Statistical Precipice."</span> <em>Advances in Neural
+Information Processing Systems (NeurIPS)</em>. <a
+href="https://arxiv.org/abs/2108.13264">https://arxiv.org/abs/2108.13264</a>.
+</div>
+<div id="ref-ha_world_2018" class="csl-entry" role="listitem">
+Ha, David, and Jürgen Schmidhuber. 2018. <span>"Recurrent World Models
+Facilitate Policy Evolution."</span> <em>Advances in Neural Information
+Processing Systems (NeurIPS)</em>. <a
+href="https://arxiv.org/abs/1809.01999">https://arxiv.org/abs/1809.01999</a>.
+</div>
+<div id="ref-hafner_dream_2020" class="csl-entry" role="listitem">
+Hafner, Danijar, Timothy Lillicrap, Jimmy Ba, and Mohammad Norouzi.
+2020. <span>"Dream to Control: Learning Behaviors by Latent
+Imagination."</span> <em>International Conference on Learning
+Representations (ICLR)</em>. <a
+href="https://arxiv.org/abs/1912.01603">https://arxiv.org/abs/1912.01603</a>.
+</div>
+<div id="ref-hafner_learning_2019" class="csl-entry" role="listitem">
+Hafner, Danijar, Timothy Lillicrap, Ian Fischer, et al. 2019.
+<span>"Learning Latent Dynamics for Planning from Pixels."</span>
+<em>Proceedings of the 36th International Conference on Machine Learning
+(ICML)</em>, Proceedings of machine learning research, vol. 97. <a
+href="https://arxiv.org/abs/1811.04551">https://arxiv.org/abs/1811.04551</a>.
+</div>
+<div id="ref-hafner_mastering_2022" class="csl-entry" role="listitem">
+Hafner, Danijar, Timothy Lillicrap, Mohammad Norouzi, and Jimmy Ba.
+2022. <em>Mastering <span>Atari</span> with <span>Discrete</span>
+<span>World</span> <span>Models</span></em>. arXiv. <a
+href="http://arxiv.org/abs/2010.02193">http://arxiv.org/abs/2010.02193</a>.
+</div>
+<div id="ref-hafner_mastering_2023" class="csl-entry" role="listitem">
+Hafner, Danijar, Jurgis Pasukonis, Jimmy Ba, and Timothy Lillicrap.
+2023. <em>Mastering <span>Diverse</span> <span>Domains</span> Through
+<span>World</span> <span>Models</span></em>. arXiv. <a
+href="http://arxiv.org/abs/2301.04104">http://arxiv.org/abs/2301.04104</a>.
+</div>
+<div id="ref-schrittwieser_mastering_2020" class="csl-entry"
+role="listitem">
+Schrittwieser, Julian, Ioannis Antonoglou, Thomas Hubert, et al. 2020.
+<span>"Mastering <span>Atari</span>, <span>Go</span>, <span>Chess</span>
+and <span>Shogi</span> by <span>Planning</span> with a
+<span>Learned</span> <span>Model</span>."</span> <em>Nature</em> 588
+(7839): 604-9. <a
+href="https://doi.org/10.1038/s41586-020-03051-4">https://doi.org/10.1038/s41586-020-03051-4</a>.
+</div>
+</div>
+
+            </article>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+    </body>
+</html>

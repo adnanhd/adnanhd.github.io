@@ -357,6 +357,16 @@ BLOGS = [
         sources=[ORG_ROOT / "reinforcement-learning" / "04-offline-model-based.org"],
         bib=ORG_ROOT / "reinforcement-learning" / "reinforcement-learning.bib",
     ),
+    BlogSpec(
+        slug="world-models-latent-imagination",
+        title="World Models and Latent Imagination: PlaNet, Dreamer, and DreamerV2",
+        meta="Recurrent state-space models, latent planning, imagined actor-critic",
+        description="The recurrent state-space model, planning in latent space with "
+                    "PlaNet, learning behaviours by latent imagination with Dreamer, "
+                    "and discrete world models with DreamerV2.",
+        sources=[ORG_ROOT / "reinforcement-learning" / "05-world-models-latent-imagination.org"],
+        bib=ORG_ROOT / "reinforcement-learning" / "reinforcement-learning.bib",
+    ),
     _spec1("cnn-object-detection", "computer-vision", "CNN-Object-Detection.org",
            "CNN Object Detection: From LeNet and AlexNet to Modern Detector Backbones",
            "Convolutional backbones and CNN-based object detection",
@@ -393,6 +403,10 @@ BLOGS = [
            "Vision-Language Models: CLIP, ALIGN, and SigLIP",
            "Contrastive image-text pretraining and zero-shot transfer",
            "Contrastive language-image pretraining, zero-shot transfer, scaling with noisy pairs, and sigmoid-loss variants."),
+    _spec1("visual-tokenizers", "generative-models", "Visual-Tokenizers.org",
+           "Visual Tokenizers: From Vector Quantization to Binary Spherical Codes",
+           "VQ-VAE, lookup-free quantization, and binary spherical quantization",
+           "The encoder-quantizer-decoder pipeline for discretizing images and video, and how the quantizer moved from a learned codebook to a parameter-free sign to a sign on the unit sphere."),
     _spec1("optimal-transport", "optimization", "Optimal-Transport.org",
            "Optimal Transport: From Exact Linear Programs to Sinkhorn and Neural Potentials",
            "Four generations of OT solvers",

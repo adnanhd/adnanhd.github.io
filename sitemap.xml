@@ -46,6 +46,11 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://adnanhd.github.io/blogs/world-models-latent-imagination/index.html</loc>
+    <lastmod>2026-10-12</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://adnanhd.github.io/projects/paper-reproductions/index.html</loc>
     <lastmod>2026-10-12</lastmod>
     <priority>0.6</priority>
@@ -82,6 +87,11 @@
   </url>
   <url>
     <loc>https://adnanhd.github.io/blogs/vision-language-models/index.html</loc>
+    <lastmod>2026-10-12</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://adnanhd.github.io/blogs/visual-tokenizers/index.html</loc>
     <lastmod>2026-10-12</lastmod>
     <priority>0.6</priority>
   </url>
