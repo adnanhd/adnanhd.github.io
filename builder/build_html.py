@@ -645,14 +645,15 @@ def _render_resume_item(title, subtitle, date, description="", logo=None,
     return "\n".join(parts)
 
 
-def _render_section(items, title_key, subtitle_key, date_fn, advisor_label="Advisor"):
+def _render_section(items, title_key, subtitle_key, date_fn, advisor_label="Advisor",
+                    description_key="description"):
     """Render a list of resume items."""
     return "\n".join(
         _render_resume_item(
             title=item.get(title_key, ""),
             subtitle=item.get(subtitle_key, ""),
             date=date_fn(item),
-            description=item.get("description", ""),
+            description=item.get(description_key, "") if description_key else "",
             logo=item.get("logo"),
             links=item.get("links"),
             logo_link=item.get("logo_link"),
@@ -686,10 +687,12 @@ def render_experience(data):
 
 
 def render_research(data):
-    # Project / lab name carries the entry; the generic role label
-    # ("Undergraduate Research Project") is the subtitle.
+    # Project / lab name carries the entry; the one-line description of the
+    # project is the subtitle, as in the CV PDF, since the section title
+    # already says these are undergraduate projects.
     items = (data.get("research") or {}).get("research", [])
-    return _render_section(items, "company", "position", _date_range, advisor_label="Supervisor")
+    return _render_section(items, "company", "description", _date_range,
+                           advisor_label="Supervisor", description_key=None)
 
 
 def render_teaching(data):

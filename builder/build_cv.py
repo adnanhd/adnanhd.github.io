@@ -317,16 +317,15 @@ def render_research(data):
         if "](" not in company and r.get("logo_link"):
             company_tex = _href(r["logo_link"], company_tex)
         body = f"\\textbf{{{company_tex}}}"
-        # The description's first sentence is the project in one line and
-        # takes the italic line under the name (the section title already
-        # says these are undergraduate projects); each later sentence is a
-        # thing done in it, one bullet each, worded to fill its line.
-        sentences = [s.rstrip(".") for s in re.split(r"(?<=[.!?])\s+(?=[A-Z])", r.get("description") or "") if s]
-        summary = _tex_with_links(sentences[0]) if sentences else tex_escape(r.get("position", ""))
-        body += f"\\\\ \\emph{{{summary}}}"
+        # The description is the project in one line and takes the italic
+        # line under the name (the section title already says these are
+        # undergraduate projects); the bullets are what was done in it, each
+        # worded to fill its line.
+        summary = r.get("description")
+        body += f"\\\\ \\emph{{{_tex_with_links(summary) if summary else tex_escape(r.get('position', ''))}}}"
         sep = "\\\\ "
-        if sentences[1:]:
-            items = "\n".join(f"  \\item {_tex_with_links(s)}" for s in sentences[1:])
+        if r.get("bullets"):
+            items = "\n".join(f"  \\item {_tex_with_links(b)}" for b in r["bullets"])
             body += f"\n\\begin{{cvsublist}}\n{items}\n\\end{{cvsublist}}\n"
             sep = ""
         # Advisor on the left, location pushed to the right margin.
