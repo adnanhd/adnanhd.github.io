@@ -201,7 +201,7 @@ def generate_project_pages(data):
         meta = render_tags(w.get("tags"))
         body = _render_summary(w.get("body") or w.get("description"))
         links = [{"name": "GitHub", "url": w["url"]}] if w.get("url") else []
-        _write(slugify(w["title"]), title=w["title"], meta=meta,
+        _write(w["id"], title=w["title"], meta=meta,
                description=w.get("description", ""),
                back="../../index.html#selected-repos",
                back_label="Open source",

@@ -1890,7 +1890,7 @@ def render_works(works_data):
         desc = f"<p>{esc(work['description'])}</p>" if work.get("description") else ""
         tags = render_tags(work.get("tags"))
 
-        slug = slugify(work["title"])
+        slug = work["id"]
         project_href = f"projects/{slug}/index.html"
         github_url = work.get("url", "")
 

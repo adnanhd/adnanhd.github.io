@@ -196,6 +196,16 @@ def load_data():
                                      for i in g.get("items") or []]
                         for g in ex["skills"].values()}
     _normalize_keywords(data)
+    for w in (data.get("works") or {}).get("works") or []:
+        if not w.get("id"):
+            sys.exit(f"works.yaml: {w.get('title')!r} has no id (its project-page slug)")
+    bd = data.get("blogs") or {}
+    tree = bd.get("tag_tree") or {}
+    known = set(tree) | {c for v in tree.values() for c in (v or [])}
+    for b in bd.get("blogs") or []:
+        for tag in b.get("tags") or []:
+            if tag not in known:
+                sys.exit(f"blogs.yaml: {b.get('title')!r}: tag {tag!r} is not in tag_tree")
     for h in (data.get("extracurricular") or {}).get("honors") or []:
         _normalize_award(h, orgs, "extracurricular.yaml")
         h["title"] = h.pop("name")
