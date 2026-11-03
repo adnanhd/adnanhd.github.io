@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="Scientific Reports" />
+        <title>CoFINN: Conservation Flux Informed Neural Networks for Physics Problems Governed by Conservation Laws - Adnan Harun Dogan</title>
+        <link rel="stylesheet" href="../../assets/css/vendor.css" />
+        <link rel="stylesheet" href="../../assets/css/style.css?v=ad9be9ac" />
+        <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
+        <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    </head>
+    <body>
+        <div class="blog-page project-page">
+            <a href="../../index.html#selected-works" class="blog-back">&larr; Selected publications</a>
+            <h1>CoFINN: Conservation Flux Informed Neural Networks for Physics Problems Governed by Conservation Laws</h1>
+            <div class="blog-meta"><strong>Dogan, A. H.</strong>, Deniz, M., <a href="https://scholar.google.com/citations?user=c4jozc8AAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Alemdar, H.</a>, &amp; <a href="https://scholar.google.com/citations?user=s7AP0ygAAAAJ" class="author-link" target="_blank" rel="noopener noreferrer">Baran, O. U.</a> &middot; Scientific Reports &middot; 2026</div>
+            
+            <div class="blog-body"><p>We present CoFINN (Conservation Flux Informed Neural Networks), a physics-informed deep learning framework for predicting compressible flow fields governed by conservation laws. Unlike conventional data-driven convolutional neural networks (CNNs), which optimize only pixel-wise similarity metrics, CoFINN embeds finite-volume conservation physics directly into the training process. Unlike classical physics-informed methods which enforce differential-equation residuals at collocation points through automatic differentiation, CoFINN adopts a finite-volume perspective consistent with modern CFD methodology. CoFINN interprets CNN output fields as structured computational grids, where each pixel represents a finite-volume cell, and enforces conservation consistency through sophisticated numerical flux calculations. The framework is evaluated on transonic flow prediction around airfoils at \(M = 0.7\), \(Re = 6 \times 10^6\), including challenging conditions involving shock waves and high angles of attack. Results show that CoFINN improves aerodynamic force prediction accuracy, reducing drag prediction error by up to 34% at extreme angles of attack and by approximately 15% on average across the test set. Improvements are particularly significant in limited-data regimes, demonstrating that the conservation-based loss acts as an effective physical regularizer. The proposed approach maintains the computational efficiency advantages of CNN surrogates while significantly improving physical consistency and conservation behavior. The framework is architecture-agnostic and extensible to broader classes of conservation-law-governed physical systems.</p></div>
+            <div class="publication-links"><a href="https://arxiv.org/abs/2607.06587" class="pub-link" target="_blank" rel="noopener noreferrer">arXiv</a></div>
+        </div>
+        <script>
+            const saved = localStorage.getItem("theme");
+            if (saved) document.documentElement.setAttribute("data-theme", saved);
+            else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+                document.documentElement.setAttribute("data-theme", "dark");
+        </script>
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+        <script>if (window.hljs) hljs.highlightAll();</script>
+    </body>
+</html>

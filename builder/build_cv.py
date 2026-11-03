@@ -287,8 +287,8 @@ def render_publications(data):
     pubs = list((data.get("publications") or {}).get("papers", []))
     pubs.sort(key=lambda p: -parse_date(p.get("date")).toordinal())
     parts = []
-    for key, heading in _PUB_GROUPS:
-        group = [p for p in pubs if _pub_group(p) == key]
+    for key, heading in (("selected", "Selected publications"), ("other", "Other publications")):
+        group = [p for p in pubs if bool(p.get("selected")) == (key == "selected")]
         if not group:
             continue
         parts.append(f"\\subsection*{{{heading}}}")
