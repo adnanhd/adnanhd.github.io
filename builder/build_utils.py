@@ -182,6 +182,10 @@ def load_data():
     _normalize_publications(data)
     _normalize_sections(data)
     _normalize_coursework(data)
+    orgs = (data.get("institutions") or {}).get("institutions") or {}
+    for h in (data.get("extracurricular") or {}).get("honors") or []:
+        _normalize_award(h, orgs, "extracurricular.yaml")
+        h["title"] = h.pop("name")
     return data
 
 
@@ -196,6 +200,7 @@ def _normalize_sections(data):
                 if isinstance(g, dict):
                     for k, v in g.items():
                         item.setdefault(k, v)
+            _normalize_people_and_load(item, data, section)
             org = orgs.get(item.pop("org", None))
             if org is None:
                 sys.exit(f"{section}.yaml: {item.get('id')}: org is not a key in meta/institutions.yaml")
@@ -209,6 +214,88 @@ def _normalize_sections(data):
             if item.get("co_advisor"):
                 item["advisor"] = (
                     f"{item.get('advisor', '')}, Co-advisor: {item.pop('co_advisor')}".lstrip(", "))
+
+
+def _months(start, end):
+    """Inclusive month count between two ISO dates ('Present' is today)."""
+    def ym(s):
+        if str(s).lower() == "present":
+            d = date.today()
+            return d.year, d.month
+        y, m = str(s).split("-")[:2]
+        return int(y), int(m)
+    (y0, m0), (y1, m1) = ym(start), ym(end)
+    return (y1 - y0) * 12 + (m1 - m0) + 1
+
+
+def _duration(start, end):
+    n = _months(start, end)
+    return f"{n} months" if n < 18 else f"{round(n / 12)} years"
+
+
+def _normalize_people_and_load(item, data, section):
+    """Advisor keys -> the advisor line (titles from meta/authors.yaml, a
+    co-advisor appended); load / hours / remote / course -> the commitment
+    line, with the duration of a finished position derived from its dates."""
+    pool = (data.get("authors") or {}).get("authors") or {}
+
+    def people(keys):
+        out = []
+        for k in keys:
+            a = pool.get(k)
+            if not a or not a.get("title"):
+                sys.exit(f"{section}.yaml: {item.get('id')}: advisor {k!r} needs a key with a title in meta/authors.yaml")
+            out.append(f"{a['title']} {a['name']}")
+        return ", ".join(out)
+    if item.get("advisors"):
+        item["advisor"] = people(item.pop("advisors"))
+    if item.get("co_advisors"):
+        item["co_advisor"] = people(item.pop("co_advisors"))
+
+    parts = []
+    if item.pop("remote", False):
+        parts.append("Remote")
+    load, hours = item.pop("load", None), item.pop("hours", None)
+    if load == "full-time":
+        parts.append("Full-time" if not parts else "full-time")
+    elif load:
+        sys.exit(f"{section}.yaml: {item.get('id')}: load {load!r} is not full-time")
+    if hours:
+        parts.append(f"{hours} hours/week")
+    course = item.pop("course", None)
+    if course:
+        c = ((data.get("courses") or {}).get("courses") or {}).get(course)
+        if not c:
+            sys.exit(f"{section}.yaml: {item.get('id')}: course {course!r} is not a key in meta/courses.yaml")
+        parts.append(f"Term project ({c['code']})")
+    end = item.get("end_date")
+    if parts and item.get("start_date") and end and str(end).lower() != "present" and section != "teaching":
+        parts.append(_duration(item["start_date"], end))
+    if parts:
+        item["commitment"] = ", ".join(parts)
+
+    thesis = item.get("thesis") or {}
+    if thesis.get("link"):
+        item.setdefault("link", thesis["link"])
+
+    orgs = (data.get("institutions") or {}).get("institutions") or {}
+    for a in item.get("awards") or []:
+        _normalize_award(a, orgs, f"{section}.yaml: {item.get('id')}")
+
+
+def _normalize_award(a, orgs, where):
+    """An award or honor: `org` -> organization (and logo); an ISO year
+    range 2022/2023 -> the 2022-2023 the renderers print."""
+    if a.get("org"):
+        o = orgs.get(a.pop("org"))
+        if not o:
+            sys.exit(f"{where}: award org is not a key in meta/institutions.yaml")
+        a["organization"] = o["name"]
+        if o.get("logo"):
+            a.setdefault("logo", o["logo"])
+    m = re.match(r"^(\d{4})/(\d{4})$", str(a.get("date", "")))
+    if m:
+        a["date"] = f"{m.group(1)}-{m.group(2)}"
 
 
 def _normalize_coursework(data):
