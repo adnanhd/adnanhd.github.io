@@ -174,15 +174,19 @@ def _write(slug, *, title, meta, description, back, back_label,
 
 
 def generate_project_pages(data):
-    """Write a project page for each selected publication and each work."""
+    """Write a project page for each selected publication and each work,
+    and remove the pages of entries that no longer get one."""
     count = 0
+    written = set()
 
     for p in (data.get("publications") or {}).get("papers", []):
         if not p.get("selected"):
             continue
+        # A submitted paper's target stays unnamed (double-blind review).
+        venue = "Submitted" if p.get("stage") == "submitted" else p.get("venue", "")
         meta = " &middot; ".join(x for x in [
             highlight_author(esc(p.get("authors", ""))),
-            esc(p.get("venue", "")),
+            esc(venue),
             esc(format_date(p.get("date", ""))),
         ] if x)
         image = (
@@ -190,8 +194,9 @@ def generate_project_pages(data):
             f'alt="{esc(p["title"])}" />' if p.get("image") else ""
         )
         body = _render_summary(p.get("body"))
+        written.add(slugify(p["title"]))
         _write(slugify(p["title"]), title=p["title"], meta=meta,
-               description=p.get("venue", ""),
+               description=venue,
                back="../../index.html#selected-works",
                back_label="Selected publications",
                image=image, body=body, links=p.get("links"))
@@ -201,6 +206,7 @@ def generate_project_pages(data):
         meta = render_tags(w.get("tags"))
         body = _render_summary(w.get("body") or w.get("description"))
         links = [{"name": "GitHub", "url": w["url"]}] if w.get("url") else []
+        written.add(w["id"])
         _write(w["id"], title=w["title"], meta=meta,
                description=w.get("description", ""),
                back="../../index.html#selected-repos",
@@ -208,4 +214,9 @@ def generate_project_pages(data):
                body=body, links=links)
         count += 1
 
+    for d in sorted((BASE_DIR / "projects").iterdir()):
+        if d.is_dir() and d.name not in written and [f.name for f in d.iterdir()] == ["index.html"]:
+            (d / "index.html").unlink()
+            d.rmdir()
+            print(f"Removed stale project page {d.name}")
     print(f"Built {count} project pages")
