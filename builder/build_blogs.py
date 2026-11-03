@@ -3,7 +3,7 @@
 Run:  python -m builder.build_blogs
 
 Blogs are PRE-GENERATED and committed; the main site build (`python -m builder`)
-does not read the org sources, which live outside the repo under ~/org/roam2.
+does not read the org sources, which live outside the repo under ~/org/roam.d.
 
 Each BlogSpec lists one or more org files; the `Related Work` section of each is
 extracted, footnote labels are namespaced per-file (to avoid collisions when
@@ -25,7 +25,7 @@ import yaml
 
 from .build_config import BASE_DIR
 
-ORG_ROOT = Path.home() / "org" / "roam2" / "informatics"
+ORG_ROOT = Path.home() / "org" / "roam.d" / "informatics"
 SITE_URL = "https://adnanhd.github.io"
 AUTHOR = "Adnan Harun Dogan"
 FALLBACK_OG_IMAGE = "assets/img/profile.jpeg"
