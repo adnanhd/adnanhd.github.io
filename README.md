@@ -8,17 +8,17 @@ publish on GitHub Pages.
 
 ## Data model in one paragraph
 
-Everything is an **entry**: a unique `id`, a `data:` block (the record
-itself) and a `meta:` block (presentation flags); publications use their
-own grammar (`kind`, `stage`, `target`, `ref`, `show`). Publications nest
-under the position that produced them via `source`, venues and author
-names resolve from the shared pools in `meta/` (`venues.yaml`,
-`authors.yaml`), and any entry can carry dated `news` one-liners (under
-`meta:` outside publications).
+Everything is an **entry**: a unique `id`, a `data:` record, a `show:`
+list of the views it appears in, and prose, awards and links beside
+them. The grammar of every file is written once in `meta/schema.yaml`
+and checked before each build. Publications nest under the position
+that produced them via `source`; venues, authors, institutions and
+courses resolve from the shared pools in `meta/`; any entry can carry
+dated `news` one-liners.
 A news entry feeds the **News** section and the **Timeline** at once:
 News is the curated cut of the Timeline, the way `resume.pdf` is the
-cut of `cv.pdf`. There is no separate news file. Field-by-field
-schemas live in [`data/README.md`](data/README.md).
+cut of `cv.pdf`. There is no separate news file. The shapes are
+explained in [`data/README.md`](data/README.md).
 
 ## Features
 
@@ -136,10 +136,11 @@ rsync -av --delete \
 
 ## How it works
 
-1. `builder/build_utils.py` loads every `data/*.yaml` and normalizes:
-   two-layer entries are hoisted, venue and author pools resolve,
-   APA author strings and sentence-case titles derive, `pages:`
-   bodies attach.
+1. `builder/build_utils.py` loads every `data/*.yaml` and `meta/*.yaml`,
+   checks them against `meta/schema.yaml` (`builder/schema.py`) and
+   normalizes: `data` records are hoisted, `show` and `dates` become
+   flags and endpoints, the pools resolve, APA author strings and
+   sentence-case titles derive.
 2. `build_html.py` renders each section and substitutes the results
    into the `{{...}}` placeholders in `template.html`.
 3. `build_projects.py` renders per-item pages under

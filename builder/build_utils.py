@@ -12,6 +12,7 @@ from pathlib import Path
 import yaml
 
 from .build_config import AUTHOR_DISPLAY_NAME, AUTHOR_NAME, AUTHOR_NAME_ALT, DATA_DIR, META_DIR
+from .schema import validate
 
 
 # ---------------------------------------------------------------------------
@@ -178,6 +179,7 @@ def load_data():
         except yaml.YAMLError as e:
             print(f"Error: {path} has invalid YAML: {e}", file=sys.stderr)
             sys.exit(1)
+    validate(data, META_DIR / "schema.yaml")
     set_author_pool((data.get("authors") or {}).get("authors") or {})
     _normalize_publications(data)
     _normalize_sections(data)

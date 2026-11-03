@@ -3,50 +3,69 @@
 Every list on the site lives in one of these YAML files. `python -m
 builder` loads them all, normalizes the records (see
 `builder/build_utils.py`), and renders every view from the same
-in-memory objects. This file documents the record shapes; the top-level
+in-memory objects. The shared pools live in `meta/`; the top-level
 `README.md` gives the one-paragraph overview.
 
-Dates use ISO precision everywhere: `YYYY`, `YYYY-MM`, `YYYY-MM-DD`,
-optionally with `HH:MM` (blogs), or the literal `Present`. They render
+The grammar of every file is written once, in
+[`meta/schema.yaml`](../meta/schema.yaml), and `builder/schema.py` checks
+all files against it before anything is normalized: an unknown field, a
+missing required field, a key that is not in its pool or a malformed
+date stops the build with `file.entry.field: problem`. This page
+explains the shapes; the schema is the reference.
+
+Naming: field names are snake_case, pool keys lowercase kebab-case, and
+entry ids `uni__unit__role-or-supervisor` (`eth__siplab__holz`,
+`metu__imagelab-denge__kalkan-akbas`, `metu__ceng__msc`,
+`metu__ceng__ta`). Markdown links appear only in prose fields
+(description, bullets, news text, body); names are plain text and links
+live in `url` fields, the one name every link field uses.
+
+Dates are ISO: a point is `date: 2025-06` (`YYYY`, `YYYY-MM`,
+`YYYY-MM-DD`, optionally `HH:MM` for blogs), a span is
+`dates: 2022-09-12/2025-01-10`, an ongoing span `dates: 2023-02/..`, a
+year range `2022/2023`, a term `2024-spring`. They render
 human-readable at build time (`2025-03` becomes "March 2025").
 
-## The two-layer entry
+## One entry shape
 
-`publications`, `education`, `experience`, `research` and `teaching`
-entries all share one layout:
+Publications, education, experience, research and teaching entries all
+share one layout: an `id`, a `data:` record, a `show:` list, and the
+rest beside them.
 
 ```yaml
-- id: "eth-siplab-cholz"      # unique slug, the cross-reference key
-  data:                       # the record itself
-    position: "Intern"
-    company: "..."
-    start_date: "2025-01"
-    end_date: "2025-10"
-    advisor: "Prof. Dr. Christian Holz"
-  meta:                       # presentation flags
-    logo: "assets/img/logos/eth.png"
-    logo_link: "https://siplab.org/"
-    timelined: true           # draw on the Timeline
-    resume: true              # include in resume.pdf (cv.pdf takes all)
-    news:                     # see "News entries" below
-      - date: "2025-01"
-        text: "Started a research internship at [SIPLab](https://siplab.org/), ETH Zürich"
-  description: "..."          # prose, bullets, awards, links stay top-level
+- id: eth__siplab__holz
+  data:                       # the record
+    position: "Research Intern"
+    org: siplab               # meta/institutions.yaml
+    advisors: [ch]            # meta/authors.yaml keys; co_advisors likewise
+    dates: "2025-01/2025-10"
+    load: full-time           # or hours: 6; remote: true; course: me460
+  show: [timeline]            # where else it appears
+  news:                       # see "News entries" below
+    - date: "2025-01"
+      text: "Started a research internship at [SIPLab](https://siplab.org/), ETH Zürich"
+  description: "..."
   bullets: [...]
-  awards: [...]
-  links: [...]
+  awards:
+    - {name: "...", org: tubitak, date: "2022/2023", show: [], url: "..."}
+  links: [{name: DOI, url: "..."}]
 ```
 
-`id` is what everything else points at. One convention for every
-entry: `uni__unit__role-or-supervisor` (`eth__siplab__holz`,
-`metu__imagelab-denge__kalkan-akbas` for several supervisors,
-`metu__ceng__msc` for a degree, `metu__ceng__ta` for teaching). Publications reference a position via `source`, and
-the Timeline uses the same link to colour a paper with its parent
+The commitment line ("Remote, full-time, 4 months") is assembled from
+`load`, `hours`, `remote` and `course`, with the duration of a finished
+position taken from its dates. Advisor lines print each key's `title`
+and `name`. Publications reference a position via `source`, and the
+Timeline uses the same link to colour a paper with its parent
 position's colour.
+
+`show` tokens: entries take `timeline`; awards and honors `resume`
+(listed in resume.pdf's honors) and `timeline` (honors only);
+publications `front` (About page cards), `resume` and `timeline`.
+cv.pdf lists everything.
 
 ## News entries
 
-Any entry may carry `meta.news`, a list of dated one-liners:
+Any entry may carry `news`, a list of dated one-liners:
 
 ```yaml
 news:
@@ -65,32 +84,32 @@ Each news entry feeds two views at once:
 - a small news card on the **Timeline**, coloured like its owning
   entry.
 
-An entry without `meta.news` still appears on the Timeline (as a card
-or position bar) but contributes nothing to News. News is therefore
-the curated cut of the Timeline, the way `resume.pdf` is the cut of
+An entry without `news` still appears on the Timeline (as a card or
+position bar) but contributes nothing to News. News is therefore the
+curated cut of the Timeline, the way `resume.pdf` is the cut of
 `cv.pdf`. There is no separate news file.
 
 ## Pools (`meta/`)
 
-The shared pools live beside `data/`, in `meta/`.
-
 - **`meta/venues.yaml`** - one record per venue under a lowercase key
-  (`name`, `short`, `link`, `double_blind`, `selected`). A paper names
+  (`name`, `short`, `url`, `double_blind`, `selected`). A paper names
   the key (`venue: icra`, `target: cvpr`); the year suffix (`ICRA'26`)
   derives from the paper's date. Prestigious venues set
   `selected: true` once, in the pool; a paper overrides with its own
   `selected: true|false`.
 - **`meta/authors.yaml`** - one record per co-author under a short key
-  of initials (`oub`): `apa` (the reference form), `name`, and any of
-  `site`, `scholar`, `github`. The name links to the first of site,
-  scholar, github in author lines; advisor lines match on `name`.
-- **`meta/institutions.yaml`** - one record per institution or lab
-  (`name`, `location`, `logo`, `logo_link`). Education, experience,
-  research and teaching entries name it with `org: metu`.
+  of initials (`oub`): `apa` (the reference form), `name`, `title` (the
+  academic title for advisor lines), and any of `site`, `scholar`,
+  `github`. The name links to the first of site, scholar, github.
+- **`meta/institutions.yaml`** - one record per institution or lab:
+  `name`, `short`, `url`, `parent`, `location`, `logo`. Cards print
+  `name ([short](url)), <parent short or name>`; awards print
+  `name (short)`; bio affiliations print `name`.
 - **`meta/courses.yaml`** - one record per course (`code`, `name`,
-  `link`). Teaching lists `courses: [{course: ceng280, terms:
-  [2024-spring, ...]}]`; a degree lists `coursework: {optimization:
-  [ie553, ...]}` under the groups of bio.yaml `coursework_groups`.
+  `url`). Teaching lists `courses: [{course: ceng280, terms:
+  [2024-spring, ...]}]` and its dates derive from the terms; a degree
+  lists `coursework: {optimization: [ie553, ...]}` under the groups of
+  bio.yaml `coursework_groups`; a position may name `course: me460`.
 
 ## `publications.yaml`
 
@@ -98,52 +117,56 @@ The shared pools live beside `data/`, in `meta/`.
 proper_nouns: [Kalman, Cappadocia, ...]   # survive sentence-casing
 
 papers:
-  - id: "fwnkf"
+  - id: fwnkf
     kind: proceedings            # article | proceedings | chapter | thesis
     # stage: submitted           # published (default) | preprint | submitted
     # target: cvpr               # where a preprint or submitted paper is sent
-    ref:
+    data:
       title: "Frequency-Weighted Neural Kalman Filters"
       authors: [ahd, bud, ch]    # pool keys or literal "Celtik, S. O."
       venue: icra                # pool key, or an inline dict:
-      #venue: {id: ..., name: ..., prefix: ..., detail: ..., short: ..., link: ...}
+      #venue: {id: ..., name: ..., prefix: ..., detail: ..., short: ..., url: ...}
       date: "2026-06"
     # selected: false            # overrides the venue's selected flag
-    show: [front, resume, timeline]  # front page, resume.pdf, Timeline
-    source: "eth-siplab-cholz"   # nest under this position (colour, meta rows)
+    show: [front, resume, timeline]
+    source: eth__siplab__holz    # nest under this position (colour, meta rows)
     image: "assets/img/publications/icra2026.png"
     news: [...]
     links:                       # DOI, ISBN, arXiv, PDF, Thesis, Code, Data
       - {name: arXiv, url: "..."}
     awards:
-      - {name: "Best Paper Award", organization: "...", link: "..."}
-
-pages:                           # per-paper page bodies, keyed by id
-  fwnkf: |
-    ## Problem
-    Markdown-ish body with MathJax.
+      - {name: "Best Paper Award", organization: "...", url: "..."}
+    body: |                      # the project page (selected papers only)
+      ## Problem
+      Markdown-ish body with MathJax.
 ```
 
 A submitted paper shows a "Submitted" badge and no venue name when its
 target is double-blind; it stays off the Timeline until it appears.
 cv.pdf lists every paper (Selected, Other, Theses). Author lists are
-joined to APA form (`,` + final `&`) and the
-sentence-case `title_apa` derives automatically, keeping
-`proper_nouns` capitalized.
+joined to APA form (`,` + final `&`) and the sentence-case `title_apa`
+derives automatically, keeping `proper_nouns` capitalized. A degree's
+`thesis: msc-thesis` names the paper whose title and Thesis link the
+degree prints.
 
 ## `education.yaml`, `experience.yaml`, `research.yaml`, `teaching.yaml`
 
-Same two-layer shape. `education` uses `degree` / `institution` (plus
-optional `thesis`); the other three use `position` / `company`.
-`experience` is salaried positions and internships, `research` is
-unpaid research projects. Timelined positions draw as parallel
-coloured bars along the Timeline rail with exact date endpoints.
+The one entry shape above. `education` uses `degree` (plus `thesis`,
+a paper id or an inline `{label, title, url}`, and `coursework`); the
+other three use `position`. `experience` is salaried positions and
+internships, `research` is unpaid research projects. Timelined positions
+draw as parallel coloured bars along the Timeline rail with exact date
+endpoints.
 
-## `extracurricular.yaml`
+## `extracurricular.yaml` and `bio.yaml` keywords
 
-Holds `honors` (orphan awards that attach to no entry; `timelined:
-true` gives them their own Timeline row) and `skills` (a map of
-category to items, rendered one bold-labelled line each).
+`honors` holds orphan awards that attach to no entry (same fields as
+awards). `skills` maps an id to `{title, items}`, an item being plain
+text or `{name, url}`; each renders as one bold-labelled line. The
+resume's research-area lines are not written here: they come from
+bio.yaml `research_keywords` (coursework group -> phrases), title-cased
+under the group's `resume` name, and the site lists the same phrases
+as its keywords.
 
 ## `blogs.yaml`
 
@@ -180,6 +203,6 @@ index), and the inline `#tags` drive the same filter as the chips.
 - `bio.yaml` - identity card: name, title, affiliation, bio prose,
   social IDs (full URLs are generated), custom links.
 - `works.yaml` - open-source cards; each gets a generated page under
-  `projects/<slug>/`.
+  `projects/<id>/`.
 - `social_posts.yaml` - curated link-preview cards for the "Media
   Posts" section of the Blogs tab.
