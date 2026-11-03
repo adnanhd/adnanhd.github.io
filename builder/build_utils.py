@@ -184,10 +184,17 @@ def load_data():
     _normalize_coursework(data)
     orgs = (data.get("institutions") or {}).get("institutions") or {}
     for aff in (data.get("bio") or {}).get("affiliations") or []:
-        o = orgs.get(aff.pop("org", None))
-        if not o:
-            sys.exit("bio.yaml: an affiliation's org is not a key in meta/institutions.yaml")
-        aff["name"] = o["name"]
+        aff["name"] = _org(orgs, aff.pop("org", None), "bio.yaml: affiliations")["name"]
+        detail = aff.get("detail")
+        if isinstance(detail, dict):
+            aff["detail"] = detail.get("text", "")
+            if detail.get("url"):
+                aff["map"] = detail["url"]
+    ex = data.get("extracurricular") or {}
+    if isinstance(ex.get("skills"), dict):
+        ex["skills"] = {g["title"]: [f"[{i['name']}]({i['url']})" if isinstance(i, dict) else i
+                                     for i in g.get("items") or []]
+                        for g in ex["skills"].values()}
     for h in (data.get("extracurricular") or {}).get("honors") or []:
         _normalize_award(h, orgs, "extracurricular.yaml")
         h["title"] = h.pop("name")
@@ -210,6 +217,30 @@ def _show(item, allowed, where):
     return set(show)
 
 
+def _org(orgs, key, where):
+    org = orgs.get(key)
+    if org is None:
+        sys.exit(f"{where}: org {key!r} is not a key in meta/institutions.yaml")
+    return org
+
+
+def _org_line(orgs, key):
+    """The card line: `name ([short](url)), <parent short or name>`."""
+    o = orgs[key]
+    line = o["name"]
+    if o.get("short"):
+        line += f" ([{o['short']}]({o['url']}))" if o.get("url") else f" ({o['short']})"
+    if o.get("parent"):
+        p = _org(orgs, o["parent"], f"meta/institutions.yaml: {key}")
+        line += f", {p.get('short') or p['name']}"
+    return line
+
+
+def _org_plain(o):
+    """The plain form for awards: `name (short)`."""
+    return f"{o['name']} ({o['short']})" if o.get("short") else o["name"]
+
+
 def _normalize_sections(data):
     """Hoist the `data` record of education / experience / research /
     teaching entries into flat fields; `show` sets the timeline flag and
@@ -226,15 +257,15 @@ def _normalize_sections(data):
             if item.get("dates"):
                 item["start_date"], item["end_date"] = _span(item.pop("dates"), where)
             _normalize_people_and_load(item, data, section)
-            org = orgs.get(item.pop("org", None))
-            if org is None:
-                sys.exit(f"{section}.yaml: {item.get('id')}: org is not a key in meta/institutions.yaml")
-            name = f"{org['name']} ({org['short']})" if org.get("short") else org["name"]
-            item["institution" if section == "education" else "company"] = name
-            _check_links(item.get("links"), f"{section}.yaml: {item.get('id')}")
-            for k in ("location", "logo", "logo_link"):
+            key = item.pop("org", None)
+            org = _org(orgs, key, where)
+            item["institution" if section == "education" else "company"] = _org_line(orgs, key)
+            _check_links(item.get("links"), where)
+            for k in ("location", "logo"):
                 if org.get(k):
                     item.setdefault(k, org[k])
+            if org.get("url"):
+                item.setdefault("logo_link", org["url"])
             if section == "teaching":
                 _normalize_teaching(item, (data.get("courses") or {}).get("courses") or {})
             # A co-advisor folds into the advisor line everywhere.
@@ -302,6 +333,8 @@ def _normalize_people_and_load(item, data, section):
         item["commitment"] = ", ".join(parts)
 
     thesis = item.get("thesis") or {}
+    if thesis.get("url"):
+        thesis["link"] = thesis.pop("url")
     if thesis.get("link"):
         item.setdefault("link", thesis["link"])
 
@@ -317,11 +350,11 @@ def _normalize_award(a, orgs, where):
     show = _show(a, {"resume", "timeline"}, f"{where}: {a.get('name')}")
     a["resume"] = "resume" in show
     a["timelined"] = "timeline" in show
+    if a.get("url"):
+        a["link"] = a.pop("url")
     if a.get("org"):
-        o = orgs.get(a.pop("org"))
-        if not o:
-            sys.exit(f"{where}: award org is not a key in meta/institutions.yaml")
-        a["organization"] = o["name"]
+        o = _org(orgs, a.pop("org"), f"{where}: {a.get('name')}")
+        a["organization"] = _org_plain(o)
         if o.get("logo"):
             a.setdefault("logo", o["logo"])
     m = re.match(r"^(\d{4})/(\d{4})$", str(a.get("date", "")))
@@ -346,7 +379,7 @@ def _normalize_coursework(data):
                 c = pool.get(k)
                 if not c:
                     sys.exit(f"education.yaml: {edu.get('id')}: course {k!r} is not a key in meta/courses.yaml")
-                lines.setdefault(g, []).append(f"{c['name']} ([{c['code']}]({c['link']}))")
+                lines.setdefault(g, []).append(f"{c['name']} ([{c['code']}]({c['url']}))")
     bio["selected_coursework"] = {groups[g]["title"]: lines[g] for g in groups if g in lines}
     bio["resume_coursework_categories"] = {groups[g]["title"]: groups[g]["resume"] for g in groups if g in lines}
 
@@ -382,7 +415,7 @@ def _normalize_teaching(item, pool):
         terms = sorted(c.get("terms") or [], key=lambda t: _term_bounds(t)[0])
         rows.append((_term_bounds(terms[-1])[0], info, terms))
     rows.sort(key=lambda r: r[0], reverse=True)
-    item["bullets"] = [f"[{i['code']}]({i['link']}) - {i['name']} ({', '.join(_term_label(t) for t in ts)})"
+    item["bullets"] = [f"[{i['code']}]({i['url']}) - {i['name']} ({', '.join(_term_label(t) for t in ts)})"
                        for _, i, ts in rows]
     every = sorted({t for _, _, ts in rows for t in ts}, key=lambda t: _term_bounds(t)[0])
     first, last = every[0], every[-1]
@@ -453,6 +486,9 @@ def _normalize_publications(data):
             paper.setdefault("body", paper["abstract"])
         pid = paper.get("id")
         _check_links(paper.get("links"), f"publications.yaml: {pid}")
+        for a in paper.get("awards") or []:
+            if a.get("url"):
+                a["link"] = a.pop("url")
         for k, v in (paper.pop("data", None) or {}).items():
             paper.setdefault(k, v)
         if paper.get("kind") not in PAPER_KINDS:
@@ -500,7 +536,7 @@ def _normalize_publications(data):
             paper["venue_prefix"] = spec["prefix"]
         if spec.get("detail"):
             paper["venue_detail"] = spec["detail"]
-        link = spec.get("link") or (entry or {}).get("link")
+        link = spec.get("url") or (entry or {}).get("url")
         if link:
             paper.setdefault("venue_link", link)
         if (entry or {}).get("double_blind"):

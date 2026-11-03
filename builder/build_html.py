@@ -683,7 +683,9 @@ def render_research(data):
     # Project / lab name carries the entry; the one-line description of the
     # project is the subtitle, as in the CV PDF, since the section title
     # already says these are undergraduate projects.
-    items = (data.get("research") or {}).get("research", [])
+    # The project line is the card title, printed as plain text.
+    items = [{**i, "company": _md_strip(i.get("company", ""))}
+             for i in (data.get("research") or {}).get("research", [])]
     return _render_section(items, "company", "description", _date_range,
                            advisor_label="Supervisor", description_key=None)
 
