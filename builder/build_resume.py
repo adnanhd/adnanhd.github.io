@@ -127,9 +127,11 @@ def _logo_tex(item):
     logo = _logo_path(item)
     if not logo:
         return ""
-    w, h = logo_size(logo, 48, 12, 12)
-    return (f"\\raisebox{{{4 - h / 2:.1f}pt}}"
-            f"{{\\includegraphics[width={w}pt,height={h}pt]{{{logo}}}}}")
+    # Every logo sits right-aligned in one 44pt slot (the widest wordmark), so the
+    # titles beside them start at the same x.
+    w, h = logo_size(logo, 44, 12, 12)
+    return (f"\\makebox[44pt][r]{{\\raisebox{{{4 - h / 2:.1f}pt}}"
+            f"{{\\includegraphics[width={w}pt,height={h}pt]{{{logo}}}}}}}")
 
 
 def _logo_path(item):

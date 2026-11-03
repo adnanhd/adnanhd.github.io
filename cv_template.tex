@@ -53,7 +53,7 @@
 \newlength{\bodyw}
 \setlength{\bodyw}{\dimexpr\textwidth-\datew-0.4cm-0.4pt\relax}
 
-% \cventry[logo]{date}{body}: date (and optional logo beneath it) in the
+% \cventry[logo]{date}{body}: date (and optional logo centred beneath it) in the
 % left column, a thin vertical rule, then the body in the right column.
 % The gap below is a bare \vskip, which a following heading's own space
 % absorbs; \vspace would hide it and the two would stack.
@@ -62,7 +62,7 @@
   \sbox{\cvbox}{\begin{minipage}[t]{\bodyw}\raggedright #3\end{minipage}}%
   \noindent
   \begin{minipage}[t]{\datew}\raggedright #2%
-    \ifx\relax#1\relax\else\\[5pt]\includegraphics[height=0.72cm,width=2.1cm,keepaspectratio]{#1}\fi
+    \ifx\relax#1\relax\else\\[5pt]\makebox[\linewidth][c]{\includegraphics[height=0.72cm,width=2.1cm,keepaspectratio]{#1}}\fi
   \end{minipage}\hspace{0.15cm}%
   {\color{rulegray}\vrule width 0.4pt height \ht\cvbox depth \dp\cvbox}\hspace{0.25cm}%
   \usebox{\cvbox}\par\vskip 9pt\relax}
