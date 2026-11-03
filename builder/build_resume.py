@@ -122,14 +122,14 @@ def tex_bold_author(text):
 
 
 def _logo_tex(item):
-    """The entry logo for \\resumeSubheading: a fixed 24pt slot holding the
-    logo at equal area (logo_size), centred on the text line; '' without one."""
+    """The entry logo for \\resumeSubheading, sized by logo_size and centred
+    on the text line; '' without one."""
     logo = _logo_path(item)
     if not logo:
         return ""
-    w, h = logo_size(logo, 24, 12, 11)
-    return (f"\\makebox[24pt][c]{{\\raisebox{{{4 - h / 2:.1f}pt}}"
-            f"{{\\includegraphics[width={w}pt,height={h}pt]{{{logo}}}}}}}")
+    w, h = logo_size(logo, 48, 12, 12)
+    return (f"\\raisebox{{{4 - h / 2:.1f}pt}}"
+            f"{{\\includegraphics[width={w}pt,height={h}pt]{{{logo}}}}}")
 
 
 def _logo_path(item):

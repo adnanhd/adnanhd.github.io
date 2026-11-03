@@ -290,7 +290,7 @@ def _normalize_sections(data):
 _LOGO_ASPECT = {}
 
 
-def logo_size(logo, max_w, max_h, side):
+def logo_size(logo, max_w, max_h, side, k=0.3):
     """(width, height) in px that gives every logo the area of a side x side
     square, kept inside max_w x max_h: a wide wordmark comes out wider and
     flatter, a square emblem stays square, so no logo looks bigger than the
@@ -300,7 +300,9 @@ def logo_size(logo, max_w, max_h, side):
         with Image.open(BASE_DIR / logo) as im:
             _LOGO_ASPECT[logo] = im.width / im.height
     r = _LOGO_ASPECT[logo]
-    h = side / r ** 0.5
+    # k = 0.5 would give every logo the same area; 0.3 lets a wide wordmark
+    # keep more height so it stays legible next to square emblems.
+    h = side / r ** k
     w = h * r
     k = min(1.0, max_w / w, max_h / h)
     return round(w * k), round(h * k)

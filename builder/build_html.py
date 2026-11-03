@@ -597,7 +597,7 @@ def _render_resume_item(title, subtitle, date, description="", logo=None,
 
     if logo:
         parts.append('<div class="resume-logo">')
-        w, h = logo_size(logo, 100, 46, 40)
+        w, h = logo_size(logo, 120, 46, 40)
         img = (f'<img src="{esc(logo)}" alt="{esc(_md_strip(subtitle))}" loading="lazy" '
                f'width="{w}" height="{h}" style="width:{w}px;height:{h}px" />')
         if logo_link:
