@@ -194,17 +194,37 @@ def load_data():
     return data
 
 
+def _span(value, where):
+    """ISO interval 2022-09-12/2025-01-10 (open end `..`) -> (start, end)."""
+    m = re.match(r"^(\d{4}-\d{2}(?:-\d{2})?)/(\d{4}-\d{2}(?:-\d{2})?|\.\.)$", str(value))
+    if not m:
+        sys.exit(f"{where}: dates {value!r} is not START/END or START/..")
+    return m.group(1), "Present" if m.group(2) == ".." else m.group(2)
+
+
+def _show(item, allowed, where):
+    """`show: [...]` -> the set of tokens, each one from `allowed`."""
+    show = item.pop("show", None)
+    if not isinstance(show, list) or set(show) - allowed:
+        sys.exit(f"{where}: show {show!r} must be a list from {sorted(allowed)}")
+    return set(show)
+
+
 def _normalize_sections(data):
-    """Hoist the data/meta groups of education / experience / research
-    (and teaching, if it adopts the layout) into flat fields."""
+    """Hoist the `data` record of education / experience / research /
+    teaching entries into flat fields; `show` sets the timeline flag and
+    `dates` the start_date / end_date."""
     orgs = (data.get("institutions") or {}).get("institutions") or {}
     for section in ("education", "experience", "research", "teaching"):
         for item in (data.get(section) or {}).get(section) or []:
-            for group in ("data", "meta"):
-                g = item.pop(group, None)
-                if isinstance(g, dict):
-                    for k, v in g.items():
-                        item.setdefault(k, v)
+            where = f"{section}.yaml: {item.get('id')}"
+            if "meta" in item:
+                sys.exit(f"{where}: `meta` is gone; flags go in `show`, the rest beside `data`")
+            for k, v in (item.pop("data", None) or {}).items():
+                item.setdefault(k, v)
+            item["timelined"] = "timeline" in _show(item, {"timeline"}, where)
+            if item.get("dates"):
+                item["start_date"], item["end_date"] = _span(item.pop("dates"), where)
             _normalize_people_and_load(item, data, section)
             org = orgs.get(item.pop("org", None))
             if org is None:
@@ -291,8 +311,12 @@ def _normalize_people_and_load(item, data, section):
 
 
 def _normalize_award(a, orgs, where):
-    """An award or honor: `org` -> organization (and logo); an ISO year
-    range 2022/2023 -> the 2022-2023 the renderers print."""
+    """An award or honor: `show` -> the resume / timelined flags; `org` ->
+    organization (and logo); an ISO year range 2022/2023 -> the 2022-2023
+    the renderers print."""
+    show = _show(a, {"resume", "timeline"}, f"{where}: {a.get('name')}")
+    a["resume"] = "resume" in show
+    a["timelined"] = "timeline" in show
     if a.get("org"):
         o = orgs.get(a.pop("org"))
         if not o:
@@ -429,7 +453,7 @@ def _normalize_publications(data):
             paper.setdefault("body", paper["abstract"])
         pid = paper.get("id")
         _check_links(paper.get("links"), f"publications.yaml: {pid}")
-        for k, v in (paper.pop("ref", None) or {}).items():
+        for k, v in (paper.pop("data", None) or {}).items():
             paper.setdefault(k, v)
         if paper.get("kind") not in PAPER_KINDS:
             sys.exit(f"publications.yaml: {pid}: kind {paper.get('kind')!r} not in {sorted(PAPER_KINDS)}")
