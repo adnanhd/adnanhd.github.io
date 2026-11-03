@@ -52,12 +52,10 @@ def main():
 
     template = TEMPLATE_PATH.read_text()
 
-    # Publications. In-progress / under-review papers float to the top.
+    # Publications. Submitted papers float to the top.
     pubs = (data.get("publications") or {}).get("papers", [])
-    pubs = sorted(pubs, key=lambda p: 0 if p.get("status") else 1)
-    # Under-review papers stay off the front page (double-blind).
-    selected_html = "\n".join(render_publication_card(p) for p in pubs
-                              if p.get("selected") and not p.get("status"))
+    pubs = sorted(pubs, key=lambda p: 0 if p.get("stage") == "submitted" else 1)
+    selected_html = "\n".join(render_publication_card(p) for p in pubs if p.get("front"))
     resume_html = "\n".join(render_compact_publication(p) for p in pubs if p.get("resume"))
 
     # Meta

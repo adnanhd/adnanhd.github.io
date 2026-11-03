@@ -195,25 +195,6 @@ def render_awards(data):
     return "\n".join(parts)
 
 
-def _pub_group(paper):
-    if paper.get("status"):
-        return "review"
-    venue = str(paper.get("venue") or paper.get("venue_short") or "").lower()
-    if "thesis" in venue or "dissertation" in venue:
-        return "thesis"
-    if not venue or venue.startswith("arxiv"):
-        return "preprint"
-    return "peer"
-
-
-_PUB_GROUPS = [
-    ("peer", "Peer-reviewed publications"),
-    ("preprint", "Preprints"),
-    ("review", "Manuscripts under review"),
-    ("thesis", "Theses"),
-]
-
-
 def _render_pub_item(paper, number):
     authors = tex_bold_author(tex_escape(paper.get("authors", "")))
     title = tex_escape(paper.get("title_apa") or paper.get("title", ""))
@@ -224,13 +205,13 @@ def _render_pub_item(paper, number):
     standalone = is_standalone(paper)
     title_tex = f"\\emph{{{title}}}" if standalone else title
     ref = f"{authors} ({year}). {title_tex}."
-    status = _status_label(paper.get("status"))
+    status = _status_label(paper)
     if status:
         ref += f" \\textcolor{{statusamber}}{{{tex_escape(status)}"
-        # Double-blind venues stay unnamed while the paper is in review;
+        # Double-blind targets stay unnamed while the paper is submitted;
         # a dagger points at the footnote under the section.
         if venue and not paper.get("venue_double_blind"):
-            ref += f" at {venue}"
+            ref += f" to {venue}"
         ref += "}"
         if paper.get("venue_double_blind"):
             ref += "\\textsuperscript{\\dag}"
@@ -287,8 +268,14 @@ def render_publications(data):
     pubs = list((data.get("publications") or {}).get("papers", []))
     pubs.sort(key=lambda p: -parse_date(p.get("date")).toordinal())
     parts = []
-    for key, heading in (("selected", "Selected publications"), ("other", "Other publications")):
-        group = [p for p in pubs if bool(p.get("selected")) == (key == "selected")]
+    def group_of(p):
+        if p.get("kind") == "thesis":
+            return "thesis"
+        return "selected" if p.get("selected") else "other"
+
+    for key, heading in (("selected", "Selected publications"), ("other", "Other publications"),
+                         ("thesis", "Theses")):
+        group = [p for p in pubs if group_of(p) == key]
         if not group:
             continue
         parts.append(f"\\subsection*{{{heading}}}")
@@ -297,7 +284,7 @@ def render_publications(data):
         for i, paper in enumerate(group):
             parts.append(_render_pub_item(paper, n - i))
         parts.append("\\end{cvlist}")
-    if any(p.get("status") and p.get("venue_double_blind") for p in pubs):
+    if any(p.get("stage") == "submitted" and p.get("venue_double_blind") for p in pubs):
         parts.append("\\smallskip\\noindent{\\footnotesize\\textsuperscript{\\dag} "
                      "Venue withheld while under double-blind review.}")
     return "\n".join(parts)
@@ -345,7 +332,7 @@ def render_teaching(data):
     parts = []
     for t in (data.get("teaching") or {}).get("teaching", []):
         head = f"{tex_escape(t.get('position', ''))}, {_tex_with_links(t.get('company', ''))}"
-        dates = _month_range(t.get("start_date"), t.get("end_date"))
+        dates = t.get("date_label", "").replace(" - ", "--")
         if dates:
             head += f" \\hfill {{\\normalfont\\small {tex_escape(dates)}}}"
         parts.append(f"\\subsection*{{{head}}}")

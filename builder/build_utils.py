@@ -5,13 +5,13 @@ Shared utilities: escaping, date parsing, author highlighting, data loading.
 import hashlib
 import re
 import sys
-from datetime import datetime
+from datetime import date, datetime
 from html import escape
 from pathlib import Path
 
 import yaml
 
-from .build_config import AUTHOR_DISPLAY_NAME, AUTHOR_NAME, AUTHOR_NAME_ALT, DATA_DIR
+from .build_config import AUTHOR_DISPLAY_NAME, AUTHOR_NAME, AUTHOR_NAME_ALT, DATA_DIR, META_DIR
 
 
 # ---------------------------------------------------------------------------
@@ -159,15 +159,16 @@ def parse_date(date_str):
 YAML_FILES = [
     "bio", "education", "teaching", "experience",
     "research", "extracurricular", "publications",
-    "blogs", "works", "social_posts", "venues", "authors",
+    "blogs", "works", "social_posts",
 ]
+META_FILES = ["venues", "authors", "courses"]
 
 
 def load_data():
     """Load all YAML data files from the data/ directory."""
     data = {}
-    for name in YAML_FILES:
-        path = DATA_DIR / f"{name}.yaml"
+    for name, path in ([(n, DATA_DIR / f"{n}.yaml") for n in YAML_FILES]
+                       + [(n, META_DIR / f"{n}.yaml") for n in META_FILES]):
         try:
             with open(path) as f:
                 data[name] = yaml.safe_load(f) or {}
@@ -177,9 +178,9 @@ def load_data():
         except yaml.YAMLError as e:
             print(f"Error: {path} has invalid YAML: {e}", file=sys.stderr)
             sys.exit(1)
+    set_author_pool((data.get("authors") or {}).get("authors") or {})
     _normalize_publications(data)
     _normalize_sections(data)
-    set_author_pool((data.get("authors") or {}).get("authors") or {})
     return data
 
 
@@ -193,10 +194,53 @@ def _normalize_sections(data):
                 if isinstance(g, dict):
                     for k, v in g.items():
                         item.setdefault(k, v)
+            if section == "teaching":
+                _normalize_teaching(item, (data.get("courses") or {}).get("courses") or {})
             # A co-advisor folds into the advisor line everywhere.
             if item.get("co_advisor"):
                 item["advisor"] = (
                     f"{item.get('advisor', '')}, Co-advisor: {item.pop('co_advisor')}".lstrip(", "))
+
+
+# A term's first and last month; fall runs into January of the next year.
+_TERM_MONTHS = {"spring": ((0, 2), (0, 6)), "summer": ((0, 7), (0, 8)), "fall": ((0, 10), (1, 1))}
+
+
+def _term_bounds(term):
+    m = re.match(r"^(\d{4})-(spring|summer|fall)$", str(term))
+    if not m:
+        sys.exit(f"teaching.yaml: term {term!r} is not YYYY-spring|summer|fall")
+    y = int(m.group(1))
+    (dy0, m0), (dy1, m1) = _TERM_MONTHS[m.group(2)]
+    return f"{y + dy0}-{m0:02d}", f"{y + dy1}-{m1:02d}"
+
+
+def _term_label(term):
+    year, season = str(term).split("-")
+    return f"{season.capitalize()} {year}"
+
+
+def _normalize_teaching(item, pool):
+    """Resolve `courses: [{course, terms}]` against meta/courses.yaml into
+    the course lines the renderers print (newest term first), and derive
+    start_date / end_date (ISO) and date_label (a term range) from the
+    terms; the end is Present while the last term is still running."""
+    rows = []
+    for c in item.pop("courses", None) or []:
+        info = pool.get(c.get("course"))
+        if not info:
+            sys.exit(f"teaching.yaml: {item.get('id')}: course {c.get('course')!r} is not a key in meta/courses.yaml")
+        terms = sorted(c.get("terms") or [], key=lambda t: _term_bounds(t)[0])
+        rows.append((_term_bounds(terms[-1])[0], info, terms))
+    rows.sort(key=lambda r: r[0], reverse=True)
+    item["bullets"] = [f"[{i['code']}]({i['link']}) - {i['name']} ({', '.join(_term_label(t) for t in ts)})"
+                       for _, i, ts in rows]
+    every = sorted({t for _, _, ts in rows for t in ts}, key=lambda t: _term_bounds(t)[0])
+    first, last = every[0], every[-1]
+    item["start_date"] = _term_bounds(first)[0]
+    running = _term_bounds(last)[1] >= date.today().strftime("%Y-%m")
+    item["end_date"] = "Present" if running else _term_bounds(last)[1]
+    item["date_label"] = f"{_term_label(first)} - {'Present' if running else _term_label(last)}"
 
 
 def _sentence_case(title, proper):
@@ -228,13 +272,20 @@ def _join_authors(names):
     return ", ".join(names[:-1]) + ", & " + names[-1]
 
 
+PAPER_KINDS = {"article", "proceedings", "chapter", "thesis"}
+PAPER_STAGES = {"published", "preprint", "submitted"}
+PAPER_SHOW = {"front", "resume", "timeline"}
+
+
 def _normalize_publications(data):
-    """Expand the two-layer publication schema into the flat fields the
-    renderers consume: hoist `meta` keys, join the author list, derive
-    the sentence-case APA title, and resolve `venue` (a pool key, or a
-    dict of id/name/volume/detail/prefix/short/link) against
-    data/venues.yaml into venue / venue_short / venue_link /
-    venue_prefix / venue_detail."""
+    """Expand the publication grammar (see the header of
+    data/publications.yaml) into the flat fields the renderers consume:
+    hoist `ref`, turn `show` into the front / selected / resume /
+    timelined flags, resolve author keys against meta/authors.yaml and
+    join them, derive the sentence-case APA title, and resolve `venue`
+    (or, for a submitted paper, `target`) against meta/venues.yaml into
+    venue / venue_short / venue_link / venue_prefix / venue_detail."""
+    keys = (data.get("authors") or {}).get("authors") or {}
     pool = (data.get("venues") or {}).get("venues") or {}
     proper = set((data.get("publications") or {}).get("proper_nouns") or [])
     pages = (data.get("publications") or {}).get("pages") or {}
@@ -244,26 +295,44 @@ def _normalize_publications(data):
             paper.setdefault("body", page)
         elif paper.get("abstract"):  # legacy inline field
             paper.setdefault("body", paper["abstract"])
-        record = paper.pop("data", None)
-        if isinstance(record, dict):
-            for k, v in record.items():
-                paper.setdefault(k, v)
-        authors = paper.get("authors")
-        if isinstance(authors, list):
-            paper["authors"] = _join_authors(authors)
-        elif isinstance(authors, str) and ";" in authors:
-            paper["authors"] = _join_authors([a.strip() for a in authors.split(";") if a.strip()])
+        pid = paper.get("id")
+        for k, v in (paper.pop("ref", None) or {}).items():
+            paper.setdefault(k, v)
+        if paper.get("kind") not in PAPER_KINDS:
+            sys.exit(f"publications.yaml: {pid}: kind {paper.get('kind')!r} not in {sorted(PAPER_KINDS)}")
+        paper.setdefault("stage", "published")
+        if paper["stage"] not in PAPER_STAGES:
+            sys.exit(f"publications.yaml: {pid}: stage {paper['stage']!r} not in {sorted(PAPER_STAGES)}")
+        show = paper.pop("show", None)
+        if not isinstance(show, list) or set(show) - PAPER_SHOW:
+            sys.exit(f"publications.yaml: {pid}: show {show!r} must be a list from {sorted(PAPER_SHOW)}")
+        paper["front"] = "front" in show
+        paper["resume"] = "resume" in show
+        paper["timelined"] = "timeline" in show
+
+        names = []
+        for a in paper.get("authors") or []:
+            if "," in a:
+                names.append(a)
+            elif a in keys:
+                names.append(keys[a]["apa"])
+            else:
+                sys.exit(f"publications.yaml: {pid}: author {a!r} is neither an APA string nor a key in authors.yaml")
+        paper["authors"] = _join_authors(names)
         if paper.get("title"):
             paper.setdefault("title_apa", _sentence_case(paper["title"], proper))
-        meta = paper.pop("meta", None)
-        if isinstance(meta, dict):
-            for k, v in meta.items():
-                paper.setdefault(k, v)
 
-        raw = paper.get("venue")
+        if paper["stage"] == "submitted" and paper.get("venue"):
+            sys.exit(f"publications.yaml: {pid}: a submitted paper names its target, not a venue")
+        # A submitted paper is listed under its target; any other paper
+        # under the venue it appeared in.
+        raw = paper.get("target") if paper["stage"] == "submitted" else paper.get("venue")
         spec = raw if isinstance(raw, dict) else {}
         key = spec.get("id") if spec else raw
         entry = pool.get(key) if isinstance(key, str) else None
+        for k, v in (("venue or target", key), ("target", paper.get("target"))):
+            if isinstance(v, str) and v not in pool:
+                sys.exit(f"publications.yaml: {pid}: {k} {v!r} is not a key in venues.yaml")
 
         name = spec.get("name") or (entry or {}).get("name") or (key if isinstance(key, str) else "")
         if spec.get("volume"):
@@ -279,12 +348,13 @@ def _normalize_publications(data):
             paper.setdefault("venue_link", link)
         if (entry or {}).get("double_blind"):
             paper["venue_double_blind"] = True
-        if "selected" not in paper and (entry or {}).get("selected"):
-            paper["selected"] = True
+        if "selected" not in paper:
+            paper["selected"] = bool((entry or {}).get("selected"))
 
         if not paper.get("venue_short"):
             if spec.get("short"):
-                paper["venue_short"] = spec["short"]
+                year = str(paper.get("date", ""))[:4]
+                paper["venue_short"] = f"{spec['short']} {year}" if year else spec["short"]
             elif entry and entry.get("short"):
                 yy = str(paper.get("date", ""))[:4][-2:]
                 if entry.get("short_year") is False or not yy:
@@ -301,8 +371,14 @@ _AUTHOR_POOL = {}
 
 
 def set_author_pool(pool):
+    """Index the pool by APA form; an author's link is the first of site,
+    scholar, github."""
     global _AUTHOR_POOL
-    _AUTHOR_POOL = {k: v for k, v in pool.items() if isinstance(v, dict) and v.get("link")}
+    _AUTHOR_POOL = {}
+    for v in pool.values():
+        link = v.get("site") or v.get("scholar") or v.get("github")
+        if link:
+            _AUTHOR_POOL[v["apa"]] = {**v, "link": link}
 
 
 def get_author_pool():

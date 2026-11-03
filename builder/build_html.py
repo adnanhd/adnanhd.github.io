@@ -430,20 +430,13 @@ def _render_awards(awards, compact=False):
     return f'<div class="entry-awards">{"".join(rows)}</div>'
 
 
-_STATUS_LABELS = {
-    "under-review": "Under Review",
-    "in-progress": "In Progress",
-}
 
 
 def _status_badge(paper):
-    """Render an in-progress / under-review badge, or '' when the paper
-    has no status set."""
-    status = paper.get("status")
-    if not status:
+    """Render the "Submitted" badge, or '' for any other stage."""
+    if paper.get("stage") != "submitted":
         return ""
-    text = _STATUS_LABELS.get(str(status).strip().lower(), str(status).strip())
-    return f'<span class="pub-status">{esc(text)}</span>'
+    return '<span class="pub-status">Submitted</span>'
 
 
 def render_publication_card(paper):
@@ -519,9 +512,9 @@ def render_compact_publication(paper):
     if paper.get("date"):
         citation += f" ({esc(format_date(paper['date']))})."
     citation += f" {esc(paper.get('title_apa') or paper['title'])}."
-    # Under-review work keeps its venue in the data but doesn't show it
+    # Submitted work names its target in the data but doesn't show it
     # yet -- only the status badge.
-    if paper.get("status"):
+    if paper.get("stage") == "submitted":
         pass
     elif paper.get("venue_link") and paper.get("venue_short"):
         citation += (
@@ -547,8 +540,8 @@ def render_compact_publication(paper):
     parts.append(_render_awards(paper.get("awards")))
     parts.append('</div>')
 
-    # Right column: a status badge (under-review work) or the link pills.
-    if paper.get("status"):
+    # Right column: a status badge (submitted work) or the link pills.
+    if paper.get("stage") == "submitted":
         parts.append(_status_badge(paper))
     elif paper.get("links"):
         parts.append('<div class="publication-links">')
@@ -697,7 +690,7 @@ def render_research(data):
 
 def render_teaching(data):
     items = (data.get("teaching") or {}).get("teaching", [])
-    return _render_section(items, "position", "company", _date_range)
+    return _render_section(items, "position", "company", lambda item: item.get("date_label", ""))
 
 
 def render_honors(data):
@@ -1196,7 +1189,7 @@ def render_timeline(data, only=""):
                     "#859900", "#d33682", "#b58900", "#0f766e", "#5b7eb0"]
     used = set()
     for paper in (data.get("publications") or {}).get("papers", []):
-        if paper.get("source") and not paper.get("status"):
+        if paper.get("source") and paper.get("stage") != "submitted":
             used.add(paper["source"])
     for pid, item in raw_parents.items():
         # Anything that draws a bar or owns news gets its own colour.
@@ -1238,9 +1231,9 @@ def render_timeline(data, only=""):
 
 
     for paper in (data.get("publications") or {}).get("papers", []):
-        if paper.get("timelined") is False:  # explicitly hidden from the timeline
+        if not paper.get("timelined"):
             continue
-        if paper.get("status"):  # under review: not an event yet
+        if paper.get("stage") == "submitted":  # not an event yet
             continue
         # Publications are the timeline's primary entities: each renders
         # as a full card at its own date. `source` no longer nests the

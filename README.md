@@ -9,10 +9,12 @@ publish on GitHub Pages.
 ## Data model in one paragraph
 
 Everything is an **entry**: a unique `id`, a `data:` block (the record
-itself) and a `meta:` block (presentation flags). Publications nest
-under the position that produced them via `meta.source`, venues and
-author names resolve from shared pools (`venues.yaml`,
-`authors.yaml`), and any entry can carry dated `meta.news` one-liners.
+itself) and a `meta:` block (presentation flags); publications use their
+own grammar (`kind`, `stage`, `target`, `ref`, `show`). Publications nest
+under the position that produced them via `source`, venues and author
+names resolve from the shared pools in `meta/` (`venues.yaml`,
+`authors.yaml`), and any entry can carry dated `news` one-liners (under
+`meta:` outside publications).
 A news entry feeds the **News** section and the **Timeline** at once:
 News is the curated cut of the Timeline, the way `resume.pdf` is the
 cut of `cv.pdf`. There is no separate news file. Field-by-field
@@ -32,7 +34,7 @@ schemas live in [`data/README.md`](data/README.md).
   the left, degrees and news on the right, positions as parallel
   coloured bars with exact date endpoints. Hovering a bar, card or
   rail dot highlights its colour group.
-- **Source-nested publications**: `meta.source` links a paper to the
+- **Source-nested publications**: `source` links a paper to the
   position that produced it; the paper card wears the position's
   colour and shows Supervisor / Laboratory / Employment meta rows.
 - **Attached awards**: any entry can carry `awards:`; they badge the

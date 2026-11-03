@@ -103,16 +103,11 @@ AUTHOR_NAME_APA = "Dogan, A. H."
 
 
 def is_standalone(paper):
-    """APA treats theses, preprints and manuscripts under review as
+    """APA treats theses, preprints and submitted manuscripts as
     standalone works: their *title* is italic and what follows is plain.
     Articles, proceedings papers and book chapters are the reverse
     (plain title, italic venue)."""
-    if paper.get("status"):
-        return True
-    venue = str(paper.get("venue") or paper.get("venue_short") or "").lower()
-    if not venue:  # no outlet at all: an unpublished manuscript
-        return True
-    return venue.startswith("arxiv") or "thesis" in venue or "dissertation" in venue
+    return paper.get("stage") != "published" or paper.get("kind") == "thesis"
 
 
 def tex_bold_author(text):
@@ -153,18 +148,9 @@ _LINK_LABELS = {
 }
 _LINK_ORDER = ["DOI", "ISBN", "arXiv", "PDF", "Thesis", "Code", "Data"]
 
-# Display text for a paper's `status` field (in-progress / unpublished work).
-_STATUS_LABELS = {
-    "under-review": "Under Review",
-    "in-progress": "In Progress",
-}
-
-
-def _status_label(status):
-    """Badge text for a paper's status, or '' when unset."""
-    if not status:
-        return ""
-    return _STATUS_LABELS.get(str(status).strip().lower(), str(status).strip())
+def _status_label(paper):
+    """Badge text for a submitted paper, or '' for any other stage."""
+    return "Submitted" if paper.get("stage") == "submitted" else ""
 
 
 def _ordered_links(links):
@@ -257,8 +243,8 @@ def render_experience(data):
 
 def render_publications(data):
     pubs = [p for p in (data.get("publications") or {}).get("papers", []) if p.get("resume")]
-    # In-progress / under-review papers float to the top of the list.
-    pubs.sort(key=lambda p: 0 if p.get("status") else 1)
+    # Submitted papers float to the top of the list.
+    pubs.sort(key=lambda p: 0 if p.get("stage") == "submitted" else 1)
     parts = []
     for paper in pubs:
         authors = tex_bold_author(tex_escape(paper.get("authors", "")))
@@ -274,9 +260,9 @@ def render_publications(data):
         standalone = is_standalone(paper)
         title_tex = f"\\emph{{{title}}}" if standalone else title
         ref = f"{authors} ({year}). {title_tex}."
-        status = _status_label(paper.get("status"))
-        # Under-review work keeps its venue in the data but doesn't show
-        # it yet -- only the status badge. Otherwise the venue is italic
+        status = _status_label(paper)
+        # Submitted work names its target in the data but doesn't show it
+        # yet -- only the status badge. Otherwise the venue is italic
         # unless the title already carries the italics (standalone work).
         if venue and not status:
             venue_tex = venue if standalone else f"\\emph{{{venue}}}"

@@ -7,6 +7,7 @@ from pathlib import Path
 # Paths - build_config.py lives in builder/, so repo root is two levels up
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
+META_DIR = BASE_DIR / "meta"  # shared pools: authors, venues
 TEMPLATE_PATH = BASE_DIR / "template.html"
 OUTPUT_PATH = BASE_DIR / "index.html"
 RESUME_TEMPLATE_PATH = BASE_DIR / "resume_template.tex"

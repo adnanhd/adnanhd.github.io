@@ -39,7 +39,7 @@ entries all share one layout:
 
 `id` is what everything else points at. Convention for positions:
 `uni-lab-supervisor` (`metu-imagelab-kalkan-akbas` for multiple
-supervisors). Publications reference a position via `meta.source`, and
+supervisors). Publications reference a position via `source`, and
 the Timeline uses the same link to colour a paper with its parent
 position's colour.
 
@@ -69,16 +69,20 @@ or position bar) but contributes nothing to News. News is therefore
 the curated cut of the Timeline, the way `resume.pdf` is the cut of
 `cv.pdf`. There is no separate news file.
 
-## Pools
+## Pools (`meta/`)
 
-- **`venues.yaml`** - one record per venue (`name`, `short`, `link`,
-  `double_blind`, `selected`). A paper's `venue:` can be just the pool
-  key (`venue: "ICRA"`); the year suffix (`ICRA'26`) derives from the
-  paper's date. Prestigious venues set `selected: true` once, in the
-  pool.
-- **`authors.yaml`** - display names, diacritics and profile links for
-  co-authors. Any name that appears in an `advisor:` line or an author
-  string renders as a link if the pool has one.
+The shared pools live beside `data/`, in `meta/`.
+
+- **`meta/venues.yaml`** - one record per venue under a lowercase key
+  (`name`, `short`, `link`, `double_blind`, `selected`). A paper names
+  the key (`venue: icra`, `target: cvpr`); the year suffix (`ICRA'26`)
+  derives from the paper's date. Prestigious venues set
+  `selected: true` once, in the pool; a paper overrides with its own
+  `selected: true|false`.
+- **`meta/authors.yaml`** - one record per co-author under a short key
+  of initials (`oub`): `apa` (the reference form), `name`, and any of
+  `site`, `scholar`, `github`. The name links to the first of site,
+  scholar, github in author lines; advisor lines match on `name`.
 
 ## `publications.yaml`
 
@@ -87,22 +91,22 @@ proper_nouns: [Kalman, Cappadocia, ...]   # survive sentence-casing
 
 papers:
   - id: "fwnkf"
-    data:
+    kind: proceedings            # article | proceedings | chapter | thesis
+    # stage: submitted           # published (default) | preprint | submitted
+    # target: cvpr               # where a preprint or submitted paper is sent
+    ref:
       title: "Frequency-Weighted Neural Kalman Filters"
-      authors: "Dogan, A. H.; Demirel, B. U.; Holz, C."   # "; "-separated
-      venue: "ICRA"              # pool key, or an inline dict:
-      #venue: {name: ..., prefix: ..., detail: ..., short: ..., link: ...}
+      authors: [ahd, bud, ch]    # pool keys or literal "Celtik, S. O."
+      venue: icra                # pool key, or an inline dict:
+      #venue: {id: ..., name: ..., prefix: ..., detail: ..., short: ..., link: ...}
       date: "2026-06"
-    meta:
-      source: "eth-siplab-cholz" # nest under this position (colour, meta rows)
-      status: "under-review"     # optional; anonymizes double-blind venues
-      selected: true             # About > Selected Publications
-      resume: true               # resume.pdf (cv.pdf lists everything)
-      timelined: true
-      image: "assets/img/publications/icra2026.png"
-      news: [...]
-    links:
-      - {name: "arXiv", url: "..."}
+    # selected: false            # overrides the venue's selected flag
+    show: [front, resume, timeline]  # front page, resume.pdf, Timeline
+    source: "eth-siplab-cholz"   # nest under this position (colour, meta rows)
+    image: "assets/img/publications/icra2026.png"
+    news: [...]
+    links:                       # DOI, ISBN, arXiv, PDF, Thesis, Code, Data
+      - {name: arXiv, url: "..."}
     awards:
       - {name: "Best Paper Award", organization: "...", link: "..."}
 
@@ -112,7 +116,10 @@ pages:                           # per-paper page bodies, keyed by id
     Markdown-ish body with MathJax.
 ```
 
-Author strings are joined to APA form (`,` + final `&`) and the
+A submitted paper shows a "Submitted" badge and no venue name when its
+target is double-blind; it stays off the Timeline until it appears.
+cv.pdf lists every paper (Selected, Other, Theses). Author lists are
+joined to APA form (`,` + final `&`) and the
 sentence-case `title_apa` derives automatically, keeping
 `proper_nouns` capitalized.
 
