@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# pre-commit: rebuild generated artifacts (index.html, sitemap.xml, resume.pdf, cv.pdf,
-# project pages) from data/ + templates and stage them, so they ride along in
+# pre-commit: rebuild generated artifacts (index.html, cv/, timeline/, blogs/,
+# sitemap.xml, feed.xml, resume.pdf, cv.pdf, project pages, search index) from data/ + templates and stage them, so they ride along in
 # the same commit.
 #
 # Tracked hook — enable once per clone with:  git config core.hooksPath .githooks
@@ -14,9 +14,9 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
 # --- only rebuild when a build source is part of this commit -----------------
-SOURCE_REGEX='^(data/|builder/|assets/|template\.html$|resume_template\.tex$|cv_template\.tex$)'
+SOURCE_REGEX='^(data/|meta/|builder/|assets/|template\.html$|resume_template\.tex$|cv_template\.tex$)'
 
-if ! git diff --cached --name-only --diff-filter=ACMR | grep -Eq "$SOURCE_REGEX"; then
+if ! git diff --cached --name-only --diff-filter=ACMRD | grep -Eq "$SOURCE_REGEX"; then
     exit 0
 fi
 
@@ -40,7 +40,9 @@ if ! "$PY" -m builder; then
 fi
 
 # --- stage regenerated artifacts ---------------------------------------------
-git add index.html sitemap.xml feed.xml resume.pdf cv.pdf 2>/dev/null || true
-git add projects 2>/dev/null || true
+# Every page the build writes, with deletions (the search index renames its
+# shards on each build), so a commit never leaves rebuilt pages unstaged.
+git add -A -- index.html cv/index.html timeline/index.html blogs/index.html \
+    sitemap.xml feed.xml resume.pdf cv.pdf projects pagefind
 
 exit 0
