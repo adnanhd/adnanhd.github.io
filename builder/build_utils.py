@@ -195,6 +195,7 @@ def load_data():
         ex["skills"] = {g["title"]: [f"[{i['name']}]({i['url']})" if isinstance(i, dict) else i
                                      for i in g.get("items") or []]
                         for g in ex["skills"].values()}
+    _normalize_keywords(data)
     for h in (data.get("extracurricular") or {}).get("honors") or []:
         _normalize_award(h, orgs, "extracurricular.yaml")
         h["title"] = h.pop("name")
@@ -332,6 +333,13 @@ def _normalize_people_and_load(item, data, section):
     if parts:
         item["commitment"] = ", ".join(parts)
 
+    if isinstance(item.get("thesis"), str):
+        papers = {p.get("id"): p for p in (data.get("publications") or {}).get("papers") or []}
+        paper = papers.get(item["thesis"])
+        if not paper:
+            sys.exit(f"{section}.yaml: {item.get('id')}: thesis {item['thesis']!r} is not a paper id in publications.yaml")
+        link = next((l["url"] for l in paper.get("links") or [] if l.get("name") == "Thesis"), None)
+        item["thesis"] = {"title": paper["title"], **({"url": link} if link else {})}
     thesis = item.get("thesis") or {}
     if thesis.get("url"):
         thesis["link"] = thesis.pop("url")
@@ -360,6 +368,38 @@ def _normalize_award(a, orgs, where):
     m = re.match(r"^(\d{4})/(\d{4})$", str(a.get("date", "")))
     if m:
         a["date"] = f"{m.group(1)}-{m.group(2)}"
+
+
+_SMALL_WORDS = {"and", "through", "of", "for", "the", "a", "in", "on"}
+
+
+def _title_case(phrase):
+    words = []
+    for i, w in enumerate(phrase.split()):
+        if i and w in _SMALL_WORDS:
+            words.append(w)
+        else:
+            words.append("-".join(p[:1].upper() + p[1:] for p in w.split("-")))
+    return " ".join(words)
+
+
+def _normalize_keywords(data):
+    """bio.yaml research_keywords (group -> phrases) -> the flat list the
+    site prints, and one resume skills line per group, titled by
+    coursework_groups.<group>.resume."""
+    bio = data.get("bio") or {}
+    kw = bio.get("research_keywords") or {}
+    if not isinstance(kw, dict):
+        sys.exit("bio.yaml: research_keywords is a map of coursework group -> phrases")
+    groups = bio.get("coursework_groups") or {}
+    skills = (data.setdefault("extracurricular", {})).setdefault("skills", {})
+    flat = []
+    for g, phrases in kw.items():
+        if g not in groups:
+            sys.exit(f"bio.yaml: research_keywords group {g!r} is not in coursework_groups")
+        flat += phrases
+        skills[groups[g]["resume"]] = [_title_case(p) for p in phrases]
+    bio["research_keywords"] = flat
 
 
 def _normalize_coursework(data):
@@ -477,13 +517,9 @@ def _normalize_publications(data):
     keys = (data.get("authors") or {}).get("authors") or {}
     pool = (data.get("venues") or {}).get("venues") or {}
     proper = set((data.get("publications") or {}).get("proper_nouns") or [])
-    pages = (data.get("publications") or {}).get("pages") or {}
+    if (data.get("publications") or {}).get("pages"):
+        sys.exit("publications.yaml: the pages map is gone; a paper carries its own `body`")
     for paper in (data.get("publications") or {}).get("papers") or []:
-        page = pages.get(paper.get("id")) or pages.get(paper.get("title"))
-        if page:
-            paper.setdefault("body", page)
-        elif paper.get("abstract"):  # legacy inline field
-            paper.setdefault("body", paper["abstract"])
         pid = paper.get("id")
         _check_links(paper.get("links"), f"publications.yaml: {pid}")
         for a in paper.get("awards") or []:
