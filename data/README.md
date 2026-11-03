@@ -37,9 +37,10 @@ entries all share one layout:
   links: [...]
 ```
 
-`id` is what everything else points at. Convention for positions:
-`uni-lab-supervisor` (`metu-imagelab-kalkan-akbas` for multiple
-supervisors). Publications reference a position via `source`, and
+`id` is what everything else points at. One convention for every
+entry: `uni__unit__role-or-supervisor` (`eth__siplab__holz`,
+`metu__imagelab-denge__kalkan-akbas` for several supervisors,
+`metu__ceng__msc` for a degree, `metu__ceng__ta` for teaching). Publications reference a position via `source`, and
 the Timeline uses the same link to colour a paper with its parent
 position's colour.
 

@@ -183,6 +183,11 @@ def load_data():
     _normalize_sections(data)
     _normalize_coursework(data)
     orgs = (data.get("institutions") or {}).get("institutions") or {}
+    for aff in (data.get("bio") or {}).get("affiliations") or []:
+        o = orgs.get(aff.pop("org", None))
+        if not o:
+            sys.exit("bio.yaml: an affiliation's org is not a key in meta/institutions.yaml")
+        aff["name"] = o["name"]
     for h in (data.get("extracurricular") or {}).get("honors") or []:
         _normalize_award(h, orgs, "extracurricular.yaml")
         h["title"] = h.pop("name")
@@ -204,7 +209,9 @@ def _normalize_sections(data):
             org = orgs.get(item.pop("org", None))
             if org is None:
                 sys.exit(f"{section}.yaml: {item.get('id')}: org is not a key in meta/institutions.yaml")
-            item["institution" if section == "education" else "company"] = org["name"]
+            name = f"{org['name']} ({org['short']})" if org.get("short") else org["name"]
+            item["institution" if section == "education" else "company"] = name
+            _check_links(item.get("links"), f"{section}.yaml: {item.get('id')}")
             for k in ("location", "logo", "logo_link"):
                 if org.get(k):
                     item.setdefault(k, org[k])
@@ -393,6 +400,13 @@ def _join_authors(names):
 PAPER_KINDS = {"article", "proceedings", "chapter", "thesis"}
 PAPER_STAGES = {"published", "preprint", "submitted"}
 PAPER_SHOW = {"front", "resume", "timeline"}
+LINK_NAMES = ["DOI", "ISBN", "arXiv", "PDF", "Thesis", "Code", "Data"]
+
+
+def _check_links(links, where):
+    for ln in links or []:
+        if ln.get("name") not in LINK_NAMES:
+            sys.exit(f"{where}: link name {ln.get('name')!r} is not one of {LINK_NAMES}")
 
 
 def _normalize_publications(data):
@@ -414,6 +428,7 @@ def _normalize_publications(data):
         elif paper.get("abstract"):  # legacy inline field
             paper.setdefault("body", paper["abstract"])
         pid = paper.get("id")
+        _check_links(paper.get("links"), f"publications.yaml: {pid}")
         for k, v in (paper.pop("ref", None) or {}).items():
             paper.setdefault(k, v)
         if paper.get("kind") not in PAPER_KINDS:
