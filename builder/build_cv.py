@@ -92,6 +92,13 @@ def render_personal(data):
     return "\n".join(f"\\cvfield{{{k}}}{{{v}}}" for k, v in rows)
 
 
+def _hdr(l1, l2, r1, r2):
+    """Header rows: title and institution wrap inside the left column; date
+    and location stay in a fixed right column, level with them."""
+    return (f"\\begin{{minipage}}[t]{{\\dimexpr\\linewidth-3.4cm\\relax}}\\raggedright {l1}\\\\ {l2}\\end{{minipage}}"
+            f"\\hfill\\begin{{minipage}}[t]{{3.3cm}}\\raggedleft {r1}\\\\ {r2}\\end{{minipage}}")
+
+
 def render_employment(data):
     items = list((data.get("experience") or {}).get("experience", []))
     # Newest first by end date ('Present' sorts to the top), start date
@@ -99,14 +106,21 @@ def render_employment(data):
     items.sort(key=lambda r: (parse_date(r.get("end_date")), parse_date(r.get("start_date"))), reverse=True)
     parts = []
     for exp in items:
-        body = f"\\textbf{{{tex_escape(exp.get('position', ''))}}}, {_tex_with_links(exp.get('company', ''))}"
-        # Supervisor on the left, location pushed to the right margin.
-        loc = f"\\hfill\\emph{{{tex_escape(exp['location'])}}}" if exp.get("location") else ""
-        if exp.get("advisor"):
-            body += f"\\\\ Supervisor: {tex_linkify_names(_tex_with_links(exp['advisor']))}{loc}"
-        elif loc:
-            body += f"\\\\ {loc}"
-        parts.append(_entry(exp, _month_range(exp.get('start_date'), exp.get('end_date')), body))
+        # Line 1: role, lab (its short name) -- dates. Line 2: supervisor --
+        # the institution and the place, the city not repeated when the
+        # institution's name already carries it.
+        body = (f"\\textbf{{{tex_escape(exp.get('position', ''))}}}, {_tex_with_links(exp['org_unit'])}"
+                f"\\hfill {_month_range(exp.get('start_date'), exp.get('end_date'))}")
+        sup = (f"\\textbf{{Supervisor:}} {tex_linkify_names(_tex_with_links(exp['advisor']))}" if exp.get("advisor") else "")
+        parent = exp["org_parent"]
+        place = exp.get("location", "").split(", ")
+        if place and place[0] in parent:
+            place = place[1:]
+        body += f"\\\\ {sup}\\hfill\\emph{{{tex_escape(', '.join([parent] + place))}}}"
+        if exp.get("bullets"):
+            its = "\n".join(f"  \\item {_tex_with_links(x)}" for x in exp["bullets"])
+            body += f"\n\\begin{{cvsublist}}\n{its}\n\\end{{cvsublist}}\n"
+        parts.append(_entry(exp, "", body))
     return "\n".join(parts)
 
 
@@ -117,23 +131,19 @@ def render_education(data):
     items.sort(key=lambda r: (parse_date(r.get("end_date")), parse_date(r.get("start_date"))), reverse=True)
     parts = []
     for edu in items:
-        body = f"\\textbf{{{tex_escape(edu.get('degree', ''))}}}, {_tex_with_links(edu.get('institution', ''))}"
-        loc = f"\\hfill\\emph{{{tex_escape(edu['location'])}}}" if edu.get("location") else ""
-        thesis = edu.get("thesis") or {}
+        body = _hdr(f"\\textbf{{{tex_escape(edu.get('degree', ''))}}}",
+                    f"\\emph{{{_tex_with_links(edu.get('institution', ''))}}}",
+                    _year_range(edu.get('start_date'), edu.get('end_date')),
+                    f"\\emph{{{tex_escape(edu.get('location', ''))}}}")
         if edu.get("advisor"):
-            body += f"\\\\ Advisor: {tex_linkify_names(_tex_with_links(edu['advisor']))}{loc}"
-            loc = ""
+            body += f"\\\\ \\textbf{{Advisor:}} {tex_linkify_names(_tex_with_links(edu['advisor']))}"
+        thesis = edu.get("thesis") or {}
         if thesis.get("title"):
             t = tex_escape(thesis["title"])
             if thesis.get("link"):
                 t = _href(thesis["link"], t)
-            # The location rides on this line when no advisor line took it,
-            # so no left-empty line appears.
-            body += f"\\\\ {tex_escape(thesis.get('label', 'Thesis'))}: {t}{loc}"
-            loc = ""
-        if loc:
-            body += f"\\\\ {loc}"
-        parts.append(_entry(edu, _year_range(edu.get('start_date'), edu.get('end_date')), body))
+            body += f"\\\\ \\textbf{{{tex_escape(thesis.get('label', 'Thesis'))}:}} {t}"
+        parts.append(_entry(edu, "", body))
     return "\n".join(parts)
 
 
@@ -297,31 +307,26 @@ def render_research(data):
     items.sort(key=lambda r: (parse_date(r.get("end_date")), parse_date(r.get("start_date"))), reverse=True)
     parts = []
     for r in items:
-        company = r.get("company", "")
-        company_tex = _tex_with_links(company)
-        # No inline markdown link in the name: fall back to logo_link so
-        # the project/lab page is reachable from the CV too.
-        if "](" not in company and r.get("logo_link"):
-            company_tex = _href(r["logo_link"], company_tex)
-        body = f"\\textbf{{{company_tex}}}"
-        # The description is the project in one line and takes the italic
-        # line under the name (the section title already says these are
-        # undergraduate projects); the bullets are what was done in it, each
-        # worded to fill its line.
-        summary = r.get("description")
-        body += f"\\\\ \\emph{{{_tex_with_links(summary) if summary else tex_escape(r.get('position', ''))}}}"
+        # The section heading already says these are undergraduate research
+        # projects, so the role is not repeated: the institution leads.
+        adv = (f"\\textbf{{Advisor:}} {tex_linkify_names(_tex_with_links(r['advisor']))}" if r.get("advisor") else "")
+        body = _hdr(f"\\textbf{{{_tex_with_links(r.get('company', ''))}}}", adv,
+                    _month_range(r.get('start_date'), r.get('end_date')),
+                    f"\\emph{{{tex_escape(r.get('location', ''))}}}")
         sep = "\\\\ "
+        proj = r.get("project")
+        if proj:
+            funder = proj.get("funder")
+            fund = (f" ([{funder['name']}]({funder['url']}))" if funder and funder.get("url")
+                    else f" ({funder['name']})" if funder else "")
+            body += f"{sep}\\textbf{{Project:}} {_tex_with_links(proj['title'] + fund)}"
+        desc = r.get("description") or ""
+        if desc:
+            body += f"{sep}\\textbf{{Topic:}} {_tex_with_links(desc)}"
         if r.get("bullets"):
-            items = "\n".join(f"  \\item {_tex_with_links(b)}" for b in r["bullets"])
-            body += f"\n\\begin{{cvsublist}}\n{items}\n\\end{{cvsublist}}\n"
-            sep = ""
-        # Advisor on the left, location pushed to the right margin.
-        loc = f"\\hfill\\emph{{{tex_escape(r['location'])}}}" if r.get("location") else ""
-        if r.get("advisor"):
-            body += f"{sep}Advisor: {tex_linkify_names(_tex_with_links(r['advisor']))}{loc}"
-        elif loc:
-            body += f"{sep}{loc}"
-        parts.append(_entry(r, _month_range(r.get('start_date'), r.get('end_date')), body))
+            its = "\n".join(f"  \\item {_tex_with_links(x)}" for x in r["bullets"])
+            body += f"\n\\begin{{cvsublist}}\n{its}\n\\end{{cvsublist}}\n"
+        parts.append(_entry(r, "", body))
     return "\n".join(parts)
 
 

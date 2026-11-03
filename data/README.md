@@ -125,6 +125,11 @@ curated cut of the Timeline, the way `resume.pdf` is the cut of
   `name`, `short`, `url`, `parent`, `location`, `logo`. Cards print
   `name ([short](url)), <parent short or name>`; awards print
   `name (short)`; bio affiliations print `name`.
+- **`meta/projects.yaml`** - one record per funded project (`name`,
+  `short`, `title`, `funder: {name, url}`, `url`, `logo`). A position
+  names it with `project: contsec` beside its `org`; the CV prints
+  `name (short), <institution>` as the title and `title (funder)` on its
+  Project line.
 - **`meta/courses.yaml`** - one record per course (`code`, `name`,
   `url`). Teaching lists `courses: [{course: ceng280, terms:
   [2024-spring, ...]}]` and its dates derive from the terms; a degree

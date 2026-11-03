@@ -40,7 +40,7 @@
 
 % Section: bold heading with a thin rule underneath
 \titleformat{\section}{\Large\bfseries}{}{0em}{}[{\color{rulegray}\titlerule[0.4pt]}]
-\titlespacing*{\section}{0pt}{14pt}{8pt}
+\titlespacing*{\section}{0pt}{11pt}{6pt}
 \titleformat{\subsection}{\normalsize\bfseries\itshape}{}{0em}{}
 \titlespacing*{\subsection}{0pt}{8pt}{4pt}
 % Keep a heading with at least a few lines of its section
@@ -49,23 +49,25 @@
 
 % Left date column width
 \newlength{\datew}
-\setlength{\datew}{3.1cm}
+\setlength{\datew}{2.3cm}
 \newlength{\bodyw}
 \setlength{\bodyw}{\dimexpr\textwidth-\datew-0.4cm-0.4pt\relax}
 
-% \cventry[logo]{date}{body}: date (and optional logo centred beneath it) in the
-% left column, a thin vertical rule, then the body in the right column.
+% \cventry[logo]{date}{body}: date at the top of the left column, the optional
+% logo centred in the space below it, a thin vertical rule, then the body. A
+% short entry grows to fit the date and the logo.
 % The gap below is a bare \vskip, which a following heading's own space
 % absorbs; \vspace would hide it and the two would stack.
 \newsavebox{\cvbox}
+\newsavebox{\cvlogobox}
 \newcommand{\cventry}[3][]{%
-  \sbox{\cvbox}{\begin{minipage}[t]{\bodyw}\raggedright #3\end{minipage}}%
+  \sbox{\cvbox}{\begin{minipage}[t]{\bodyw}\raggedright\small #3\end{minipage}}%
+  \ifx\relax#1\relax\sbox{\cvlogobox}{}\else
+    \sbox{\cvlogobox}{\includegraphics[height=0.8cm,width=2.1cm,keepaspectratio]{#1}}\fi
   \noindent
-  \begin{minipage}[t]{\datew}\raggedright #2%
-    \ifx\relax#1\relax\else\\[5pt]\makebox[\linewidth][c]{\includegraphics[height=0.8cm,width=2.1cm,keepaspectratio]{#1}}\fi
-  \end{minipage}\hspace{0.15cm}%
+  \makebox[\datew][c]{\raisebox{\dimexpr(\ht\cvbox-\dp\cvbox)/2-\ht\cvlogobox/2\relax}[0pt][0pt]{\usebox{\cvlogobox}}}\hspace{0.15cm}%
   {\color{rulegray}\vrule width 0.4pt height \ht\cvbox depth \dp\cvbox}\hspace{0.25cm}%
-  \usebox{\cvbox}\par\vskip 9pt\relax}
+  \usebox{\cvbox}\par\vskip 6pt\relax}
 
 % \cvfield{label}{value}: right-aligned label for the personal-info block
 \newcommand{\cvfield}[2]{%
@@ -80,7 +82,7 @@
   \begin{minipage}[t]{\dimexpr\textwidth-3.9cm\relax}\raggedright #2\end{minipage}\par\vspace{3pt}}
 
 \newenvironment{cvlist}{\begin{enumerate}[leftmargin=2.4em,labelsep=0.6em,itemsep=4pt,parsep=0pt,topsep=2pt,align=right]}{\end{enumerate}}
-\newenvironment{cvsublist}{\begin{itemize}[leftmargin=1.4em,itemsep=1pt,parsep=0pt,topsep=2pt,label=\textbullet]}{\end{itemize}}
+\newenvironment{cvsublist}{\footnotesize\begin{itemize}[leftmargin=1.4em,itemsep=0pt,parsep=0pt,topsep=1pt,label=\textbullet]}{\end{itemize}}
 
 \begin{document}
 

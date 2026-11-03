@@ -61,15 +61,13 @@
 % Subheading with optional logo
 \newcommand{\resumeSubheading}[5]{
   \vspace{-2pt}\item
-    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
-      \ifx&#5&
-        \textbf{#1} & \textit{#2} \\
-      \else
-        #5\hspace{3pt}\textbf{#1} & \textit{#2} \\
-      \fi
+    \makebox[36pt][l]{#5}\hspace{3pt}%
+    \begin{tabular*}{\dimexpr0.97\textwidth-39pt\relax}[t]{@{}p{\dimexpr0.97\textwidth-39pt-4.3cm\relax}@{\extracolsep{\fill}}>{\raggedleft\arraybackslash}p{4.1cm}@{}}
+      \textbf{#1} & \textit{#2} \\
       \textit{\small#3} & \textit{\small #4} \\
     \end{tabular*}\vspace{-7pt}
 }
+
 
 \newcommand{\resumeSubSubheading}[2]{
     \item

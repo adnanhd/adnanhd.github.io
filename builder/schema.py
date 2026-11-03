@@ -46,6 +46,7 @@ def _pools(data):
         "venues": keys("venues", "venues"),
         "courses": keys("courses", "courses"),
         "institutions": keys("institutions", "institutions"),
+        "projects": keys("projects", "projects"),
         "papers": {p.get("id") for p in (data.get("publications") or {}).get("papers") or []},
         "positions": positions,
         "coursework_groups": set(((data.get("bio") or {}).get("coursework_groups") or {})),

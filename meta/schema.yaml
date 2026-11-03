@@ -5,7 +5,7 @@
 #   bool, url, date (2025, 2025-06, 2025-06-01, 2025-06-01 10:00),
 #   dates (2022-09-12/2025-01-10, open end 2023-02/..), years (2022/2023),
 #   term (2024-spring), apa ("Surname, X. Y."), any
-#   key:<pool>  a key of authors, venues, courses, institutions, papers,
+#   key:<pool>  a key of authors, venues, courses, institutions, projects, papers,
 #               positions (entry ids) or coursework_groups (bio.yaml)
 #   enum:a,b    list:<spec>    record:<name>    <spec>|<spec>
 #   {map: <spec>, keys: <spec>}  a mapping with free keys
@@ -28,6 +28,7 @@ files:
   meta/venues.yaml: {"venues!": {map: record:venue}}
   meta/courses.yaml: {"courses!": {map: record:course}}
   meta/institutions.yaml: {"institutions!": {map: record:institution}}
+  meta/projects.yaml: {"projects!": {map: record:project}}
 
 records:
   # --- shared pieces
@@ -99,6 +100,7 @@ records:
       hours: int
       remote: bool
       course: key:courses
+      project: key:projects
     "show!": list:enum:timeline
     news: list:record:news_item
     description: text
@@ -170,6 +172,13 @@ records:
     selected: bool
     cities: {map: name, keys: int}
   course: {"code!": name, name: name, url: url}
+  project:
+    "name!": name
+    "short!": name
+    "title!": name
+    funder: record:linked_name
+    url: url
+    logo: url
   institution:
     "name!": name
     short: name

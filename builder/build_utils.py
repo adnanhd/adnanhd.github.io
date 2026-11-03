@@ -162,7 +162,7 @@ YAML_FILES = [
     "research", "extracurricular", "publications",
     "blogs", "works", "social_posts",
 ]
-META_FILES = ["venues", "authors", "courses", "institutions"]
+META_FILES = ["venues", "authors", "courses", "institutions", "projects"]
 
 
 def load_data():
@@ -273,6 +273,26 @@ def _normalize_sections(data):
             key = item.pop("org", None)
             org = _org(orgs, key, where)
             item["institution" if section == "education" else "company"] = _org_line(orgs, key)
+            # The parts the CV prints separately: the unit's linked short name
+            # and the institution it belongs to.
+            short = org.get("short") or org["name"]
+            item["org_short"] = f"[{short}]({org['url']})" if org.get("url") else short
+            parent = _org(orgs, org["parent"], where) if org.get("parent") else org
+            item["org_parent"] = parent.get("short") or parent["name"]
+            item["org_parent_name"] = parent["name"]
+            # The unit alone, `name ([short](url))`, without its parent.
+            item["org_unit"] = (f"{org['name']} ([{org['short']}]({org['url']}))" if org.get("short") and org.get("url")
+                                else f"{org['name']} ({org['short']})" if org.get("short") else org["name"])
+            pkey = item.pop("project", None)
+            if pkey:
+                proj = ((data.get("projects") or {}).get("projects") or {}).get(pkey)
+                if proj is None:
+                    sys.exit(f"{where}: project {pkey!r} is not a key in meta/projects.yaml")
+                item["project"] = proj
+                head = f"{proj['name']} ([{proj['short']}]({proj['url']}))" if proj.get("url") else f"{proj['name']} ({proj['short']})"
+                item["company"] = f"{head}, {item['org_parent']}"
+                if proj.get("logo"):
+                    item["logo"] = proj["logo"]
             _check_links(item.get("links"), where)
             for k in ("location", "logo"):
                 if org.get(k):
