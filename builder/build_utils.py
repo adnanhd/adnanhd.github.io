@@ -161,7 +161,7 @@ YAML_FILES = [
     "research", "extracurricular", "publications",
     "blogs", "works", "social_posts",
 ]
-META_FILES = ["venues", "authors", "courses"]
+META_FILES = ["venues", "authors", "courses", "institutions"]
 
 
 def load_data():
@@ -181,12 +181,14 @@ def load_data():
     set_author_pool((data.get("authors") or {}).get("authors") or {})
     _normalize_publications(data)
     _normalize_sections(data)
+    _normalize_coursework(data)
     return data
 
 
 def _normalize_sections(data):
     """Hoist the data/meta groups of education / experience / research
     (and teaching, if it adopts the layout) into flat fields."""
+    orgs = (data.get("institutions") or {}).get("institutions") or {}
     for section in ("education", "experience", "research", "teaching"):
         for item in (data.get(section) or {}).get(section) or []:
             for group in ("data", "meta"):
@@ -194,12 +196,41 @@ def _normalize_sections(data):
                 if isinstance(g, dict):
                     for k, v in g.items():
                         item.setdefault(k, v)
+            org = orgs.get(item.pop("org", None))
+            if org is None:
+                sys.exit(f"{section}.yaml: {item.get('id')}: org is not a key in meta/institutions.yaml")
+            item["institution" if section == "education" else "company"] = org["name"]
+            for k in ("location", "logo", "logo_link"):
+                if org.get(k):
+                    item.setdefault(k, org[k])
             if section == "teaching":
                 _normalize_teaching(item, (data.get("courses") or {}).get("courses") or {})
             # A co-advisor folds into the advisor line everywhere.
             if item.get("co_advisor"):
                 item["advisor"] = (
                     f"{item.get('advisor', '')}, Co-advisor: {item.pop('co_advisor')}".lstrip(", "))
+
+
+def _normalize_coursework(data):
+    """Collect each degree's `coursework` (group -> course keys) into the
+    bio-level selected_coursework (group title -> course lines) and
+    resume_coursework_categories (group title -> resume area) the
+    renderers read, in the order of bio.yaml coursework_groups."""
+    bio = data.get("bio") or {}
+    groups = bio.get("coursework_groups") or {}
+    pool = (data.get("courses") or {}).get("courses") or {}
+    lines = {}
+    for edu in (data.get("education") or {}).get("education") or []:
+        for g, keys in (edu.pop("coursework", None) or {}).items():
+            if g not in groups:
+                sys.exit(f"education.yaml: {edu.get('id')}: coursework group {g!r} is not in bio.yaml coursework_groups")
+            for k in keys:
+                c = pool.get(k)
+                if not c:
+                    sys.exit(f"education.yaml: {edu.get('id')}: course {k!r} is not a key in meta/courses.yaml")
+                lines.setdefault(g, []).append(f"{c['name']} ([{c['code']}]({c['link']}))")
+    bio["selected_coursework"] = {groups[g]["title"]: lines[g] for g in groups if g in lines}
+    bio["resume_coursework_categories"] = {groups[g]["title"]: groups[g]["resume"] for g in groups if g in lines}
 
 
 # A term's first and last month; fall runs into January of the next year.

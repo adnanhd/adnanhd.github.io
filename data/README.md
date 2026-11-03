@@ -83,6 +83,13 @@ The shared pools live beside `data/`, in `meta/`.
   of initials (`oub`): `apa` (the reference form), `name`, and any of
   `site`, `scholar`, `github`. The name links to the first of site,
   scholar, github in author lines; advisor lines match on `name`.
+- **`meta/institutions.yaml`** - one record per institution or lab
+  (`name`, `location`, `logo`, `logo_link`). Education, experience,
+  research and teaching entries name it with `org: metu`.
+- **`meta/courses.yaml`** - one record per course (`code`, `name`,
+  `link`). Teaching lists `courses: [{course: ceng280, terms:
+  [2024-spring, ...]}]`; a degree lists `coursework: {optimization:
+  [ie553, ...]}` under the groups of bio.yaml `coursework_groups`.
 
 ## `publications.yaml`
 
