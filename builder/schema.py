@@ -12,6 +12,7 @@ name is an error. A spec is either a string or a dict:
   record:<name>       a record defined under `records:`
   <spec>|<spec>       either form
   {map: <spec>, keys: <spec>}   a mapping with free keys
+  {one_of: [<spec>, ...]}       either form
   {<field>: <spec>, ...}        an inline record
 
 `name` is plain text (no markdown link), `text` may carry markdown.
@@ -58,6 +59,14 @@ class Validator:
 
     def check(self, spec, value, where):
         if isinstance(spec, dict):
+            if set(spec) == {"one_of"}:
+                errors = []
+                for alt in spec["one_of"]:
+                    try:
+                        return self.check(alt, value, where)
+                    except Invalid as e:
+                        errors.append(str(e))
+                raise Invalid(errors[-1])
             if set(spec) == {"list"}:
                 return self._list(spec["list"], value, where)
             if "map" in spec:

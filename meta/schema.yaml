@@ -9,6 +9,7 @@
 #               positions (entry ids) or coursework_groups (bio.yaml)
 #   enum:a,b    list:<spec>    record:<name>    <spec>|<spec>
 #   {map: <spec>, keys: <spec>}  a mapping with free keys
+#   {one_of: [<spec>, ...]}      either form, when a form itself has "|"
 # Naming: field names snake_case, pool keys lowercase kebab-case, entry
 # ids uni__unit__role (eth__siplab__holz, metu__ceng__msc).
 
@@ -128,6 +129,8 @@ records:
     target: key:venues
     "data!":
       "title!": name
+      short_title: name
+      topic: str
       "authors!": list:key:authors|apa
       venue: key:venues|record:venue_ref
       "date!": date
@@ -135,10 +138,16 @@ records:
     "show!": list:enum:front,resume,timeline
     source: key:positions
     image: url
-    news: list:record:news_item
+    news: {one_of: [bool, "list:record:news_item|record:news_event"]}
     links: list:record:link
     awards: list:record:paper_award
     body: text
+  # news: true generates one item from the stage (published: accepted at
+  # **<venue short> <year>** in <city>, linking arXiv, DOI or PDF;
+  # preprint: is on arXiv; submitted: nothing). A list mixes free items
+  # {date, text} with generated ones; `where` overrides the venue's city
+  # for that year, `topic` adds " on <topic>" after the linked short_title.
+  news_event: {"date!": date, "event!": "enum:accepted,preprint", where: name, topic: str}
   venue_ref: {id: key:venues, name: name, volume: str, detail: str, prefix: str, short: name, url: url}
   paper_award: {"name!": name, "organization!": name, url: url, logo: url, description: text}
 
@@ -152,7 +161,14 @@ records:
 
   # --- meta/ pools
   author: {"apa!": apa, "name!": name, title: name, site: url, scholar: url, github: url}
-  venue: {"name!": name, short: name, short_year: bool, url: url, double_blind: bool, selected: bool}
+  venue:
+    "name!": name
+    short: name
+    short_year: bool
+    url: url
+    double_blind: bool
+    selected: bool
+    cities: {map: name, keys: int}
   course: {"code!": name, name: name, url: url}
   institution:
     "name!": name

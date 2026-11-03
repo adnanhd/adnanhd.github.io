@@ -518,10 +518,60 @@ def _check_links(links, where):
             sys.exit(f"{where}: link name {ln.get('name')!r} is not one of {LINK_NAMES}")
 
 
+def _paper_link(paper, names):
+    for name in names:
+        for ln in paper.get("links") or []:
+            if ln.get("name") == name:
+                return ln["url"]
+    return None
+
+
+def _news_text(paper, entry, venue_key, item, pid):
+    """The generated line for an `accepted` or `preprint` news item."""
+    title = paper.get("short_title") or paper["title"]
+    topic = item.get("topic") or paper.get("topic")
+    on = f" on {topic}" if topic else ""
+    year = str(item.get("date") or paper.get("date", ""))[:4]
+    if item["event"] == "preprint":
+        url = _paper_link(paper, ["arXiv"])
+        if not url:
+            sys.exit(f"publications.yaml: {pid}: a preprint news item needs an arXiv link")
+        return f'Our preprint "[{title}]({url})"{on} is on arXiv'
+    url = _paper_link(paper, ["arXiv", "DOI", "PDF"])
+    if not url:
+        sys.exit(f"publications.yaml: {pid}: accepted news needs an arXiv, DOI or PDF link")
+    if not entry or not entry.get("short"):
+        sys.exit(f"publications.yaml: {pid}: accepted news needs a venue from meta/venues.yaml")
+    city = item.get("where") or (entry.get("cities") or {}).get(int(year)) if year.isdigit() else None
+    if not city:
+        sys.exit(f"publications.yaml: {pid}: no city for {venue_key} {year}; add venues.{venue_key}.cities.{year} or where:")
+    return f'Our paper "[{title}]({url})"{on} accepted at **{entry["short"]} {year}** in {city}'
+
+
+def _normalize_paper_news(paper, entry, venue_key):
+    """`news: true` -> one generated item at the paper's date (accepted when
+    published, preprint when a preprint, nothing while submitted); a list
+    keeps free {date, text} items and expands {date, event, where, topic}."""
+    pid = paper.get("id")
+    news = paper.get("news")
+    if news is True:
+        event = {"published": "accepted", "preprint": "preprint"}.get(paper.get("stage"))
+        news = [{"date": paper.get("date"), "event": event}] if event else []
+    elif news is False or news is None:
+        news = []
+    out = []
+    for item in news:
+        if "event" in item:
+            out.append({"date": item["date"], "text": _news_text(paper, entry, venue_key, item, pid)})
+        else:
+            out.append(item)
+    paper["news"] = out
+
+
 def _normalize_publications(data):
     """Expand the publication grammar (see the header of
     data/publications.yaml) into the flat fields the renderers consume:
-    hoist `ref`, turn `show` into the front / selected / resume /
+    hoist `data`, turn `show` into the front / selected / resume /
     timelined flags, resolve author keys against meta/authors.yaml and
     join them, derive the sentence-case APA title, and resolve `venue`
     (or, for a submitted paper, `target`) against meta/venues.yaml into
@@ -602,6 +652,7 @@ def _normalize_publications(data):
                     paper["venue_short"] = entry["short"]
                 else:
                     paper["venue_short"] = f"{entry['short']}'{yy}"
+        _normalize_paper_news(paper, entry, key)
 
 
 # ---------------------------------------------------------------------------

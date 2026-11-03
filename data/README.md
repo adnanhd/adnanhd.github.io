@@ -77,6 +77,26 @@ news:
 links and `**phrase**` for bold. Nothing else is interpreted; what you
 mark is exactly what renders.
 
+A paper's news can also be generated from the paper itself. `news: true`
+gives one item at the paper's date: a published paper reads `Our paper
+"[<short_title>](<arXiv, DOI or PDF link>)" on <topic> accepted at
+**<venue short> <year>** in <city>`, a preprint `Our preprint
+"[<short_title>](<arXiv link>)" is on arXiv`, and a submitted paper gets
+nothing (double-blind). A list may mix free items with generated ones:
+
+```yaml
+data: {title: "...", short_title: "Beyond Subjectivity", topic: "EEG-based cybersickness detection", ...}
+news:
+  - {date: "2025-03", event: accepted}               # generated
+  - {date: "2025-05", event: accepted, where: Rome}   # own city
+  - {date: "2025-06", text: "Invited talk at ..."}    # free
+```
+
+`short_title` defaults to the title and `topic` (also settable per item)
+adds " on <topic>". The city comes from the venue's `cities: {2026:
+Vienna}` in meta/venues.yaml unless the item names `where`; with
+neither, the build stops naming the venue and year.
+
 Each news entry feeds two views at once:
 
 - the **News** section on the About page (newest first, capped at
