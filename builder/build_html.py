@@ -16,7 +16,7 @@ from .build_config import (
     SECONDARY_CATEGORIES,
     URL_TEMPLATES,
 )
-from .build_utils import esc, format_date, highlight_author, highlight_author_span, linkify_names_html, parse_date, slugify
+from .build_utils import esc, format_date, logo_size, highlight_author, highlight_author_span, linkify_names_html, parse_date, slugify
 
 
 # ---------------------------------------------------------------------------
@@ -597,7 +597,9 @@ def _render_resume_item(title, subtitle, date, description="", logo=None,
 
     if logo:
         parts.append('<div class="resume-logo">')
-        img = f'<img src="{esc(logo)}" alt="{esc(_md_strip(subtitle))}" loading="lazy" width="40" height="40" />'
+        w, h = logo_size(logo, 100, 46, 40)
+        img = (f'<img src="{esc(logo)}" alt="{esc(_md_strip(subtitle))}" loading="lazy" '
+               f'width="{w}" height="{h}" style="width:{w}px;height:{h}px" />')
         if logo_link:
             parts.append(f'<a href="{esc(logo_link)}" target="_blank" rel="noopener noreferrer">{img}</a>')
         else:
@@ -1045,10 +1047,11 @@ def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False
         date += f' <span class="timeline-dash">-</span> {esc(format_date(e["end_date"]))}'
 
     logo = e.get("logo")
-    logo_html = (
-        f'<img class="timeline-logo" src="{esc(logo)}" alt="" loading="lazy" '
-        f'width="22" height="22" />' if logo else ""
-    )
+    logo_html = ""
+    if logo:
+        w, h = logo_size(logo, 56, 20, 18)
+        logo_html = (f'<img class="timeline-logo" src="{esc(logo)}" alt="" loading="lazy" '
+                     f'width="{w}" height="{h}" style="width:{w}px;height:{h}px" />')
 
     if e.get("news_text"):
         # Atomic news moment: a dated one-liner, no title block.

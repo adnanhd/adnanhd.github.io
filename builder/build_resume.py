@@ -18,7 +18,7 @@ from .build_config import (
     RESUME_OUTPUT_PATH,
     RESUME_TEMPLATE_PATH,
 )
-from .build_utils import format_date, parse_date
+from .build_utils import format_date, parse_date, logo_size
 
 
 def _short_date(value):
@@ -121,6 +121,17 @@ def tex_bold_author(text):
     return text
 
 
+def _logo_tex(item):
+    """The entry logo for \\resumeSubheading: a fixed 24pt slot holding the
+    logo at equal area (logo_size), centred on the text line; '' without one."""
+    logo = _logo_path(item)
+    if not logo:
+        return ""
+    w, h = logo_size(logo, 24, 12, 11)
+    return (f"\\makebox[24pt][c]{{\\raisebox{{{4 - h / 2:.1f}pt}}"
+            f"{{\\includegraphics[width={w}pt,height={h}pt]{{{logo}}}}}}}")
+
+
 def _logo_path(item):
     """Return the logo filename if the logo file exists, else empty string."""
     logo = item.get("logo", "")
@@ -183,7 +194,7 @@ def render_education(data):
     items = (data.get("education") or {}).get("education", [])
     parts = []
     for edu in items:
-        logo = _logo_path(edu)
+        logo = _logo_tex(edu)
         parts.append(
             f"    \\resumeSubheading"
             f"{{{tex_escape(edu.get('degree', ''))}}}"
@@ -214,7 +225,7 @@ def render_experience(data):
     items = (data.get("experience") or {}).get("experience", [])
     parts = []
     for exp in items:
-        logo = _logo_path(exp)
+        logo = _logo_tex(exp)
         # Supervisor sits beside the position title in normal (non-bold)
         # small type; names carry inline Scholar links.
         position = tex_escape(exp.get("position", ""))

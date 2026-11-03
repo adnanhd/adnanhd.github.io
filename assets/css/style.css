@@ -582,16 +582,24 @@ a:hover {
 
 .resume-logo {
     flex-shrink: 0;
-    width: 40px;
-    height: 40px;
+    width: 100px;
+    height: 46px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.resume-logo img {
+.resume-logo a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     height: 100%;
+}
+
+.resume-logo img {
+    max-width: 100%;
+    max-height: 100%;
     object-fit: contain;
     border-radius: 6px;
 }
@@ -1287,8 +1295,6 @@ a:hover {
 
 .timeline-logo {
     flex-shrink: 0;
-    width: 16px;
-    height: 16px;
     object-fit: contain;
     border-radius: 4px;
     background: #fff;
@@ -2140,7 +2146,7 @@ footer {
     }
 
     .resume-logo {
-        width: 32px;
+        width: 64px;
         height: 32px;
     }
 

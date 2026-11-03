@@ -11,7 +11,7 @@ from pathlib import Path
 
 import yaml
 
-from .build_config import AUTHOR_DISPLAY_NAME, AUTHOR_NAME, AUTHOR_NAME_ALT, DATA_DIR, META_DIR
+from .build_config import BASE_DIR, AUTHOR_DISPLAY_NAME, AUTHOR_NAME, AUTHOR_NAME_ALT, DATA_DIR, META_DIR
 from .schema import validate
 
 
@@ -285,6 +285,25 @@ def _normalize_sections(data):
             if item.get("co_advisor"):
                 item["advisor"] = (
                     f"{item.get('advisor', '')}, Co-advisor: {item.pop('co_advisor')}".lstrip(", "))
+
+
+_LOGO_ASPECT = {}
+
+
+def logo_size(logo, max_w, max_h, side):
+    """(width, height) in px that gives every logo the area of a side x side
+    square, kept inside max_w x max_h: a wide wordmark comes out wider and
+    flatter, a square emblem stays square, so no logo looks bigger than the
+    rest."""
+    if logo not in _LOGO_ASPECT:
+        from PIL import Image
+        with Image.open(BASE_DIR / logo) as im:
+            _LOGO_ASPECT[logo] = im.width / im.height
+    r = _LOGO_ASPECT[logo]
+    h = side / r ** 0.5
+    w = h * r
+    k = min(1.0, max_w / w, max_h / h)
+    return round(w * k), round(h * k)
 
 
 def _months(start, end):
