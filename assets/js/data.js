@@ -552,3 +552,25 @@ document.addEventListener("DOMContentLoaded", () => {
   initAppointment();
 });
 
+
+// In-page links (#resume-papers, ...) stop with the section's title just
+// under the sticky top bar: each target's scroll margin is the bar's
+// measured height, the title block above the target, and a 12px gap.
+// Measured on load and on resize, so it holds at any zoom or width.
+(function () {
+    function setAnchorMargins() {
+        const nav = document.querySelector(".main-nav");
+        const navH = nav ? nav.getBoundingClientRect().height : 0;
+        document.querySelectorAll(".content-section > h2 + [id]").forEach(function (target) {
+            const title = target.previousElementSibling;
+            const above = target.getBoundingClientRect().top - title.getBoundingClientRect().top;
+            target.style.scrollMarginTop = (navH + above + 12) + "px";
+        });
+        if (location.hash && document.readyState === "complete") {
+            const el = document.getElementById(location.hash.slice(1));
+            if (el) el.scrollIntoView();
+        }
+    }
+    window.addEventListener("load", setAnchorMargins);
+    window.addEventListener("resize", setAnchorMargins);
+})();

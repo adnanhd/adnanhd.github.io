@@ -298,6 +298,7 @@ def _normalize_sections(data):
                 if org.get(k):
                     item.setdefault(k, org[k])
             item["place"] = _place(parent, item.get("location", ""))
+            item["place_inst"] = _place_inst(parent, item.get("location", ""))
             if org.get("url"):
                 item.setdefault("logo_link", org["url"])
             if section == "teaching":
@@ -309,9 +310,16 @@ def _normalize_sections(data):
 
 
 def _place(inst, location):
-    """The place column of an entry (CV PDF, resume): the institution's
-    short form (place_name, else short, else name), then the location
-    without its city when the institution's name already carries it:
+    """The place column of an entry (CV PDF, resume): the city and country
+    only (Ankara, Turkey; Zürich, Switzerland; Irvine, California, USA);
+    the institution is already named in the entry's own lines."""
+    return str(location)
+
+
+def _place_inst(inst, location):
+    """The place with the institution first, for entries whose own lines
+    name only the unit (employment): the institution's short form, then
+    the location without its city when the name already carries it:
     METU, Ankara, Turkey; ETH Zürich, Switzerland; UC Irvine, California, USA."""
     short = inst.get("place_name") or inst.get("short") or inst["name"]
     parts = [p for p in str(location).split(", ") if p]
@@ -401,7 +409,7 @@ def _normalize_people_and_load(item, data, section):
         c = ((data.get("courses") or {}).get("courses") or {}).get(course)
         if not c:
             sys.exit(f"{section}.yaml: {item.get('id')}: course {course!r} is not a key in meta/courses.yaml")
-        parts.append(f"Term project ({c['code']})")
+        parts.append(f"{c['code']} term project")
     end = item.get("end_date")
     if parts and item.get("start_date") and end and str(end).lower() != "present" and section != "teaching":
         parts.append(_duration(item["start_date"], end))

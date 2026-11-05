@@ -3584,3 +3584,58 @@ html {
         display: none !important;
     }
 }
+
+/* Plain-text links after a reference: print only. */
+.pub-inline-links {
+    display: none;
+}
+@media print {
+    .pub-inline-links {
+        display: inline;
+    }
+}
+
+/* Supervisor and place line under an employment entry: upright, as the
+   supervisor line elsewhere. */
+.resume-subheader.resume-advisor > span:first-child {
+    font-style: normal;
+}
+
+/* CV page type scale: one body size and one secondary size, nothing else. */
+.layout-cv {
+    --cv-body: 16px;
+    --cv-meta: 14px;
+}
+.layout-cv .resume-header,
+.layout-cv .resume-header strong,
+.layout-cv .resume-description,
+.layout-cv .resume-details > p,
+.layout-cv .resume-bullets li,
+.layout-cv .pub-compact-reference,
+.layout-cv .resume-coursework,
+.layout-cv .resume-thesis {
+    font-size: var(--cv-body) !important;
+}
+.layout-cv .resume-header .date,
+.layout-cv .resume-subheader,
+.layout-cv .resume-subheader span,
+.layout-cv .resume-advisor,
+.layout-cv .resume-commitment,
+.layout-cv .entry-awards,
+.layout-cv .entry-award,
+.layout-cv .award-org,
+.layout-cv .award-name {
+    font-size: var(--cv-meta) !important;
+}
+
+/* CV page: a thin rule under each section title, as in the CV PDF. */
+.layout-cv .content-section > h2 {
+    border-bottom: 1px solid var(--border-color, #d0d0d0);
+    padding-bottom: 4px;
+}
+
+/* In-page link targets: data.js sets each one's scroll margin so the
+   section title shows under the sticky bar; this is the fallback. */
+.layout-plain .content-section > h2 + [id] {
+    scroll-margin-top: 150px;
+}

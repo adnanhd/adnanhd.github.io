@@ -548,6 +548,13 @@ def render_compact_publication(paper):
             v = f'<span class="venue-selected">{v}</span>'
         citation += f" {v}."
 
+    # Print shows the links as plain text after the reference, separated
+    # by middle dots as in the CV PDF; on screen they are the pills.
+    if paper.get("links") and paper.get("stage") != "submitted":
+        inline = " &middot; ".join(
+            f'<a href="{esc(link["url"])}">{esc(link["name"])}</a>' for link in paper["links"])
+        citation += f' <span class="pub-inline-links">{inline}</span>'
+
     parts.append('<div class="pub-compact-body">')
     parts.append(f'<div class="pub-compact-reference">{citation}</div>')
     parts.append(_render_awards(paper.get("awards")))
@@ -878,8 +885,12 @@ def _md_to_html(text):
 def _render_resume_item(title, subtitle, date, description="", logo=None,
                         links=None, logo_link=None, commitment=None,
                         advisor=None, bullets=None, awards=None, thesis=None,
-                        advisor_label="Advisor", fields=None):
-    """Render a single resume entry with logo, header, bullets, and links."""
+                        advisor_label="Advisor", fields=None, place=None,
+                        inline_subtitle=False):
+    """Render a single resume entry with logo, header, bullets, and links.
+    With inline_subtitle the organisation follows the position on the first
+    line and the supervisor shares the second with the place, as in the CV
+    PDF's employment entries."""
     parts = ['<div class="resume-item">']
 
     if logo:
@@ -896,13 +907,34 @@ def _render_resume_item(title, subtitle, date, description="", logo=None,
         parts.append("</div>")
 
     parts.append('<div class="resume-details">')
-    parts.append(f'<div class="resume-header"><strong>{esc(title)}</strong>'
-                 f'<span class="date">{esc(date)}</span></div>')
+    # The commitment follows the dates in parentheses: "Apr 2025 - Sep 2025
+    # (Full-time, 5 months)".
+    if date and commitment and str(commitment).strip():
+        date = f"{date} ({str(commitment).strip()})"
+    right = str(place).strip() if place else ""
+    if inline_subtitle:
+        head = (f'<strong>{esc(title)}</strong>, {_md_to_html(subtitle)}' if subtitle
+                else f'<strong>{esc(title)}</strong>')
+        parts.append(f'<div class="resume-header"><span>{head}</span>'
+                     f'<span class="date">{esc(date)}</span></div>')
+        adv = ""
+        if advisor and str(advisor).strip():
+            adv = (f'<strong>{esc(advisor_label)}:</strong> '
+                   + linkify_names_html(_md_to_html(advisor)).replace(
+                       "Co-advisor:", "<strong>Co-advisor:</strong>"))
+            advisor = None
+        parts.append(f'<div class="resume-subheader resume-advisor"><span>{adv}</span>'
+                     f'<span class="resume-commitment">{esc(right)}</span></div>')
+        subtitle, right = None, ""
+    else:
+        parts.append(f'<div class="resume-header"><strong>{esc(title)}</strong>'
+                     f'<span class="date">{esc(date)}</span></div>')
 
-    if subtitle or (commitment and str(commitment).strip()):
+    # The right column carries the place (city, country), as in the CV PDF.
+    if subtitle or right:
         parts.append(f'<div class="resume-subheader"><span>{_md_to_html(subtitle)}</span>')
-        if commitment and str(commitment).strip():
-            parts.append(f'<span class="resume-commitment">{esc(commitment)}</span>')
+        if right:
+            parts.append(f'<span class="resume-commitment">{esc(right)}</span>')
         parts.append("</div>")
 
     if thesis and thesis.get("title"):
@@ -939,7 +971,8 @@ def _render_resume_item(title, subtitle, date, description="", logo=None,
 
 
 def _render_section(items, title_key, subtitle_key, date_fn, advisor_label="Advisor",
-                    description_key="description", fields_fn=None):
+                    description_key="description", fields_fn=None, inline_subtitle=False,
+                    place_key="place"):
     """Render a list of resume items."""
     return "\n".join(
         _render_resume_item(
@@ -951,6 +984,8 @@ def _render_section(items, title_key, subtitle_key, date_fn, advisor_label="Advi
             links=item.get("links"),
             logo_link=item.get("logo_link"),
             commitment=item.get("commitment"),
+            place=item.get(place_key),
+            inline_subtitle=inline_subtitle,
             advisor=item.get("advisor"),
             bullets=item.get("bullets"),
             awards=item.get("awards"),
@@ -963,8 +998,9 @@ def _render_section(items, title_key, subtitle_key, date_fn, advisor_label="Advi
 
 
 def _date_range(item):
-    start = format_date(item.get("start_date", ""))
-    end = format_date(item.get("end_date", ""))
+    # Month and year, as in the CV PDF; the day carries nothing.
+    start = format_date(item.get("start_date", ""), short=True, day=False)
+    end = format_date(item.get("end_date", ""), short=True, day=False)
     if start and end:
         return f"{start} - {end}"
     return start or end
@@ -977,7 +1013,10 @@ def render_education(data):
 
 def render_experience(data):
     items = (data.get("experience") or {}).get("experience", [])
-    return _render_section(items, "position", "company", _date_range, advisor_label="Supervisor")
+    # As the CV PDF: position and unit on the first line, the institution
+    # and place beside the supervisor on the second.
+    return _render_section(items, "position", "org_unit", _date_range, advisor_label="Supervisor",
+                           inline_subtitle=True, place_key="place_inst")
 
 
 def _research_fields(item):
@@ -999,9 +1038,10 @@ def render_research(data):
     # labels follow the PDF: Advisor, Project, Topic.
     items = [{**i, "company": _md_strip(i.get("company", ""))}
              for i in (data.get("research") or {}).get("research", [])]
+    # The advisor shares the second line with the place, as in the CV PDF.
     return _render_section(items, "company", None, _date_range,
-                           advisor_label="Advisor", description_key=None,
-                           fields_fn=_research_fields)
+                           advisor_label="Supervisor", description_key=None,
+                           fields_fn=_research_fields, inline_subtitle=True)
 
 
 def render_teaching(data):

@@ -238,7 +238,7 @@ def render_experience(data):
             f"{{{position}}}"
             f"{{{tex_escape(_short_date(exp.get('start_date', '')))} -- {tex_escape(_short_date(exp.get('end_date', '')))}}}"
             f"{{{_tex_with_links(exp.get('company', ''))}}}"
-            f"{{{tex_escape(exp.get('place', ''))}}}"
+            f"{{{tex_escape(exp.get('place_inst', ''))}}}"
             f"{{{logo}}}"
         )
         bullets = exp.get("bullets", [])

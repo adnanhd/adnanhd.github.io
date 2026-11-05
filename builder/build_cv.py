@@ -118,7 +118,7 @@ def render_employment(data):
         body = (f"\\textbf{{{tex_escape(exp.get('position', ''))}}}, {_tex_with_links(exp['org_unit'])}"
                 f"\\hfill {_month_range(exp.get('start_date'), exp.get('end_date'))}")
         sup = (f"\\textbf{{Supervisor:}} {_labels(tex_linkify_names(_tex_with_links(exp['advisor'])))}" if exp.get("advisor") else "")
-        body += f"\\\\ {sup}\\hfill\\emph{{{tex_escape(exp['place'])}}}"
+        body += f"\\\\ {sup}\\hfill\\emph{{{tex_escape(exp['place_inst'])}}}"
         if exp.get("bullets"):
             its = "\n".join(f"  \\item {_tex_with_links(x)}" for x in exp["bullets"])
             body += f"\n\\begin{{cvsublist}}\n{its}\n\\end{{cvsublist}}\n"
@@ -311,7 +311,7 @@ def render_research(data):
     for r in items:
         # The section heading already says these are undergraduate research
         # projects, so the role is not repeated: the institution leads.
-        adv = (f"\\textbf{{Advisor:}} {_labels(tex_linkify_names(_tex_with_links(r['advisor'])))}" if r.get("advisor") else "")
+        adv = (f"\\textbf{{Supervisor:}} {_labels(tex_linkify_names(_tex_with_links(r['advisor'])))}" if r.get("advisor") else "")
         body = _hdr(f"\\textbf{{{_tex_with_links(r.get('company', ''))}}}", adv,
                     _month_range(r.get('start_date'), r.get('end_date')),
                     f"\\emph{{{tex_escape(r.get('place', ''))}}}")
