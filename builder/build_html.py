@@ -671,7 +671,8 @@ def render_plain_publication(paper):
             thumb = (f'<video src="{esc(media)}" muted playsinline preload="metadata" '
                      f'aria-label="{esc(paper["title"])}"></video>')
         else:
-            thumb = f'<img src="{esc(media)}" alt="{esc(paper["title"])}" />'
+            thumb = (f'<img src="{esc(media)}" alt="{esc(paper["title"])}" '
+                     f'data-caption="{esc(paper.get("image_caption", ""))}" />')
     href = _plain_title_href(paper)
     title = esc(paper["title"])
     if href:

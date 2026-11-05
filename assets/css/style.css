@@ -3657,3 +3657,19 @@ html {
     text-align: center;
     max-width: 80vw;
 }
+
+/* A project page's figure and the paper's caption beneath it. */
+.project-figure {
+    margin: 0 0 16px;
+}
+.project-figure figcaption {
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--text-secondary);
+}
+.lightbox-caption {
+    max-width: min(80vw, 900px);
+    line-height: 1.45;
+    text-align: left;
+}

@@ -164,6 +164,7 @@ records:
     "show!": list:enum:front,resume,timeline
     source: key:positions
     image: url
+    image_caption: text
     news: {one_of: [bool, "list:record:news_item|record:news_event"]}
     links: list:record:link
     awards: list:record:paper_award

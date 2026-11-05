@@ -219,9 +219,12 @@ def generate_project_pages(data, motion=""):
             esc(venue),
             esc(format_date(p.get("date", ""))),
         ] if x)
+        # The figure keeps the paper's own caption beneath it.
         image = (
-            f'<img class="project-image" src="../../{esc(p["image"])}" '
-            f'alt="{esc(p["title"])}" />' if p.get("image") else ""
+            f'<figure class="project-figure"><img class="project-image" src="../../{esc(p["image"])}" '
+            f'alt="{esc(p["title"])}" data-caption="{esc(p.get("image_caption", ""))}" />'
+            + (f'<figcaption>{esc(p["image_caption"])}</figcaption>' if p.get("image_caption") else "")
+            + '</figure>' if p.get("image") else ""
         )
         body = _render_summary(p.get("body"))
         written.add(slugify(p["title"]))

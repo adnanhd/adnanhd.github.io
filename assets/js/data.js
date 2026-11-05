@@ -53,14 +53,14 @@ function initImageLightbox() {
   var lbImg = overlay.querySelector(".lightbox-img");
   var lbCap = overlay.querySelector(".lightbox-caption");
 
-  // Publication figures, in the card layout and the plain home list; the
-  // caption is the paper's title, carried in the image's alt text.
-  document.querySelectorAll(".publication-image img, .plain-pub-thumb img").forEach(function (img) {
+  // Publication figures (card layout, plain home list, project pages);
+  // the caption is the paper's own figure caption, else its title.
+  document.querySelectorAll(".publication-image img, .plain-pub-thumb img, .project-image").forEach(function (img) {
     img.style.cursor = "zoom-in";
     img.addEventListener("click", function () {
       lbImg.src = img.src;
       lbImg.alt = img.alt;
-      lbCap.textContent = img.alt;
+      lbCap.textContent = img.dataset.caption || img.alt;
       overlay.classList.add("active");
     });
   });
