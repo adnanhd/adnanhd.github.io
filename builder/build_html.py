@@ -7,8 +7,11 @@ Each function takes data (dicts loaded from YAML) and returns an HTML string.
 import json
 import re
 import sys
+from datetime import datetime
 
 from .build_config import (
+    AUTHOR_NAME,
+    AUTHOR_NAME_ALT,
     BASE_DIR,
     LINK_ICONS,
     LINK_NAMES,
@@ -510,18 +513,26 @@ def render_compact_publication(paper):
     authors_html = highlight_author(esc(paper.get("authors", "")))
     citation = authors_html
     if paper.get("date"):
-        citation += f" ({esc(format_date(paper['date']))})."
+        citation += f" ({esc(str(paper['date'])[:4])})."  # APA: year only
     citation += f" {esc(paper.get('title_apa') or paper['title'])}."
     # Submitted work names its target in the data but doesn't show it
     # yet -- only the status badge.
     if paper.get("stage") == "submitted":
         pass
-    elif paper.get("venue_link") and paper.get("venue_short"):
-        citation += (
-            f' <em><a href="{esc(paper["venue_link"])}" class="venue-link" '
+    elif paper.get("selected") and paper.get("venue_link") and paper.get("venue_short"):
+        # Only a selected paper's venue is a link.
+        venue = (
+            f'<em><a href="{esc(paper["venue_link"])}" class="venue-link" '
             f'target="_blank" rel="noopener noreferrer">'
-            f'{esc(paper["venue_short"])}</a></em>.'
+            f'{esc(paper["venue_short"])}</a></em>'
         )
+        # Selected venues are underlined: the venue is already a coloured
+        # link, so bold would not show.
+        if paper.get("selected"):
+            venue = f'<span class="venue-selected">{venue}</span>'
+        citation += f" {venue}."
+    elif paper.get("venue_short") and paper.get("venue_link"):
+        citation += f" <em>{esc(paper['venue_short'])}</em>."
     elif paper.get("venue"):
         v = f"<em>{esc(paper['venue'])}</em>"
         if paper.get("venue_prefix"):
@@ -533,6 +544,8 @@ def render_compact_publication(paper):
             else:
                 sep = ", "
             v += sep + detail
+        if paper.get("selected") and paper.get("kind") != "thesis":
+            v = f'<span class="venue-selected">{v}</span>'
         citation += f" {v}."
 
     parts.append('<div class="pub-compact-body">')
@@ -553,6 +566,280 @@ def render_compact_publication(paper):
         parts.append("</div>")
 
     parts.append("</div>")
+    return "\n".join(parts)
+
+
+# ---------------------------------------------------------------------------
+# About page (bio.yaml `home`)
+# ---------------------------------------------------------------------------
+
+# Without a `home` key the About page keeps its old shape.
+HOME_DEFAULTS = {
+    "layout": "sidebar",
+    "links": ["email", "cv", "google_scholar", "github"],
+    "sections": ["about", "news", "publications", "open_source"],
+    "publications": "front",
+}
+
+
+def home_config(bio):
+    return {**HOME_DEFAULTS, **(bio.get("home") or {})}
+
+
+def _is_first_author(paper):
+    authors = str(paper.get("authors", ""))
+    return authors.startswith(AUTHOR_NAME) or authors.startswith(AUTHOR_NAME_ALT)
+
+
+def home_papers(data, which):
+    """The About page's papers: every paper (`all`) or the front ones,
+    first-author works first, each group newest first. A submitted paper
+    (under review or about to be) is never listed on the front page,
+    neither title nor venue: an unpublished paper cannot be a selected
+    paper. The CV PDF and the CV page keep listing it."""
+    pubs = [p for p in (data.get("publications") or {}).get("papers", [])
+            if p.get("stage") != "submitted"]
+    if which == "front":
+        pubs = [p for p in pubs if p.get("front")]
+    pubs = sorted(pubs, key=lambda p: parse_date(str(p.get("date", ""))), reverse=True)
+    return sorted(pubs, key=lambda p: 0 if _is_first_author(p) else 1)
+
+
+def _plain_status(paper):
+    """Status word for the plain list: a submitted paper whose date (its
+    deadline) is still ahead is to be submitted, one past it is under
+    review; a published paper dated ahead is accepted; preprints say so."""
+    stage = paper.get("stage")
+    ahead = parse_date(str(paper.get("date", ""))) > datetime.now()
+    if stage == "submitted":
+        return "To be submitted" if ahead else "Under review"
+    if stage == "preprint":
+        return "Preprint"
+    if stage == "published" and ahead:
+        return "Accepted"
+    return ""
+
+
+def _plain_venue(paper):
+    """Status and venue line. A submitted paper names its target only when
+    the target is not double-blind, the rule the CV PDF follows."""
+    status = _plain_status(paper)
+    venue = paper.get("venue", "")
+    if paper.get("venue_prefix"):
+        venue = f"{paper['venue_prefix']} {venue}"
+    year = str(paper.get("date", ""))[:4]
+    badge = f'<span class="plain-status">{esc(status)}</span>' if status else ""
+    if paper.get("stage") == "submitted":
+        if paper.get("venue_double_blind") or not venue:
+            return badge
+        return f"{badge} to <em>{esc(venue)}</em>"
+    out = f"<em>{esc(venue)}</em>" if venue else ""
+    if year:
+        out = f"{out}, {year}" if out else year
+    if badge:
+        out = badge + (f" &middot; {out}" if out else "")
+    return out
+
+
+def _plain_title_href(paper):
+    """The project page when one is built (selected papers), else the
+    paper itself."""
+    if paper.get("selected"):
+        return f"projects/{slugify(paper['title'])}/index.html"
+    for name in ("arXiv", "DOI", "PDF", "Thesis"):
+        for ln in paper.get("links") or []:
+            if ln.get("name") == name:
+                return ln["url"]
+    return ""
+
+
+def render_plain_publication(paper):
+    """One row of the plain list: thumbnail, title, authors, status or
+    venue, links."""
+    media = paper.get("image")
+    thumb = ""
+    if media:
+        ext = str(media).rsplit(".", 1)[-1].lower()
+        if ext in ("mp4", "webm", "mov"):
+            thumb = (f'<video src="{esc(media)}" muted playsinline preload="metadata" '
+                     f'aria-label="{esc(paper["title"])}"></video>')
+        else:
+            thumb = f'<img src="{esc(media)}" alt="" />'
+    href = _plain_title_href(paper)
+    title = esc(paper["title"])
+    if href:
+        ext = "" if href.startswith("projects/") else ' target="_blank" rel="noopener noreferrer"'
+        title = f'<a href="{esc(href)}" class="plain-pub-title"{ext}>{title}</a>'
+    else:
+        title = f'<span class="plain-pub-title">{title}</span>'
+    links = " / ".join(
+        f'<a href="{esc(l["url"])}" target="_blank" rel="noopener noreferrer">{esc(l["name"])}</a>'
+        for l in paper.get("links") or [] if l.get("url"))
+    links_html = f'<div class="plain-pub-links">{links}</div>' if links else ""
+    return (
+        f'<div class="plain-pub">'
+        f'<div class="plain-pub-thumb">{thumb}</div>'
+        f'<div class="plain-pub-body">{title}'
+        f'<div class="plain-pub-authors">{highlight_author_span(esc(paper.get("authors", "")))}</div>'
+        f'<div class="plain-pub-venue">{_plain_venue(paper)}</div>'
+        f'{_render_awards(paper.get("awards"), compact=True)}'
+        f'{links_html}'
+        f'</div></div>'
+    )
+
+
+def render_home_header(bio):
+    """Name, the position line, one address block per affiliation and the
+    links, with the photo beside them."""
+    cfg = home_config(bio)
+    social = bio.get("social") or {}
+    links = []
+    for key in cfg["links"]:
+        if key in ("cv", "resume"):
+            links.append(f'<a href="{key}.pdf" target="_blank" rel="noopener noreferrer">'
+                         f'{"CV" if key == "cv" else "Resume"}</a>')
+        elif social.get(key) and key in URL_TEMPLATES:
+            url = URL_TEMPLATES[key].format(id=esc(str(social[key]).strip()))
+            target = "" if key == "email" else ' target="_blank" rel="noopener noreferrer"'
+            links.append(f'<a href="{url}"{target}>{esc(LINK_NAMES.get(key, key))}</a>')
+    # The institution comes in the affiliation blocks below, so the
+    # position line is the title alone.
+    position = esc(bio.get("title", ""))
+    photo = bio.get("profile_image")
+    photo_html = (f'<img class="home-photo" src="{esc(photo)}" alt="{esc(bio["name"])}" '
+                  f'width="160" height="160" />' if photo else "")
+    return (
+        f'<header class="home-head"><div class="home-id">'
+        f'<h1 class="home-name">{esc(bio["name"])}</h1>'
+        f'<p class="home-position">{position}</p>'
+        f'{render_home_address(bio)}'
+        f'<p class="home-links">{" / ".join(links)}</p>'
+        f'</div>{photo_html}</header>'
+    )
+
+
+# Phone glyph: the self-hosted Font Awesome subset carries no fa-phone, so
+# the handset is inline SVG in the icon's colour.
+_PHONE_SVG = (
+    '<svg class="home-icon" viewBox="0 0 512 512" width="11" height="11" aria-hidden="true">'
+    '<path fill="currentColor" d="M164.9 24.6c-7.7-18.6-28-28.5-47.4-23.2l-88 24C12.1 30.2 0 '
+    '46 0 64c0 247.4 200.6 448 448 448 18 0 33.8-12.1 38.6-29.5l24-88c5.3-19.4-4.6-39.7-23.2-'
+    '47.4l-96-40c-16.3-6.8-35.2-2.1-46.3 11.6L304.7 368C234.3 334.7 177.3 277.7 144 207.3l49.3-'
+    '40.3c13.7-11.2 18.4-30 11.6-46.3l-40-96z"/></svg>')
+
+
+def render_home_address(bio):
+    """The plain header's affiliations under the position line, one block
+    per bio.yaml affiliation: the institution, then the office (linked to
+    its map) and the phone extension (the full number in the title and
+    the link)."""
+    rows = []
+    for aff in bio.get("affiliations") or []:
+        name = aff.get("name", "")
+        if not name:
+            continue
+        bits = []
+        detail = str(aff.get("detail") or "").strip()
+        if detail:
+            room = detail.split(":", 1)[-1].strip()  # "Office: A401" -> "A401"
+            room = esc(room)
+            if aff.get("map"):
+                room = (f'<a href="{esc(aff["map"])}" target="_blank" rel="noopener noreferrer" '
+                        f'title="{esc(detail)}">{room}</a>')
+            bits.append(f'<span class="home-office"><i class="fas fa-location-dot" '
+                        f'aria-hidden="true"></i> {room}</span>')
+        phone = str(aff.get("phone") or "").strip()
+        if phone:
+            tel = "tel:" + re.sub(r"[^\d+]", "", phone)
+            ext = phone.split()[-1]
+            bits.append(f'<span class="home-phone">{_PHONE_SVG} '
+                        f'<a href="{esc(tel)}" title="{esc(phone)}">{esc(ext)}</a></span>')
+        line = f'<span class="home-address-line">{"".join(bits)}</span>' if bits else ""
+        rows.append(f'<div class="home-aff"><div class="home-address-org">{esc(name)}</div>{line}</div>')
+    return f'<address class="home-address">{"".join(rows)}</address>' if rows else ""
+
+
+def render_background(data):
+    """One line of degrees and one of positions, from education.yaml and
+    experience.yaml."""
+    def years(item):
+        a = str(item.get("start_date", ""))[:4]
+        b = str(item.get("end_date", ""))
+        b = "present" if b == "Present" else b[:4]
+        return a if a == b else f"{a}-{b}"
+
+    def unit(item):
+        short = item.get("org_short", "")
+        parent = item.get("org_parent", "")
+        if _md_strip(short) == parent:
+            return _md_to_html(short)
+        return f"{_md_to_html(short)}, {esc(parent)}"
+
+    edu = [f'{esc(e.get("degree", ""))}, {unit(e)} ({esc(str(e.get("end_date", ""))[:4])})'
+           for e in (data.get("education") or {}).get("education") or []]
+    exp = sorted((data.get("experience") or {}).get("experience") or [],
+                 key=lambda e: parse_date(str(e.get("start_date", ""))), reverse=True)
+    exp = [f'{esc(e.get("position", ""))}, {unit(e)} ({years(e)})' for e in exp]
+    lines = []
+    if edu:
+        lines.append(f'<p class="home-background"><strong>Education:</strong> {"; ".join(edu)}.</p>')
+    if exp:
+        lines.append(f'<p class="home-background"><strong>Experience:</strong> {"; ".join(exp)}.</p>')
+    return "".join(lines)
+
+
+def render_open_source(data):
+    return ('<div class="content-section"><h2>Open Source</h2>'
+            f'<div id="selected-repos" class="repos-list">{render_works(data["works"])}</div></div>')
+
+
+def render_blogs_open_source(data):
+    """Open Source sits on the Blogs page when the About page leaves it out."""
+    if "open_source" in home_config(data["bio"])["sections"]:
+        return ""
+    return render_open_source(data)
+
+
+def render_home(data):
+    """The About page body: the plain header (plain layout) and then the
+    configured sections in order."""
+    bio = data["bio"]
+    cfg = home_config(bio)
+    plain = cfg["layout"] == "plain"
+    parts = [render_home_header(bio)] if plain else []
+    for sec in cfg["sections"]:
+        if sec == "about":
+            parts.append('<div class="content-section"><h2>About Me</h2>'
+                         f'<div id="about-me" class="bio-description">{render_bio(bio)}</div></div>')
+        elif sec == "news":
+            news = render_news(data)
+            if news:
+                parts.append('<div class="content-section"><h2>News</h2>'
+                             f'<ul id="news" class="news-list">{news}</ul>'
+                             '<p class="see-all-link"><a href="?tab=timeline" class="nav-link-inline">'
+                             'see all timeline &rarr;</a></p></div>')
+        elif sec == "publications":
+            papers = home_papers(data, cfg["publications"])
+            heading = "Publications" if cfg["publications"] == "all" else "Selected Publications"
+            if plain:
+                body = "\n".join(render_plain_publication(p) for p in papers)
+                more = ('' if cfg["publications"] == "all" else
+                        '<p class="see-all-link"><a href="?tab=cv#resume-papers" class="nav-link-inline">'
+                        'see all publications &rarr;</a></p>')
+                parts.append(f'<div class="content-section"><h2>{heading}</h2>'
+                             f'<div id="selected-works" class="plain-pubs">{body}</div>{more}</div>')
+            else:
+                body = "\n".join(render_publication_card(p) for p in papers)
+                parts.append(f'<div class="content-section"><h2>{heading}</h2>'
+                             f'<div id="selected-works" class="publications-grid">{body}</div>'
+                             '<p class="see-all-link"><a href="?tab=cv#resume-papers" class="nav-link-inline">'
+                             'see all publications &rarr;</a></p></div>')
+        elif sec == "open_source":
+            parts.append(render_open_source(data))
+        elif sec == "background":
+            parts.append(f'<div class="content-section">{render_background(data)}'
+                         '<p class="home-background"><a href="?tab=cv" class="nav-link-inline">'
+                         'full CV &rarr;</a></p></div>')
     return "\n".join(parts)
 
 
@@ -591,14 +878,16 @@ def _md_to_html(text):
 def _render_resume_item(title, subtitle, date, description="", logo=None,
                         links=None, logo_link=None, commitment=None,
                         advisor=None, bullets=None, awards=None, thesis=None,
-                        advisor_label="Advisor"):
+                        advisor_label="Advisor", fields=None):
     """Render a single resume entry with logo, header, bullets, and links."""
     parts = ['<div class="resume-item">']
 
     if logo:
         parts.append('<div class="resume-logo">')
-        w, h = logo_size(logo, 120, 46, 40)
-        img = (f'<img src="{esc(logo)}" alt="{esc(_md_strip(subtitle))}" loading="lazy" '
+        # As the CV PDF's \cventry: the logo fits a fixed 120x46 box (the
+        # PDF's 2.1cm x 0.8cm) at its own aspect, never cropped.
+        w, h = logo_size(logo, 120, 46, 10_000)
+        img = (f'<img src="{esc(logo)}" alt="{esc(_md_strip(subtitle or title))}" loading="lazy" '
                f'width="{w}" height="{h}" style="width:{w}px;height:{h}px" />')
         if logo_link:
             parts.append(f'<a href="{esc(logo_link)}" target="_blank" rel="noopener noreferrer">{img}</a>')
@@ -610,10 +899,11 @@ def _render_resume_item(title, subtitle, date, description="", logo=None,
     parts.append(f'<div class="resume-header"><strong>{esc(title)}</strong>'
                  f'<span class="date">{esc(date)}</span></div>')
 
-    parts.append(f'<div class="resume-subheader"><span>{_md_to_html(subtitle)}</span>')
-    if commitment and str(commitment).strip():
-        parts.append(f'<span class="resume-commitment">{esc(commitment)}</span>')
-    parts.append("</div>")
+    if subtitle or (commitment and str(commitment).strip()):
+        parts.append(f'<div class="resume-subheader"><span>{_md_to_html(subtitle)}</span>')
+        if commitment and str(commitment).strip():
+            parts.append(f'<span class="resume-commitment">{esc(commitment)}</span>')
+        parts.append("</div>")
 
     if thesis and thesis.get("title"):
         t = esc(thesis["title"])
@@ -623,7 +913,15 @@ def _render_resume_item(title, subtitle, date, description="", logo=None,
         parts.append(f'<div class="resume-thesis"><strong>{esc(thesis.get("label", "Thesis"))}:</strong> {t}</div>')
 
     if advisor and str(advisor).strip():
-        parts.append(f'<div class="resume-advisor"><strong>{esc(advisor_label)}:</strong> {linkify_names_html(_md_to_html(advisor))}</div>')
+        # The co-advisor folded into the line is bolded as the CV PDF does.
+        adv = linkify_names_html(_md_to_html(advisor)).replace(
+            "Co-advisor:", "<strong>Co-advisor:</strong>")
+        parts.append(f'<div class="resume-advisor"><strong>{esc(advisor_label)}:</strong> {adv}</div>')
+
+    # Further labelled lines, as the CV PDF prints them (Project:, Topic:).
+    for label, text in fields or []:
+        if text:
+            parts.append(f'<div class="resume-advisor"><strong>{esc(label)}:</strong> {_md_to_html(text)}</div>')
 
     if description:
         parts.append(f"<p>{_md_to_html(description)}</p>")
@@ -641,7 +939,7 @@ def _render_resume_item(title, subtitle, date, description="", logo=None,
 
 
 def _render_section(items, title_key, subtitle_key, date_fn, advisor_label="Advisor",
-                    description_key="description"):
+                    description_key="description", fields_fn=None):
     """Render a list of resume items."""
     return "\n".join(
         _render_resume_item(
@@ -658,6 +956,7 @@ def _render_section(items, title_key, subtitle_key, date_fn, advisor_label="Advi
             awards=item.get("awards"),
             thesis=item.get("thesis"),
             advisor_label=advisor_label,
+            fields=fields_fn(item) if fields_fn else None,
         )
         for item in items
     )
@@ -681,15 +980,28 @@ def render_experience(data):
     return _render_section(items, "position", "company", _date_range, advisor_label="Supervisor")
 
 
+def _research_fields(item):
+    """Project: and Topic: lines, as build_cv.render_research prints them."""
+    out = []
+    proj = item.get("project")
+    if proj:
+        funder = proj.get("funder")
+        fund = (f" ([{funder['name']}]({funder['url']}))" if funder and funder.get("url")
+                else f" ({funder['name']})" if funder else "")
+        out.append(("Project", proj["title"] + fund))
+    out.append(("Topic", item.get("description") or ""))
+    return out
+
+
 def render_research(data):
-    # Project / lab name carries the entry; the one-line description of the
-    # project is the subtitle, as in the CV PDF, since the section title
-    # already says these are undergraduate projects.
-    # The project line is the card title, printed as plain text.
+    # The lab (or project) carries the entry, as in the CV PDF, since the
+    # section title already says these are undergraduate projects; the
+    # labels follow the PDF: Advisor, Project, Topic.
     items = [{**i, "company": _md_strip(i.get("company", ""))}
              for i in (data.get("research") or {}).get("research", [])]
-    return _render_section(items, "company", "description", _date_range,
-                           advisor_label="Supervisor", description_key=None)
+    return _render_section(items, "company", None, _date_range,
+                           advisor_label="Advisor", description_key=None,
+                           fields_fn=_research_fields)
 
 
 def render_teaching(data):

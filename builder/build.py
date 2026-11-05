@@ -21,25 +21,26 @@ from .build_config import BASE_DIR, OUTPUT_PATH, TEMPLATE_PATH
 from .build_html import (
     generate_rss,
     generate_sitemap,
-    render_bio,
     render_coursework,
     render_blog_controls,
     render_blogs,
     render_compact_publication,
     render_education,
     render_experience,
+    render_blogs_open_source,
+    render_home,
+    home_config,
     render_honors,
     render_json_ld,
-    render_news,
-    render_publication_card,
     render_research,
     primary_affiliation,
     render_sidebar,
     render_social_posts,
     render_teaching,
     render_timeline_views,
-    render_works,
 )
+from . import check_lines
+from .build_utils import parse_date
 from .build_projects import generate_project_pages
 from .build_cv import build_cv_pdf
 from .build_resume import build_resume_pdf
@@ -52,11 +53,19 @@ def main():
 
     template = TEMPLATE_PATH.read_text()
 
-    # Publications. Submitted papers float to the top.
-    pubs = (data.get("publications") or {}).get("papers", [])
-    pubs = sorted(pubs, key=lambda p: 0 if p.get("stage") == "submitted" else 1)
-    selected_html = "\n".join(render_publication_card(p) for p in pubs if p.get("front"))
-    resume_html = "\n".join(render_compact_publication(p) for p in pubs if p.get("resume"))
+    # Publications for the CV page: every paper in one list, newest
+    # first; the home page already shows the selected ones.
+    pubs = list((data.get("publications") or {}).get("papers", []))
+    pubs.sort(key=lambda p: -parse_date(p.get("date")).toordinal())
+    resume_html = "\n".join(render_compact_publication(p) for p in pubs)
+
+    # Printed CV: the name block the plain layout no longer shows on screen.
+    email = (bio.get("social") or {}).get("email", "")
+    cv_print_header = (
+        f'<div class="cv-print-header"><div class="cv-print-name">{esc(bio["name"])}</div>'
+        f'<div>{esc(bio.get("title", ""))}, {esc(primary_affiliation(bio))}</div>'
+        f'<div>{esc(email)} &middot; {esc(bio.get("site_url", "").replace("https://", ""))}</div></div>'
+    )
 
     # Meta
     meta_desc = bio.get("meta_description") or (
@@ -65,31 +74,34 @@ def main():
     twitter_id = (bio.get("social") or {}).get("twitter", "")
 
     # Template replacements
+    # bio.yaml `animations` (default off): the stylesheet only runs hover
+    # effects and transitions under data-motion="on".
+    motion = ' data-motion="on"' if bio.get("animations") else ""
     replacements = {
+        "{{HTML_ATTRS}}": motion,
+        "{{HOME}}": render_home(data),
+        "{{BLOGS_OPEN_SOURCE}}": render_blogs_open_source(data),
         "{{CSS_HASH}}": file_hash(BASE_DIR / "assets" / "css" / "style.css"),
         "{{VENDOR_HASH}}": file_hash(BASE_DIR / "assets" / "css" / "vendor.css"),
         "{{JS_HASH}}": file_hash(BASE_DIR / "assets" / "js" / "data.js"),
         "{{SITE_URL}}": esc(bio.get("site_url", "")),
         "{{NAME}}": esc(bio["name"]),
+        "{{CV_PRINT_HEADER}}": cv_print_header,
         "{{META_DESCRIPTION}}": esc(meta_desc),
         "{{PROFILE_IMAGE}}": esc(bio.get("profile_image", "assets/img/profile.jpeg")),
         "{{TWITTER_HANDLE}}": esc(f"@{twitter_id}" if twitter_id else ""),
         "{{JSON_LD}}": render_json_ld(bio),
         "{{SIDEBAR}}": render_sidebar(bio),
-        "{{BIO}}": render_bio(bio),
         "{{COURSEWORK}}": render_coursework(bio),
-        "{{SELECTED_PUBLICATIONS}}": selected_html,
         "{{RESUME_PAPERS}}": resume_html,
         "{{SELECTED_BLOGS}}": render_blogs(data["blogs"], selected_only=True),
         "{{ALL_BLOGS}}": render_blogs(data["blogs"], selected_only=False),
         "{{BLOG_CONTROLS}}": render_blog_controls(data["blogs"]),
-        "{{WORKS}}": render_works(data["works"]),
         "{{EDUCATION}}": render_education(data),
         "{{EXPERIENCE}}": render_experience(data),
         "{{RESEARCH}}": render_research(data),
         "{{TEACHING}}": render_teaching(data),
         "{{HONORS}}": render_honors(data),
-        "{{NEWS}}": render_news(data),
         "{{TIMELINE}}": render_timeline_views(data),
         "{{SOCIAL_POSTS}}": render_social_posts(data),
     }
@@ -101,14 +113,16 @@ def main():
     # One page per tab, each carrying only its own section. Navigation is
     # plain links between real files, so a refresh lands where it should
     # without JavaScript deciding anything.
+    # home.layout: plain drops the sidebar on every tab page, not only About.
+    plain = home_config(bio)["layout"] == "plain"
     for tab, out_path, depth in TAB_PAGES:
-        page = _tab_page(output, tab, depth)
+        page = _tab_page(output, tab, depth, plain=plain)
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(page)
         print(f"Built {out_path} ({len(page):,} bytes)")
 
     # Project landing pages (publications + works)
-    generate_project_pages(data)
+    generate_project_pages(data, motion=motion)
 
     # Search index over the generated post and project pages (pagefind).
     # The blog search box queries it at runtime, so the listing no longer
@@ -144,6 +158,9 @@ def main():
     # Long-form CV PDF
     build_cv_pdf(data)
 
+    # Every former bullet is one printed line in both PDFs; warn otherwise.
+    check_lines.warn(data)
+
 
 if __name__ == "__main__":
     main()
@@ -164,9 +181,16 @@ TAB_PATHS = {
 }
 
 
-def _tab_page(html, tab, depth):
-    """Cut the whole-site render down to one tab and fix its paths."""
+def _tab_page(html, tab, depth, plain=False):
+    """Cut the whole-site render down to one tab and fix its paths. With
+    plain the page drops the sidebar and becomes one centred column; the
+    About header carries the name, position, links and address instead."""
     up = "../" * depth
+    if plain:
+        html = re.sub(r'\s*<!-- Left Sidebar -->\s*<aside class="sidebar">.*?</aside>',
+                      "", html, count=1, flags=re.S)
+        html = html.replace('<div class="page-layout">',
+                            f'<div class="page-layout layout-plain layout-{tab}">', 1)
     for other in TAB_PATHS:
         if other != tab:
             html = re.sub(
@@ -184,8 +208,8 @@ def _tab_page(html, tab, depth):
                             'class="nav-link" data-page="about"')
     if depth:
         # tell the scripts how to reach the site root (pagefind lives there)
-        html = html.replace("<html lang=\"en\">",
-                            f'<html lang="en" data-root="{up}">', 1)
+        html = html.replace('<html lang="en"',
+                            f'<html lang="en" data-root="{up}"', 1)
         # every site-relative path needs the hop out of this folder
         def rel(m):
             attr, val = m.group(1), m.group(2)

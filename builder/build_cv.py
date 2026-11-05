@@ -92,6 +92,12 @@ def render_personal(data):
     return "\n".join(f"\\cvfield{{{k}}}{{{v}}}" for k, v in rows)
 
 
+def _labels(tex):
+    """Bold the labels that ride inside a text field (the co-advisor
+    folded into the advisor line), as the line's own label is."""
+    return tex.replace("Co-advisor:", "\\textbf{Co-advisor:}")
+
+
 def _hdr(l1, l2, r1, r2):
     """Header rows: title and institution wrap inside the left column; date
     and location stay in a fixed right column, level with them."""
@@ -111,12 +117,8 @@ def render_employment(data):
         # institution's name already carries it.
         body = (f"\\textbf{{{tex_escape(exp.get('position', ''))}}}, {_tex_with_links(exp['org_unit'])}"
                 f"\\hfill {_month_range(exp.get('start_date'), exp.get('end_date'))}")
-        sup = (f"\\textbf{{Supervisor:}} {tex_linkify_names(_tex_with_links(exp['advisor']))}" if exp.get("advisor") else "")
-        parent = exp["org_parent"]
-        place = exp.get("location", "").split(", ")
-        if place and place[0] in parent:
-            place = place[1:]
-        body += f"\\\\ {sup}\\hfill\\emph{{{tex_escape(', '.join([parent] + place))}}}"
+        sup = (f"\\textbf{{Supervisor:}} {_labels(tex_linkify_names(_tex_with_links(exp['advisor'])))}" if exp.get("advisor") else "")
+        body += f"\\\\ {sup}\\hfill\\emph{{{tex_escape(exp['place'])}}}"
         if exp.get("bullets"):
             its = "\n".join(f"  \\item {_tex_with_links(x)}" for x in exp["bullets"])
             body += f"\n\\begin{{cvsublist}}\n{its}\n\\end{{cvsublist}}\n"
@@ -134,9 +136,9 @@ def render_education(data):
         body = _hdr(f"\\textbf{{{tex_escape(edu.get('degree', ''))}}}",
                     f"\\emph{{{_tex_with_links(edu.get('institution', ''))}}}",
                     _year_range(edu.get('start_date'), edu.get('end_date')),
-                    f"\\emph{{{tex_escape(edu.get('location', ''))}}}")
+                    f"\\emph{{{tex_escape(edu.get('place', ''))}}}")
         if edu.get("advisor"):
-            body += f"\\\\ \\textbf{{Advisor:}} {tex_linkify_names(_tex_with_links(edu['advisor']))}"
+            body += f"\\\\ \\textbf{{Advisor:}} {_labels(tex_linkify_names(_tex_with_links(edu['advisor'])))}"
         thesis = edu.get("thesis") or {}
         if thesis.get("title"):
             t = tex_escape(thesis["title"])
@@ -309,10 +311,10 @@ def render_research(data):
     for r in items:
         # The section heading already says these are undergraduate research
         # projects, so the role is not repeated: the institution leads.
-        adv = (f"\\textbf{{Advisor:}} {tex_linkify_names(_tex_with_links(r['advisor']))}" if r.get("advisor") else "")
+        adv = (f"\\textbf{{Advisor:}} {_labels(tex_linkify_names(_tex_with_links(r['advisor'])))}" if r.get("advisor") else "")
         body = _hdr(f"\\textbf{{{_tex_with_links(r.get('company', ''))}}}", adv,
                     _month_range(r.get('start_date'), r.get('end_date')),
-                    f"\\emph{{{tex_escape(r.get('location', ''))}}}")
+                    f"\\emph{{{tex_escape(r.get('place', ''))}}}")
         sep = "\\\\ "
         proj = r.get("project")
         if proj:

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en"{{HTML_ATTRS}}>
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -75,7 +75,7 @@
                 <nav class="main-nav" aria-label="Page navigation">
                     <div class="nav-links">
                         <a href="?tab=about" class="nav-link active" data-page="about">About</a>
-                        <a href="?tab=cv" class="nav-link" data-page="cv">Curriculum Vitae</a>
+                        <a href="?tab=cv" class="nav-link" data-page="cv" aria-label="Curriculum Vitae"><span class="nav-long">Curriculum Vitae</span><span class="nav-short">CV</span></a>
                         <a href="?tab=blogs" class="nav-link" data-page="blogs">Blogs</a>
                         <a href="?tab=timeline" class="nav-link" data-page="timeline">Timeline</a>
                     </div>
@@ -91,30 +91,7 @@
 
                 <!-- About Page -->
                 <section id="about" class="page-section active" aria-label="About" tabindex="-1">
-                    <div class="content-section">
-                        <h2>About Me</h2>
-                        <div id="about-me" class="bio-description">{{BIO}}</div>
-                    </div>
-
-                    <div class="content-section">
-                        <h2>News</h2>
-                        <ul id="news" class="news-list">{{NEWS}}</ul>
-                        <p class="see-all-link"><a href="?tab=timeline" class="nav-link-inline">see all timeline &rarr;</a></p>
-                    </div>
-
-                    <div class="content-section">
-                        <h2>Selected Publications</h2>
-                        <div
-                            id="selected-works"
-                            class="publications-grid"
-                        >{{SELECTED_PUBLICATIONS}}</div>
-                        <p class="see-all-link"><a href="?tab=cv#resume-papers" class="nav-link-inline">see all publications &rarr;</a></p>
-                    </div>
-
-                    <div class="content-section">
-                        <h2>Open Source</h2>
-                        <div id="selected-repos" class="repos-list">{{WORKS}}</div>
-                    </div>
+{{HOME}}
                 </section>
 
                 <!-- Blogs Page -->
@@ -128,15 +105,18 @@
                         <ul id="blog-posts" class="blog-list">{{ALL_BLOGS}}</ul>
                     </div>
 
+                    {{BLOGS_OPEN_SOURCE}}
+
                     {{SOCIAL_POSTS}}
                 </section>
 
                 <!-- Curriculum Vitae Page -->
                 <section id="cv" class="page-section" aria-label="Curriculum Vitae" tabindex="-1">
+                    {{CV_PRINT_HEADER}}
                     <p class="see-all-link"><a href="cv.pdf" class="nav-link-inline" target="_blank" rel="noopener noreferrer">see full CV (PDF) &rarr;</a></p>
                     <div class="content-section">
-                        <h2>Education</h2>
-                        <div id="education-list">{{EDUCATION}}</div>
+                        <h2>Academic Experience</h2>
+                        <div id="experience-list">{{EXPERIENCE}}</div>
                     </div>
 
                     <div class="content-section">
@@ -145,8 +125,8 @@
                     </div>
 
                     <div class="content-section">
-                        <h2>Experience</h2>
-                        <div id="experience-list">{{EXPERIENCE}}</div>
+                        <h2>Education</h2>
+                        <div id="education-list">{{EDUCATION}}</div>
                     </div>
 
                     <div class="content-section">
@@ -155,7 +135,7 @@
                     </div>
 
                     <div class="content-section">
-                        <h2>Undergraduate Research Projects</h2>
+                        <h2>Undergraduate Research Experience</h2>
                         <div id="research-list">{{RESEARCH}}</div>
                     </div>
 

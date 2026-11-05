@@ -39,6 +39,32 @@ if ! "$PY" -m builder; then
     exit 1
 fi
 
+# --- guard: the resume is one page -------------------------------------------
+if command -v pdfinfo >/dev/null 2>&1; then
+    pages="$(pdfinfo resume.pdf 2>/dev/null | awk '/^Pages:/ {print $2}')"
+    if [ "$pages" != "1" ]; then
+        echo "pre-commit: resume.pdf has ${pages:-an unknown number of} pages, not 1; commit aborted." >&2
+        exit 1
+    fi
+else
+    echo "pre-commit: warning: pdfinfo not found; resume page count not checked." >&2
+fi
+
+# --- guard: external links (DOI, arXiv, code, every URL in data/ and meta/) ---
+# check_links exits 2 when a URL is gone (404/410): that blocks the commit.
+# Exit 1 is anything else (offline, timeouts, 403 from sites that refuse
+# scripts, 5xx): printed as a warning, the commit goes on.
+set +e
+"$PY" -m builder.check_links
+links=$?
+set -e
+if [ "$links" -eq 2 ]; then
+    echo "pre-commit: dead links (404/410) above; commit aborted. (use --no-verify to skip)" >&2
+    exit 1
+elif [ "$links" -ne 0 ]; then
+    echo "pre-commit: warning: some links could not be confirmed (see above); committing anyway." >&2
+fi
+
 # --- stage regenerated artifacts ---------------------------------------------
 # Every page the build writes, with deletions (the search index renames its
 # shards on each build), so a commit never leaves rebuilt pages unstaged.

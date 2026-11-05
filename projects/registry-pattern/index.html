@@ -1,18 +1,32 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-root="../../">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="description" content="Name-based class/function registries plus a recursive factory that builds object graphs from JSON-friendly {type, repo, data, meta} envelopes." />
         <title>registry-pattern - Adnan Harun Dogan</title>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
-        <link rel="stylesheet" href="../../assets/css/style.css?v=8b583a5f" />
+        <link rel="stylesheet" href="../../assets/css/style.css?v=ec2d57de" />
         <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
         <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
     </head>
     <body>
+        <div class="page-layout layout-plain layout-project">
+        <main class="main-content">
+        <nav class="main-nav" aria-label="Page navigation">
+            <div class="nav-links">
+                <a href="../../index.html" class="nav-link" data-page="about">About</a>
+                <a href="../../cv/index.html" class="nav-link" data-page="cv" aria-label="Curriculum Vitae"><span class="nav-long">Curriculum Vitae</span><span class="nav-short">CV</span></a>
+                <a href="../../blogs/index.html" class="nav-link" data-page="blogs">Blogs</a>
+                <a href="../../timeline/index.html" class="nav-link" data-page="timeline">Timeline</a>
+            </div>
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark/light theme">
+                <i class="fas fa-sun"></i>
+                <i class="fas fa-moon"></i>
+            </button>
+        </nav>
         <div class="blog-page project-page">
-            <a href="../../index.html#selected-repos" class="blog-back">&larr; Open source</a>
+            <a href="../../blogs/index.html#selected-repos" class="blog-back">&larr; Open source</a>
             <h1>registry-pattern</h1>
             <div class="blog-meta"><div class="work-tags"><span class="tech-badge" style="background:#3776AB"><i class="devicon-python-plain" aria-hidden="true"></i>Python</span><span class="tech-badge" style="background:#E92063"><svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>Pydantic</title><path fill="currentColor" d="m23.826 17.316-4.23-5.866-6.847-9.496c-.348-.48-1.151-.48-1.497 0l-6.845 9.494-4.233 5.868a.925.925 0 0 0 .46 1.417l11.078 3.626h.002a.92.92 0 0 0 .572 0h.002l11.077-3.626c.28-.092.5-.31.59-.592a.916.916 0 0 0-.13-.825h.002ZM12.001 4.07l4.44 6.158-4.152-1.36c-.032-.01-.066-.008-.098-.016a.8.8 0 0 0-.096-.016c-.032-.004-.062-.016-.094-.016s-.062.012-.094.016a.74.74 0 0 0-.096.016c-.032.006-.066.006-.096.016L7.59 10.221l-.026.008 4.44-6.158h-.002Zm-6.273 8.7 4.834-1.583.516-.168v9.19L2.41 17.372l3.317-4.6Zm7.197 7.437V11.02l5.35 1.752 3.316 4.598-8.666 2.838Z"/></svg>Pydantic</span></div></div>
             
@@ -32,6 +46,9 @@ model = build({&quot;type&quot;: &quot;MLP&quot;, &quot;data&quot;: {&quot;hidde
 env = serialize(model)                                   # -&gt; {type, data, meta}</code></pre><h3>How it works</h3><p>A <code>TypeRegistry</code> or <code>FunctionalRegistry</code> collects artifacts by name via the <code>register_artifact</code> decorator. <code>build()</code> consumes a <code>{type, repo, data, meta}</code> envelope, validates the data against the target&#x27;s signature with Pydantic, recurses on nested envelopes to assemble whole pipelines, and runs hooks; <code>serialize()</code> is the inverse, producing the same envelope for round-tripping. Registries are tree-shaped and pass <code>post_init</code> / <code>serialize_meta</code> (and <code>pre_call</code> / <code>post_call</code>) hooks down by inheritance, so a sub-registry can add validation or emit provenance into <code>meta</code>, with optional meters and reporters for observability. The core depends only on Pydantic and typing-extensions; published on PyPI as <code>registry-pattern</code>.</p></div>
             <div class="publication-links"><a href="https://github.com/adnanhd/registry-pattern" class="pub-link" target="_blank" rel="noopener noreferrer">GitHub</a></div>
         </div>
+        </main>
+        </div>
+        <script defer src="../../assets/js/data.js"></script>
         <script>
             const saved = localStorage.getItem("theme");
             if (saved) document.documentElement.setAttribute("data-theme", saved);

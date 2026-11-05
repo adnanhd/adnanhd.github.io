@@ -18,6 +18,7 @@
 \usepackage{fancyhdr}
 \usepackage{parskip}
 \usepackage{needspace}
+\usepackage[normalem]{ulem}
 \usepackage{graphicx}
 \input{glyphtounicode}
 \pdfgentounicode=1
@@ -40,7 +41,7 @@
 
 % Section: bold heading with a thin rule underneath
 \titleformat{\section}{\Large\bfseries}{}{0em}{}[{\color{rulegray}\titlerule[0.4pt]}]
-\titlespacing*{\section}{0pt}{11pt}{6pt}
+\titlespacing*{\section}{0pt}{8pt}{5pt}
 \titleformat{\subsection}{\normalsize\bfseries\itshape}{}{0em}{}
 \titlespacing*{\subsection}{0pt}{8pt}{4pt}
 % Keep a heading with at least a few lines of its section
@@ -82,7 +83,8 @@
   \begin{minipage}[t]{\dimexpr\textwidth-3.9cm\relax}\raggedright #2\end{minipage}\par\vspace{3pt}}
 
 \newenvironment{cvlist}{\begin{enumerate}[leftmargin=2.4em,labelsep=0.6em,itemsep=4pt,parsep=0pt,topsep=2pt,align=right]}{\end{enumerate}}
-\newenvironment{cvsublist}{\footnotesize\begin{itemize}[leftmargin=1.4em,itemsep=0pt,parsep=0pt,topsep=1pt,label=\textbullet]}{\end{itemize}}
+% cvsublist: one indented, bulleted line per entry line.
+\newenvironment{cvsublist}{\begin{itemize}[leftmargin=1.4em,itemsep=0pt,parsep=0pt,topsep=1pt,label={\small\textbullet}]}{\end{itemize}}
 
 \begin{document}
 
@@ -93,7 +95,7 @@
 \section*{Personal Information}
 {{PERSONAL}}
 
-\section*{Employment}
+\section*{Academic Experience}
 {{EMPLOYMENT}}
 
 \section*{Education}
@@ -113,10 +115,10 @@
 \section*{Publications}
 {{PUBLICATIONS}}
 
-\section*{Undergraduate Research Projects}
+\section*{Undergraduate Research Experience}
 {{RESEARCH}}
 
-\section*{Teaching}
+\section*{Teaching Experience}
 {{TEACHING}}
 
 \section*{Honors and Scholarships}

@@ -21,6 +21,7 @@
 \usepackage{fancyhdr}
 \usepackage[english]{babel}
 \usepackage{tabularx}
+\usepackage[normalem]{ulem}
 \usepackage{graphicx}
 \input{glyphtounicode}
 
@@ -56,6 +57,12 @@
 
 \newcommand{\resumeItem}[1]{
   \item\small{#1 \vspace{-2pt}}
+}
+
+% One former bullet of an experience entry, at body size so its single
+% line spans the column as the CV's does.
+\newcommand{\resumeLine}[1]{
+  \item{#1 \vspace{-2pt}}
 }
 
 % Subheading with optional logo
@@ -121,7 +128,7 @@
   \resumeSubHeadingListEnd
 
 %-----------PUBLICATIONS-----------
-\section{Publications}
+\section{Selected Publications}
   \begin{itemize}[leftmargin=0.35in, labelsep=0pt, labelwidth=0pt, itemindent=-0.2in, itemsep=0pt, label={}]
 {{PUBLICATIONS}}
   \end{itemize}

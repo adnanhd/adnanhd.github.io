@@ -10,11 +10,11 @@ works: inline) are rendered as page content.
 import re
 
 from .build_config import BASE_DIR
-from .build_html import render_tags
+from .build_html import home_config, render_tags
 from .build_utils import esc, file_hash, format_date, highlight_author, slugify
 
 PROJECT_SHELL = """<!doctype html>
-<html lang="en">
+<html lang="en" data-root="../../"{motion}>
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -26,6 +26,7 @@ PROJECT_SHELL = """<!doctype html>
         <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
     </head>
     <body>
+        {top}
         <div class="blog-page project-page">
             <a href="{back}" class="blog-back">&larr; {back_label}</a>
             <h1>{title}</h1>
@@ -34,6 +35,7 @@ PROJECT_SHELL = """<!doctype html>
             <div class="blog-body">{body}</div>
             {links}
         </div>
+        {bottom}
         <script>
             const saved = localStorage.getItem("theme");
             if (saved) document.documentElement.setAttribute("data-theme", saved);
@@ -45,6 +47,27 @@ PROJECT_SHELL = """<!doctype html>
     </body>
 </html>
 """
+
+
+# With home.layout: plain a project page sits in the site's one column
+# under the same top menu as the tab pages.
+PLAIN_TOP = """<div class="page-layout layout-plain layout-project">
+        <main class="main-content">
+        <nav class="main-nav" aria-label="Page navigation">
+            <div class="nav-links">
+                <a href="../../index.html" class="nav-link" data-page="about">About</a>
+                <a href="../../cv/index.html" class="nav-link" data-page="cv" aria-label="Curriculum Vitae"><span class="nav-long">Curriculum Vitae</span><span class="nav-short">CV</span></a>
+                <a href="../../blogs/index.html" class="nav-link" data-page="blogs">Blogs</a>
+                <a href="../../timeline/index.html" class="nav-link" data-page="timeline">Timeline</a>
+            </div>
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark/light theme">
+                <i class="fas fa-sun"></i>
+                <i class="fas fa-moon"></i>
+            </button>
+        </nav>"""
+PLAIN_BOTTOM = """</main>
+        </div>
+        <script defer src="../../assets/js/data.js"></script>"""
 
 
 _MD_LINK = re.compile(r"\[([^\]]+)\]\((https?://[^\s)]+)\)")
@@ -161,23 +184,30 @@ def _links_html(links):
 
 
 def _write(slug, *, title, meta, description, back, back_label,
-           image="", body="", links=None):
+           image="", body="", links=None, motion="", plain=False):
     out = BASE_DIR / "projects" / slug
     out.mkdir(parents=True, exist_ok=True)
     page = PROJECT_SHELL.format(
         title=esc(title), meta=meta, description=esc(description),
         back=back, back_label=back_label,
         css_v=file_hash(BASE_DIR / "assets" / "css" / "style.css"),
-        image=image, body=body, links=_links_html(links),
+        image=image, body=body, links=_links_html(links), motion=motion,
+        top=PLAIN_TOP if plain else "", bottom=PLAIN_BOTTOM if plain else "",
     )
     (out / "index.html").write_text(page)
 
 
-def generate_project_pages(data):
+def generate_project_pages(data, motion=""):
     """Write a project page for each selected publication and each work,
-    and remove the pages of entries that no longer get one."""
+    and remove the pages of entries that no longer get one. `motion` is
+    the <html> attribute of bio.yaml `animations`."""
     count = 0
     written = set()
+    home = home_config(data.get("bio") or {})
+    plain = home["layout"] == "plain"
+    papers_label = "Publications" if home["publications"] == "all" else "Selected publications"
+    works_back = ("../../index.html#selected-repos" if "open_source" in home["sections"]
+                  else "../../blogs/index.html#selected-repos")
 
     for p in (data.get("publications") or {}).get("papers", []):
         if not p.get("selected"):
@@ -198,8 +228,8 @@ def generate_project_pages(data):
         _write(slugify(p["title"]), title=p["title"], meta=meta,
                description=venue,
                back="../../index.html#selected-works",
-               back_label="Selected publications",
-               image=image, body=body, links=p.get("links"))
+               back_label=papers_label,
+               image=image, body=body, links=p.get("links"), motion=motion, plain=plain)
         count += 1
 
     for w in (data.get("works") or {}).get("works", []):
@@ -209,9 +239,9 @@ def generate_project_pages(data):
         written.add(w["id"])
         _write(w["id"], title=w["title"], meta=meta,
                description=w.get("description", ""),
-               back="../../index.html#selected-repos",
+               back=works_back,
                back_label="Open source",
-               body=body, links=links)
+               body=body, links=links, motion=motion, plain=plain)
         count += 1
 
     for d in sorted((BASE_DIR / "projects").iterdir()):

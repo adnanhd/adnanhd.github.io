@@ -3,7 +3,11 @@
 Collects each http(s) URL from the YAML files (url fields, pool links,
 markdown links inside prose) and requests it: HEAD first, GET when HEAD
 is refused. Prints only the failures, with the file and field they come
-from. A manual tool; neither the build nor the pre-commit hook runs it.
+from. The pre-commit hook runs it after the build.
+
+Exit status: 0 when every URL answers; 2 when any URL is gone (HTTP 404
+or 410); 1 for the other failures only (network down, timeouts, 403 from
+sites that refuse scripts, 5xx), which the hook reports as a warning.
 """
 import re
 import sys
@@ -74,6 +78,8 @@ def main():
         for where in found[u]:
             print(f"    {where}")
     print(f"{len(bad)} of {len(found)} URLs failed", file=sys.stderr)
+    if any(r in ("HTTP 404", "HTTP 410") for r in bad.values()):
+        return 2
     return 1 if bad else 0
 
 

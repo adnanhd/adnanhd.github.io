@@ -104,6 +104,14 @@ function initTimelinePosHover() {
   });
 }
 
+// Smooth scrolling only with bio.yaml `animations` on (data-motion="on")
+// and no reduced-motion preference.
+function scrollBehavior() {
+  const on = document.documentElement.getAttribute("data-motion") === "on";
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return on && !reduce ? "smooth" : "auto";
+}
+
 function initLinkableHeaders() {
   document.querySelectorAll(".content-section h2").forEach(function (h2) {
     var section = h2.closest(".content-section");
@@ -114,7 +122,7 @@ function initLinkableHeaders() {
     h2.title = "Copy link to section";
     h2.addEventListener("click", function () {
       history.replaceState(null, "", window.location.search + "#" + container.id);
-      container.scrollIntoView({ behavior: "smooth" });
+      container.scrollIntoView({ behavior: scrollBehavior() });
     });
   });
 }
@@ -127,7 +135,7 @@ function initTimelineAnchors() {
     el.title = "Copy link to this point";
     el.addEventListener("click", function () {
       history.replaceState(null, "", window.location.search + "#" + el.id);
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.scrollIntoView({ behavior: scrollBehavior(), block: "center" });
     });
   });
 }

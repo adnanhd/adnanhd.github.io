@@ -111,14 +111,14 @@ def is_standalone(paper):
 
 
 def tex_bold_author(text):
-    """Bold the author's name in an already-escaped LaTeX string. Pool
+    """Underline the author's name in an already-escaped LaTeX string. Pool
     author links stay a site feature: reference lists in the PDFs keep
     plain co-author names."""
-    for name in (AUTHOR_NAME, AUTHOR_NAME_ALT):
-        escaped = tex_escape(name)
-        if escaped in text:
-            text = text.replace(escaped, r'\textbf{' + tex_escape(AUTHOR_NAME_APA) + '}')
-    return text
+    # One pass over both spellings: replacing them one after the other wraps
+    # the name twice when one spelling contains the other.
+    pattern = "|".join(re.escape(tex_escape(n))
+                       for n in sorted((AUTHOR_NAME, AUTHOR_NAME_ALT), key=len, reverse=True))
+    return re.sub(pattern, lambda _m: r'\uline{' + tex_escape(AUTHOR_NAME_APA) + '}', text)
 
 
 def _logo_tex(item):
@@ -202,7 +202,7 @@ def render_education(data):
             f"{{{tex_escape(edu.get('degree', ''))}}}"
             f"{{{tex_escape(_short_date(edu.get('start_date', '')))} -- {tex_escape(_short_date(edu.get('end_date', '')))}}}"
             f"{{{_tex_with_links(edu.get('institution', ''))}}}"
-            f"{{{tex_escape(edu.get('location', ''))}}}"
+            f"{{{tex_escape(edu.get('place', ''))}}}"
             f"{{{logo}}}"
         )
         # Thesis (linked) and advisor as compact sub-items.
@@ -238,7 +238,7 @@ def render_experience(data):
             f"{{{position}}}"
             f"{{{tex_escape(_short_date(exp.get('start_date', '')))} -- {tex_escape(_short_date(exp.get('end_date', '')))}}}"
             f"{{{_tex_with_links(exp.get('company', ''))}}}"
-            f"{{{tex_escape(exp.get('location', ''))}}}"
+            f"{{{tex_escape(exp.get('place', ''))}}}"
             f"{{{logo}}}"
         )
         bullets = exp.get("bullets", [])
@@ -249,7 +249,7 @@ def render_experience(data):
         if item_tex:
             parts.append("      \\resumeItemListStart")
             for it in item_tex:
-                parts.append(f"        \\resumeItem{{{it}}}")
+                parts.append(f"        \\resumeLine{{{it}}}")
             parts.append("      \\resumeItemListEnd")
     return "\n".join(parts)
 
@@ -286,6 +286,10 @@ def render_publications(data):
             ref += f" {venue_tex}."
         if status:
             ref += f" \\textcolor{{statusamber}}{{[{tex_escape(status)}]}}"
+            # Double-blind targets stay unnamed; the dagger points at the
+            # note under the list, as in the CV.
+            if paper.get("venue_double_blind"):
+                ref += "\\textsuperscript{\\dag}"
         for a in (paper.get("awards") or []):
             if a.get("name"):
                 ref += f" \\textcolor{{awardcolor}}{{\\faAward\\ {tex_escape(a['name'])}}}"
@@ -297,6 +301,9 @@ def render_publications(data):
             ]
             ref += "\\hspace{0.5em}" + "\\,\\textperiodcentered\\,".join(link_strs)
         parts.append(f"    \\resumeItem{{{ref}}}")
+    if any(p.get("stage") == "submitted" and p.get("venue_double_blind") for p in pubs):
+        parts.append("    \\item[] {\\footnotesize\\textsuperscript{\\dag} "
+                     "Venue withheld while under double-blind review.}")
     return "\n".join(parts)
 
 

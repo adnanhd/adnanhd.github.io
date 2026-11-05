@@ -61,6 +61,8 @@ records:
     meta_description: str
     appointment_url: url
     show_metrics: bool
+    animations: bool
+    home: record:home
     metrics: {map: {map: int}}
     short_bio: text
     research_interests: text
@@ -69,6 +71,28 @@ records:
     bio: text
     social: {map: str}
     custom_links: list:record:linked_name
+
+  # Site switches in bio.yaml. `animations` (default false) turns on the
+  # hover lifts, shadows, fills and transitions; prefers-reduced-motion
+  # turns them off again. `home` shapes the About page; without it the
+  # page keeps the sidebar layout and the about, news, publications
+  # (front only) and open_source sections.
+  #   layout       site-wide. plain: no sidebar on any tab page (About,
+  #                CV, Blogs, Timeline), one centred column under the top
+  #                menu; About opens with name, position, one address
+  #                block per affiliation and the links. sidebar: the
+  #                identity card
+  #   links        the plain header's links, in order (cv and resume are
+  #                the PDFs, the rest come from `social`)
+  #   sections     the About page's sections, in order; open_source left
+  #                out moves to the Blogs page
+  #   publications all: every paper, first-author works first; front:
+  #                the papers whose show carries front
+  home:
+    layout: enum:plain,sidebar
+    links: list:enum:email,cv,resume,github,google_scholar,linkedin,twitter,orcid,acm,ieee,dblp,semantic_scholar
+    sections: list:enum:about,news,publications,open_source,background
+    publications: enum:all,front
 
   # --- entries: education, experience, research, teaching
   education:
@@ -186,3 +210,6 @@ records:
     parent: key:institutions
     location: str
     logo: url
+    # The short form in an entry's place column (CV PDF, resume), ahead
+    # of `short` and `name`; nothing else reads it.
+    place_name: name

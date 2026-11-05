@@ -297,6 +297,7 @@ def _normalize_sections(data):
             for k in ("location", "logo"):
                 if org.get(k):
                     item.setdefault(k, org[k])
+            item["place"] = _place(parent, item.get("location", ""))
             if org.get("url"):
                 item.setdefault("logo_link", org["url"])
             if section == "teaching":
@@ -305,6 +306,18 @@ def _normalize_sections(data):
             if item.get("co_advisor"):
                 item["advisor"] = (
                     f"{item.get('advisor', '')}, Co-advisor: {item.pop('co_advisor')}".lstrip(", "))
+
+
+def _place(inst, location):
+    """The place column of an entry (CV PDF, resume): the institution's
+    short form (place_name, else short, else name), then the location
+    without its city when the institution's name already carries it:
+    METU, Ankara, Turkey; ETH Zürich, Switzerland; UC Irvine, California, USA."""
+    short = inst.get("place_name") or inst.get("short") or inst["name"]
+    parts = [p for p in str(location).split(", ") if p]
+    if parts and (parts[0] in inst["name"] or parts[0] in short):
+        parts = parts[1:]
+    return ", ".join([short] + parts)
 
 
 _LOGO_ASPECT = {}
@@ -341,7 +354,16 @@ def _months(start, end):
 
 
 def _duration(start, end):
-    n = _months(start, end)
+    """Length of a finished position. Month-precision dates count whole
+    months, inclusive; day-precision dates (2025-04-19/2025-09-25) count
+    the days, in weeks under three months."""
+    if re.match(r"^\d{4}-\d{2}-\d{2}$", str(start)) and re.match(r"^\d{4}-\d{2}-\d{2}$", str(end)):
+        days = (date.fromisoformat(str(end)) - date.fromisoformat(str(start))).days
+        if days < 90:
+            return f"{round(days / 7)} weeks"
+        n = round(days / 30.44)
+    else:
+        n = _months(start, end)
     return f"{n} months" if n < 18 else f"{round(n / 12)} years"
 
 
@@ -736,13 +758,14 @@ def linkify_names_html(html):
 
 
 def _linkify_authors_html(text):
-    """Wrap pool author names (already-escaped text) in understated links."""
+    """Wrap pool author names (already-escaped text) in understated links
+    to their Google Scholar profiles; an author without one stays plain."""
     for apa, info in _AUTHOR_POOL.items():
         needle = esc(apa)
-        if needle in text:
+        if info.get("scholar") and needle in text:
             text = text.replace(
                 needle,
-                f'<a href="{esc(info["link"])}" class="author-link" '
+                f'<a href="{esc(info["scholar"])}" class="author-link" '
                 f'target="_blank" rel="noopener noreferrer">{needle}</a>',
             )
     return text
