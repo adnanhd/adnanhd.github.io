@@ -46,16 +46,21 @@ function initCategoryToggles() {
 function initImageLightbox() {
   var overlay = document.createElement("div");
   overlay.className = "lightbox-overlay";
-  overlay.innerHTML = '<img class="lightbox-img" />';
+  overlay.innerHTML = '<figure class="lightbox-figure"><img class="lightbox-img" />' +
+    '<figcaption class="lightbox-caption"></figcaption></figure>';
   document.body.appendChild(overlay);
 
   var lbImg = overlay.querySelector(".lightbox-img");
+  var lbCap = overlay.querySelector(".lightbox-caption");
 
-  document.querySelectorAll(".publication-image img").forEach(function (img) {
+  // Publication figures, in the card layout and the plain home list; the
+  // caption is the paper's title, carried in the image's alt text.
+  document.querySelectorAll(".publication-image img, .plain-pub-thumb img").forEach(function (img) {
     img.style.cursor = "zoom-in";
     img.addEventListener("click", function () {
       lbImg.src = img.src;
       lbImg.alt = img.alt;
+      lbCap.textContent = img.alt;
       overlay.classList.add("active");
     });
   });

@@ -3639,3 +3639,21 @@ html {
 .layout-plain .content-section > h2 + [id] {
     scroll-margin-top: 150px;
 }
+
+/* Lightbox caption: the paper's title under the enlarged figure. */
+.lightbox-figure {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+.lightbox-figure .lightbox-img {
+    max-height: 82vh;
+}
+.lightbox-caption {
+    color: #fff;
+    font-size: 15px;
+    text-align: center;
+    max-width: 80vw;
+}
