@@ -702,9 +702,13 @@ def render_home_header(bio):
     social = bio.get("social") or {}
     links = []
     for key in cfg["links"]:
-        if key in ("cv", "resume"):
-            links.append(f'<a href="{key}.pdf" target="_blank" rel="noopener noreferrer">'
-                         f'{"CV" if key == "cv" else "Resume"}</a>')
+        if key == "cv":
+            # The one-page resume follows the CV as a link of its own; the
+            # pre-commit guard keeps it at one page.
+            links.append('<a href="cv.pdf" target="_blank" rel="noopener noreferrer">CV</a>')
+            links.append('<a href="resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a> (1 page)')
+        elif key == "resume":
+            links.append('<a href="resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a> (1 page)')
         elif social.get(key) and key in URL_TEMPLATES:
             url = URL_TEMPLATES[key].format(id=esc(str(social[key]).strip()))
             target = "" if key == "email" else ' target="_blank" rel="noopener noreferrer"'
