@@ -163,7 +163,7 @@ _LINK_ORDER = ["DOI", "ISBN", "arXiv", "PDF", "Thesis", "Code", "Data"]
 
 def _status_label(paper):
     """Badge text for a submitted paper, or '' for any other stage."""
-    return "Submitted" if paper.get("stage") == "submitted" else ""
+    return "Manuscript submitted for publication" if paper.get("stage") == "submitted" else ""
 
 
 def _ordered_links(links):

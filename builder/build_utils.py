@@ -578,7 +578,7 @@ def _join_authors(names):
 
 
 PAPER_KINDS = {"article", "proceedings", "chapter", "thesis"}
-PAPER_STAGES = {"published", "preprint", "submitted"}
+PAPER_STAGES = {"accepted", "published", "preprint", "submitted"}
 PAPER_SHOW = {"front", "resume", "timeline"}
 LINK_NAMES = ["DOI", "ISBN", "arXiv", "PDF", "Thesis", "Code", "Data"]
 
@@ -665,6 +665,10 @@ def _normalize_publications(data):
         paper.setdefault("stage", "published")
         if paper["stage"] not in PAPER_STAGES:
             sys.exit(f"publications.yaml: {pid}: stage {paper['stage']!r} not in {sorted(PAPER_STAGES)}")
+        # An accepted paper is a published one dated ahead: it shows
+        # "Accepted" until its date, then reads as published.
+        if paper["stage"] == "accepted":
+            paper["stage"] = "published"
         show = paper.pop("show", None)
         if not isinstance(show, list) or set(show) - PAPER_SHOW:
             sys.exit(f"publications.yaml: {pid}: show {show!r} must be a list from {sorted(PAPER_SHOW)}")
@@ -705,6 +709,14 @@ def _normalize_publications(data):
             paper["venue_prefix"] = spec["prefix"]
         if spec.get("detail"):
             paper["venue_detail"] = spec["detail"]
+        # The APA reference names the proceedings volume, not the meeting:
+        # apa_name / apa_prefix / apa_detail override the venue in the
+        # reference lists (CV PDF, web CV) and leave the cards alone.
+        for k in ("apa_name", "apa_prefix", "apa_detail"):
+            if spec.get(k):
+                paper[f"venue_{k}"] = spec[k]
+        if spec.get("apa_name") and spec.get("volume"):
+            paper["venue_apa_name"] = f"{spec['apa_name']}, {spec['volume']}"
         link = spec.get("url") or (entry or {}).get("url")
         if link:
             paper.setdefault("venue_link", link)

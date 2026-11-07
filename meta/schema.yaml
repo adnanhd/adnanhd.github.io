@@ -151,7 +151,7 @@ records:
   paper:
     "id!": str
     "kind!": enum:article,proceedings,chapter,thesis
-    stage: enum:published,preprint,submitted
+    stage: enum:accepted,published,preprint,submitted
     target: key:venues
     "data!":
       "title!": name
@@ -175,7 +175,7 @@ records:
   # {date, text} with generated ones; `where` overrides the venue's city
   # for that year, `topic` adds " on <topic>" after the linked short_title.
   news_event: {"date!": date, "event!": "enum:accepted,preprint", where: name, topic: str}
-  venue_ref: {id: key:venues, name: name, volume: str, detail: str, prefix: str, short: name, url: url}
+  venue_ref: {id: key:venues, name: name, volume: str, detail: str, prefix: str, short: name, url: url, apa_name: str, apa_prefix: str, apa_detail: str}
   paper_award: {"name!": name, "organization!": name, url: url, logo: url, description: text}
 
   # --- data/blogs.yaml, works.yaml, social_posts.yaml

@@ -210,25 +210,24 @@ def render_awards(data):
 def _render_pub_item(paper, number):
     authors = tex_bold_author(tex_escape(paper.get("authors", "")))
     title = tex_escape(paper.get("title_apa") or paper.get("title", ""))
-    venue = tex_escape(paper.get("venue", "") or paper.get("venue_short", ""))
+    venue = tex_escape(paper.get("venue_apa_name") or paper.get("venue", "") or paper.get("venue_short", ""))
     year = tex_escape(_year(paper.get("date", "")))
     # APA: Authors (Year). Title. *Venue*. -- except standalone works
     # (thesis, preprint, manuscript under review): *Title*. Venue.
     standalone = is_standalone(paper)
     title_tex = f"\\emph{{{title}}}" if standalone else title
-    ref = f"{authors} ({year}). {title_tex}."
     status = _status_label(paper)
     if status:
-        ref += f" \\textcolor{{statusamber}}{{{tex_escape(status)}"
-        # Double-blind targets stay unnamed while the paper is submitted;
-        # a dagger points at the footnote under the section.
-        if venue and not paper.get("venue_double_blind"):
-            ref += f" to {venue}"
-        ref += "}"
+        # APA unpublished manuscript: *Title* [Manuscript submitted for
+        # publication]. Double-blind targets stay unnamed; a dagger points
+        # at the footnote under the section.
+        note = f"[{tex_escape(status)}]"
         if paper.get("venue_double_blind"):
-            ref += "\\textsuperscript{\\dag}"
-        ref += "."
-    elif venue:
+            note += "\\textsuperscript{\\dag}"
+        ref = f"{authors} ({year}). {title_tex} \\textcolor{{statusamber}}{{{note}}}."
+    else:
+        ref = f"{authors} ({year}). {title_tex}."
+    if not status and venue:
         venue_tex = venue if standalone else f"\\emph{{{venue}}}"
         # Selected venues are bold italic; colour and links stay on the
         # site, the reference list keeps plain ink.
@@ -236,19 +235,27 @@ def _render_pub_item(paper, number):
             venue_tex = f"\\textbf{{{venue_tex}}}"
         # Only the venue name is italic; the "In Eds.," prefix and the
         # series/volume/pages detail stay plain (APA).
-        if paper.get("venue_prefix"):
-            venue_tex = f"{tex_escape(paper['venue_prefix'])} {venue_tex}"
-        detail = tex_escape(paper.get("venue_detail") or "")
+        prefix = paper.get("venue_apa_prefix") or paper.get("venue_prefix")
+        if prefix:
+            venue_tex = f"{tex_escape(prefix)} {venue_tex}"
+        detail = tex_escape(paper.get("venue_apa_detail") or paper.get("venue_detail") or "")
+        # APA page ranges take an en dash: "pp. 93–109", "31(5), 2525–2534".
+        detail = re.sub(r"((?:pp\. |\), )\d+)-(\d+)", r"\1--\2", detail)
         isbn_url = next((l.get("url") for l in (paper.get("links") or [])
                          if (l.get("name") or "").lower() == "isbn" and l.get("url")), None)
         if detail and isbn_url:
             detail = re.sub(r"(ISBN [\d-]+)", lambda m: _href(isbn_url, m.group(1)), detail)
         if detail:
-            if detail.startswith("("):
-                sep = "" if venue and venue[-1].isdigit() else " "
+            if re.match(r"\(\d+\)", detail):     # journal issue: "31(5)"
+                sep = ""
+            elif detail.startswith(("(", ".")):  # "(pp. 18–26). IEEE", ". IEEE"
+                sep = "" if detail.startswith(".") else " "
             else:
                 sep = ", "
             venue_tex += f"{sep}{detail}"
+        if venue.startswith("["):
+            # APA thesis: *Title* [Master's thesis, University].
+            ref = ref[:-1]
         ref += f" {venue_tex}."
     # APA embeds the persistent identifier in the reference itself: the
     # DOI as a full URL, else the arXiv id; the ISBN (already part of
@@ -257,12 +264,15 @@ def _render_pub_item(paper, number):
     links = _ordered_links(paper.get("links", []))
     doi = next((url for label, url in links if label == "DOI"), None)
     arx = next((url for label, url in links if label == "arXiv"), None)
+    # APA 7 writes identifiers as full https URLs; an arXiv paper takes its
+    # arXiv DOI.
     if doi:
-        ref += f" \\href{{{doi}}}{{\\textcolor{{linkblue}}{{\\nolinkurl{{{doi.replace('https://', '')}}}}}}}"
+        ref += f" \\href{{{doi}}}{{\\textcolor{{linkblue}}{{\\nolinkurl{{{doi}}}}}}}"
     elif arx:
         m = re.search(r"arxiv\.org/(?:abs|pdf)/([\w.]+)", arx)
         if m:
-            ref += " " + _href(arx, f"arXiv:{m.group(1)}")
+            url = f"https://doi.org/10.48550/arXiv.{m.group(1)}"
+            ref += f" \\href{{{url}}}{{\\textcolor{{linkblue}}{{\\nolinkurl{{{url}}}}}}}"
     shown = {"DOI", "ISBN"} | ({"arXiv"} if not doi else set())
     rest = [(label, url) for label, url in links if label not in shown]
     if rest:
