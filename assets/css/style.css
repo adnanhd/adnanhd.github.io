@@ -3673,3 +3673,9 @@ html {
     line-height: 1.45;
     text-align: left;
 }
+
+/* Venue strip over the plain-list thumbnail. */
+.plain-pub-thumb .publication-venue-tag {
+    margin-bottom: 4px;
+    font-size: 0.72em;
+}

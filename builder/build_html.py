@@ -355,44 +355,6 @@ def render_social_posts(data):
 # Publications
 # ---------------------------------------------------------------------------
 
-# venue token -> brand colour for the publication-venue-tag pill.
-# Key is the first non-prefix token of `venue_short` uppercased
-# (e.g. "IEEE/TVCG 2025" -> "TVCG", "Book Chapter 2024" -> "BOOK").
-_VENUE_COLORS = {
-    "ICRA":     "#00629b",   # IEEE robotics blue
-    "TVCG":     "#7b3f8f",   # graphics purple
-    "ECCV":     "#017a8e",   # ECCV teal
-    "CVPR":     "#1b4f72",   # CVPR navy
-    "ICCV":     "#7b1d36",   # ICCV maroon
-    "NEURIPS":  "#6c71c4",
-    "NIPS":     "#6c71c4",
-    "ICML":     "#d36d2e",
-    "ICLR":     "#cf2e2e",
-    "AAAI":     "#0e4d92",
-    "AINA":     "#5b7eb0",
-    "BOOK":     "#8b5e34",
-    "CNR":      "#8b5e34",   # CNR Edizioni book chapter
-    "ITU":      "#7a1a35",
-    "SRMC":     "#1e7a3d",
-    "CINC":     "#c0392b",   # cardiology red
-    "DAWAK":    "#6c71c4",
-    "SIGGRAPH": "#cf2e7a",
-    "ACL":      "#2e7d32",
-    "EMNLP":    "#00695c",
-    "ICASSP":   "#0a64a4",
-}
-
-
-def _venue_color(venue_short):
-    """Pick a brand colour from `venue_short`; None falls back to --accent-color."""
-    if not venue_short:
-        return None
-    s = re.sub(r"^(IEEE|ACM)/", "", str(venue_short).strip().upper())
-    token = s.split()[0] if s else ""
-    token = re.sub(r"'\d+$", "", token)  # "ECCV'24" -> "ECCV"
-    return _VENUE_COLORS.get(token)
-
-
 def _render_pub_links(links):
     """Render publication link buttons (PAPER, CODE, DEMO, etc.)."""
     if not links:
@@ -442,6 +404,18 @@ def _status_badge(paper):
     return '<span class="pub-status">Submitted</span>'
 
 
+def _link_venue_abbrev(venue_html, paper):
+    """Link the venue's parenthesised abbreviation, e.g. "(ICLR)", to the
+    venue's own site; the full name stays plain text."""
+    link = paper.get("venue_link")
+    m = re.search(r"\(([^()]+)\)", venue_html)
+    if not link or not m:
+        return venue_html
+    a = (f'<a href="{esc(link)}" class="venue-link" target="_blank" '
+         f'rel="noopener noreferrer">{m.group(1)}</a>')
+    return f"{venue_html[:m.start()]}({a}){venue_html[m.end():]}"
+
+
 def render_publication_card(paper):
     """Render a fancy publication card (About page - selected works)."""
     parts = ['<div class="publication-item">']
@@ -449,8 +423,8 @@ def render_publication_card(paper):
     # Left: venue tag + image
     parts.append('<div class="publication-left">')
     venue_text = paper.get("venue_short") or paper.get("venue", "Publication")
-    color = _venue_color(venue_text)
-    style = f' style="background-color: {color}"' if color else ""
+    # One accent colour for every venue, as in al-folio's abbr badges.
+    style = ""
     if paper.get("venue_link"):
         parts.append(
             f'<div class="publication-venue-tag"{style}>'
@@ -499,7 +473,7 @@ def render_publication_card(paper):
         venue_full += f"{sep}{detail}"
     if paper.get("date"):
         venue_full += f', {format_date(paper["date"])}'
-    parts.append(f'<div class="publication-venue">{esc(venue_full)}</div>')
+    parts.append(f'<div class="publication-venue">{_link_venue_abbrev(esc(venue_full), paper)}</div>')
     parts.append(_render_awards(paper.get("awards")))
     parts.append(_render_pub_links(paper.get("links")))
     parts.append("</div></div>")
@@ -514,39 +488,44 @@ def render_compact_publication(paper):
     citation = authors_html
     if paper.get("date"):
         citation += f" ({esc(str(paper['date'])[:4])})."  # APA: year only
-    citation += f" {esc(paper.get('title_apa') or paper['title'])}."
-    # Submitted work names its target in the data but doesn't show it
-    # yet -- only the status badge.
+    # APA 7, the same reference as the CV PDF: standalone works (theses,
+    # preprints, submitted manuscripts) italicise the title; papers in a
+    # journal or proceedings italicise the venue.
+    title = esc(paper.get('title_apa') or paper['title'])
+    standalone = paper.get("stage") != "published" or paper.get("kind") == "thesis"
+    title_html = f"<em>{title}</em>" if standalone else title
     if paper.get("stage") == "submitted":
-        pass
-    elif paper.get("selected") and paper.get("venue_link") and paper.get("venue_short"):
-        # Only a selected paper's venue is a link.
-        venue = (
-            f'<em><a href="{esc(paper["venue_link"])}" class="venue-link" '
-            f'target="_blank" rel="noopener noreferrer">'
-            f'{esc(paper["venue_short"])}</a></em>'
-        )
-        # Selected venues are underlined: the venue is already a coloured
-        # link, so bold would not show.
-        if paper.get("selected"):
-            venue = f'<span class="venue-selected">{venue}</span>'
-        citation += f" {venue}."
-    elif paper.get("venue_short") and paper.get("venue_link"):
-        citation += f" <em>{esc(paper['venue_short'])}</em>."
-    elif paper.get("venue"):
-        v = f"<em>{esc(paper['venue'])}</em>"
-        if paper.get("venue_prefix"):
-            v = f"{esc(paper['venue_prefix'])} {v}"
-        detail = esc(paper.get("venue_detail") or "")
-        if detail:
-            if detail.startswith("("):
-                sep = "" if paper["venue"][-1].isdigit() else " "
+        # Double-blind targets stay unnamed; only the APA bracket shows.
+        citation += f" {title_html} [Manuscript submitted for publication]."
+    else:
+        venue = paper.get("venue_apa_name") or paper.get("venue") or ""
+        v = esc(venue)
+        if v and not standalone:
+            if paper.get("venue_link"):
+                v = (f'<a href="{esc(paper["venue_link"])}" class="venue-link" '
+                     f'target="_blank" rel="noopener noreferrer">{v}</a>')
+            v = f"<em>{v}</em>"
+        prefix = paper.get("venue_apa_prefix") or paper.get("venue_prefix")
+        if v and prefix:
+            v = f"{esc(prefix)} {v}"
+        detail = esc(paper.get("venue_apa_detail") or paper.get("venue_detail") or "")
+        detail = re.sub(r"((?:pp\. |\), )\d+)-(\d+)", r"\1&ndash;\2", detail)
+        if v and detail:
+            if re.match(r"\(\d+\)", detail):
+                sep = ""
+            elif detail.startswith(("(", ".")):
+                sep = "" if detail.startswith(".") else " "
             else:
                 sep = ", "
             v += sep + detail
-        if paper.get("selected") and paper.get("kind") != "thesis":
+        if v and paper.get("selected") and paper.get("kind") != "thesis":
             v = f'<span class="venue-selected">{v}</span>'
-        citation += f" {v}."
+        if not v:
+            citation += f" {title_html}."
+        elif venue.startswith("["):
+            citation += f" {title_html} {v}."
+        else:
+            citation += f" {title_html}. {v}."
 
     # Print shows the links as plain text after the reference, separated
     # by middle dots as in the CV PDF; on screen they are the pills.
@@ -640,7 +619,7 @@ def _plain_venue(paper):
         if paper.get("venue_double_blind") or not venue:
             return badge
         return f"{badge} to <em>{esc(venue)}</em>"
-    out = f"<em>{esc(venue)}</em>" if venue else ""
+    out = f"<em>{_link_venue_abbrev(esc(venue), paper)}</em>" if venue else ""
     if year:
         out = f"{out}, {year}" if out else year
     if badge:
@@ -684,9 +663,20 @@ def render_plain_publication(paper):
         f'<a href="{esc(l["url"])}" target="_blank" rel="noopener noreferrer">{esc(l["name"])}</a>'
         for l in paper.get("links") or [] if l.get("url"))
     links_html = f'<div class="plain-pub-links">{links}</div>' if links else ""
+    # A thin coloured strip with the venue sits on top of the thumbnail,
+    # as on the old cards; a submitted paper has none.
+    strip = ""
+    tag = paper.get("venue_short") if paper.get("stage") != "submitted" else ""
+    if tag:
+        style = ""
+        inner = esc(tag)
+        if paper.get("venue_link"):
+            inner = (f'<a href="{esc(paper["venue_link"])}" target="_blank" '
+                     f'rel="noopener noreferrer">{inner}</a>')
+        strip = f'<div class="publication-venue-tag"{style}>{inner}</div>'
     return (
         f'<div class="plain-pub">'
-        f'<div class="plain-pub-thumb">{thumb}</div>'
+        f'<div class="plain-pub-thumb">{strip}{thumb}</div>'
         f'<div class="plain-pub-body">{title}'
         f'<div class="plain-pub-authors">{highlight_author_span(esc(paper.get("authors", "")))}</div>'
         f'<div class="plain-pub-venue">{_plain_venue(paper)}</div>'
@@ -984,7 +974,10 @@ def _render_section(items, title_key, subtitle_key, date_fn, advisor_label="Advi
             title=item.get(title_key, ""),
             subtitle=item.get(subtitle_key, ""),
             date=date_fn(item),
-            description=item.get(description_key, "") if description_key else "",
+            # As in the PDF CV: an entry with bullets shows them alone; its
+            # description paragraph would repeat them.
+            description=(item.get(description_key, "")
+                         if description_key and not item.get("bullets") else ""),
             logo=item.get("logo"),
             links=item.get("links"),
             logo_link=item.get("logo_link"),
