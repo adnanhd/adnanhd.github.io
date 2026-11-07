@@ -159,6 +159,15 @@ def _render_summary(text):
         elif s.startswith("## "):
             flush_all()
             html.append(f"<h3>{esc(s[3:])}</h3>")
+        elif re.fullmatch(r"!\[[^\]]*\]\(assets/[^)\s]+\)", s):
+            # '![caption](assets/...)' on its own line: a figure with the
+            # caption beneath, opening in the lightbox like the teaser.
+            flush_all()
+            cap, src = re.fullmatch(r"!\[([^\]]*)\]\((assets/[^)\s]+)\)", s).groups()
+            html.append(
+                f'<figure class="project-figure"><img class="project-image" src="../../{esc(src)}" '
+                f'alt="{esc(cap)}" data-caption="{esc(cap)}" />'
+                + (f"<figcaption>{esc(cap)}</figcaption>" if cap else "") + "</figure>")
         elif s.startswith("|") and s.endswith("|"):
             flush_para(); flush_bullets()
             table.append(s)
