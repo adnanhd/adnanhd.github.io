@@ -5,6 +5,12 @@
     box-sizing: border-box;
 }
 
+/* Superscripts and subscripts (footnote marks) do not stretch the line. */
+sup,
+sub {
+    line-height: 0;
+}
+
 /* CSS Variables for Light/Dark Theme */
 :root {
     --bg-primary: #ffffff;
@@ -2612,6 +2618,7 @@ footer {
     color: var(--text-secondary);
     line-height: 1.75;
     font-size: 1.02em;
+    overflow-wrap: break-word;
 }
 
 .blog-body h1,
@@ -2731,6 +2738,12 @@ footer {
     border-top: 1px solid var(--border-color);
     font-size: 0.9em;
     color: var(--text-muted);
+}
+
+/* pandoc opens the footnotes with its own <hr>; the border above is the
+   one rule. */
+.blog-body .footnotes > hr {
+    display: none;
 }
 
 .blog-body hr {
@@ -2915,10 +2928,16 @@ footer {
     margin-right: auto;
 }
 
-/* project/blog summary lists */
-.blog-body ul {
+/* project/blog summary lists; numbered lists (footnotes) need room for
+   two-digit markers */
+.blog-body ul,
+.blog-body ol {
     margin: 0 0 1.1em;
     padding-left: 1.4em;
+}
+
+.blog-body ol {
+    padding-left: 2.2em;
 }
 
 .blog-body li {
