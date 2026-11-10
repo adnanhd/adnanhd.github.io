@@ -2671,6 +2671,7 @@ footer {
 .blog-table {
     overflow-x: auto;
     margin: 1.5em 0;
+    container-type: inline-size;
 }
 
 .blog-body table {
@@ -2691,12 +2692,18 @@ footer {
     background: var(--bg-secondary);
 }
 
+/* The caption stays as wide as the visible column when the table
+   scrolls, and reads at the figcaption size (0.85em of the body text,
+   not of the 0.8em table). */
 .blog-body caption {
     caption-side: top;
-    font-size: 0.85em;
+    font-size: calc(0.85em / 0.8);
     color: var(--text-muted);
     text-align: left;
     margin-bottom: 0.6em;
+    max-width: 100cqi;
+    position: sticky;
+    left: 0;
 }
 
 .blog-body .citation {
@@ -2953,6 +2960,11 @@ footer {
     border-radius: 4px;
     padding: 1px 5px;
     font-size: 0.88em;
+}
+
+/* a command in a table cell stays on one line; the table scrolls instead */
+.blog-body td code {
+    white-space: nowrap;
 }
 
 /* highlight.js syntax tokens - theme-aware (follows data-theme toggle) */
@@ -3477,11 +3489,10 @@ span.plain-pub-title {
     }
 }
 
-/* Wide display maths and tables scroll inside the column instead of
-   widening the page on narrow screens. */
-.blog-body mjx-container[display="true"],
-.blog-body .table-wrap,
-.blog-body table {
+/* Wide display maths scroll inside the column instead of widening the
+   page on narrow screens. Tables scroll in their .blog-table wrapper and
+   keep table layout, so width: 100% fills the column. */
+.blog-body mjx-container[display="true"] {
     display: block;
     max-width: 100%;
     overflow-x: auto;
