@@ -178,6 +178,9 @@ def _render_summary(text):
         elif s.startswith("- "):
             flush_para(); flush_table()
             bullets.append(s[2:])
+        elif bullets and line[:1] in (" ", "\t"):
+            # an indented line continues the bullet above it
+            bullets[-1] += " " + s
         else:
             flush_bullets(); flush_table()
             para.append(s)
