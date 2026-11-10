@@ -6,7 +6,7 @@
         <meta name="description" content="Name-based class/function registries plus a recursive factory that builds object graphs from JSON-friendly {type, repo, data, meta} envelopes." />
         <title>registry-pattern - Adnan Harun Dogan</title>
         <link rel="stylesheet" href="../../assets/css/vendor.css" />
-        <link rel="stylesheet" href="../../assets/css/style.css?v=e3fda3a7" />
+        <link rel="stylesheet" href="../../assets/css/style.css?v=43627514" />
         <link rel="icon" type="image/jpeg" href="../../assets/img/profile-sm.jpeg" />
         <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
     </head>
@@ -46,6 +46,9 @@ model = build({&quot;type&quot;: &quot;MLP&quot;, &quot;data&quot;: {&quot;hidde
 env = serialize(model)                                   # -&gt; {type, data, meta}</code></pre><h3>How it works</h3><p>A <code>TypeRegistry</code> or <code>FunctionalRegistry</code> collects artifacts by name via the <code>register_artifact</code> decorator. <code>build()</code> consumes a <code>{type, repo, data, meta}</code> envelope, validates the data against the target&#x27;s signature with Pydantic, recurses on nested envelopes to assemble whole pipelines, and runs hooks; <code>serialize()</code> is the inverse, producing the same envelope for round-tripping. Registries are tree-shaped and pass <code>post_init</code> / <code>serialize_meta</code> (and <code>pre_call</code> / <code>post_call</code>) hooks down by inheritance, so a sub-registry can add validation or emit provenance into <code>meta</code>, with optional meters and reporters for observability. The core depends only on Pydantic and typing-extensions; published on PyPI as <code>registry-pattern</code>.</p></div>
             <div class="publication-links"><a href="https://github.com/adnanhd/registry-pattern" class="pub-link" target="_blank" rel="noopener noreferrer">GitHub</a></div>
         </div>
+        <footer>
+            <p>&copy; 2026 Adnan Harun Doğan. All rights reserved.</p>
+        </footer>
         </main>
         </div>
         <script defer src="../../assets/js/data.js"></script>

@@ -416,7 +416,6 @@ a:hover {
 
 .bio-description p {
     color: var(--text-secondary);
-    text-align: justify;
     margin-bottom: 14px;
 }
 
@@ -537,6 +536,12 @@ a:hover {
 .see-all-link {
     margin-top: 16px;
     text-align: right;
+}
+
+/* A page-level link above the first section (the CV's PDF link) starts
+   where every page's content starts. */
+.page-section > .see-all-link {
+    margin-top: 0;
 }
 
 .nav-link-inline {
@@ -1985,7 +1990,7 @@ a:hover {
 
 /* Footer */
 footer {
-    padding: 30px 0;
+    padding: 30px 24px;
     text-align: center;
     color: var(--text-muted);
 }
@@ -2146,18 +2151,38 @@ footer {
         text-indent: 0;
     }
 
-    /* Resume */
-    .resume-header {
-        flex-direction: column;
+    /* the award strip follows the reference, which no longer hangs */
+    .pub-compact-body > .entry-awards {
+        padding-left: 0;
     }
 
+    /* Resume: stacked header lines start at one edge */
+    .resume-header,
     .resume-subheader {
         flex-direction: column;
+        align-items: flex-start;
     }
 
+    .resume-commitment {
+        margin-left: 0;
+    }
+
+    /* CV entries: the logo sits above its entry at its own size and the
+       text takes the full width, instead of a squeezed logo column
+       centred far from the title. */
+    .resume-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+    }
     .resume-logo {
-        width: 64px;
-        height: 32px;
+        width: auto;
+        height: auto;
+        align-self: flex-start;
+        justify-content: flex-start;
+    }
+    .resume-logo:empty {
+        display: none;
     }
 
     .timeline-container {
@@ -3348,6 +3373,10 @@ footer {
 }
 .page-section p.home-links {
     margin-top: 12px;
+    text-wrap: balance;
+}
+.page-section p.home-links a {
+    white-space: nowrap;
 }
 .home-photo {
     width: 160px;
@@ -3405,9 +3434,13 @@ span.plain-pub-title {
 }
 @media (max-width: 600px) {
     .layout-plain .main-nav,
-    .layout-plain .page-section {
+    .layout-plain .page-section,
+    footer {
         padding-left: 16px;
         padding-right: 16px;
+    }
+    .blog-page > h1 {
+        font-size: 1.5em;
     }
     .home-head {
         flex-direction: column-reverse;
@@ -3431,12 +3464,24 @@ span.plain-pub-title {
     }
 }
 
-/* CV dates stay on one line; the title gives way instead. */
+/* CV dates stay on one line; the title gives way instead, in balanced
+   lines. */
 .resume-header {
     gap: 12px;
 }
 .resume-header strong {
     min-width: 0;
+}
+.resume-header > :first-child {
+    text-wrap: balance;
+}
+
+/* CV references wrap at one width on every row, whatever the number of
+   link pills beside them (up to four). */
+@media screen and (min-width: 769px) {
+    .pub-compact-body {
+        flex: 0 1 calc(100% - 17em);
+    }
 }
 .resume-header .date {
     font-size: 1em;
@@ -3612,7 +3657,8 @@ html {
     .resume-logo img {
         width: 26pt !important;
     }
-    .layout-plain .content-section > h2 ~ * {
+    .layout-plain .content-section > h2 ~ *,
+    .layout-plain .content-section:not(:has(> h2)) > * {
         margin-left: 0;
     }
     /* Co-authors print plain; only the owner's name is bold. */
@@ -3623,8 +3669,10 @@ html {
     }
 }
 
-/* Section bodies sit slightly inside their heading. */
-.layout-plain .content-section > h2 ~ * {
+/* Section bodies sit slightly inside their heading; a section without
+   a heading lines up with the bodies of the others. */
+.layout-plain .content-section > h2 ~ *,
+.layout-plain .content-section:not(:has(> h2)) > * {
     margin-left: 16px;
 }
 

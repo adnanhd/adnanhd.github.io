@@ -715,7 +715,9 @@ def render_home_header(bio):
         f'<h1 class="home-name">{esc(bio["name"])}</h1>'
         f'<p class="home-position">{position}</p>'
         f'{render_home_address(bio)}'
-        f'<p class="home-links">{" / ".join(links)}</p>'
+        # A separator stays with the link before it, so a wrapped line
+        # never starts with "/".
+        f'<p class="home-links">{"&nbsp;/ ".join(links)}</p>'
         f'</div>{photo_html}</header>'
     )
 
@@ -840,7 +842,7 @@ def render_home(data):
             parts.append(render_open_source(data))
         elif sec == "background":
             parts.append(f'<div class="content-section">{render_background(data)}'
-                         '<p class="home-background"><a href="?tab=cv" class="nav-link-inline">'
+                         '<p class="see-all-link"><a href="?tab=cv" class="nav-link-inline">'
                          'full CV &rarr;</a></p></div>')
     return "\n".join(parts)
 
@@ -900,6 +902,10 @@ def _render_resume_item(title, subtitle, date, description="", logo=None,
         else:
             parts.append(img)
         parts.append("</div>")
+    else:
+        # An entry without a logo keeps the empty cell, so its text lines
+        # up with the entries that have one.
+        parts.append('<div class="resume-logo"></div>')
 
     parts.append('<div class="resume-details">')
     # The commitment follows the dates in parentheses: "Apr 2025 - Sep 2025

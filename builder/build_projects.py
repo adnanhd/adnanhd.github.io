@@ -65,7 +65,11 @@ PLAIN_TOP = """<div class="page-layout layout-plain layout-project">
                 <i class="fas fa-moon"></i>
             </button>
         </nav>"""
-PLAIN_BOTTOM = """</main>
+# The same footer as the tab pages (template.html).
+PLAIN_BOTTOM = """<footer>
+            <p>&copy; 2026 {name}. All rights reserved.</p>
+        </footer>
+        </main>
         </div>
         <script defer src="../../assets/js/data.js"></script>"""
 
@@ -193,7 +197,7 @@ def _links_html(links):
 
 
 def _write(slug, *, title, meta, description, back, back_label,
-           image="", body="", links=None, motion="", plain=False):
+           image="", body="", links=None, motion="", plain=False, name=""):
     out = BASE_DIR / "projects" / slug
     out.mkdir(parents=True, exist_ok=True)
     page = PROJECT_SHELL.format(
@@ -201,7 +205,8 @@ def _write(slug, *, title, meta, description, back, back_label,
         back=back, back_label=back_label,
         css_v=file_hash(BASE_DIR / "assets" / "css" / "style.css"),
         image=image, body=body, links=_links_html(links), motion=motion,
-        top=PLAIN_TOP if plain else "", bottom=PLAIN_BOTTOM if plain else "",
+        top=PLAIN_TOP if plain else "",
+        bottom=PLAIN_BOTTOM.format(name=esc(name)) if plain else "",
     )
     (out / "index.html").write_text(page)
 
@@ -214,6 +219,7 @@ def generate_project_pages(data, motion=""):
     written = set()
     home = home_config(data.get("bio") or {})
     plain = home["layout"] == "plain"
+    name = (data.get("bio") or {}).get("name", "")
     papers_label = "Publications" if home["publications"] == "all" else "Selected publications"
     works_back = ("../../index.html#selected-repos" if "open_source" in home["sections"]
                   else "../../blogs/index.html#selected-repos")
@@ -241,7 +247,8 @@ def generate_project_pages(data, motion=""):
                description=venue,
                back="../../index.html#selected-works",
                back_label=papers_label,
-               image=image, body=body, links=p.get("links"), motion=motion, plain=plain)
+               image=image, body=body, links=p.get("links"), motion=motion, plain=plain,
+               name=name)
         count += 1
 
     for w in (data.get("works") or {}).get("works", []):
@@ -253,7 +260,7 @@ def generate_project_pages(data, motion=""):
                description=w.get("description", ""),
                back=works_back,
                back_label="Open source",
-               body=body, links=links, motion=motion, plain=plain)
+               body=body, links=links, motion=motion, plain=plain, name=name)
         count += 1
 
     for d in sorted((BASE_DIR / "projects").iterdir()):
