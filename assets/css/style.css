@@ -92,9 +92,10 @@ a {
 }
 
 /* Visited colour applies to real outbound links only: not to nav
-   (menu + inline tab links), pill buttons, disguised author names, or
-   block card wrappers whose whole text would turn purple. */
-a:visited:not(.nav-link):not(.nav-link-inline):not(.social-link):not(.pub-link):not(.timeline-link):not(.work-link):not(.blog-link):not(.author-link) {
+   (menu, inline tab links, back and skip links), pill buttons and chips,
+   disguised author names, or block card wrappers whose whole text would
+   turn purple. */
+a:visited:not(.nav-link):not(.nav-link-inline):not(.social-link):not(.pub-link):not(.timeline-link):not(.work-link):not(.blog-link):not(.author-link):not(.timeline-filter):not(.blog-tag-inline):not(.rss-badge):not(.post-card):not(.blog-back):not(.skip-link) {
     color: var(--visited-color);
 }
 
@@ -862,6 +863,10 @@ a:hover {
     z-index: 0;
 }
 
+.timeline-month-label.is-crossed {
+    visibility: hidden;
+}
+
 .timeline-month-tick {
     position: absolute;
     left: var(--rail-x);
@@ -878,7 +883,7 @@ a:hover {
     left: var(--rail-x);
     transform: translate(-50%, -50%);
     background: var(--bg-secondary);
-    padding: 2px 14px;
+    padding: 2px 8px;
     font-size: 0.78em;
     font-weight: 700;
     color: var(--text-tertiary);
@@ -1069,9 +1074,13 @@ a:hover {
     line-height: 1.45;
     color: var(--text-secondary);
 }
-.timeline-newsline .timeline-logo {
-    width: 15px;
-    height: 15px;
+/* Every logo sits centred in one slot width (the widest logo's), so the
+   text beside logos of different shapes starts at one x. */
+.timeline-logo-slot {
+    flex: 0 0 56px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
     align-self: center;
 }
 
@@ -1265,18 +1274,37 @@ a:hover {
         min-height: 0 !important;
         margin: 0 0 14px 0;
     }
-    /* A small dot per card, sitting on the left rail. */
+    /* One geometry for every entry: a card keeps its box, a plain line
+       (position, degree, news) has none; both start their text at one x,
+       sit one gap apart and carry their dot level with the date. */
+    .timeline .timeline-item {
+        padding: 10px 12px;
+        border-left-width: 2px;
+    }
+    .timeline .timeline-plain,
+    .timeline .timeline-newsitem:not(.timeline-publication) {
+        padding: 0 0 0 14px;
+    }
+    .timeline .timeline-title {
+        font-size: 0.95em;
+    }
+    /* A small dot per entry, centred on the left rail. */
     .timeline-item::before {
         content: "";
         position: absolute;
-        top: 18px;
-        left: -28px;
+        top: 12.5px;
+        left: -30.5px;
         width: 11px;
         height: 11px;
         border-radius: 50%;
         background: var(--bg-primary);
         border: 2px solid var(--dot-color, var(--accent-color));
         box-sizing: border-box;
+    }
+    .timeline .timeline-plain::before,
+    .timeline .timeline-newsitem:not(.timeline-publication)::before {
+        top: 2.5px;
+        left: -28.5px;
     }
     .timeline-controls {
         margin-bottom: 16px;
@@ -1588,9 +1616,9 @@ a:hover {
     color: var(--text-tertiary);
     font-weight: 400;
 }
-/* Slim timeline cards: match the card's reduced scale. */
+/* Timeline cards: the award strip stays under the card title's size. */
 .timeline-slim .entry-awards { margin-top: 4px; }
-.timeline-slim .entry-award { font-size: 0.78em; }
+.timeline-item .entry-award { font-size: 0.72em; }
 
 /* Nested publication = 2-line chip inside a parent timeline card.
      line 1: [venue] title  ............................. (date)
@@ -2206,16 +2234,6 @@ footer {
         grid-template-columns: 1fr;
     }
 
-    /* Timeline */
-    .timeline-item {
-        padding-left: 24px;
-        padding-bottom: 18px;
-    }
-
-    .timeline-title {
-        font-size: 0.95em;
-    }
-
     /* Blog/Work items */
     .blog-item,
     .work-item {
@@ -2340,7 +2358,8 @@ footer {
     .work-tags,
     .publication-image,
     .project-image,
-    .timeline-logo {
+    .timeline-logo,
+    .timeline-logo-slot {
         display: none !important;
     }
     /* Keep resume logos in print but shrink to a tight square so they

@@ -1406,8 +1406,11 @@ def _render_timeline_card(e, top_px, height_px=None, lane=0, lanes=1, slim=False
     logo_html = ""
     if logo:
         w, h = logo_size(logo, 56, 20, 18)
-        logo_html = (f'<img class="timeline-logo" src="{esc(logo)}" alt="" loading="lazy" '
-                     f'width="{w}" height="{h}" style="width:{w}px;height:{h}px" />')
+        # The slot is as wide as the widest logo (56px), so the text beside
+        # logos of different shapes starts at one x.
+        logo_html = (f'<span class="timeline-logo-slot"><img class="timeline-logo" src="{esc(logo)}" '
+                     f'alt="" loading="lazy" width="{w}" height="{h}" '
+                     f'style="width:{w}px;height:{h}px" /></span>')
 
     if e.get("news_text"):
         # Atomic news moment: a dated one-liner, no title block.
@@ -1806,6 +1809,7 @@ def render_timeline(data, only=""):
     GAP = _TIMELINE_GAP_PX
     MIN_MONTH = 16
     YEAR_GAP = 20    # minimum distance between a year pill and a month
+    PILL_CLEAR = 26  # half a year pill plus a dot: a January dot below it
     TOP_PAD = 34
     DOT_LIFT = 25   # dot centre sits this far below a card's top edge
 
@@ -1885,10 +1889,12 @@ def render_timeline(data, only=""):
             month_header_y[(Y, M)] = line
             prev = max(line, _place(line, evs))
         # January owns no label of its own: its line IS the year pill.
+        # Its cards hang just below the pill, so their dot is not hidden
+        # under it.
         evs = by_month.get((Y, 1), [])
         jan_y = max(prev + YEAR_GAP, _needs(evs))
         month_header_y[(Y, 1)] = jan_y
-        last = _place(jan_y, evs)
+        last = _place(jan_y + PILL_CLEAR, evs)
         cursor = jan_y
         carry = max(jan_y, last)
     year_label_y[yr_min] = cursor  # closing boundary sits on the last Jan line
@@ -1952,14 +1958,20 @@ def render_timeline(data, only=""):
     month_names = {1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May",
                    6: "Jun", 7: "Jul", 8: "Aug", 9: "Sep", 10: "Oct",
                    11: "Nov", 12: "Dec"}
+    # A left card's arm runs across the month labels, which sit just left
+    # of the rail. Where it does, the label keeps its anchor (deep links)
+    # but not its text: the card carries the date.
+    left_arms = [e["_top_px"] + DOT_LIFT for e in card_events
+                 if _TIMELINE_TYPE_META.get(e["type"], ("right", ""))[0] == "left"]
     for (Y, M), ty in month_header_y.items():
         if M != 1:
             parts.append(
                 f'<div class="timeline-month-tick" style="top: {ty:.1f}px"></div>')
         if M == 1:
             continue  # January's line IS the year pill: no tick, no label
+        crossed = " is-crossed" if any(abs(ty - a) < 9 for a in left_arms) else ""
         parts.append(
-            f'<div id="{Y}-{M:02d}" class="timeline-month-label" style="top: {ty:.1f}px">'
+            f'<div id="{Y}-{M:02d}" class="timeline-month-label{crossed}" style="top: {ty:.1f}px">'
             f'{month_names[M]}</div>')
 
     for y, y_pos in year_label_y.items():
