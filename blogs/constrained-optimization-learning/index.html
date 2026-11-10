@@ -132,7 +132,7 @@ the two scales train poorly</u><a href="#fn8" class="footnote-ref" id="fnref9" r
 where a generic implicit-layer beats a problem-specific decomposition
 only on toy sizes.</p>
 <div class="blog-table"><table id="tbl:col-sota">
-<caption>Constrained-optimization-learning families, one row per method.
+<caption><span class="blog-label">Table 1.</span> Constrained-optimization-learning families, one row per method.
 Method links to the chapter section and cites the canonical paper; the
 per-row citation names where the <em>method</em> was published and is
 not a source for the row's numbers. Architecture/Layer = the
@@ -155,29 +155,20 @@ same-hardware comparison of SPO+ against a cone-aligned loss, and <span
 class="citation" data-cites="klamkin_dual_2025">(Klamkin et al.
 2025)</span> for dual-feasibility and speedup measured on one benchmark
 family.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>Year</th>
+<th>Architecture</th>
+<th>Loss</th>
+<th>Problem</th>
+<th>Constraints sat (%)</th>
+<th>Optimality gap (%)</th>
+<th>Speed speedup</th>
+<th>OOD gen</th>
+</tr>
+</thead>
 <tbody>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td>Constraints</td>
-<td>Optimality</td>
-<td>Speed</td>
-<td>OOD</td>
-</tr>
-<tr>
-<td>Method</td>
-<td>Year</td>
-<td>Architecture</td>
-<td>Loss</td>
-<td>Problem</td>
-<td>sat (%)</td>
-<td>gap (%)</td>
-<td>speedup</td>
-<td>gen</td>
-</tr>
 <tr>
 <td>Domke
 implicit grad <span class="citation"
@@ -506,7 +497,7 @@ decision-focused method that closes the gap on binary programs without
 smoothing the integer feasibility<a href="#fn6" class="footnote-ref" id="fnref17" role="doc-noteref"><sup>6</sup></a>.</p>
 <figure id="fig:col-family-timeline">
 <img src="figures/col-family-timeline.svg" />
-<figcaption>COL family evolution from 2010 implicit-graphical-model
+<figcaption><span class="blog-label">Figure 1.</span> COL family evolution from 2010 implicit-graphical-model
 gradients to 2025 dual-learning. Marker shape and colour encode family.
 Three observations match the table reading. (i) The
 <em>implicit-layer</em> era (2010-2019) established the KKT-Jacobian

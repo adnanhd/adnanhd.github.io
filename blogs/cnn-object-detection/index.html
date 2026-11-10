@@ -61,7 +61,7 @@ paragraph-by-paragraph after the SoTA leaderboard below.</p>
 <p><u>The historical context matters because the same problems recur
 under new names.</u> Pre-deep-learning detection plateaued near 33% mAP
 on PASCAL VOC under <a
-href="wiki:Histogram_of_oriented_gradients">HOG</a>-feature pipelines<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> <span class="citation"
+href="https://en.wikipedia.org/wiki/Histogram_of_oriented_gradients">HOG</a>-feature pipelines<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> <span class="citation"
 data-cites="dalal_histograms_2005">(Dalal and Triggs 2005)</span> and
 the deformable part model <span class="citation"
 data-cites="felzenszwalb_discriminatively_2008">(Felzenszwalb et al.
@@ -115,7 +115,7 @@ EfficientDet-style compound-scaled one-stage, and DINO-DETR-style
 transformers, and <u>the production-grade default depends on whether
 latency, throughput, or peak accuracy is the primary constraint</u><a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a><sup class="footnote-sep">,</sup><a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>.</p>
 <div class="blog-table"><table id="tbl:cnn-detection-sota">
-<caption>CNN object-detection SoTA leaderboard. Method links to the
+<caption><span class="blog-label">Table 1.</span> CNN object-detection SoTA leaderboard. Method links to the
 chapter section, with citation attached. Year is the conference/arXiv
 year. Backbone is the canonical reported configuration; Head/Loss
 summarises the detection head and the canonical
@@ -132,35 +132,23 @@ comparisons unreliable (see fn ref in prose). Dashes mark unreported
 settings. RPN+RoI(softmax) denotes Faster-style two-stage
 classification; Focal denotes RetinaNet-style focal cross-entropy;
 Hungarian denotes DETR-style set matching.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>Year</th>
+<th>Backbone</th>
+<th>Head/Loss</th>
+<th>Data</th>
+<th>VOC mAP</th>
+<th>COCO AP</th>
+<th>AP50</th>
+<th>AP<sub>S</sub></th>
+<th>AP<sub>M</sub></th>
+<th>AP<sub>L</sub></th>
+<th>Speed FPS</th>
+</tr>
+</thead>
 <tbody>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td>VOC</td>
-<td>COCO</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td>Speed</td>
-</tr>
-<tr>
-<td>Method</td>
-<td>Year</td>
-<td>Backbone</td>
-<td>Head/Loss</td>
-<td>Data</td>
-<td>mAP</td>
-<td>AP</td>
-<td>AP50</td>
-<td>AP<sub>S</sub></td>
-<td>AP<sub>M</sub></td>
-<td>AP<sub>L</sub></td>
-<td>FPS</td>
-</tr>
 <tr>
 <td>R-CNN <span class="citation"
 data-cites="girshick_rich_2014">(Girshick et al. 2014)</span></td>
@@ -554,7 +542,7 @@ and FPN became the universal neck across Faster R-CNN, Mask R-CNN,
 RetinaNet, FCOS, and EfficientDet<a href="#fn5" class="footnote-ref" id="fnref15" role="doc-noteref"><sup>5</sup></a>.</p>
 <figure id="fig:cnn-detection-timeline">
 <img src="figures/cnn-detection-timeline.svg" />
-<figcaption>CNN detection family evolution from 2015 R-CNN-era detectors
+<figcaption><span class="blog-label">Figure 1.</span> CNN detection family evolution from 2015 R-CNN-era detectors
 to 2023 transformer-based DETR variants, tracking COCO AP vs publication
 year. Marker shape and colour encode family (two-stage / one-stage /
 anchor-free / transformer). Three structural observations match the

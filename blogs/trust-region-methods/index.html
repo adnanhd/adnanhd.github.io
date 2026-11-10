@@ -54,7 +54,7 @@ pipelines. Where the broader RL leaderboard in the policy-gradient foundations c
 surveys foundations, off-policy actor-critics, distributed and
 model-based methods together, this chapter narrows to one design axis.
 Each variant enforces or approximates a <strong><a
-href="wiki:Trust_region">trust region</a></strong> on the policy update
+href="https://en.wikipedia.org/wiki/Trust_region">trust region</a></strong> on the policy update
 in a different way. TRPO enforces
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>D</mi><mrow><mi>K</mi><mi>L</mi></mrow></msub><mspace width="-0.167em"></mspace><mo>≤</mo><mspace width="-0.167em"></mspace><mi>δ</mi></mrow><annotation encoding="application/x-tex">D_{KL}\!\le\!\delta</annotation></semantics></math>
 exactly via line-search. PPO-KL adds
@@ -75,7 +75,7 @@ objective form, (3) whether a learned critic is required, and (4) the
 domain (MuJoCo locomotion, Atari, MOBA games, or LLM reasoning) where
 the variant was first deployed.</p>
 <div class="blog-table"><table id="tbl:trust-region-leaderboard">
-<caption>Trust-region methods covered in this chapter, arranged by how
+<caption><span class="blog-label">Table 1.</span> Trust-region methods covered in this chapter, arranged by how
 the trust region is enforced. KL bound records the enforcement
 mechanism, where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
@@ -265,7 +265,7 @@ critic-of-policy-size is prohibitive) and uses an unbiased KL estimator
 rather than the log-ratio form, becoming the de facto RLHF backbone for
 reasoning models. <u>The decade-long arc converges on a single
 method</u>, namely clipped or KL-penalized <a
-href="wiki:Importance_sampling">importance-weighted</a> surrogates with
+href="https://en.wikipedia.org/wiki/Importance_sampling">importance-weighted</a> surrogates with
 code-level optimizations <span class="citation"
 data-cites="engstrom_implementation_2020">(Engstrom et al. 2020)</span>
 doing more empirical work than the algorithmic differences, and the

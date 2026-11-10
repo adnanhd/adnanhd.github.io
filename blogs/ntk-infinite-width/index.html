@@ -118,8 +118,7 @@ with some success.</p>
 overfitting</em> and <em>double descent</em>, phenomena that the NTK can
 describe in its linearized form but that require finite-width
 corrections to fully explain. Part V examines <em>scaling laws</em>, for
-which the NTK provides a mathematical template (<a
-href="eq:kernel-scaling-law">eq:kernel-scaling-law</a>) but not a
+which the NTK provides a mathematical template (<a href="#eq:kernel-scaling-law">1</a>) but not a
 complete mechanism.</p>
 <p>Collectively the five parts frame a research program:
 statistical-learning-theoretic explanation of deep learning proceeds by
@@ -210,11 +209,10 @@ corrections in a different expansion.</li>
 </ul>
 <h3 id="cross-paper-sota-positioning">Cross-paper SoTA positioning</h3>
 <p>How do the papers of Part III position against each other on
-published benchmarks (Table <a
-href="tbl:ntk-part3-claims">tbl:ntk-part3-claims</a>)? A few
+published benchmarks (Table <a href="#tbl:ntk-part3-claims">1</a>)? A few
 observations.</p>
 <div class="blog-table"><table id="tbl:ntk-part3-claims">
-<caption>Every paper of Part III with the claim it is cited for here,
+<caption><span class="blog-label">Table 1.</span> Every paper of Part III with the claim it is cited for here,
 the setting of that claim and its headline quantity, both taken from the
 paper in the first column. Theory papers that report no accuracy read
 "no benchmark claim".</caption>
@@ -454,9 +452,9 @@ kernel regression with a kernel whose eigenvalues decay as
 the test error on a target with coefficients
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>β</mi><mi>k</mi></msub><mo>∼</mo><msup><mi>k</mi><mrow><mi>−</mi><mi>β</mi></mrow></msup></mrow><annotation encoding="application/x-tex">\beta_k \sim k^{-\beta}</annotation></semantics></math>
 scales as</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="double-struck">𝔼</mi><mo stretchy="false" form="prefix">[</mo><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="postfix">]</mo><mspace width="0.278em"></mspace><mo>∼</mo><mspace width="0.278em"></mspace><msubsup><mi>n</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow><mrow><mi>−</mi><mrow><mi mathvariant="normal">min</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>α</mi><mo>,</mo><mn>2</mn><mi>β</mi><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>α</mi></mrow></msubsup><mo>+</mo><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">z</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">s</mi></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}
+<p><span class="blog-math" id="eq:kernel-scaling-law"><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="double-struck">𝔼</mi><mo stretchy="false" form="prefix">[</mo><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="postfix">]</mo><mspace width="0.278em"></mspace><mo>∼</mo><mspace width="0.278em"></mspace><msubsup><mi>n</mi><mrow><mi mathvariant="normal">t</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi></mrow><mrow><mi>−</mi><mrow><mi mathvariant="normal">min</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>α</mi><mo>,</mo><mn>2</mn><mi>β</mi><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>α</mi></mrow></msubsup><mo>+</mo><mrow><mi mathvariant="normal">r</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">z</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">s</mi></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}\label{eq:kernel-scaling-law}
 \mathbb{E}[\mathrm{test error}] \;\sim\; n_{\mathrm{train}}^{-\min(\alpha, 2\beta - 1)/\alpha} + \mathrm{regularization terms},
-\end{equation}</annotation></semantics></math></p>
+\end{equation}</annotation></semantics></math><span class="blog-eq-num">(1)</span></span></p>
 <p>which is a <em>power law in training-set size</em>. The exponent
 depends on the kernel's spectral decay (architecture-dependent) and the
 target's smoothness (task-dependent). For natural datasets whose
@@ -473,7 +471,7 @@ for the full empirical picture.</p>
 <h3 id="sota-table-across-ntk-vs-modern-architectures">SoTA table across
 NTK vs modern architectures</h3>
 <div class="blog-table"><table id="tbl:ntk-sota-comparison">
-<caption>Test accuracy (%) of infinite-width kernel regression without
+<caption><span class="blog-label">Table 2.</span> Test accuracy (%) of infinite-width kernel regression without
 training or augmentation, NNGP <span class="citation"
 data-cites="lee_nngp_2018">(Lee et al. 2018)</span> and CNTK <span
 class="citation" data-cites="arora_exact_2019">(Arora et al.
@@ -566,12 +564,11 @@ but fall 19 to 22 points short on CIFAR-10 of modern training
 configurations that exploit feature learning, data augmentation, and
 transfer learning.</u> The NTK theory explains one regime (wide, lazily
 trained, from scratch) and does not explain the regime where modern
-accuracy lives (Table <a
-href="tbl:ntk-sota-comparison">tbl:ntk-sota-comparison</a>).</p>
+accuracy lives (Table <a href="#tbl:ntk-sota-comparison">2</a>).</p>
 <h3 id="cross-architecture-comparison-of-the-gap">Cross-architecture
 comparison of the gap</h3>
 <div class="blog-table"><table id="tbl:ntk-sgd-gap">
-<caption>CIFAR-10 test accuracy (%) of the best infinite-width kernel
+<caption><span class="blog-label">Table 3.</span> CIFAR-10 test accuracy (%) of the best infinite-width kernel
 regression and of the best SGD-trained network of the same architecture,
 without augmentation or transfer, and the gap in points. Approximate
 values compiled across <span class="citation"
@@ -637,8 +634,7 @@ protocol.</caption>
 </tr>
 </tbody>
 </table></div>
-<p>The pattern is clear once depth is held in view (Table <a
-href="tbl:ntk-sgd-gap">tbl:ntk-sgd-gap</a>): the gap grows both with
+<p>The pattern is clear once depth is held in view (Table <a href="#tbl:ntk-sgd-gap">3</a>): the gap grows both with
 architectural sophistication and, within a fixed architecture, with
 depth. Fully-connected networks have essentially no gap at any depth.
 Vanilla CNNs go from 3.6 points at depth 11 to 11.5 at depth 21, because

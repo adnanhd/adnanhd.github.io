@@ -132,12 +132,42 @@ def _org_fixups(org_text):
     - `#+CAPTION[short]: long`: pandoc drops the whole caption and the
       element's `#+name` id; keep the long caption.
     - `#+RESULTS[hash]:` between a figure's caption and its file link
-      detaches the caption; the keyword is babel bookkeeping, drop it."""
+      detaches the caption; the keyword is babel bookkeeping, drop it.
+    - A table whose header spans several rows above the first rule line
+      gets no header at all; join those rows cell by cell into one.
+    - `#+name: eq:x` above a LaTeX equation is ignored; carry it into the
+      environment as `\\label{eq:x}`, which _number_targets reads."""
     org_text = re.sub(r"^(\s*#\+caption)\[.*?\]:", r"\1:", org_text,
                       flags=re.M | re.I)
     org_text = re.sub(r"^\s*#\+results(\[[^\]]*\])?:[ \t]*\n", "", org_text,
                       flags=re.M | re.I)
-    return org_text
+    org_text = re.sub(r"^[ \t]*#\+name:[ \t]*(\S+)[ \t]*\n"
+                      r"([ \t]*\\begin\{(?:equation|align|gather|multline)\*?\})",
+                      r"\2\\label{\1}", org_text, flags=re.M | re.I)
+
+    out, block = [], []
+
+    def flush():
+        rule = next((i for i, l in enumerate(block)
+                     if re.match(r"\s*\|-", l)), None)
+        if rule and rule > 1:
+            rows = [[c.strip() for c in l.strip().strip("|").split("|")]
+                    for l in block[:rule]]
+            ncol = max(len(r) for r in rows)
+            head = [" ".join(r[i] for r in rows if i < len(r) and r[i])
+                    for i in range(ncol)]
+            block[:rule] = ["| " + " | ".join(head) + " |"]
+        out.extend(block)
+        block.clear()
+
+    for line in org_text.splitlines():
+        if line.lstrip().startswith("|"):
+            block.append(line)
+            continue
+        flush()
+        out.append(line)
+    flush()
+    return "\n".join(out)
 
 
 def _carry_footnotes(section, raw):
@@ -205,6 +235,61 @@ def _pandoc(org_text, bib):
                           check=True).stdout
 
 
+# org link abbreviations the notes use (org-link-abbrev-alist in the Emacs
+# setup); pandoc leaves them as relative hrefs.
+LINK_ABBREVS = {
+    "arxiv": "https://arxiv.org/abs/",
+    "doi": "https://doi.org/",
+    "wiki": "https://en.wikipedia.org/wiki/",
+    "gh": "https://github.com/",
+    "hf": "https://huggingface.co/",
+    "orev": "https://openreview.net/forum?id=",
+    "pwc": "https://paperswithcode.com/method/",
+}
+
+
+def _number_targets(html):
+    """Number the page's tables, figures and labelled display equations, and
+    resolve org's `[[tbl:x]]` / `[[fig:x]]` / `[[eq:x]]` links (which reach
+    pandoc as `<a href="tbl:x">tbl:x</a>`) to those numbers, as the LaTeX
+    export does. Display maths sit in a scrolling wrapper: Firefox does not
+    scroll a <math> box, so a wide equation would widen the page."""
+    nums = {}
+    eq = 0
+
+    def math(m):
+        nonlocal eq
+        lab = re.search(r"\\label\{([^}]+)\}", m.group(0))
+        if not lab:
+            return f'<span class="blog-math">{m.group(0)}</span>'
+        eq += 1
+        nums[lab.group(1)] = eq
+        return (f'<span class="blog-math" id="{lab.group(1)}">{m.group(0)}'
+                f'<span class="blog-eq-num">({eq})</span></span>')
+
+    html = re.sub(r'<math\s+display="block".*?</math>', math, html, flags=re.S)
+
+    for tag, cap, kind in (("table", "caption", "Table"), ("figure", "figcaption", "Figure")):
+        count = 0
+
+        def label(m, cap=cap, kind=kind):
+            nonlocal count
+            count += 1
+            nums[m.group(1)] = count
+            return m.group(0).replace(
+                f"<{cap}>", f'<{cap}><span class="blog-label">{kind} {count}.</span> ', 1)
+
+        html = re.sub(rf'<{tag}\s+id="([^"]+)"[^>]*>(?:(?!</{tag}>).)*?<{cap}>',
+                      label, html, flags=re.S)
+
+    def ref(m):
+        if m.group(1) in nums:
+            return f'<a href="#{m.group(1)}">{nums[m.group(1)]}</a>'
+        return m.group(0)
+
+    return re.sub(r'<a\s+href="((?:tbl|tab|fig|eq|sec):[^"]+)">\s*\1\s*</a>', ref, html)
+
+
 _FN_REF = re.compile(r'<a\s+href="#fn(\d+)"\s+class="footnote-ref"\s+id="fnref(\d+)"'
                      r'\s+role="doc-noteref"><sup>\d+</sup></a>')
 _FN_ITEM = re.compile(r'<li\s+id="fn(\d+)">(.*?)</li>\s*(?=<li\s+id="fn\d+">|</ol>)', re.S)
@@ -253,6 +338,9 @@ def _postprocess(html, org_dir, out_dir):
     # [[id:...]] cross-note links -> plain text. pandoc wraps output, so <a and
     # href may be separated by a newline.
     html = re.sub(r'<a\s+href="id:[^"]*"[^>]*>(.*?)</a>', r"\1", html, flags=re.S)
+    html = re.sub(r'(<a\s+href=")(%s):' % "|".join(LINK_ABBREVS),
+                  lambda m: m.group(1) + LINK_ABBREVS[m.group(2)], html)
+    html = _number_targets(html)
     html = _merge_footnotes(html)
 
     # Copy only figures not already present locally: figures are owned by

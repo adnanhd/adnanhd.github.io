@@ -74,8 +74,7 @@ returned as a reference point, an anchor coordinate, a noised
 ground-truth box or an auxiliary dense head is differentiable and stays
 inside training, and is discarded at inference. A prior returned as
 greedy suppression is neither, and would surrender the one property the
-500 epochs bought. Table <a
-href="tbl:detr-prior-ledger">tbl:detr-prior-ledger</a> is that ledger,
+500 epochs bought. Table <a href="#tbl:detr-prior-ledger">1</a> is that ledger,
 and it is the shortest route through the sections that follow.</p>
 <p>Segmentation repeats the shape one level up. MaskFormer <span
 class="citation" data-cites="cheng_per-pixel_2021">(Cheng et al.
@@ -95,7 +94,7 @@ et al. 2021)</span> supplies with shifted window attention and Swin V2
 gives one scale and a DETR decoder has nothing to address it with, which
 is why the backbone chapter and this one are not separable.</p>
 <div class="blog-table"><table id="tbl:detr-prior-ledger">
-<caption>The prior ledger. <em>Puts back</em> names the spatial prior
+<caption><span class="blog-label">Table 1.</span> The prior ledger. <em>Puts back</em> names the spatial prior
 DETR had deleted and this method restores. <em>Differentiable form</em>
 names the construction that makes it trainable rather than a
 post-processing heuristic, which is the condition for keeping the

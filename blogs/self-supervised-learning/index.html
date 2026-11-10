@@ -174,9 +174,7 @@ grayscale with 70% colour images and the colour channels of each tile
 are jittered spatially by 0, 1 or 2 px (Section 4.2). Section 4.2
 describes the tiles as 64 x 64 crops from 85 x 85 cells of a 255 x 255
 central crop, a 21 px gap, which disagrees with the 75 x 75 cells of
-Section 3.3; both are given here with their sections. Tables <a
-href="tbl:jigsaw-permutations">tbl:jigsaw-permutations</a> and <a
-href="tbl:jigsaw-shortcuts">tbl:jigsaw-shortcuts</a> give the two
+Section 3.3; both are given here with their sections. Tables <a href="#tbl:jigsaw-permutations">1</a> and <a href="#tbl:jigsaw-shortcuts">2</a> give the two
 ablations, both scored by Pascal VOC 2007 detection. With 1000
 permutations a larger average Hamming distance helps both the puzzle and
 the transfer, while the sets of 6 to 10 permutations are solved at
@@ -184,7 +182,7 @@ the transfer, while the sets of 6 to 10 permutations are solved at
 self-supervised task is neither simple nor ambiguous". Each shortcut
 defence lowers puzzle accuracy and raises transfer.</p>
 <div class="blog-table"><table id="tbl:jigsaw-permutations">
-<caption>Permutation-set ablation of Jigsaw, Table 4 of <span
+<caption><span class="blog-label">Table 1.</span> Permutation-set ablation of Jigsaw, Table 4 of <span
 class="citation" data-cites="noroozi_unsupervised_2016">(Noroozi and
 Favaro 2016)</span>; jigsaw task accuracy and Pascal VOC 2007 detection
 performance (%).</caption>
@@ -278,7 +276,7 @@ performance (%).</caption>
 </tbody>
 </table></div>
 <div class="blog-table"><table id="tbl:jigsaw-shortcuts">
-<caption>Shortcut ablation of Jigsaw, Table 5 of <span class="citation"
+<caption><span class="blog-label">Table 2.</span> Shortcut ablation of Jigsaw, Table 5 of <span class="citation"
 data-cites="noroozi_unsupervised_2016">(Noroozi and Favaro 2016)</span>;
 removing one defence at a time raises puzzle accuracy and lowers Pascal
 VOC 2007 detection (%).</caption>
@@ -324,7 +322,7 @@ VOC 2007 detection (%).</caption>
 </table></div>
 <figure id="fig:pretext-rotation-jigsaw">
 <img src="figures/pretext-rotation-jigsaw.svg" />
-<figcaption>Two pretext tasks of <a href="tbl:ssl-mechanism-grid">the
+<figcaption><span class="blog-label">Figure 1.</span> Two pretext tasks of <a href="tbl:ssl-mechanism-grid">the
 mechanism grid</a>. Top: RotNet <span class="citation"
 data-cites="gidaris_unsupervised_2018">(Gidaris et al. 2018)</span>
 classifies which of four rotations was applied. Bottom: Jigsaw <span
@@ -335,7 +333,7 @@ dotted cell, and classifies which of
 fixed permutations was applied.</figcaption>
 </figure>
 <div class="blog-table"><table id="tbl:ssl-sota">
-<caption>ImageNet-1k top-1 (%) by linear probe (LP), fine-tuning (FT),
+<caption><span class="blog-label">Table 3.</span> ImageNet-1k top-1 (%) by linear probe (LP), fine-tuning (FT),
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>-NN;
 COCO box/mask AP; ADE20K mIoU; VOC07 AP50; iNaturalist-2018 LP; n/r not
 reported; * zero-shot;
@@ -351,37 +349,24 @@ class="citation" data-cites="chen_simsiam_2020">(Chen and He
 et al. 2022)</span>, d <span class="citation"
 data-cites="zhou_ibot_2022">(Zhou et al. 2022)</span>. Values compiled
 across papers, not one protocol.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>Year</th>
+<th>Backbone</th>
+<th>Loss</th>
+<th>Data</th>
+<th>ImageNet1k LP</th>
+<th>FT</th>
+<th>kNN</th>
+<th>COCO box</th>
+<th>mask</th>
+<th>ADE mIoU</th>
+<th>VOC AP50</th>
+<th>iNat LP</th>
+</tr>
+</thead>
 <tbody>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td>ImageNet1k</td>
-<td></td>
-<td></td>
-<td>COCO</td>
-<td></td>
-<td>ADE</td>
-<td>VOC</td>
-<td>iNat</td>
-</tr>
-<tr>
-<td>Method</td>
-<td>Year</td>
-<td>Backbone</td>
-<td>Loss</td>
-<td>Data</td>
-<td>LP</td>
-<td>FT</td>
-<td>kNN</td>
-<td>box</td>
-<td>mask</td>
-<td>mIoU</td>
-<td>AP50</td>
-<td>LP</td>
-</tr>
 <tr>
 <td>RotNet <span class="citation"
 data-cites="gidaris_unsupervised_2018">(Gidaris et al. 2018)</span></td>
@@ -796,7 +781,7 @@ remains contested<a href="#fn8" class="footnote-ref" id="fnref12" role="doc-note
 hyperparameter-sensitive<a href="#fn9" class="footnote-ref" id="fnref13" role="doc-noteref"><sup>9</sup></a>.</p>
 <figure id="fig:ssl-family-timeline">
 <img src="figures/ssl-family-timeline.svg" />
-<figcaption>ImageNet-1k top-1 of the <a
+<figcaption><span class="blog-label">Figure 2.</span> ImageNet-1k top-1 of the <a
 href="tbl:ssl-sota">leaderboard</a> methods, by linear probe except the
 pretext rows (frozen to conv4) and CLIP (zero-shot), one row per method
 in order of publication year (right). Marker shape and colour give the
@@ -850,7 +835,7 @@ fine-tuning and downstream segmentation, indicating its representations
 encode useful structure that is harder to read off linearly. <u>Third,
 the gap to supervised pretraining (supervised ResNet-50: 76.5%) closed
 around BYOL/SwAV (2020) for ResNets and around DINO (2021) for ViTs
-(Figure <a href="fig:ssl-family-timeline">fig:ssl-family-timeline</a>);
+(Figure <a href="#fig:ssl-family-timeline">2</a>);
 by 2024 DINOv2 exceeds supervised on every transfer benchmark
 tested.</u></p>
 <p><u>The leaderboard records outcomes, not decisions.</u> Three choices
@@ -867,7 +852,7 @@ table is the leaderboard's other half. It says <em>what</em> changed
 between two rows where the leaderboard says only <em>by how much</em>,
 and the rest of this chapter is a walk down its three columns.</p>
 <div class="blog-table"><table id="tbl:ssl-mechanism-grid">
-<caption>The three choices that fix an SSL method, in the order of this
+<caption><span class="blog-label">Table 4.</span> The three choices that fix an SSL method, in the order of this
 chapter. <em>Positive pair</em>: what is forced to agree; <em>target
 space</em>: where agreement is measured; <em>anti-collapse</em>: what
 forbids a constant output.
@@ -1071,11 +1056,11 @@ a target the model does not produce cannot be gamed by a constant, which
 is why the masked and pretext rows need no mechanism at all and the
 joint-embedding rows need one apiece.</p>
 <p>Encyclopedia references: <a
-href="wiki:Self-supervised_learning">self-supervised learning</a>, <a
-href="wiki:Vision_transformer">Vision Transformer</a>, <a
-href="arxiv:2002.05709">SimCLR</a>, <a href="arxiv:2111.06377">MAE</a>,
-<a href="arxiv:2104.14294">DINO</a>, <a
-href="arxiv:2304.07193">DINOv2</a>.</p>
+href="https://en.wikipedia.org/wiki/Self-supervised_learning">self-supervised learning</a>, <a
+href="https://en.wikipedia.org/wiki/Vision_transformer">Vision Transformer</a>, <a
+href="https://arxiv.org/abs/2002.05709">SimCLR</a>, <a href="https://arxiv.org/abs/2111.06377">MAE</a>,
+<a href="https://arxiv.org/abs/2104.14294">DINO</a>, <a
+href="https://arxiv.org/abs/2304.07193">DINOv2</a>.</p>
 <h2 class="blog-refs-title">References</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 role="list">

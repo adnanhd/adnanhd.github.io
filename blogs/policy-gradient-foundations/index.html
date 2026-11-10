@@ -66,7 +66,7 @@ assignment</strong><a href="#fn2" class="footnote-ref" id="fnref2" role="doc-not
 aggravate.</p>
 <p><u>The value-based lineage that DQN modernised begins a decade
 earlier and runs in parallel to the policy-gradient programme above.</u>
-Sutton's <a href="wiki:Temporal_difference_learning">temporal-difference
+Sutton's <a href="https://en.wikipedia.org/wiki/Temporal_difference_learning">temporal-difference
 learning</a> <span class="citation"
 data-cites="sutton_learning_1988">(Sutton 1988)</span> introduced the
 bootstrap update
@@ -108,7 +108,7 @@ learning, achieving parameter-independent updates suited for robotics.
 Trust Region Policy Optimization (TRPO) <span
 class="citation" data-cites="schulman_trust_2017">(Schulman et al.
 2015)</span> formalized this intuition with <a
-href="wiki:Kullback%E2%80%93Leibler_divergence">KL-divergence</a>
+href="https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence">KL-divergence</a>
 constraints guaranteeing monotonic improvement. Proximal Policy Optimization (PPO) <span
 class="citation" data-cites="schulman_proximal_2017">(Schulman et al.
 2017)</span> <u>simplified TRPO with a clipped surrogate objective that
@@ -237,7 +237,7 @@ intervals; their re-evaluation of canonical RL papers re-orders several
 method rankings, and the IQM+stratified-bootstrap protocol is now the de
 facto standard for any new deep-RL comparison.</p>
 <div class="blog-table"><table id="tbl:rl-sota">
-<caption>RL leaderboard across the four-chapter book. Algo class =
+<caption><span class="blog-label">Table 1.</span> RL leaderboard across the four-chapter book. Algo class =
 on/off-policy + model-free/-based + offline. Loss/Update gives headline
 hyperparameters:
 clip-PPO(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>)
@@ -269,31 +269,21 @@ rather than a number from <span class="citation"
 data-cites="lillicrap_continuous_2019">(Lillicrap et al. 2019)</span>;
 the v2 label applies cleanly only to the SAC and DreamerV3
 rows.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>Year</th>
+<th>Algo class</th>
+<th>Loss/Update</th>
+<th>Domain</th>
+<th>Atari HNS</th>
+<th>Continuous Control HalfCheetah-v2</th>
+<th>DMControl avg</th>
+<th>Other Sample eff.</th>
+<th>Wall-clock</th>
+</tr>
+</thead>
 <tbody>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td>Atari</td>
-<td>Continuous Control</td>
-<td></td>
-<td>Other</td>
-<td></td>
-</tr>
-<tr>
-<td>Method</td>
-<td>Year</td>
-<td>Algo class</td>
-<td>Loss/Update</td>
-<td>Domain</td>
-<td>HNS</td>
-<td>HalfCheetah-v2</td>
-<td>DMControl avg</td>
-<td>Sample eff.</td>
-<td>Wall-clock</td>
-</tr>
 <tr>
 <td>REINFORCE <span class="citation"
 data-cites="williams_simple_1992">(Williams 1992)</span></td>
@@ -701,7 +691,7 @@ loss</strong><a href="#fn8" class="footnote-ref" id="fnref17" role="doc-noteref"
 late epochs.</p>
 <figure id="fig:rl-method-timeline">
 <img src="figures/rl-method-timeline.svg" />
-<figcaption>RL method evolution from 1992 REINFORCE foundations to 2024
+<figcaption><span class="blog-label">Figure 1.</span> RL method evolution from 1992 REINFORCE foundations to 2024
 LLM-alignment offline methods. Marker shape and colour encode algorithm
 class, and the dotted line marks the HNS=100% human baseline on
 Atari-57. Three observations match the table reading. (i) Foundations

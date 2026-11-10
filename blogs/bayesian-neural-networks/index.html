@@ -128,7 +128,7 @@ points on the same continuum.</p>
 <h3 id="state-of-the-art-comparison-table">State-of-the-art comparison
 table</h3>
 <div class="blog-table"><table id="tbl:bnn-sota-comparison">
-<caption>Uncertainty-quantification methods for BNNs on CIFAR10: test
+<caption><span class="blog-label">Table 1.</span> Uncertainty-quantification methods for BNNs on CIFAR10: test
 NLL (nats) and ECE (%), lower better, with accuracy (%) in parentheses,
 Wide ResNet-28-10 <span class="citation"
 data-cites="dusenberry_rank1_2020">(Dusenberry et al. 2020)</span>, and
@@ -137,17 +137,14 @@ SVHN detection AUROC from the maximum predictive probability, WRN-16-4
 data-cites="daxberger_laplace_redux_2021">(Daxberger et al.
 2021)</span>, unless a cell cites another source. Values compiled from
 different papers, not one protocol.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>CIFAR10 NLL / ECE (acc.)</th>
+<th>CIFAR10 vs SVHN OOD AUROC</th>
+</tr>
+</thead>
 <tbody>
-<tr>
-<td></td>
-<td>CIFAR10</td>
-<td>CIFAR10 vs SVHN</td>
-</tr>
-<tr>
-<td>Method</td>
-<td>NLL / ECE (acc.)</td>
-<td>OOD AUROC</td>
-</tr>
 <tr>
 <td>MAP (SGD, no UQ baseline)</td>
 <td>0.159 / 2.3% (96.0)</td>

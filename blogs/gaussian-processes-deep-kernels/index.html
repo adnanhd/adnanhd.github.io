@@ -111,13 +111,12 @@ primal system at
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">𝒪</mi><mo stretchy="false" form="prefix">(</mo><mi>N</mi><msup><mi>D</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(N D^2)</annotation></semantics></math>
 cost, with a kernel error falling as
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>D</mi><mrow><mi>−</mi><mn>1</mn><mi>/</mi><mn>2</mn></mrow></msup><annotation encoding="application/x-tex">D^{-1/2}</annotation></semantics></math>,
-so that halving it costs four times the features (Figure <a
-href="fig:rff-kernel-approximation">fig:rff-kernel-approximation</a>);
+so that halving it costs four times the features (Figure <a href="#fig:rff-kernel-approximation">1</a>);
 the construction is still the standard scaffolding behind modern
 primal-form GP approximations.</p>
 <figure id="fig:rff-kernel-approximation">
 <img src="figures/rff-kernel-approximation.svg" />
-<figcaption>Random Fourier features for the squared-exponential kernel
+<figcaption><span class="blog-label">Figure 1.</span> Random Fourier features for the squared-exponential kernel
 (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℓ</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\ell=1</annotation></semantics></math>)
 on 41 inputs. (a) Exact kernel matrix; (b, c)
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi><msup><mi>Z</mi><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">ZZ^\top</annotation></semantics></math>
@@ -262,7 +261,7 @@ They connect the GP literature of this part to the statistical-learning
 theory developed in Statistical DL Part
 III.</p>
 <div class="blog-table"><table id="tbl:gp-sota">
-<caption>GP, NNGP and NTK methods with family, inference, benchmark,
+<caption><span class="blog-label">Table 1.</span> GP, NNGP and NTK methods with family, inference, benchmark,
 scores and per-iteration cost. UCI protein test NLL and RMSE are means
 over 20 splits from <span class="citation"
 data-cites="salimbeni_doubly_2017">(Salimbeni and Deisenroth
@@ -270,31 +269,21 @@ data-cites="salimbeni_doubly_2017">(Salimbeni and Deisenroth
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>†</mo></msup><annotation encoding="application/x-tex">^{\dagger}</annotation></semantics></math>
 normalized targets, one split; top-1 (%) in each paper's own protocol;
 n/r not reported.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>Year</th>
+<th>Family</th>
+<th>Loss / inference</th>
+<th>Data</th>
+<th>UCI NLL</th>
+<th>UCI RMSE</th>
+<th>MNIST top-1</th>
+<th>CIFAR-10 top-1</th>
+<th>Cost</th>
+</tr>
+</thead>
 <tbody>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td>UCI</td>
-<td>UCI</td>
-<td>MNIST</td>
-<td>CIFAR-10</td>
-<td></td>
-</tr>
-<tr>
-<td>Method</td>
-<td>Year</td>
-<td>Family</td>
-<td>Loss / inference</td>
-<td>Data</td>
-<td>NLL</td>
-<td>RMSE</td>
-<td>top-1</td>
-<td>top-1</td>
-<td>Cost</td>
-</tr>
 <tr>
 <td>Full GP <span class="citation"
 data-cites="rasmussen_williams_2006">(Rasmussen and Williams
@@ -546,8 +535,8 @@ data-cites="hron_transformer_2020">(Hron et al. 2020)</span></td>
 </tbody>
 </table></div>
 <p>The GP literature falls into five families, taken here in
-chronological order (Table <a href="tbl:gp-sota">tbl:gp-sota</a>, Figure
-<a href="fig:gp-family-timeline">fig:gp-family-timeline</a>).
+chronological order (Table <a href="#tbl:gp-sota">1</a>, Figure
+<a href="#fig:gp-family-timeline">2</a>).
 <strong>Exact</strong> GPs (Full-GP, GPyTorch's Cholesky path) deliver
 the gold-standard posterior at
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">𝒪</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>N</mi><mn>3</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(N^3)</annotation></semantics></math>
@@ -597,8 +586,7 @@ the feature-extractor weights, which substantially closes the gap to a
 properly Bayesian alternative at the cost of HMC sampling.</p>
 <figure id="fig:gp-family-timeline">
 <img src="figures/gp-family-timeline.svg" />
-<figcaption>Publication years of the methods in Table <a
-href="tbl:gp-sota">tbl:gp-sota</a>, one lane per family; methods
+<figcaption><span class="blog-label">Figure 2.</span> Publication years of the methods in Table <a href="#tbl:gp-sota">1</a>, one lane per family; methods
 published in the same year share a marker.</figcaption>
 </figure>
 <p>The <strong>NNGP</strong> / <strong>NTK</strong> family forms a

@@ -47,7 +47,7 @@
             <h1>Knowledge Distillation: Soft Labels, Temperature, and Dark Knowledge</h1>
             <div class="blog-meta">Teacher-student training with temperature-scaled softmax</div>
             <article class="blog-body">
-<p><a href="wiki:Knowledge_distillation">Knowledge distillation</a> sits
+<p><a href="https://en.wikipedia.org/wiki/Knowledge_distillation">Knowledge distillation</a> sits
 within the broader model-compression taxonomy alongside pruning,
 low-rank factorization, and quantization-aware training.
 Pruning removes redundant parameters, quantization reduces numeric
@@ -161,7 +161,7 @@ data-cites="tian_contrastive_2020-1">(Tian et al. 2020)</span>
 explicitly connects contrastive representation learning
 to distillation through the CRD framework.</p>
 <div class="blog-table"><table id="tbl:kd-sota">
-<caption>KD methods: student backbone, loss (key hyperparameters), data;
+<caption><span class="blog-label">Table 1.</span> KD methods: student backbone, loss (key hyperparameters), data;
 CIFAR-100 student and teacher top-1 (%) and gain
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Δ</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math>
 over no distillation; GLUE average (%), SQuAD-v1.1 F1. Dashes: not run;
@@ -173,31 +173,21 @@ data-cites="tian_contrastive_2020-1">(Tian et al. 2020)</span>;
 100 minus error;
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>c</mi></msup><annotation encoding="application/x-tex">^c</annotation></semantics></math>
 dev average including SQuAD 2.0.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>Year</th>
+<th>Backbone</th>
+<th>Loss</th>
+<th>Data</th>
+<th>CIFAR-100 Student</th>
+<th>Teacher</th>
+<th><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Δ</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math></th>
+<th>NLP GLUE</th>
+<th>SQuAD</th>
+</tr>
+</thead>
 <tbody>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td>CIFAR-100</td>
-<td></td>
-<td></td>
-<td>NLP</td>
-<td></td>
-</tr>
-<tr>
-<td>Method</td>
-<td>Year</td>
-<td>Backbone</td>
-<td>Loss</td>
-<td>Data</td>
-<td>Student</td>
-<td>Teacher</td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Δ</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math></td>
-<td>GLUE</td>
-<td>SQuAD</td>
-</tr>
 <tr>
 <td>Bucilua <span class="citation"
 data-cites="bucilua_model_2006">(Buciluǎ et al. 2006)</span></td>
@@ -473,8 +463,7 @@ data-cites="salimans_progressive_2022">(Salimans and Ho
 </tr>
 </tbody>
 </table></div>
-<p>The literature falls into seven families (Table <a
-href="tbl:kd-sota">tbl:kd-sota</a>), walked through in chronological
+<p>The literature falls into seven families (Table <a href="#tbl:kd-sota">1</a>), walked through in chronological
 order. Early <strong>response distillation</strong> methods (Bucilua, Ba
 &amp; Caruana, Hinton) match either probabilities or logits between
 teacher and student; the procedure is simple and effective when the
@@ -519,7 +508,7 @@ of caching one prediction-distribution snapshot per training sample
 GB FP32 on ImageNet).</p>
 <figure id="fig:kd-family-timeline">
 <img src="figures/kd-family-timeline.svg" />
-<figcaption>Headline student score against publication year for the KD
+<figcaption><span class="blog-label">Figure 1.</span> Headline student score against publication year for the KD
 methods whose own paper reports it under the stated backbone: CIFAR-100
 top-1 for vision, GLUE average for the nlp family. Marker shape and
 colour give the family; the dotted line is the WRN-40-2 teacher
@@ -587,11 +576,11 @@ teacher's signal</em>, and each new channel was opened because the one
 before it ran out of signal at some capacity gap. Online and
 self-distillation open different channels and take separate rows, and
 the diagnostic work, which is not a channel at all, stays aside (Table
-<a href="tbl:kd-channels">tbl:kd-channels</a>). The chronology above and
+<a href="#tbl:kd-channels">2</a>). The chronology above and
 the era boundaries below are then two readings of the same object rather
 than two competing taxonomies.</p>
 <div class="blog-table"><table id="tbl:kd-channels">
-<caption>The method families as channels: the object each family's loss
+<caption><span class="blog-label">Table 2.</span> The method families as channels: the object each family's loss
 compares, why the channel was opened, and what it costs.</caption>
 <thead>
 <tr>
@@ -665,8 +654,7 @@ WRN-40-1 baseline of about 73.5%; DKD's logit-only approach reaches
 74.8%, above CRD's 74.14% and below the 75.09% of the feature-based
 ReviewKD in DKD's own Table 6, and from 2015 to 2022 the vision methods
 stay between 65% and 75% except Born-Again, whose 84.5% is a
-same-architecture DenseNet result (Figure <a
-href="fig:kd-family-timeline">fig:kd-family-timeline</a>). Second, NLP
+same-architecture DenseNet result (Figure <a href="#fig:kd-family-timeline">1</a>). Second, NLP
 distillation is the empirically most successful application of KD: every
 method on the GLUE band retains 96.8% or more of its teacher's GLUE
 score at 1.6-9.4x speedup, far exceeding the proportional gains seen in

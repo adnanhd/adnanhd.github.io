@@ -62,15 +62,13 @@ data-cites="dhariwal_diffusion_2021">(Dhariwal and Nichol 2021)</span>,
 with minimal changes, with the same architecture and hyperparameters as
 its diffusion baselines. DiT changes only the backbone and inherits
 LDM's frozen VAE. ControlNet, Video LDM and AnimateDiff change only the
-conditioning path and freeze the image model underneath. Table <a
-href="tbl:dit-what-changed">tbl:dit-what-changed</a> indexes the
-milestones by which part each one moved, and Table <a
-href="tab:diffusion-sota">tab:diffusion-sota</a> gives the reported
+conditioning path and freeze the image model underneath. Table <a href="#tbl:dit-what-changed">1</a> indexes the
+milestones by which part each one moved, and Table <a href="#tab:diffusion-sota">2</a> gives the reported
 quality, scale and sampling cost of the same lineage. Read together they
 answer a question a leaderboard alone cannot, which is not which model
 is best but which component the gain came from.</p>
 <div class="blog-table"><table id="tbl:dit-what-changed">
-<caption>The chapter's spine. Each milestone is placed by which of the
+<caption><span class="blog-label">Table 1.</span> The chapter's spine. Each milestone is placed by which of the
 five components it changes and what it holds fixed. The last column
 names the comparison the isolation makes possible. Works appearing in
 more than one row change more than one component, and those are the
@@ -190,7 +188,7 @@ data-cites="guo_animatediff_2024">(Guo et al. 2024)</span></td>
 </tbody>
 </table></div>
 <div class="blog-table"><table id="tab:diffusion-sota">
-<caption>Selected diffusion / flow / transformer milestones on standard
+<caption><span class="blog-label">Table 2.</span> Selected diffusion / flow / transformer milestones on standard
 benchmarks. FID rows mix ImageNet 256×256 (class-conditional), CIFAR-10,
 and zero-shot MS-COCO (text-to-image) at the resolution called out by
 each paper. The CIFAR-10 rows are unconditional for DDPM, DDIM and
@@ -561,9 +559,9 @@ interpolating between noise
 and data
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo>=</mo><msub><mi>p</mi><mtext mathvariant="normal">data</mtext></msub></mrow><annotation encoding="application/x-tex">p_1 = p_{\text{data}}</annotation></semantics></math>.
 The conditional flow matching (CFM) objective is:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="script">ℒ</mi><mtext mathvariant="normal">CFM</mtext></msub><mo>=</mo><msub><mi mathvariant="double-struck">𝔼</mi><mrow><mi>t</mi><mo>,</mo><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><msub><mi>x</mi><mi>t</mi></msub></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>v</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>t</mi></msub><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>u</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">|</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\begin{equation}
+<span class="blog-math"><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="script">ℒ</mi><mtext mathvariant="normal">CFM</mtext></msub><mo>=</mo><msub><mi mathvariant="double-struck">𝔼</mi><mrow><mi>t</mi><mo>,</mo><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><msub><mi>x</mi><mi>t</mi></msub></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>v</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>t</mi></msub><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>u</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">|</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\begin{equation}
 \mathcal{L}_{\text{CFM}} = \mathbb{E}_{t, x_1, x_t} \|v_\theta(x_t, t) - u_t(x_t | x_1)\|^2
-\end{equation}</annotation></semantics></math> where
+\end{equation}</annotation></semantics></math></span> where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">|</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">u_t(x_t | x_1)</annotation></semantics></math>
 is the target velocity for the conditional path
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mi>t</mi></msub><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><msub><mi>x</mi><mn>0</mn></msub><mo>+</mo><mi>t</mi><msub><mi>x</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">x_t = (1-t)x_0 + t x_1</annotation></semantics></math>

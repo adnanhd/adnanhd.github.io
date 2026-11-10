@@ -106,10 +106,9 @@ scaling <span class="citation" data-cites="zhai_scaling_2022">(Zhai et
 al. 2022)</span>, and hardware-lottery analysis <span class="citation"
 data-cites="hooker_hardware_2020">(Hooker 2020)</span>.</p>
 <p>Current results on standard image-generation benchmarks show AR
-models reaching parity with and in places exceeding diffusion (Table <a
-href="tbl:ar-leaderboard">tbl:ar-leaderboard</a>).</p>
+models reaching parity with and in places exceeding diffusion (Table <a href="#tbl:ar-leaderboard">1</a>).</p>
 <div class="blog-table"><table id="tbl:ar-leaderboard">
-<caption>Autoregressive image-generation results. ImageNet-FID is
+<caption><span class="blog-label">Table 1.</span> Autoregressive image-generation results. ImageNet-FID is
 class-conditional at
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>256</mn><mo>×</mo><mn>256</mn></mrow><annotation encoding="application/x-tex">256 \times 256</annotation></semantics></math>,
 COCO-FID zero-shot (GE: GenEval; VB: VBench), latency per image at the
@@ -321,7 +320,7 @@ data-cites="zhuang_vargpt_2025">(Zhuang et al. 2025)</span></td>
 </table></div>
 <figure id="fig:ar-causal-masking">
 <img src="figures/ar-causal-masking.svg" />
-<figcaption>Three attention regimes. (a) Raster order on a
+<figcaption><span class="blog-label">Figure 1.</span> Three attention regimes. (a) Raster order on a
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>4</mn><mo>×</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">4 \times 4</annotation></semantics></math>
 grid: token 9 (yellow) reads the tokens before it (blue), none after
 (grey). (b) VAR's block-causal mask for scales of 1, 4 and 16 tokens

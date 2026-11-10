@@ -3509,13 +3509,34 @@ span.plain-pub-title {
 }
 
 /* Wide display maths scroll inside the column instead of widening the
-   page on narrow screens. Tables scroll in their .blog-table wrapper and
-   keep table layout, so width: 100% fills the column. */
-.blog-body mjx-container[display="true"] {
+   page on narrow screens (blog pages wrap each MathML equation in
+   .blog-math; a <math> box itself does not scroll). Tables scroll in their
+   .blog-table wrapper and keep table layout, so width: 100% fills the
+   column. */
+.blog-body mjx-container[display="true"],
+.blog-body .blog-math {
     display: block;
     max-width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
+}
+.blog-body .blog-math {
+    margin: 0.8em 0;
+}
+/* a labelled equation carries its number at the right */
+.blog-body .blog-math[id] {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+}
+.blog-body .blog-math[id] > math {
+    flex: 1 0 auto;
+}
+.blog-body .blog-eq-num {
+    flex: none;
+}
+.blog-body .blog-label {
+    font-weight: 600;
 }
 .blog-body img,
 .project-image {

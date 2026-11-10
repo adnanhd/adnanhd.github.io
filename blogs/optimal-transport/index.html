@@ -83,7 +83,7 @@ probability community. Each reference carries characteristic strengths
 and well-known limitations<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a><sup class="footnote-sep">,</sup><a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a><sup class="footnote-sep">,</sup><a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a><sup class="footnote-sep">,</sup><a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a><sup class="footnote-sep">,</sup><a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a><sup class="footnote-sep">,</sup><a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a><sup class="footnote-sep">,</sup><a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a><sup class="footnote-sep">,</sup><a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a><sup class="footnote-sep">,</sup><a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a>, walked through method-by-method
 after the table.</p>
 <div class="blog-table"><table id="tbl:ot-sota">
-<caption>Structural placement of the OT literature on the
+<caption><span class="blog-label">Table 1.</span> Structural placement of the OT literature on the
 feasibility-vs-fidelity surface. Method links to the chapter section and
 cites the canonical paper; Solver names the computational kernel (LP,
 Sinkhorn, projection-1D, ICNN, ODE); Loss names the training signal
@@ -481,8 +481,8 @@ column.</p>
 id="generation-1-1955-2000-exact-lp-and-analytic-foundations">Generation
 1 (1955-2000): Exact LP and Analytic Foundations</h3>
 <p><strong>Classical exact-LP</strong> methods (<a
-href="wiki:Hungarian_algorithm">Hungarian</a>, <a
-href="wiki:Network_simplex_algorithm">network simplex</a>) solve the
+href="https://en.wikipedia.org/wiki/Hungarian_algorithm">Hungarian</a>, <a
+href="https://en.wikipedia.org/wiki/Network_simplex_algorithm">network simplex</a>) solve the
 discrete Kantorovich problem to numerical zero error, but the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mn>3</mn></msup><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>n</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n^3 \log n)</annotation></semantics></math>
 cost makes them prohibitive beyond
@@ -582,7 +582,7 @@ manifolds, projection averages over informative-and-uninformative
 directions equally and underestimates the true distance.</p>
 <figure id="fig:ot-family-timeline">
 <img src="figures/ot-family-timeline.svg" />
-<figcaption>OT family evolution from 1955 exact-LP solvers to the 2023
+<figcaption><span class="blog-label">Figure 1.</span> OT family evolution from 1955 exact-LP solvers to the 2023
 <strong>flow-matching</strong> and <strong>Schrödinger-bridge</strong>
 dynamics. Marker shape and colour encode family; the dotted line marks
 the exact-LP ground truth of zero relative error. <strong>The vertical
@@ -616,9 +616,9 @@ the equal-mass marginal constraint of classical OT; required whenever
 source and target have different totals (single-cell snapshots,
 partial-shape correspondences, class-imbalanced datasets)<a href="#fn4" class="footnote-ref" id="fnref14" role="doc-noteref"><sup>4</sup></a>.
 The relaxation replaces hard marginals with soft KL or TV penalties:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mi mathvariant="normal">min</mi><mrow><mi>γ</mi><mo>≥</mo><mn>0</mn></mrow></munder><mo>∫</mo><mi>c</mi><mspace width="0.167em"></mspace><mi>d</mi><mi>γ</mi><mo>+</mo><msub><mi>τ</mi><mn>1</mn></msub><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>γ</mi><mn>1</mn></msub><mo>∣</mo><mi>μ</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>τ</mi><mn>2</mn></msub><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>γ</mi><mn>2</mn></msub><mo>∣</mo><mi>ν</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\begin{equation}\label{eq:uot-rw}
+<p><span class="blog-math" id="eq:uot-rw"><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mi mathvariant="normal">min</mi><mrow><mi>γ</mi><mo>≥</mo><mn>0</mn></mrow></munder><mo>∫</mo><mi>c</mi><mspace width="0.167em"></mspace><mi>d</mi><mi>γ</mi><mo>+</mo><msub><mi>τ</mi><mn>1</mn></msub><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>γ</mi><mn>1</mn></msub><mo>∣</mo><mi>μ</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>τ</mi><mn>2</mn></msub><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>γ</mi><mn>2</mn></msub><mo>∣</mo><mi>ν</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\begin{equation}\label{eq:uot-rw}
 \min_{\gamma \geq 0} \int c\,d\gamma + \tau_1 \mathrm{KL}(\gamma_1 \mid \mu) + \tau_2 \mathrm{KL}(\gamma_2 \mid \nu)
-\end{equation}</annotation></semantics></math></p>
+\end{equation}</annotation></semantics></math><span class="blog-eq-num">(1)</span></span></p>
 <p>which admits a scaling iteration analogous to Sinkhorn.
 <strong>Gromov-Wasserstein</strong> <span class="citation"
 data-cites="memoli_gromovwasserstein_2011">(Mémoli 2011)</span> handles
@@ -700,7 +700,7 @@ data-cites="benamou_computational_2000">(Benamou and Brenier
 lineages onto a feasibility-vs-fidelity trade-off plane.</p>
 <figure id="fig:ot-feasibility-fidelity">
 <img src="figures/ot-feasibility-fidelity.svg" />
-<figcaption>Feasibility-vs-fidelity map of the five OT lineages. The
+<figcaption><span class="blog-label">Figure 2.</span> Feasibility-vs-fidelity map of the five OT lineages. The
 horizontal axis measures fidelity cost (0 = exact LP ground truth, 10 =
 high bias relative to true
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mn>2</mn></msub><annotation encoding="application/x-tex">W_2</annotation></semantics></math>);

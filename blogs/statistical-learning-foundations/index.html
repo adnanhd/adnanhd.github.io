@@ -168,12 +168,11 @@ the post-classical theory developed in Parts II-V.</p>
 convergence</strong> as the central paradigm. Every component of the
 framework sits under it in the same shape. The component buys a
 guarantee, the guarantee rests on one assumption, and modern practice
-breaks that assumption. There are nine such components (Table <a
-href="tbl:classical-assumption-breaks">tbl:classical-assumption-breaks</a>).
+breaks that assumption. There are nine such components (Table <a href="#tbl:classical-assumption-breaks">1</a>).
 <u>The guarantees are what the classical theory delivers, and the broken
 assumptions are the list of exits into Parts II to V.</u></p>
 <div class="blog-table"><table id="tbl:classical-assumption-breaks">
-<caption>The nine components of the uniform-convergence framework used
+<caption><span class="blog-label">Table 1.</span> The nine components of the uniform-convergence framework used
 in Part I: the guarantee each buys, the assumption modern practice
 breaks, and the footnote with its numbers. Rows 1 to 8 are statistical
 limits, row 9 a computational one.</caption>
@@ -263,33 +262,24 @@ large-margin classifiers in a possibly infinite-dimensional feature
 space. That shared mechanism is the one classical thread that survives
 into Part IV intact.</p>
 <div class="blog-table"><table id="tbl:classical-sota">
-<caption>Headline classical results by family: hypothesis class, loss or
+<caption><span class="blog-label">Table 2.</span> Headline classical results by family: hypothesis class, loss or
 algorithm with its headline hyperparameters, training data, and test
 error (%) on MNIST, USPS and UCI Letter; dashes mark unreported
 settings. Values compiled across papers, not one protocol.</caption>
+<thead>
+<tr>
+<th>Method</th>
+<th>Year</th>
+<th>Hypothesis class</th>
+<th>Loss / Algo</th>
+<th>Data</th>
+<th>MNIST err %</th>
+<th>USPS err %</th>
+<th>Letter err %</th>
+<th>Notes</th>
+</tr>
+</thead>
 <tbody>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td>MNIST</td>
-<td>USPS</td>
-<td>Letter</td>
-<td></td>
-</tr>
-<tr>
-<td>Method</td>
-<td>Year</td>
-<td>Hypothesis class</td>
-<td>Loss / Algo</td>
-<td>Data</td>
-<td>err %</td>
-<td>err %</td>
-<td>err %</td>
-<td>Notes</td>
-</tr>
 <tr>
 <td>LeNet-1 <span
 class="citation" data-cites="cortes_vapnik_1995">(Cortes and Vapnik
@@ -470,8 +460,7 @@ class="citation" data-cites="cortes_vapnik_1995">(Cortes and Vapnik
 </tbody>
 </table></div>
 <p>The classical literature falls into five families (linear-margin,
-kernel-RKHS, boosted-trees, feedforward CNN, nonparametric; Table <a
-href="tbl:classical-sota">tbl:classical-sota</a>). The <em>margin</em>
+kernel-RKHS, boosted-trees, feedforward CNN, nonparametric; Table <a href="#tbl:classical-sota">2</a>). The <em>margin</em>
 cluster begins with Boser-Guyon-Vapnik's hard-margin formulation <span
 class="citation" data-cites="boser_guyon_vapnik_1992">(Boser et al.
 1992)</span> which only applies to linearly separable data;
@@ -514,7 +503,7 @@ operates over a randomized hypothesis class rather than a single
 max-margin classifier.</p>
 <figure id="fig:classical-trends">
 <img src="figures/classical-trends.svg" />
-<figcaption>(a) MNIST test error (%) against the year of the cited
+<figcaption><span class="blog-label">Figure 1.</span> (a) MNIST test error (%) against the year of the cited
 result, by family (colour and marker); dotted, human estimate. (b)
 AdaBoost error (%) on UCI Letter against rounds
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
@@ -524,8 +513,7 @@ Panel (b) values illustrative, not measurements.</figcaption>
 <p>The results span four eras: kernel-margin (1992-2002), boosting
 (1997-1998), the early-CNN baseline (1995), and the nonparametric
 reference points (1-NN, k-NN). Three readings frame the rest of the
-chapter (Figure <a
-href="fig:classical-trends">fig:classical-trends</a>). <u>First, on
+chapter (Figure <a href="#fig:classical-trends">1</a>). <u>First, on
 MNIST the kernel-SVM family and the early-CNN family converge to within
 roughly half a percentage point in the 1995-2002 window, which made the
 choice between them appear as a matter of inductive-bias preference
