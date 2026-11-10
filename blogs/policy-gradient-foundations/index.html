@@ -164,7 +164,7 @@ exploiting the goal-conditioned-MDP structure rather than a
 general-purpose algorithm.</u> Tasks without goal conditioning (Atari,
 locomotion) cannot use HER directly, and even within goal-conditioned
 regimes HER amplifies the data's nearest-state coverage bias rather than
-expanding it. The recipe still propagated to GoalGAN, RIG, and the
+expanding it. The approach still propagated to GoalGAN, RIG, and the
 broader sparse-reward goal-conditioned RL family without significant
 modification.</p>
 <p><u>The distributed line is four answers to one question, what travels
@@ -414,7 +414,7 @@ data-cites="schulman_trust_2017">(Schulman et al. 2015)</span></td>
 <td>2015</td>
 <td>on-policy MF</td>
 <td>KL-TRPO(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>=0.01)
-CG+line-search</td>
+CG + line-search</td>
 <td>MuJoCo</td>
 <td> - </td>
 <td>~4500</td>
@@ -471,7 +471,7 @@ data-cites="schulman_proximal_2017">(Schulman et al. 2017)</span></td>
 <td>on-policy MF</td>
 <td>clip-PPO(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>=0.2),
 GAE(0.95)</td>
-<td>MuJoCo+Atari</td>
+<td>MuJoCo + Atari</td>
 <td>250*</td>
 <td>~5800</td>
 <td> - </td>
@@ -498,7 +498,7 @@ OU-noise</td>
 data-cites="fujimoto_addressing_2018">(Fujimoto et al. 2018)</span></td>
 <td>2018</td>
 <td>off-policy MF</td>
-<td>clipped 2Q + delay(d=2) + target-smooth</td>
+<td>clipped 2Q + delay (d=2) + target-smooth</td>
 <td>MuJoCo</td>
 <td> - </td>
 <td>~9500</td>
@@ -513,7 +513,7 @@ data-cites="haarnoja_soft_2019">(Haarnoja et al. 2019)</span></td>
 <td>off-policy MF</td>
 <td>Bellman-Q +
 entropy(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>=auto)</td>
-<td>MuJoCo+DMC</td>
+<td>MuJoCo + DMC</td>
 <td> - </td>
 <td>~11000</td>
 <td>~770</td>
@@ -527,7 +527,7 @@ data-cites="espeholt_impala_2018">(Espeholt et al. 2018)</span></td>
 <td>off-policy MF</td>
 <td>V-trace(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>ρ</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar\rho</annotation></semantics></math>=1,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>c</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar c</annotation></semantics></math>=1)</td>
-<td>DMLab+Atari</td>
+<td>DMLab + Atari</td>
 <td>191.8</td>
 <td> - </td>
 <td> - </td>
@@ -566,7 +566,7 @@ data-cites="badia_agent57_2020">(Badia et al. 2020)</span></td>
 data-cites="silver_mastering_2017">(Silver et al. 2017)</span></td>
 <td>2017</td>
 <td>model-based</td>
-<td>MCTS(N=1600) + self-play CE</td>
+<td>MCTS (N=1600) + self-play CE</td>
 <td>Go</td>
 <td> - </td>
 <td> - </td>
@@ -580,8 +580,8 @@ data-cites="schrittwieser_mastering_2020">(Schrittwieser et al.
 2020)</span></td>
 <td>2020</td>
 <td>model-based</td>
-<td>MCTS(N=50) + learned dynamics</td>
-<td>Atari+Go</td>
+<td>MCTS (N=50) + learned dynamics</td>
+<td>Atari + Go</td>
 <td>2041 (731 @200M)</td>
 <td> - </td>
 <td> - </td>
@@ -594,7 +594,7 @@ data-cites="hafner_mastering_2023">(Hafner et al. 2023)</span></td>
 <td>2023</td>
 <td>model-based</td>
 <td>RSSM world model + actor-critic in latent</td>
-<td>Atari+DMC</td>
+<td>Atari + DMC</td>
 <td>112*</td>
 <td>~9000</td>
 <td>~822</td>
@@ -608,7 +608,7 @@ data-cites="kumar_conservative_2020">(Kumar et al. 2020)</span></td>
 <td>offline</td>
 <td>CQL(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>=1)
 lower-bound + Bellman-Q</td>
-<td>D4RL+Adroit</td>
+<td>D4RL + Adroit</td>
 <td> - </td>
 <td>41.1 (medium)*</td>
 <td> - </td>
@@ -636,7 +636,7 @@ class="citation" data-cites="chen_decision_2021">(Chen et al.
 <td>2021</td>
 <td>offline</td>
 <td>seq-CE return-conditioned</td>
-<td>D4RL+Atari</td>
+<td>D4RL + Atari</td>
 <td> - </td>
 <td>42.6 (medium)*</td>
 <td> - </td>
@@ -744,9 +744,9 @@ the right-hand edge is largely a metric artifact.</figcaption>
 <p><u>The model-based and world-model line (AlphaGo, AlphaZero, MuZero,
 DreamerV2/V3) shifts the bottleneck from data to compute.</u> MuZero
 wins Go, chess, shogi, and Atari with the <strong>same</strong>
-MCTS-on-learned-dynamics recipe. DreamerV3 reaches comparable Atari HNS
-on roughly two orders of magnitude fewer environment frames by training
-a Recurrent State-Space Model and rolling out actor-critic
+MCTS-on-learned-dynamics procedure. DreamerV3 reaches comparable Atari
+HNS on roughly two orders of magnitude fewer environment frames by
+training a Recurrent State-Space Model and rolling out actor-critic
 <strong>inside</strong> the latent imagination. The cost is
 <strong>hyperparameter brittleness</strong><a href="#fn18"
 class="footnote-ref" id="fnref18" role="doc-noteref"><sup>18</sup></a>

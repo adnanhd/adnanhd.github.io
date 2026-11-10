@@ -58,10 +58,32 @@ variants, <strong>masked modeling</strong>,
 supervision</strong>. Each paradigm has characteristic strengths and
 well-known open problems, walked through paragraph-by-paragraph after
 the SoTA leaderboard below.</p>
-<p><u>The historical context is important for understanding the field's
-trajectory.</u> Early SSL methods (2014-2018) produced features useful
-for downstream tasks but fell substantially behind supervised
-pretraining; the bar to beat was set by DeCAF <span class="citation"
+<p>Three observations motivate learning without labels. Unlabelled
+images are far more plentiful than labelled ones, and the training
+setups in this chapter can use them: SwAV pretrains a ResNet-50 on one
+billion uncurated, randomly drawn Instagram images and reaches 66.5%
+ImageNet top-1 with a linear classifier on the frozen features and 77.8%
+after fine-tuning, against 60.4% and 77.2% for SimCLR on the same data
+and 76.5% for training from scratch (Figure 4 of <span class="citation"
+data-cites="caron_unsupervised_2021">(Caron et al. 2020)</span>). A
+class label also carries only a small part of what an image contains;
+the CPC paper puts it as thousands of bits in an image against 10 bits
+for a label among 1,024 categories (Section 2.1 of <span
+class="citation" data-cites="oord_representation_2018">(Oord et al.
+2018)</span>), so a representation trained only to separate labels need
+not keep the pose, the background or the number of objects that another
+task may ask for. Finally, the headline linear-probe comparisons in the
+leaderboard below pretrain on the same 1.28M ImageNet-1k images with the
+labels removed (the Data column), so the gains among those rows come
+from the objective, the backbone and the training configuration rather
+than from more images, with one exception in BEiT, whose frozen DALL-E
+tokenizer was pretrained on 250M further images (Section 4.1 of <span
+class="citation" data-cites="he_masked_2021">(He et al. 2022)</span>);
+DINOv2, CLIP and ALIGN are the rows that change the data as well.</p>
+<p>__The historical context is important for understanding the field's
+trajectory._ Early SSL methods (2014-2018) produced features useful for
+downstream tasks but fell substantially behind supervised pretraining;
+the bar to beat was set by DeCAF <span class="citation"
 data-cites="donahue_decaf_2014">(Donahue et al. 2014)</span>, which
 first showed that mid-layer activations of a supervised ImageNet CNN
 transfer as off-the-shelf features to almost any downstream
@@ -94,16 +116,16 @@ rotated copies of each image in the same minibatch to avoid BatchNorm
 drift from rotation-mean shifts; rotations were implemented via
 flip+transpose rather than interpolation to avoid aliasing artifacts
 that would otherwise let the network cheat on low-level cues. RotNet
-reached 54.0% on ImageNet and 54.4% PASCAL VOC 2007 detection (only 2.4
-points below supervised ImageNet pretraining); the 54.0% is not the same
-measurement as the per-layer frozen-conv linear probes that
-DeepCluster's Table 1 reports for the same network, so the two should
-not be read against each other without checking which protocol each
-paper used[fn:s0-probe-protocol]. <u>Its failure mode is
-rotation-invariant classes like jellyfish or aerial views, for which the
-canonical-orientation prior provides no learning
-signal</u>[fn:s0-semantic-narrow][fn:s0-invariance-fixed]. Jigsaw puzzle
-solving <span class="citation"
+reached 50.0% ImageNet top-1 when the layers above a frozen conv4 are
+retrained (Table 4) and 54.4% PASCAL VOC 2007 detection (only 2.4 points
+below supervised ImageNet pretraining); a linear classifier on single
+frozen layers, the protocol of DeepCluster's Table 1, peaks at 38.7% on
+conv3 (Table 5), so the two should not be read against each other
+without checking which protocol each paper used[fn:s0-probe-protocol].
+<u>Its failure mode is rotation-invariant classes like jellyfish or
+aerial views, for which the canonical-orientation prior provides no
+learning signal</u>[fn:s0-semantic-narrow][fn:s0-invariance-fixed].
+Jigsaw puzzle solving <span class="citation"
 data-cites="noroozi_unsupervised_2016">(Noroozi and Favaro 2016)</span>
 predicted which permutation of a 3x3 tile grid had been applied,
 reducing the intractable 9!=362,880 permutation space to 100 or 1000
@@ -115,36 +137,223 @@ shortcuts. A further subtlety is the defense against chromatic
 aberration: natural lenses induce color fringing toward the image edges,
 which would trivially localize tiles; countered with per-tile
 channel-mean subtraction or grayscale
-training[fn:s0-shortcut-vulnerable]. <u>Jigsaw reached 45.7% ImageNet
-linear probing and 51.8% VOC detection.</u> Colorization <span
-class="citation" data-cites="zhang_colorful_2016">(Zhang et al.
-2016)</span> reached 39.6% via a 313-way classification formulation
-(predicting a discretized bin of the ab color space rather than
-regressing continuous color), with class rebalancing to compensate for
-the heavy-tail distribution of natural colors; the 39.6% figure is
-specifically the <em>cross-channel encoder</em> variant where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>→</mo><mi>a</mi><mi>b</mi></mrow><annotation encoding="application/x-tex">L \to ab</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mi>b</mi><mo>→</mo><mi>L</mi></mrow><annotation encoding="application/x-tex">ab \to L</annotation></semantics></math>
-are jointly trained[fn:s0-semantic-narrow]. <strong>These methods showed
-that self-generated supervision could learn useful features, but their
+training[fn:s0-shortcut-vulnerable]. <u>Jigsaw reached 45.3% ImageNet
+top-1 under the conv4 protocol (Table 2) and 53.2% VOC detection (Table
+1).</u> Colorization <span class="citation"
+data-cites="zhang_colorful_2016">(Zhang et al. 2016)</span> reached
+40.7% under the same protocol (appendix Table 3) via a 313-way
+classification formulation (predicting a discretized bin of the ab color
+space rather than regressing continuous color), with class rebalancing
+to compensate for the heavy-tail distribution of natural
+colors[fn:s0-semantic-narrow]. <strong>These methods showed that
+self-generated supervision could learn useful features, but their
 reliance on specific geometric or chromatic priors limited
 generalization</strong>; <u>modern methods (instance discrimination,
 masked modeling) avoid these priors with more generic learning
 objectives.</u></p>
+<p>The Jigsaw pipeline of Noroozi and Favaro can be traced with shapes
+(Sections 3.1 to 3.4 and Figure 3 of <span class="citation"
+data-cites="noroozi_unsupervised_2016">(Noroozi and Favaro
+2016)</span>). An image resized and cropped to 256 x 256 gives a random
+225 x 225 crop, split into a 3 x 3 grid of 75 x 75 cells, and a 64 x 64
+tile is taken from each cell at a random shift, which leaves an average
+gap of 11 px between tiles, ranging from 0 to 22. The 9 tiles pass
+through AlexNet trunks with shared weights up to and including fc6, with
+stride 2 in conv1 during puzzle training and stride 4 when the weights
+are transferred; fc6 is 4 x 4 x 256 x 512, so each tile gives a 512-d
+vector, and the nine fc6 outputs are concatenated,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>9</mn><mo>×</mo><mn>512</mn><mo>=</mo><mn>4608</mn></mrow><annotation encoding="application/x-tex">9 \times 512 = 4608</annotation></semantics></math>
+values (derived), into fc7, which leads to a softmax over the
+permutation set. The CFN has 27.5M parameters against AlexNet's 61M and,
+trained with labels on 75 x 75 tiles, reaches 57.1% ImageNet top-1
+against AlexNet's 57.4%. Training uses SGD without batch normalization
+on one Titan X, batches of 256 images and a learning rate of 0.01, and
+converges after 350K iterations in 59.5 hours;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>350</mn><mtext mathvariant="normal">K</mtext><mo>×</mo><mn>256</mn><mi>/</mi><mn>1.3</mn><mtext mathvariant="normal">M</mtext><mo>≈</mo><mn>69</mn></mrow><annotation encoding="application/x-tex">350\text{K} \times 256 / 1.3\text{M} \approx 69</annotation></semantics></math>
+puzzles per image. Normalizing the mean and standard deviation of each
+tile independently removes the low-level statistics that adjacent tiles
+share, and against chromatic aberration the training set mixes 30%
+grayscale with 70% colour images and the colour channels of each tile
+are jittered spatially by 0, 1 or 2 px (Section 4.2). Section 4.2
+describes the tiles as 64 x 64 crops from 85 x 85 cells of a 255 x 255
+central crop, a 21 px gap, which disagrees with the 75 x 75 cells of
+Section 3.3; both are given here with their sections. Tables <a
+href="tbl:jigsaw-permutations">tbl:jigsaw-permutations</a> and <a
+href="tbl:jigsaw-shortcuts">tbl:jigsaw-shortcuts</a> give the two
+ablations, both scored by Pascal VOC 2007 detection. With 1000
+permutations a larger average Hamming distance helps both the puzzle and
+the transfer, while the sets of 6 to 10 permutations are solved at
+97-99% and transfer worst, which the paper sums up as "a good
+self-supervised task is neither simple nor ambiguous". Each shortcut
+defence lowers puzzle accuracy and raises transfer.</p>
+<div class="blog-table"><table id="tbl:jigsaw-permutations">
+<caption>Permutation-set ablation of Jigsaw, Table 4 of <span
+class="citation" data-cites="noroozi_unsupervised_2016">(Noroozi and
+Favaro 2016)</span>; jigsaw task accuracy and Pascal VOC 2007 detection
+performance (%).</caption>
+<thead>
+<tr>
+<th>Permutations</th>
+<th>Average Hamming distance</th>
+<th>Minimum Hamming distance</th>
+<th>Jigsaw accuracy</th>
+<th>Detection</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1000</td>
+<td>8.00</td>
+<td>2</td>
+<td>71</td>
+<td>53.2</td>
+</tr>
+<tr>
+<td>1000</td>
+<td>6.35</td>
+<td>2</td>
+<td>62</td>
+<td>51.3</td>
+</tr>
+<tr>
+<td>1000</td>
+<td>3.99</td>
+<td>2</td>
+<td>54</td>
+<td>50.2</td>
+</tr>
+<tr>
+<td>100</td>
+<td>8.08</td>
+<td>2</td>
+<td>88</td>
+<td>52.6</td>
+</tr>
+<tr>
+<td>95</td>
+<td>8.08</td>
+<td>3</td>
+<td>90</td>
+<td>52.4</td>
+</tr>
+<tr>
+<td>85</td>
+<td>8.07</td>
+<td>4</td>
+<td>91</td>
+<td>52.7</td>
+</tr>
+<tr>
+<td>71</td>
+<td>8.07</td>
+<td>5</td>
+<td>92</td>
+<td>52.8</td>
+</tr>
+<tr>
+<td>35</td>
+<td>8.13</td>
+<td>6</td>
+<td>94</td>
+<td>52.6</td>
+</tr>
+<tr>
+<td>10</td>
+<td>8.57</td>
+<td>7</td>
+<td>97</td>
+<td>49.2</td>
+</tr>
+<tr>
+<td>7</td>
+<td>8.95</td>
+<td>8</td>
+<td>98</td>
+<td>49.6</td>
+</tr>
+<tr>
+<td>6</td>
+<td>9</td>
+<td>9</td>
+<td>99</td>
+<td>49.7</td>
+</tr>
+</tbody>
+</table></div>
+<div class="blog-table"><table id="tbl:jigsaw-shortcuts">
+<caption>Shortcut ablation of Jigsaw, Table 5 of <span class="citation"
+data-cites="noroozi_unsupervised_2016">(Noroozi and Favaro 2016)</span>;
+removing one defence at a time raises puzzle accuracy and lowers Pascal
+VOC 2007 detection (%).</caption>
+<thead>
+<tr>
+<th>Gap</th>
+<th>Per-tile normalization</th>
+<th>Colour jittering</th>
+<th>Jigsaw accuracy</th>
+<th>Detection</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>no</td>
+<td>yes</td>
+<td>yes</td>
+<td>98</td>
+<td>47.7</td>
+</tr>
+<tr>
+<td>yes</td>
+<td>no</td>
+<td>yes</td>
+<td>90</td>
+<td>43.5</td>
+</tr>
+<tr>
+<td>yes</td>
+<td>yes</td>
+<td>no</td>
+<td>89</td>
+<td>51.1</td>
+</tr>
+<tr>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>88</td>
+<td>52.6</td>
+</tr>
+</tbody>
+</table></div>
+<figure id="fig:pretext-rotation-jigsaw">
+<img src="figures/pretext-rotation-jigsaw.svg" />
+<figcaption>Two pretext tasks of <a href="tbl:ssl-mechanism-grid">the
+mechanism grid</a>. Top: RotNet <span class="citation"
+data-cites="gidaris_unsupervised_2018">(Gidaris et al. 2018)</span>
+classifies which of four rotations was applied. Bottom: Jigsaw <span
+class="citation" data-cites="noroozi_unsupervised_2016">(Noroozi and
+Favaro 2016)</span> shuffles nine tiles, each a smaller crop inside its
+dotted cell, and classifies which of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
+fixed permutations was applied.</figcaption>
+</figure>
 <div class="blog-table"><table id="tbl:ssl-sota">
-<caption>SSL SoTA leaderboard. Data = pretraining set + size. ImageNet1k
-LP / FT / kNN = linear-probe / fine-tune / nearest-neighbour top-1 (%).
-COCO box / mask = AP under Mask R-CNN-FPN. ADE = ADE20K mIoU (UperNet).
-VOC = VOC07 detection mAP. iNat = iNaturalist-2018 LP top-1. Loss cell
-uses (key=value) for headline hyperparameters; CE = cross-entropy. *
-marks zero-shot. Dashes mark unreported settings. Rows are compiled from
-each method's own paper, so the per-row citation names the source of the
-method and of its reported figures, not a single controlled
-re-evaluation. The pretext rows in particular were measured under
-evaluation protocols that changed between 2016 and 2018, and the
-AlexNet-era numbers should be read against the caveat in the DeepCluster
-section rather than as a like-for-like column.</caption>
+<caption>ImageNet-1k top-1 (%) by linear probe (LP), fine-tuning (FT),
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>-NN;
+COCO box/mask AP; ADE20K mIoU; VOC07 AP50; iNaturalist-2018 LP; n/r not
+reported; * zero-shot;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>‡</mi><annotation encoding="application/x-tex">\ddagger</annotation></semantics></math>
+AlexNet conv4;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>†</mi><annotation encoding="application/x-tex">\dagger</annotation></semantics></math>
+boosted linear head <span class="citation"
+data-cites="oquab_dinov2_2024">(Oquab et al. 2024)</span>. Values from
+other papers: a <span class="citation"
+data-cites="caron_emerging_2021">(Caron et al. 2021)</span>, b <span
+class="citation" data-cites="chen_simsiam_2020">(Chen and He
+2021)</span>, c <span class="citation" data-cites="he_masked_2021">(He
+et al. 2022)</span>, d <span class="citation"
+data-cites="zhou_ibot_2022">(Zhou et al. 2022)</span>. Values compiled
+across papers, not one protocol.</caption>
 <tbody>
 <tr>
 <td></td>
@@ -173,7 +382,7 @@ section rather than as a like-for-like column.</caption>
 <td>box</td>
 <td>mask</td>
 <td>mIoU</td>
-<td>mAP</td>
+<td>AP50</td>
 <td>LP</td>
 </tr>
 <tr>
@@ -183,14 +392,14 @@ data-cites="gidaris_unsupervised_2018">(Gidaris et al. 2018)</span></td>
 <td>AlexNet</td>
 <td>CE(4-way)</td>
 <td>IN1k 1.28M</td>
-<td>54.0</td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
+<td>50.0<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>‡</mo></msup><annotation encoding="application/x-tex">^{\ddagger}</annotation></semantics></math></td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
 <td>54.4</td>
-<td> - </td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>Jigsaw <span class="citation"
@@ -198,32 +407,32 @@ data-cites="noroozi_unsupervised_2016">(Noroozi and Favaro
 2016)</span></td>
 <td>2016</td>
 <td>AlexNet</td>
-<td>CE(K=100)</td>
+<td>CE(K=1000)</td>
 <td>IN1k 1.28M</td>
-<td>45.7</td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td>51.8</td>
-<td> - </td>
+<td>45.3<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>‡</mo></msup><annotation encoding="application/x-tex">^{\ddagger}</annotation></semantics></math></td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>53.2</td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>Colorization <span class="citation"
 data-cites="zhang_colorful_2016">(Zhang et al. 2016)</span></td>
 <td>2016</td>
-<td>VGG</td>
+<td>AlexNet</td>
 <td>CE(313-bin)</td>
 <td>IN1k 1.28M</td>
-<td>39.6</td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
+<td>40.7<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>‡</mo></msup><annotation encoding="application/x-tex">^{\ddagger}</annotation></semantics></math></td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
 <td>46.9</td>
-<td> - </td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>MoCo v1 <span
@@ -234,13 +443,13 @@ class="citation" data-cites="he_momentum_2020">(He et al.
 <td>InfoNCE(τ=0.07)</td>
 <td>IN1k 1.28M</td>
 <td>60.6</td>
-<td> - </td>
-<td> - </td>
+<td>n/r</td>
+<td>n/r</td>
 <td>40.7</td>
 <td>35.4</td>
-<td> - </td>
+<td>n/r</td>
 <td>81.5</td>
-<td> - </td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>SimCLR
@@ -248,16 +457,16 @@ class="citation" data-cites="he_momentum_2020">(He et al.
 2020)</span></td>
 <td>2020</td>
 <td>ResNet-50</td>
-<td>NT-Xent(τ=0.5)</td>
+<td>NT-Xent(τ=0.1)</td>
 <td>IN1k 1.28M</td>
 <td>69.3</td>
-<td> - </td>
-<td>64.5</td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td>81.8</td>
-<td> - </td>
+<td>n/r</td>
+<td>60.7<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>a</mi></msup><annotation encoding="application/x-tex">^{a}</annotation></semantics></math></td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>81.8<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>b</mi></msup><annotation encoding="application/x-tex">^{b}</annotation></semantics></math></td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>MoCo v2 <span class="citation"
@@ -267,13 +476,13 @@ data-cites="chen_improved_2020">(X. Chen et al. 2020)</span></td>
 <td>InfoNCE(τ=0.2)</td>
 <td>IN1k 1.28M</td>
 <td>71.1</td>
-<td> - </td>
-<td> - </td>
-<td>41.7</td>
-<td>36.3</td>
-<td> - </td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
 <td>82.5</td>
-<td> - </td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>BYOL <span
@@ -284,13 +493,13 @@ class="citation" data-cites="grill_byol_2020">(Grill et al.
 <td>MSE on predictor</td>
 <td>IN1k 1.28M</td>
 <td>74.3</td>
-<td> - </td>
-<td>64.8</td>
-<td>42.0</td>
-<td>37.8</td>
-<td> - </td>
-<td>81.4</td>
-<td> - </td>
+<td>n/r</td>
+<td>64.8<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>a</mi></msup><annotation encoding="application/x-tex">^{a}</annotation></semantics></math></td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>81.4<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>b</mi></msup><annotation encoding="application/x-tex">^{b}</annotation></semantics></math></td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>SwAV <span class="citation"
@@ -300,13 +509,13 @@ data-cites="caron_unsupervised_2021">(Caron et al. 2020)</span></td>
 <td>swapped CE on Sinkhorn(K=3000)</td>
 <td>IN1k 1.28M</td>
 <td>75.3</td>
-<td> - </td>
-<td>65.7</td>
+<td>n/r</td>
+<td>65.7<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>a</mi></msup><annotation encoding="application/x-tex">^{a}</annotation></semantics></math></td>
 <td>41.6</td>
 <td>37.8</td>
-<td> - </td>
+<td>n/r</td>
 <td>82.6</td>
-<td> - </td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>Barlow Twins <span class="citation"
@@ -316,13 +525,13 @@ data-cites="zbontar_barlow_2021">(Zbontar et al. 2021)</span></td>
 <td>cross-corr(λ=5e-3)</td>
 <td>IN1k 1.28M</td>
 <td>73.2</td>
-<td> - </td>
-<td>66.0</td>
+<td>n/r</td>
+<td>66.0<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>a</mi></msup><annotation encoding="application/x-tex">^{a}</annotation></semantics></math></td>
 <td>39.2</td>
-<td>35.5</td>
-<td> - </td>
+<td>34.3</td>
+<td>n/r</td>
 <td>82.6</td>
-<td> - </td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>SimSiam <span
@@ -333,13 +542,13 @@ class="citation" data-cites="chen_simsiam_2020">(Chen and He
 <td>neg-cos sim + stop-grad</td>
 <td>IN1k 1.28M</td>
 <td>71.3</td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>VICReg <span
@@ -350,13 +559,13 @@ class="citation" data-cites="bardes_vicreg_2022">(Bardes et al.
 <td>var+inv+cov(25,25,1)</td>
 <td>IN1k 1.28M</td>
 <td>73.2</td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
 <td>82.4</td>
-<td> - </td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>MoCo v3 <span class="citation"
@@ -367,12 +576,12 @@ data-cites="chen_empirical_2021">(Chen et al. 2021)</span></td>
 <td>IN1k 1.28M</td>
 <td>76.7</td>
 <td>83.2</td>
-<td> - </td>
-<td>47.9</td>
-<td>42.7</td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
+<td>n/r</td>
+<td>47.9<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>c</mi></msup><annotation encoding="application/x-tex">^{c}</annotation></semantics></math></td>
+<td>42.7<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>c</mi></msup><annotation encoding="application/x-tex">^{c}</annotation></semantics></math></td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>DINO
@@ -383,13 +592,13 @@ data-cites="chen_empirical_2021">(Chen et al. 2021)</span></td>
 <td>softmax CE + center+sharpen</td>
 <td>IN1k 1.28M</td>
 <td>78.2</td>
-<td> - </td>
+<td>82.8</td>
 <td>76.1</td>
-<td>46.8</td>
-<td>41.4</td>
-<td>47.3</td>
-<td> - </td>
-<td>78.6</td>
+<td>50.1<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>d</mi></msup><annotation encoding="application/x-tex">^{d}</annotation></semantics></math></td>
+<td>43.4<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>d</mi></msup><annotation encoding="application/x-tex">^{d}</annotation></semantics></math></td>
+<td>46.8<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>d</mi></msup><annotation encoding="application/x-tex">^{d}</annotation></semantics></math></td>
+<td>n/r</td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>MAE <span class="citation"
@@ -398,14 +607,14 @@ data-cites="he_masked_2021">(He et al. 2022)</span></td>
 <td>ViT-B/16</td>
 <td>MSE on masked patches (75%)</td>
 <td>IN1k 1.28M</td>
-<td>67.8</td>
+<td>68.0</td>
 <td>83.6</td>
-<td> - </td>
+<td>n/r</td>
 <td>50.3</td>
 <td>44.9</td>
 <td>48.1</td>
-<td> - </td>
-<td>66.1</td>
+<td>n/r</td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>BEiT <span
@@ -415,14 +624,14 @@ class="citation" data-cites="bao_beit_2022">(Bao et al.
 <td>ViT-B/16</td>
 <td>CE on dVAE tokens</td>
 <td>IN1k 1.28M</td>
-<td> - </td>
+<td>n/r</td>
 <td>83.2</td>
-<td> - </td>
-<td>49.8</td>
-<td>44.4</td>
-<td>47.1</td>
-<td> - </td>
-<td> - </td>
+<td>n/r</td>
+<td>49.8<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>c</mi></msup><annotation encoding="application/x-tex">^{c}</annotation></semantics></math></td>
+<td>44.4<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>c</mi></msup><annotation encoding="application/x-tex">^{c}</annotation></semantics></math></td>
+<td>47.1<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>c</mi></msup><annotation encoding="application/x-tex">^{c}</annotation></semantics></math></td>
+<td>n/r</td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>SimMIM
@@ -432,14 +641,14 @@ class="citation" data-cites="bao_beit_2022">(Bao et al.
 <td>Swin-B</td>
 <td>L1 on masked pixels</td>
 <td>IN1k 1.28M</td>
-<td> - </td>
+<td>n/r</td>
 <td>84.0</td>
-<td> - </td>
+<td>n/r</td>
 <td>52.3</td>
-<td>46.0</td>
+<td>n/r</td>
 <td>52.8</td>
-<td> - </td>
-<td> - </td>
+<td>n/r</td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>iBOT <span class="citation"
@@ -454,24 +663,24 @@ data-cites="zhou_ibot_2022">(Zhou et al. 2022)</span></td>
 <td>51.2</td>
 <td>44.2</td>
 <td>50.0</td>
-<td> - </td>
-<td>80.0</td>
+<td>n/r</td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>MaskFeat <span class="citation" data-cites="wei_masked_2022">(Wei et
 al. 2022)</span></td>
 <td>2022</td>
-<td>MViT</td>
+<td>ViT-B</td>
 <td>smooth-L1 on HOG</td>
 <td>IN1k 1.28M</td>
-<td> - </td>
+<td>n/r</td>
 <td>84.0</td>
-<td> - </td>
-<td>52.4</td>
-<td>47.0</td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>data2vec <span
@@ -481,14 +690,31 @@ class="citation" data-cites="baevski2022data2vec">(Baevski et al.
 <td>ViT-B/16</td>
 <td>smooth-L1 on EMA latent</td>
 <td>IN1k 1.28M</td>
-<td> - </td>
+<td>n/r</td>
 <td>84.2</td>
-<td> - </td>
-<td>50.5</td>
-<td>44.4</td>
-<td>49.1</td>
-<td> - </td>
-<td> - </td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+</tr>
+<tr>
+<td>I-JEPA <span
+class="citation" data-cites="assran_i-jepa_2023">(Assran et al.
+2023)</span>[fn:s0-ijepa-ft]</td>
+<td>2023</td>
+<td>ViT-H/14</td>
+<td>squared L2 on EMA target-encoder features, 4 target blocks</td>
+<td>IN1k 1.28M</td>
+<td>79.3</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>47.6</td>
 </tr>
 <tr>
 <td>DINOv2
@@ -496,32 +722,32 @@ class="citation" data-cites="baevski2022data2vec">(Baevski et al.
 2024)</span></td>
 <td>2024</td>
 <td>ViT-g/14</td>
-<td>DINO+iBOT joint</td>
+<td>DINO CE + iBOT patch CE, Sinkhorn(3 iters), KoLeo(0.1)</td>
 <td>LVD 142M</td>
 <td>86.5</td>
-<td> - </td>
+<td>n/r</td>
 <td>83.5</td>
-<td>56.5</td>
-<td> - </td>
-<td>53.4</td>
-<td> - </td>
-<td>89.0</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>53.0<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>†</mo></msup><annotation encoding="application/x-tex">^{\dagger}</annotation></semantics></math></td>
+<td>n/r</td>
+<td>81.6</td>
 </tr>
 <tr>
 <td>CLIP <span class="citation"
 data-cites="radford_learning_2021">(Radford et al. 2021)</span></td>
 <td>2021</td>
-<td>ViT-L/14</td>
+<td>ViT-L/14, 336 px</td>
 <td>InfoNCE(τ learned)</td>
 <td>WIT 400M</td>
 <td>76.2*</td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td>16.6*</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>ALIGN <span class="citation" data-cites="jia_scaling_2021">(Jia et
@@ -531,13 +757,13 @@ al. 2021)</span></td>
 <td>InfoNCE(τ learned)</td>
 <td>AltText 1.8B</td>
 <td>76.4*</td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
 </tr>
 </tbody>
 </table></div>
@@ -570,21 +796,18 @@ negatives are necessary for avoiding collapse.</u> They rely on
 architectural asymmetries (a <strong>predictor</strong> head,
 <strong>stop-gradient</strong>, or a <strong>momentum encoder</strong>)
 or on <strong>redundancy reduction</strong> objectives to prevent degenerate
-solutions; why these recipes avoid the trivial constant solution
+solutions; why these methods avoid the trivial constant solution
 remains contested[fn:s0-collapse-mystery] and the methods are
 notoriously hyperparameter-sensitive[fn:s0-hp-fragile].</p>
 <figure id="fig:ssl-family-timeline">
 <img src="figures/ssl-family-timeline.svg" />
-<figcaption>SSL family evolution from 2016 pretext methods to 2024
-production-grade <strong>self-distillation</strong> + <strong>masked
-modeling</strong>. Marker shape and colour encode family; the dotted
-line marks the supervised ResNet-50 fine-tune baseline (76.2%). Three
-observations match the table reading: (i) the <strong>pretext</strong>
-era (2016-18) plateaus near 50% LP, well below supervised; (ii) the
-<strong>contrastive</strong> and <strong>non-contrastive</strong>
-clusters converge around 70-78% LP with no clear winner; (iii) the
-modern distill-masked line, scaled in DINOv2 to 142M curated images,
-finally crosses the supervised line at LP 86.4% in 2024.</figcaption>
+<figcaption>ImageNet-1k top-1 of the <a
+href="tbl:ssl-sota">leaderboard</a> methods, by linear probe except the
+pretext rows (frozen to conv4) and CLIP (zero-shot), one row per method
+in order of publication year (right). Marker shape and colour give the
+family; dotted: supervised ResNet-50, 76.5% (Section 4.1 of <span
+class="citation" data-cites="grill_byol_2020">(Grill et al.
+2020)</span>).</figcaption>
 </figure>
 <p><strong>Masked modeling</strong>, inspired by BERT in NLP <span
 class="citation" data-cites="bao_beit_2022">(Bao et al. 2022)</span>,
@@ -599,7 +822,7 @@ visual vocabulary[fn:s0-tokenizer-offline]. A persistent diagnostic for
 the <strong>masked modeling</strong> family is the linear-probe /
 fine-tune disagreement: MAE reports weak LP yet strong FT, while BEiT
 and its derivatives sit elsewhere on the same axis[fn:s0-lp-ft-gap].
-Most 2021+ recipes (MAE, BEiT, MoCo v3, DINO) are also
+Most 2021+ training setups (MAE, BEiT, MoCo v3, DINO) are also
 <strong>ViT</strong>-only and have not transferred well to
 ResNets[fn:s0-vit-only].</p>
 <p><strong>Self-distillation</strong> methods (DINO, iBOT, DINOv2) and
@@ -631,9 +854,10 @@ essential.</u> Second, masked image modeling is <em>not</em>
 Pareto-dominated by contrastive: MAE has lower linear-probe but higher
 fine-tuning and downstream segmentation, indicating its representations
 encode useful structure that is harder to read off linearly. <u>Third,
-the gap to supervised pretraining (ResNet-50: 76.2% IN1k FT) closed
-around BYOL/SwAV (2020) for ResNets and around DINO (2021) for ViTs; by
-2024 DINOv2 exceeds supervised on every transfer benchmark
+the gap to supervised pretraining (supervised ResNet-50: 76.5%) closed
+around BYOL/SwAV (2020) for ResNets and around DINO (2021) for ViTs
+(Figure <a href="fig:ssl-family-timeline">fig:ssl-family-timeline</a>);
+by 2024 DINOv2 exceeds supervised on every transfer benchmark
 tested.</u></p>
 <p><u>The leaderboard records outcomes, not decisions.</u> Three choices
 fix a method: which pair of things must agree, which space that
@@ -649,17 +873,19 @@ table is the leaderboard's other half. It says <em>what</em> changed
 between two rows where the leaderboard says only <em>by how much</em>,
 and the rest of this chapter is a walk down its three columns.</p>
 <div class="blog-table"><table id="tbl:ssl-mechanism-grid">
-<caption>The three choices that fix an SSL method. <em>Positive
-pair</em> is what the objective forces into agreement, <em>target
-space</em> is where that agreement is measured, <em>anti-collapse</em>
-is what forbids the constant solution. Rows are ordered as the chapter
-walks them. Where a family agrees on two columns and differs on one, the
-differing column is the whole contribution: BYOL and SimSiam share a
-positive pair and a target space and differ only in whether the
-asymmetry comes from an EMA teacher or from a stop-gradient. Pretext and
-masked rows carry "none needed" because their target is supplied by the
-input rather than by the model, so a constant output does not minimise
-the loss.</caption>
+<caption>The three choices that fix an SSL method, in the order of this
+chapter. <em>Positive pair</em>: what is forced to agree; <em>target
+space</em>: where agreement is measured; <em>anti-collapse</em>: what
+forbids a constant output.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="double-struck">𝕊</mi><mrow><mi>d</mi><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">\mathbb{S}^{d-1}</annotation></semantics></math>
+is the unit sphere of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="double-struck">ℝ</mi><mi>d</mi></msup><annotation encoding="application/x-tex">\mathbb{R}^{d}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="normal">Δ</mi><mrow><mi>K</mi><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">\Delta^{K-1}</annotation></semantics></math>
+the simplex over
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
+outputs,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>
+the patch side.</caption>
 <thead>
 <tr>
 <th>Method</th>
@@ -677,22 +903,26 @@ data-cites="noroozi_unsupervised_2016">(Noroozi and Favaro 2016)</span>
 / Colorization <span class="citation"
 data-cites="zhang_colorful_2016">(Zhang et al. 2016)</span></td>
 <td>none, one view</td>
-<td>index of the applied transform (4 rotations, K permutations, 313
-colour bins)</td>
+<td>transform index in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mi>...</mi><mo>,</mo><mn>4</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\{1,\dots,4\}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mi>...</mi><mo>,</mo><mi>K</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\{1,\dots,K\}</annotation></semantics></math>,
+or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mi>...</mi><mo>,</mo><mn>313</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\{1,\dots,313\}</annotation></semantics></math>
+per pixel</td>
 <td>none needed, the label is the transform</td>
 </tr>
 <tr>
 <td>InstDisc <span class="citation"
 data-cites="wu_unsupervised_2018">(Wu et al. 2018)</span></td>
 <td>two views of one image</td>
-<td>128-d unit sphere</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="double-struck">𝕊</mi><mn>127</mn></msup><annotation encoding="application/x-tex">\mathbb{S}^{127}</annotation></semantics></math></td>
 <td>negatives from a per-image memory bank</td>
 </tr>
 <tr>
 <td>SimCLR <span class="citation" data-cites="chen_simple_2020">(T. Chen
 et al. 2020)</span></td>
 <td>two augmented views</td>
-<td>128-d unit sphere</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="double-struck">𝕊</mi><mn>127</mn></msup><annotation encoding="application/x-tex">\mathbb{S}^{127}</annotation></semantics></math></td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo stretchy="false" form="prefix">(</mo><mi>N</mi><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">2(N-1)</annotation></semantics></math>
 in-batch negatives, needs
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>≥</mo><mn>4096</mn></mrow><annotation encoding="application/x-tex">N \ge 4096</annotation></semantics></math></td>
@@ -701,74 +931,77 @@ in-batch negatives, needs
 <td>MoCo v1/v2 <span class="citation" data-cites="he_momentum_2020">(He
 et al. 2020)</span></td>
 <td>two augmented views</td>
-<td>128-d unit sphere</td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>65536</mn></mrow><annotation encoding="application/x-tex">K = 65536</annotation></semantics></math>
-FIFO queue of momentum-encoder keys</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="double-struck">𝕊</mi><mn>127</mn></msup><annotation encoding="application/x-tex">\mathbb{S}^{127}</annotation></semantics></math></td>
+<td>FIFO queue of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>65536</mn></mrow><annotation encoding="application/x-tex">K = 65536</annotation></semantics></math>
+momentum-encoder keys</td>
 </tr>
 <tr>
 <td>NNCLR <span class="citation"
 data-cites="dwibedi_nearest_2021">(Dwibedi et al. 2021)</span></td>
-<td>view and its nearest neighbour in a 98k support set</td>
-<td>128-d unit sphere</td>
+<td>a view and its nearest neighbour in a support set of 98k</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="double-struck">𝕊</mi><mn>127</mn></msup><annotation encoding="application/x-tex">\mathbb{S}^{127}</annotation></semantics></math></td>
 <td>in-batch and support-set negatives</td>
 </tr>
 <tr>
 <td>BYOL <span class="citation" data-cites="grill_byol_2020">(Grill et
 al. 2020)</span></td>
 <td>two augmented views</td>
-<td>256-d projector output</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="double-struck">𝕊</mi><mn>255</mn></msup><annotation encoding="application/x-tex">\mathbb{S}^{255}</annotation></semantics></math></td>
 <td>predictor, EMA target, BN in the heads</td>
 </tr>
 <tr>
 <td>SimSiam <span class="citation" data-cites="chen_simsiam_2020">(Chen
 and He 2021)</span></td>
 <td>two augmented views</td>
-<td>2048-d projector output</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="double-struck">𝕊</mi><mn>2047</mn></msup><annotation encoding="application/x-tex">\mathbb{S}^{2047}</annotation></semantics></math></td>
 <td>predictor with a 512-d bottleneck, stop-gradient</td>
 </tr>
 <tr>
 <td>Barlow Twins <span class="citation"
 data-cites="zbontar_barlow_2021">(Zbontar et al. 2021)</span></td>
 <td>two augmented views</td>
-<td>8192-d embedding</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="double-struck">ℝ</mi><mn>8192</mn></msup><annotation encoding="application/x-tex">\mathbb{R}^{8192}</annotation></semantics></math></td>
 <td>cross-correlation matrix driven to identity</td>
 </tr>
 <tr>
 <td>VICReg <span class="citation"
 data-cites="bardes_vicreg_2022">(Bardes et al. 2022)</span></td>
 <td>two augmented views</td>
-<td>8192-d embedding</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="double-struck">ℝ</mi><mn>8192</mn></msup><annotation encoding="application/x-tex">\mathbb{R}^{8192}</annotation></semantics></math></td>
 <td>hinge on per-dimension variance, covariance penalty</td>
 </tr>
 <tr>
 <td>DeepCluster <span class="citation" data-cites="caron2018deep">(Caron
 et al. 2018)</span></td>
 <td>image and its k-means pseudo-label</td>
-<td>K-way softmax over cluster ids</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="normal">Δ</mi><mrow><mi>K</mi><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">\Delta^{K-1}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>10000</mn></mrow><annotation encoding="application/x-tex">K = 10000</annotation></semantics></math></td>
 <td>empty-cluster reassignment, balanced sampling</td>
 </tr>
 <tr>
 <td>SwAV <span class="citation"
 data-cites="caron_unsupervised_2021">(Caron et al. 2020)</span></td>
 <td>code of one view predicts the other view</td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>3000</mn></mrow><annotation encoding="application/x-tex">K = 3000</annotation></semantics></math>
-prototype simplex</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="normal">Δ</mi><mrow><mi>K</mi><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">\Delta^{K-1}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>3000</mn></mrow><annotation encoding="application/x-tex">K = 3000</annotation></semantics></math></td>
 <td>Sinkhorn-Knopp equipartition across the batch</td>
 </tr>
 <tr>
 <td>PCL <span class="citation" data-cites="li_prototypical_2021">(Li et
 al. 2021)</span></td>
 <td>any image in the same k-means cluster</td>
-<td>prototype simplex at
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>3</mn><mtext mathvariant="normal">k</mtext><mo>,</mo><mn>10</mn><mtext mathvariant="normal">k</mtext><mo>,</mo><mn>30</mn><mtext mathvariant="normal">k</mtext><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">K \in \{3\text{k}, 10\text{k}, 30\text{k}\}</annotation></semantics></math></td>
-<td>multi-granularity clustering, per-prototype concentration</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="normal">Δ</mi><mrow><mi>K</mi><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">\Delta^{K-1}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>25000</mn><mo>,</mo><mn>50000</mn><mo>,</mo><mn>100000</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">K \in \{25000, 50000, 100000\}</annotation></semantics></math></td>
+<td>clustering at several granularities, per-prototype
+concentration</td>
 </tr>
 <tr>
 <td>DINO <span class="citation" data-cites="caron_emerging_2021">(Caron
 et al. 2021)</span></td>
 <td>teacher global view, student any view</td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>65536</mn></mrow><annotation encoding="application/x-tex">K = 65536</annotation></semantics></math>
-softmax</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="normal">Δ</mi><mrow><mi>K</mi><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">\Delta^{K-1}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>65536</mn></mrow><annotation encoding="application/x-tex">K = 65536</annotation></semantics></math></td>
 <td>centering by running mean, sharpening
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>t</mi></msub><mo>&lt;</mo><msub><mi>τ</mi><mi>s</mi></msub></mrow><annotation encoding="application/x-tex">\tau_t &lt; \tau_s</annotation></semantics></math></td>
 </tr>
@@ -776,24 +1009,26 @@ softmax</td>
 <td>MSN <span class="citation" data-cites="assran_masked_2022">(Assran
 et al. 2022)</span></td>
 <td>teacher full view, student masked view</td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>1024</mn></mrow><annotation encoding="application/x-tex">K = 1024</annotation></semantics></math>
-prototypes</td>
-<td>mean-entropy-max on the batch-average assignment</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="normal">Δ</mi><mrow><mi>K</mi><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">\Delta^{K-1}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>1024</mn></mrow><annotation encoding="application/x-tex">K = 1024</annotation></semantics></math></td>
+<td>maximum entropy of the batch-average assignment</td>
 </tr>
 <tr>
 <td>MAE <span class="citation" data-cites="he_masked_2021">(He et al.
 2022)</span> / SimMIM <span class="citation"
 data-cites="xie_simmim_2022">(Xie et al. 2022)</span></td>
-<td>one view, visible patches to masked patches</td>
-<td>pixels of the masked patch</td>
+<td>one view, visible to masked patches</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="double-struck">ℝ</mi><mrow><mn>3</mn><msup><mi>P</mi><mn>2</mn></msup></mrow></msup><annotation encoding="application/x-tex">\mathbb{R}^{3P^{2}}</annotation></semantics></math>
+per masked patch</td>
 <td>none needed, the target is the input</td>
 </tr>
 <tr>
 <td>BEiT <span class="citation" data-cites="bao_beit_2022">(Bao et al.
 2022)</span> / MaskFeat <span class="citation"
 data-cites="wei_masked_2022">(Wei et al. 2022)</span></td>
-<td>one view, visible patches to masked patches</td>
-<td>8192 dVAE token ids, or HOG cells</td>
+<td>one view, visible to masked patches</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mi>...</mi><mo>,</mo><mn>8192</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\{1,\dots,8192\}</annotation></semantics></math>
+per patch; HOG histograms</td>
 <td>none needed, the target is fixed offline</td>
 </tr>
 <tr>
@@ -802,7 +1037,8 @@ data-cites="baevski2022data2vec">(Baevski et al. 2022)</span> / I-JEPA
 <span class="citation" data-cites="assran_i-jepa_2023">(Assran et al.
 2023)</span></td>
 <td>masked view to unmasked view</td>
-<td>EMA-teacher features, top-K layer average</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="double-struck">ℝ</mi><mi>d</mi></msup><annotation encoding="application/x-tex">\mathbb{R}^{d}</annotation></semantics></math>
+per patch, EMA-teacher features</td>
 <td>EMA lag, the teacher never sees the student's loss</td>
 </tr>
 <tr>
@@ -810,11 +1046,13 @@ data-cites="baevski2022data2vec">(Baevski et al. 2022)</span> / I-JEPA
 2022)</span> / DINOv2 <span class="citation"
 data-cites="oquab_dinov2_2024">(Oquab et al. 2024)</span></td>
 <td>DINO views, plus masked patches</td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>65536</mn></mrow><annotation encoding="application/x-tex">K = 65536</annotation></semantics></math>
-[CLS] softmax and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>8192</mn></mrow><annotation encoding="application/x-tex">K = 8192</annotation></semantics></math>
-patch softmax</td>
-<td>DINO centering and sharpening, plus KoLeo in DINOv2</td>
+<td>iBOT:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="normal">Δ</mi><mrow><mi>K</mi><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">\Delta^{K-1}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>8192</mn></mrow><annotation encoding="application/x-tex">K = 8192</annotation></semantics></math>,
+one head; DINOv2: two heads of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>128</mn><mtext mathvariant="normal">k</mtext></mrow><annotation encoding="application/x-tex">K = 128\text{k}</annotation></semantics></math></td>
+<td>centering and sharpening; DINOv2 centers by Sinkhorn-Knopp and adds
+KoLeo</td>
 </tr>
 <tr>
 <td>CLIP <span class="citation"
@@ -822,20 +1060,22 @@ data-cites="radford_learning_2021">(Radford et al. 2021)</span> / ALIGN
 <span class="citation" data-cites="jia_scaling_2021">(Jia et al.
 2021)</span></td>
 <td>image and its alt-text caption</td>
-<td>shared image-text embedding</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="double-struck">𝕊</mi><mrow><mi>d</mi><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">\mathbb{S}^{d-1}</annotation></semantics></math>
+shared by image and text</td>
 <td>in-batch cross-modal negatives, learned
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math></td>
 </tr>
 </tbody>
 </table></div>
-<p>Two readings follow from the columns rather than from the numbers.
-The <em>target space</em> column is where the field actually moved: from
-a 128-d sphere in 2018-2020, to a large prototype simplex in 2020-2021,
-to raw pixels in 2021-2022, and to another network's features in 2022
-onward. The <em>anti-collapse</em> column shrinks as the target space
-grows, because a target the model does not produce cannot be gamed by a
-constant, which is why the masked and pretext rows need no mechanism at
-all and the joint-embedding rows need one apiece.</p>
+<p>Two readings follow from the columns. The <em>target space</em>
+column is where the field actually moved: from the sphere
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="double-struck">𝕊</mi><mn>127</mn></msup><annotation encoding="application/x-tex">\mathbb{S}^{127}</annotation></semantics></math>
+in 2018-2020, to a large prototype simplex in 2020-2021, to raw pixels
+in 2021-2022, and to another network's features in 2022 onward. The
+<em>anti-collapse</em> column shrinks as the target space grows, because
+a target the model does not produce cannot be gamed by a constant, which
+is why the masked and pretext rows need no mechanism at all and the
+joint-embedding rows need one apiece.</p>
 <p>Encyclopedia references: <a
 href="wiki:Self-supervised_learning">self-supervised learning</a>, <a
 href="wiki:Vision_transformer">Vision Transformer</a>, <a
@@ -1008,6 +1248,12 @@ Noroozi, Mehdi, and Paolo Favaro. 2016. <span>"Unsupervised Learning of
 Visual Representations by Solving Jigsaw Puzzles."</span> <em>ECCV</em>.
 <a
 href="https://arxiv.org/abs/1603.09246">https://arxiv.org/abs/1603.09246</a>.
+</div>
+<div id="ref-oord_representation_2018" class="csl-entry"
+role="listitem">
+Oord, Aaron van den, Yazhe Li, and Oriol Vinyals. 2018.
+<em>Representation Learning with Contrastive Predictive Coding</em>. <a
+href="https://arxiv.org/abs/1807.03748">https://arxiv.org/abs/1807.03748</a>.
 </div>
 <div id="ref-oquab_dinov2_2024" class="csl-entry" role="listitem">
 Oquab, Maxime, Timothée Darcet, Théo Moutakanni, et al. 2024.

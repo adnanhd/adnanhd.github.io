@@ -104,26 +104,18 @@ single-variable power laws plus an irreducible offset; in Chinchilla it
 is a single joint
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>
 surface; in Hestness it is a dataset-size-only power law; in Bahri the
-exponent is derived from kernel spectra and manifold dimension. The SoTA
-landscape across papers is summarised below by the exponents appearing
-in the three canonical laws</p>
+exponent is derived from kernel spectra and manifold dimension. Each
+paper fits or derives exponents for the three canonical laws (Table <a
+href="tbl:scaling-law-exponents">tbl:scaling-law-exponents</a>)</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi>N</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msub><mi>N</mi><mi>c</mi></msub><mi>N</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>α</mi><mi>N</mi></msub></msup><mo>,</mo><mspace width="1.0em"></mspace><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi>D</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msub><mi>D</mi><mi>c</mi></msub><mi>D</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>α</mi><mi>D</mi></msub></msup><mo>,</mo><mspace width="1.0em"></mspace><mi>L</mi><mo stretchy="false" form="prefix">(</mo><mi>C</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><msub><mi>C</mi><mi>c</mi></msub><mi>C</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>α</mi><mi>C</mi></msub></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">\begin{equation}
 L(N) = \left(\frac{N_c}{N}\right)^{\alpha_N}, \quad L(D) = \left(\frac{D_c}{D}\right)^{\alpha_D}, \quad L(C) = \left(\frac{C_c}{C}\right)^{\alpha_C}.
 \end{equation}</annotation></semantics></math></p>
 <div class="blog-table"><table id="tbl:scaling-law-exponents">
-<caption>SoTA scaling-law exponents across the papers in this part.
-Empty cells mark laws not reported by that paper. Kaplan's
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>N</mi></msub><annotation encoding="application/x-tex">\alpha_N</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>D</mi></msub><annotation encoding="application/x-tex">\alpha_D</annotation></semantics></math>
-are for transformer LMs trained on WebText2 with non-embedding
-parameters
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>;
-Chinchilla's exponents are symmetric because the compute-optimal recipe
-equalises the contributions of
+<caption>Scaling-law exponents across the papers of this part; a dash
+marks a law the paper does not fit, derived and analytical an exponent
+obtained from a property of the data or in closed form. Kaplan's
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>.</caption>
+counts non-embedding parameters.</caption>
 <thead>
 <tr>
 <th>Paper</th>
@@ -135,15 +127,15 @@ and
 </thead>
 <tbody>
 <tr>
-<td>Kaplan 2020 <span class="citation"
-data-cites="kaplan_scaling_2020">(Kaplan et al. 2020)</span></td>
+<td><span class="citation" data-cites="kaplan_scaling_2020">(Kaplan et
+al. 2020)</span></td>
 <td>0.076</td>
 <td>0.095</td>
 <td>0.050</td>
 <td>GPT-style LM, WebText2, cross-entropy nats/token</td>
 </tr>
 <tr>
-<td>Chinchilla <span class="citation"
+<td>Chinchilla, <span class="citation"
 data-cites="hoffmann_chinchilla_2022">(<span class="nocase">Hoffmann et
 al.</span> 2022)</span></td>
 <td>0.34</td>
@@ -154,16 +146,16 @@ al.</span> 2022)</span></td>
 fit, symmetric exponents</td>
 </tr>
 <tr>
-<td>Hestness et al. <span class="citation"
-data-cites="hestness_scaling_2017">(Hestness et al. 2017)</span></td>
+<td><span class="citation" data-cites="hestness_scaling_2017">(Hestness
+et al. 2017)</span></td>
 <td> - </td>
 <td>0.07-0.35</td>
 <td> - </td>
 <td>Varies by domain: NMT, LM, vision</td>
 </tr>
 <tr>
-<td>Bahri et al. <span class="citation"
-data-cites="bahri_explaining_2024">(Bahri et al. 2024)</span></td>
+<td><span class="citation" data-cites="bahri_explaining_2024">(Bahri et
+al. 2024)</span></td>
 <td>derived</td>
 <td>derived</td>
 <td> - </td>
@@ -172,23 +164,23 @@ or
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>K</mi></msub><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\alpha_K - 1</annotation></semantics></math></td>
 </tr>
 <tr>
-<td>Sharma &amp; Kaplan <span class="citation"
-data-cites="sharma_kaplan_2022">(Sharma and Kaplan 2022)</span></td>
+<td><span class="citation" data-cites="sharma_kaplan_2022">(Sharma and
+Kaplan 2022)</span></td>
 <td>derived</td>
 <td>derived</td>
 <td> - </td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mi>D</mi></msub><mo>=</mo><mn>4</mn><mi>/</mi><msub><mi>d</mi><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">f</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">l</mi><mi mathvariant="normal">d</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\alpha_D = 4/d_{\mathrm{manifold}}</annotation></semantics></math></td>
 </tr>
 <tr>
-<td>Maloney et al. <span class="citation"
-data-cites="maloney_solvable_2022">(Maloney et al. 2022)</span></td>
+<td><span class="citation" data-cites="maloney_solvable_2022">(Maloney
+et al. 2022)</span></td>
 <td>analytical</td>
 <td>analytical</td>
 <td>analytical</td>
 <td>Closed form from random-feature model</td>
 </tr>
 <tr>
-<td>Michaud et al. <span class="citation"
+<td><span class="citation"
 data-cites="michaud_quantization_2023">(Michaud et al. 2023)</span></td>
 <td>derived</td>
 <td>derived</td>
@@ -198,11 +190,11 @@ from Zipf exponent</td>
 </tr>
 </tbody>
 </table></div>
-<p>The IB and emergence rows do not fit the
+<p>The IB and emergence papers do not fit the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>N</mi></msub><annotation encoding="application/x-tex">\alpha_N</annotation></semantics></math>/<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>D</mi></msub><annotation encoding="application/x-tex">\alpha_D</annotation></semantics></math>/<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>C</mi></msub><annotation encoding="application/x-tex">\alpha_C</annotation></semantics></math>
-schema because those papers report different observables (mutual
-information trajectories, task-by-task accuracy jumps). They appear
-later in this chapter under their own headings.</p>
+schema because they report different observables (mutual information
+trajectories, task-by-task accuracy jumps); they appear later in this
+chapter under their own headings.</p>
 <h2 class="blog-refs-title">References</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 role="list">

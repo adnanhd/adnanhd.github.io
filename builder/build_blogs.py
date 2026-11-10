@@ -126,6 +126,20 @@ def _strip_noise(org_text):
     return "".join(lines)
 
 
+def _org_fixups(org_text):
+    """Rewrite the org constructs pandoc's org reader drops or misreads.
+
+    - `#+CAPTION[short]: long`: pandoc drops the whole caption and the
+      element's `#+name` id; keep the long caption.
+    - `#+RESULTS[hash]:` between a figure's caption and its file link
+      detaches the caption; the keyword is babel bookkeeping, drop it."""
+    org_text = re.sub(r"^(\s*#\+caption)\[.*?\]:", r"\1:", org_text,
+                      flags=re.M | re.I)
+    org_text = re.sub(r"^\s*#\+results(\[[^\]]*\])?:[ \t]*\n", "", org_text,
+                      flags=re.M | re.I)
+    return org_text
+
+
 def _title_of(text):
     m = re.search(r"^#\+TITLE:\s*(.+)$", text, flags=re.M)
     return m.group(1).strip() if m else ""
@@ -146,9 +160,12 @@ def _assemble(spec):
         if not section:
             # Notes that never introduce a "Related Work" heading are
             # survey material end to end: take the whole body.
-            section = _strip_noise(re.sub(r"^#\+\w+:.*$", "", raw, flags=re.M)).strip()
+            # File keywords go; captions, names and attributes stay.
+            section = _strip_noise(re.sub(r"^#\+(?!caption|name|attr_)\w+:.*\n?", "",
+                                          raw, flags=re.M | re.I)).strip()
         if not section:
             continue
+        section = _org_fixups(section)
         section = _namespace_footnotes(section, f"s{i}")
         if multi:
             # demote the file's inner headings one level so they nest under its H2

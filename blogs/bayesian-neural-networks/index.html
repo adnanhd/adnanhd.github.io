@@ -89,7 +89,8 @@ gradient variance by a factor proportional to the minibatch size. <span
 class="citation" data-cites="wen_flipout_2018">(Wen et al. 2018)</span>
 took this one step further with Flipout, which decorrelates weight
 perturbations across minibatch examples through random sign flips,
-giving a true per-example gradient at negligible cost.</p>
+giving a true per-example gradient at the cost of one extra matrix
+product per layer.</p>
 <p>A parallel development came from <span class="citation"
 data-cites="gal_dropout_bayes_2016">(Gal and Ghahramani 2016b)</span>,
 who reinterpreted dropout regularization as variational inference with a
@@ -124,143 +125,86 @@ al. 2020)</span>, and the Bayesian DL perspective of <span
 class="citation" data-cites="wilson_izmailov_2020">(Wilson and Izmailov
 2020)</span> that frames ensembling and Bayesian marginalization as two
 points on the same continuum.</p>
-<h2 id="state-of-the-art-comparison-table">State-of-the-art comparison
-table</h2>
+<h3 id="state-of-the-art-comparison-table">State-of-the-art comparison
+table</h3>
 <div class="blog-table"><table id="tbl:bnn-sota-comparison">
-<caption>Uncertainty-quantification methods for BNNs compared on image
-classification (MNIST LeNet5, CIFAR10 ResNet20) and UCI regression. The
-UCI column is a single placeholder digit per method rather than a
-measured quantity, since the suite is reported per dataset and
-per-dataset NLLs on it span several nats. NLL = negative log-likelihood
-(nats, lower better). ECE = expected calibration error (%, lower
-better). Accuracy in parentheses. OOD-AUROC is CIFAR10 vs SVHN.
-<strong>This is a composite, not a controlled comparison.</strong> No
-paper reports all four columns on a common backbone, so the rows are
-aligned by method and not by experiment; the per-row citation names the
-method's source, not the source of that row's numbers. Treat the column
-orderings as the claim and the digits as indicative, and see <span
-class="citation" data-cites="ovadia_can_you_trust_2019">(Ovadia et al.
-2019)</span> for the one study that does run these methods head to head
-under a fixed protocol.</caption>
+<caption>Uncertainty-quantification methods for BNNs on CIFAR10: test
+NLL (nats) and ECE (%), lower better, with accuracy (%) in parentheses,
+Wide ResNet-28-10 <span class="citation"
+data-cites="dusenberry_rank1_2020">(Dusenberry et al. 2020)</span>, and
+SVHN detection AUROC from the maximum predictive probability, WRN-16-4
+<span class="citation"
+data-cites="daxberger_laplace_redux_2021">(Daxberger et al.
+2021)</span>, unless a cell cites another source. Values compiled from
+different papers, not one protocol.</caption>
 <tbody>
 <tr>
 <td></td>
-<td>MNIST</td>
 <td>CIFAR10</td>
-<td></td>
-<td></td>
+<td>CIFAR10 vs SVHN</td>
 </tr>
 <tr>
 <td>Method</td>
-<td>NLL / ECE</td>
-<td>NLL / ECE (Acc)</td>
-<td>UCI reg. NLL</td>
+<td>NLL / ECE (acc.)</td>
 <td>OOD AUROC</td>
 </tr>
 <tr>
 <td>MAP (SGD, no UQ baseline)</td>
-<td>0.032 / 1.4%</td>
-<td>0.31 / 4.2% (91.2)</td>
-<td>2.83</td>
-<td>0.87</td>
+<td>0.159 / 2.3% (96.0)</td>
+<td>0.918</td>
 </tr>
 <tr>
 <td>Laplace at MAP <span class="citation"
 data-cites="mackay1992practical">(MacKay 1992)</span></td>
-<td>0.030 / 1.1%</td>
-<td>0.29 / 3.5% (91.0)</td>
-<td>2.76</td>
-<td>0.90</td>
+<td>0.1210 / 0.60% (96.17), KFAC <span class="citation"
+data-cites="maddox_swag_2019">(Maddox et al. 2019)</span></td>
+<td>0.920</td>
 </tr>
 <tr>
-<td>HMC weight-space <span class="citation"
+<td>HMC in weight space <span class="citation"
 data-cites="neal_bayesian_1996">(Neal 1996)</span></td>
-<td>0.026 / 0.6%</td>
-<td>0.24 / 1.9% (89.7)</td>
-<td>2.58</td>
-<td>0.93</td>
-</tr>
-<tr>
-<td>Graves VBNN <span class="citation"
-data-cites="graves_variational_2011">(Graves 2011)</span></td>
-<td>0.029 / 1.3%</td>
-<td>0.33 / 3.9% (90.1)</td>
-<td>2.71</td>
-<td>0.89</td>
+<td>n/r / n/r (89.64), ResNet-20-FRN <span class="citation"
+data-cites="izmailov_hmc_bnn_2021">(Izmailov et al. 2021)</span></td>
+<td>0.8814, ResNet-20-FRN <span class="citation"
+data-cites="izmailov_hmc_bnn_2021">(Izmailov et al. 2021)</span></td>
 </tr>
 <tr>
 <td>Bayes by Backprop <span class="citation"
-data-cites="blundell_bbb_2015">(Blundell et al. 2015)</span></td>
-<td>0.028 / 1.2%</td>
-<td>0.31 / 3.6% (89.9)</td>
-<td>2.63</td>
-<td>0.90</td>
-</tr>
-<tr>
-<td>Local reparam / var-dropout <span class="citation"
-data-cites="kingma_local_reparam_2015">(Kingma et al. 2015)</span></td>
-<td>0.027 / 1.0%</td>
-<td>0.29 / 3.1% (90.4)</td>
-<td>2.62</td>
-<td>0.91</td>
-</tr>
-<tr>
-<td>Flipout <span class="citation" data-cites="wen_flipout_2018">(Wen et
+data-cites="blundell_bbb_2015">(Blundell et al. 2015)</span>, Flipout
+estimator <span class="citation" data-cites="wen_flipout_2018">(Wen et
 al. 2018)</span></td>
-<td>0.026 / 0.9%</td>
-<td>0.28 / 2.8% (90.6)</td>
-<td>2.60</td>
-<td>0.91</td>
+<td>0.214 / 2.9% (94.7)</td>
+<td>0.885</td>
 </tr>
 <tr>
-<td>MC Dropout (p=0.1) <span class="citation"
+<td>MC Dropout <span class="citation"
 data-cites="gal_dropout_bayes_2016">(Gal and Ghahramani
 2016b)</span></td>
-<td>0.031 / 1.8%</td>
-<td>0.30 / 4.5% (91.1)</td>
-<td>2.68</td>
-<td>0.88</td>
+<td>0.160 / 2.4% (95.9)</td>
+<td>n/r</td>
 </tr>
 <tr>
-<td>Concrete Dropout <span class="citation"
-data-cites="gal_concrete_dropout_2017">(Gal et al. 2017)</span></td>
-<td>0.029 / 1.4%</td>
-<td>0.28 / 3.4% (91.2)</td>
-<td>2.64</td>
-<td>0.90</td>
-</tr>
-<tr>
-<td>MNF posteriors <span class="citation"
-data-cites="louizos_mnf_2017">(Louizos and Welling 2017)</span></td>
-<td>0.025 / 0.8%</td>
-<td>0.26 / 2.5% (90.8)</td>
-<td>2.55</td>
-<td>0.92</td>
-</tr>
-<tr>
-<td>Deep ensembles (5) <span class="citation"
+<td>Deep ensembles <span class="citation"
 data-cites="lakshminarayanan_deep_ensembles_2017">(Lakshminarayanan et
 al. 2017)</span></td>
-<td>0.024 / 0.5%</td>
-<td>0.22 / 1.8% (92.4)</td>
-<td>2.50</td>
-<td>0.94</td>
+<td>0.114 / 1.0% (96.6),
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">M=4</annotation></semantics></math></td>
+<td>0.954,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">M=5</annotation></semantics></math></td>
 </tr>
 <tr>
 <td>SWAG <span class="citation" data-cites="maddox_swag_2019">(Maddox et
 al. 2019)</span></td>
-<td>0.025 / 0.7%</td>
-<td>0.23 / 2.1% (92.1)</td>
-<td>2.53</td>
-<td>0.93</td>
+<td>0.1122 / 0.88% (96.32) <span class="citation"
+data-cites="maddox_swag_2019">(Maddox et al. 2019)</span></td>
+<td>0.916</td>
 </tr>
 </tbody>
 </table></div>
-<p>The takeaway is an ordering rather than a set of gaps. <u>Deep
-ensembles and HMC set the calibration ceiling. Among scalable
-single-model VI methods, Flipout and MNF posteriors sit on the
-accuracy/NLL/ECE frontier, and MC Dropout is the cheapest option to
-deploy at the cost of visible mis-calibration.</u></p>
+<p>The takeaway is an ordering rather than a set of gaps. <u>Within one
+Wide ResNet-28-10 protocol deep ensembles have the lowest NLL and ECE,
+mean-field VI with Flipout trails MAP on NLL, ECE and accuracy, and MC
+Dropout matches MAP at no extra training cost.</u></p>
 <h2 class="blog-refs-title">References</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 role="list">
@@ -268,6 +212,12 @@ role="list">
 Blundell, Charles, Julien Cornebise, Koray Kavukcuoglu, and Daan
 Wierstra. 2015. <span>"Weight Uncertainty in Neural Networks."</span>
 <em>ICML</em>.
+</div>
+<div id="ref-daxberger_laplace_redux_2021" class="csl-entry"
+role="listitem">
+Daxberger, Erik, Agustinus Kristiadi, Alexander Immer, Runa Eschenhagen,
+Matthias Bauer, and Philipp Hennig. 2021. <span>"Laplace Redux:
+Effortless Bayesian Deep Learning."</span> <em>NeurIPS</em>.
 </div>
 <div id="ref-dusenberry_rank1_2020" class="csl-entry" role="listitem">
 Dusenberry, Michael W., Ghassen Jerfel, Yeming Wen, et al. 2020.
@@ -343,12 +293,6 @@ role="listitem">
 Osband, Ian. 2016. <span>"Risk Versus Uncertainty in Deep Learning:
 Bayes, Bootstrap and the Dangers of Dropout."</span> <em>NeurIPS
 Workshop on Bayesian Deep Learning</em>.
-</div>
-<div id="ref-ovadia_can_you_trust_2019" class="csl-entry"
-role="listitem">
-Ovadia, Yaniv, Emily Fertig, Jie Ren, et al. 2019. <span>"Can You Trust
-Your Model's Uncertainty? Evaluating Predictive Uncertainty Under
-Dataset Shift."</span> <em>NeurIPS</em>.
 </div>
 <div id="ref-rezende_normalizing_flows_2015" class="csl-entry"
 role="listitem">

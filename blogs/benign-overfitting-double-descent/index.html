@@ -49,15 +49,17 @@
             <article class="blog-body">
 <p>The "benign overfitting" research programme crystallized between 2017
 and 2020 around three stubborn empirical facts that uniform-convergence
-theory could not accommodate. First, deep networks fit random labels to
-zero training error while still generalizing on the true labels <span
-class="citation" data-cites="zhang_rethinking_2017">(Zhang et al.
-2017)</span>. The same networks remain fragile to imperceptible
-adversarial perturbations even where they generalize <span
-class="citation" data-cites="szegedy_intriguing_2014">(Szegedy et al.
-2014)</span>, so whatever inductive bias selects a generalizing
-interpolator is also selecting a non-robust one, and a capacity-only
-account has no vocabulary in which to say that. Section Robustness, Adversarial Examples,
+theory could not accommodate (Table <a
+href="tbl:related-work-landscape">tbl:related-work-landscape</a>).
+First, deep networks fit random labels to zero training error while
+still generalizing on the true labels <span class="citation"
+data-cites="zhang_rethinking_2017">(Zhang et al. 2017)</span>. The same
+networks remain fragile to imperceptible adversarial perturbations even
+where they generalize <span class="citation"
+data-cites="szegedy_intriguing_2014">(Szegedy et al. 2014)</span>, so
+whatever inductive bias selects a generalizing interpolator is also
+selecting a non-robust one, and a capacity-only account has no
+vocabulary in which to say that. Section Robustness, Adversarial Examples,
 and Benign Overfitting takes that tension up in detail, and the
 answer there turns out to be a property of the min-norm interpolator
 rather than an accident of training. Second, their test error does not
@@ -141,13 +143,56 @@ of weights, reset surviving weights to their exact values from before
 any training (not to zero, not to a new random draw; back to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\theta_0</annotation></semantics></math>),
 then retrain the sparse network. Repeating this over multiple rounds
-finds progressively sparser winning tickets.</p>
-<p>On small networks the result is striking. A Lenet winning ticket at
-21.1% sparsity reaches minimum validation loss 38% faster than the full
-network and finishes 0.3 percentage points higher. On CIFAR-10
-convolutional networks, the winning ticket at ~11% sparsity improves
-accuracy by 3.5 points over the dense baseline when matched for
-iteration count.</p>
+finds progressively sparser winning tickets. The reset is where IMP
+departs from standard magnitude
+pruning and from pruning in general, which, in the paper's
+description of existing work (Section 5), "typically proceeds by
+training the original network, removing connections, and further
+fine-tuning": there the surviving weights keep their trained values,
+while IMP discards those values and retrains the survivors from
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\theta_0</annotation></semantics></math>.</p>
+<p>On small networks the result is striking. Writing
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>P</mi><mi>m</mi></msub><annotation encoding="application/x-tex">P_m</annotation></semantics></math>
+for the fraction of weights remaining (Section 2 of the paper calls
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>P</mi><mi>m</mi></msub><annotation encoding="application/x-tex">P_m</annotation></semantics></math>
+the sparsity of the mask, so
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>m</mi></msub><mo>=</mo><mn>25</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">P_m = 25\%</annotation></semantics></math>
+means that 75% of the weights are pruned), Lenet winning tickets reach
+the early-stopping point, the iteration of minimum validation loss, 38%
+earlier than the full network at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>m</mi></msub><mo>=</mo><mn>21</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">P_m = 21\%</annotation></semantics></math>,
+and at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>m</mi></msub><mo>=</mo><mn>13.5</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">P_m = 13.5\%</annotation></semantics></math>
+their test accuracy at that point exceeds the full network's by more
+than 0.3 percentage points (Section 2, Figure 4a); at iteration 50,000,
+when nearly every network has reached 100% training accuracy, the gain
+is up to 0.35 points (Figure 4b). On CIFAR-10 the largest gain at the
+early-stopping iteration is 3.5 points, for Conv-4 at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>m</mi></msub><mo>=</mo><mn>11.1</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">P_m = 11.1\%</annotation></semantics></math>,
+against 3.4 points for Conv-2 at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>m</mi></msub><mo>=</mo><mn>4.6</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">P_m = 4.6\%</annotation></semantics></math>
+and 3.3 points for Conv-6 at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>m</mi></msub><mo>=</mo><mn>26.4</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">P_m = 26.4\%</annotation></semantics></math>
+(Section 3, Figure 5).</p>
+<p>The control behind the initialization claim keeps the mask and draws
+a fresh initialization. On Lenet the reinitialized subnetworks learn
+more slowly the more they are pruned, and their test accuracy falls
+below the original network's from
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>m</mi></msub><mo>=</mo><mn>21.1</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">P_m = 21.1\%</annotation></semantics></math>,
+while the winning tickets' test accuracy drops below it only from
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>m</mi></msub><mo>=</mo><mn>2.9</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">P_m = 2.9\%</annotation></semantics></math>;
+at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>m</mi></msub><mo>=</mo><mn>21</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">P_m = 21\%</annotation></semantics></math>
+the winning ticket reaches minimum validation loss 2.51 times faster
+than its reinitialized copy and is half a percentage point more accurate
+(Section 2, Figure 4a). On Conv-2 and Conv-4 the outcome is less
+one-sided. The reinitialized subnetworks again learn more slowly as
+pruning continues, but their test accuracy at early stopping first holds
+steady and even improves at moderate pruning, which the authors read as
+a sign that the structure of the mask alone may account for part of the
+accuracy gain (Section 3, Figure 5). The learning-speed advantage, and
+the accuracy at heavier pruning, still depend on the original
+initialization.</p>
 <p><u>The core claim is not about expressivity but about initialization
 quality</u>: the dense network's parameter budget functions as a
 <em>search space</em> for discovering an initialization that makes
@@ -157,7 +202,18 @@ capacity argument cannot explain.</p>
 <p>The scale limitation of the original paper is concrete: IMP fails on
 VGG-19 and ResNet-18 at standard learning rates (0.1), because
 large-network training is sensitive to learning-rate warmup in ways
-small-network training is not. Subsequent work <span class="citation"
+small-network training is not. The 2019 paper's own partial remedy is
+linear learning-rate warmup (Section 4): warming VGG-19 up over
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>10000</mn></mrow><annotation encoding="application/x-tex">k = 10000</annotation></semantics></math>
+iterations to learning rate 0.1 yields winning tickets for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>m</mi></msub><mo>≥</mo><mn>1.5</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">P_m \geq 1.5\%</annotation></semantics></math>,
+and ResNet-18 at learning rate 0.03 with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>20000</mn></mrow><annotation encoding="application/x-tex">k = 20000</annotation></semantics></math>
+yields them for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>m</mi></msub><mo>≥</mo><mn>11.8</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">P_m \geq 11.8\%</annotation></semantics></math>,
+but the authors found no hyperparameters that yield winning tickets for
+ResNet-18 at its original learning rate of 0.1, even with warmup.
+Subsequent work <span class="citation"
 data-cites="frankle_linear_2020">(Frankle et al. 2020)</span> addressed
 this by rewinding surviving weights not all the way to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\theta_0</annotation></semantics></math>
@@ -171,13 +227,9 @@ parameters at inference. <u>This unified reading is not yet a
 theorem</u>, but it is the cleanest framing for why both phenomena
 coexist without contradicting each other.</p>
 <div class="blog-table"><table id="tbl:related-work-landscape">
-<caption>SoTA leaderboard for the interpolation regime across modern
-benchmarks. All rows are in the over-parameterized regime (parameters
-much greater than training examples); the point of the table is that
-train error is near zero while test error continues to improve,
-empirically refuting the naive bias-variance bound. Numbers are
-representative headline values reported in the cited papers and
-follow-ups.</caption>
+<caption>Over-parameterized models that fit or nearly fit their training
+data, with setting, training and test performance and size. Values
+compiled across papers, not one protocol.</caption>
 <thead>
 <tr>
 <th>Model family</th>
@@ -200,7 +252,7 @@ M</td>
 <tr>
 <td>Inception, CIFAR-10 random labels <span class="citation"
 data-cites="zhang_rethinking_2017">(Zhang et al. 2017)</span></td>
-<td>Same recipe</td>
+<td>Same training setup</td>
 <td>100.0 %</td>
 <td>10 % (chance)</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>1.6
@@ -218,21 +270,25 @@ data-cites="zhang_rethinking_2017">(Zhang et al. 2017)</span></td>
 M</td>
 </tr>
 <tr>
-<td>ResNet-18, CIFAR-10 15% noise <span class="citation"
+<td>ResNet-18, CIFAR-10 15 % noise <span class="citation"
 data-cites="nakkiran_double_descent_2020">(Nakkiran et al.
 2020)</span></td>
-<td>Width-parameter 64, epoch 4000</td>
+<td>width
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>64</mn></mrow><annotation encoding="application/x-tex">k = 64</annotation></semantics></math>,
+4000 epochs</td>
 <td>100 %</td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>
-6.5 % test error</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>6.5
+% test error</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>11
 M</td>
 </tr>
 <tr>
-<td>ResNet-18, CIFAR-10 15% noise <span class="citation"
+<td>ResNet-18, CIFAR-10 15 % noise <span class="citation"
 data-cites="nakkiran_double_descent_2020">(Nakkiran et al.
 2020)</span></td>
-<td>Width-parameter 10, at EMC threshold</td>
+<td>width
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>10</mn></mrow><annotation encoding="application/x-tex">k = 10</annotation></semantics></math>,
+at the EMC threshold</td>
 <td>100 %</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math>18
 % test error (peak)</td>
@@ -254,7 +310,7 @@ data-cites="bartlett_benign_2020">(Bartlett et al. 2020)</span></td>
 <td>Gaussian features,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mi>/</mi><mi>n</mi><mo>→</mo><mi>γ</mi></mrow><annotation encoding="application/x-tex">p/n \to \gamma</annotation></semantics></math></td>
 <td>0 train err</td>
-<td>benign iff eff-rank cond</td>
+<td>benign under Theorem 4.3</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>≫</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">p \gg n</annotation></semantics></math></td>
 </tr>
 <tr>
@@ -272,7 +328,7 @@ data-cites="belkin_kernel_2018">(Belkin et al. 2018)</span></td>
 <td>Ridgeless, zero training error</td>
 <td>0 train err</td>
 <td>within 1 % of regularized</td>
-<td>kernel $n× n$</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="bold-italic">𝑲</mi><mo>∈</mo><msup><mi mathvariant="double-struck">ℝ</mi><mrow><mi>n</mi><mo>×</mo><mi>n</mi></mrow></msup></mrow><annotation encoding="application/x-tex">\mathbf{K} \in \mathbb{R}^{n\times n}</annotation></semantics></math></td>
 </tr>
 </tbody>
 </table></div>

@@ -104,10 +104,24 @@ and they are separate. What transferred literally is the
 et al. 2016)</span> trains a domain classifier on the features and
 reverses its gradient into the feature extractor, so the classifier
 plays exactly the discriminator's role of supplying a loss that adapts
-to whatever the encoder is currently getting wrong. What transferred
-only in form is the <em>saddle point</em>: adversarial robustness <span
-class="citation" data-cites="madry_towards_2018">(Madry et al.
-2018)</span> writes training as
+to whatever the encoder is currently getting wrong. The mechanism
+reached domain adaptation in both generator-loss forms. The gradient
+reversal layer implements the minimax form, since the encoder maximizes
+the domain classifier's loss, which Adversarial Discriminative Domain
+Adaptation (ADDA) <span class="citation"
+data-cites="tzeng_adversarial_2017">(Tzeng et al. 2017)</span> writes as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="script">ℒ</mi><msub><mtext mathvariant="normal">adv</mtext><mi>M</mi></msub></msub><mo>=</mo><mi>−</mi><msub><mi mathvariant="script">ℒ</mi><msub><mtext mathvariant="normal">adv</mtext><mi>D</mi></msub></msub></mrow><annotation encoding="application/x-tex">\mathcal{L}_{\text{adv}_M} = -\mathcal{L}_{\text{adv}_D}</annotation></semantics></math>
+(Eq. 6); ADDA's own inverted-label encoder loss,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><msub><mi mathvariant="double-struck">𝔼</mi><msub><mi>x</mi><mi>t</mi></msub></msub><mo stretchy="false" form="prefix">[</mo><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>D</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>M</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>t</mi></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">-\mathbb{E}_{x_t}[\log D(M_t(x_t))]</annotation></semantics></math>
+(Eq. 7), is the non-saturating loss
+applied to an untied target encoder, adopted because under the minimax
+form the discriminator converges quickly early in training and the
+gradient vanishes (Sections 3.2 and 4) <span class="citation"
+data-cites="tzeng_adversarial_2017">(Tzeng et al. 2017)</span>; the domain-adaptation section
+compares the two designs. What transferred only in form is the
+<em>saddle point</em>: adversarial robustness <span class="citation"
+data-cites="madry_towards_2018">(Madry et al. 2018)</span> writes
+training as
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mrow><mi mathvariant="normal">min</mi><mo>&#8289;</mo></mrow><mi>θ</mi></msub><mi mathvariant="double-struck">𝔼</mi><msub><mrow><mi mathvariant="normal">max</mi><mo>&#8289;</mo></mrow><mrow><mo stretchy="false" form="postfix">∥</mo><mi>δ</mi><mo stretchy="false" form="postfix">∥</mo><mo>≤</mo><mi>ϵ</mi></mrow></msub><mi>ℓ</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>+</mo><mi>δ</mi><mo>,</mo><mi>y</mi><mo>;</mo><mi>θ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\min_\theta \mathbb{E}\max_{\|\delta\| \leq \epsilon} \ell(x + \delta, y; \theta)</annotation></semantics></math>,
 which is a minimax problem, but its inner maximiser is a
 projected-gradient attack on the input rather than a second network with
@@ -390,6 +404,13 @@ Stefano Ermon, and Ben Poole. 2021. <span>"Score-<span>Based</span>
 <span>Equations</span>."</span> <em>International Conference on Learning
 Representations</em>, February. <a
 href="https://doi.org/10.48550/arXiv.2011.13456">https://doi.org/10.48550/arXiv.2011.13456</a>.
+</div>
+<div id="ref-tzeng_adversarial_2017" class="csl-entry" role="listitem">
+Tzeng, Eric, Judy Hoffman, Kate Saenko, and Trevor Darrell. 2017.
+<span>"Adversarial Discriminative Domain Adaptation."</span>
+<em>Proceedings of the IEEE Conference on Computer Vision and Pattern
+Recognition (CVPR)</em>, 7167-76. <a
+href="https://arxiv.org/abs/1702.05464">https://arxiv.org/abs/1702.05464</a>.
 </div>
 <div id="ref-vahdat_nvae_2021" class="csl-entry" role="listitem">
 Vahdat, Arash, and Jan Kautz. 2020. <span>"<span>NVAE</span>:

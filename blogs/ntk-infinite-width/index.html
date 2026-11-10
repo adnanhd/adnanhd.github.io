@@ -95,8 +95,8 @@ data-cites="geiger_disentangling_2020">(Geiger et al. 2020)</span> and
 data-cites="woodworth_kernel_rich_2020">(Woodworth et al. 2020)</span>
 provide empirical and mathematical evidence that real networks are not
 purely in the NTK regime.</p>
-<h2 id="part-iiis-place-in-the-statistical-dl-story">Part III's place in
-the statistical-DL story</h2>
+<h3 id="part-iiis-place-in-the-statistical-dl-story">Part III's place in
+the statistical-DL story</h3>
 <p>Part III sits in a specific position relative to the other parts of
 the book. Part I established classical capacity-based generalization
 theory and its failure on over-parameterized networks. Part II
@@ -128,8 +128,8 @@ establishing the kernel-regression baseline (Part III), (iii)
 characterizing the gap between this baseline and practice (Parts III,
 IV, V). No single part delivers a complete theory; together they outline
 the shape one would take.</p>
-<h2 id="intellectual-lineages-beyond-part-iii">Intellectual lineages
-beyond Part III</h2>
+<h3 id="intellectual-lineages-beyond-part-iii">Intellectual lineages
+beyond Part III</h3>
 <p><u>A useful orienting frame is to place Part III's papers in the
 broader intellectual genealogy of the theory of neural networks.</u></p>
 <p>Kernel methods (Aronszajn 1950; <span class="citation"
@@ -178,8 +178,8 @@ linear networks) without necessarily taking width to infinity. The NTK
 provides the <em>infinite-width limit point</em> of this line; the
 finite-width analyses give convergence rates for specific architectures
 that the NTK subsumes asymptotically.</p>
-<h2 id="cross-references-into-other-parts">Cross-references into other
-parts</h2>
+<h3 id="cross-references-into-other-parts">Cross-references into other
+parts</h3>
 <ul>
 <li>Part I (classical
 foundations): VC/Rademacher bounds are replaced by RKHS
@@ -208,26 +208,16 @@ in Prob DL): NNGP is the infinite-width endpoint of the DGP
 hierarchy; variational DGP approximations recover finite-width
 corrections in a different expansion.</li>
 </ul>
-<h2 id="cross-paper-sota-positioning">Cross-paper SoTA positioning</h2>
+<h3 id="cross-paper-sota-positioning">Cross-paper SoTA positioning</h3>
 <p>How do the papers of Part III position against each other on
-published benchmarks? A few observations.</p>
-<p>The two leaderboard tables below (<a
-href="tbl:ntk-sota-comparison">tbl:ntk-sota-comparison</a> and <a
-href="tbl:ntk-sgd-gap">tbl:ntk-sgd-gap</a>) compare accuracies, which
-only the papers that report accuracies can enter. Table <a
-href="tbl:ntk-part3-claims">tbl:ntk-part3-claims</a> covers the rest of
-the part on its own terms, one row per paper, so that the theory papers
-are held to a stated claim and a stated number rather than surveyed in
-prose.</p>
+published benchmarks (Table <a
+href="tbl:ntk-part3-claims">tbl:ntk-part3-claims</a>)? A few
+observations.</p>
 <div class="blog-table"><table id="tbl:ntk-part3-claims">
 <caption>Every paper of Part III with the claim it is cited for here,
-the setting that claim is made in, and its headline quantity. The cite
-key in the first column is the source of that row's number as well as of
-the claim; each figure is quoted in the body of this chapter at the
-point where the paper is discussed. Rows whose headline column reads "no
-benchmark claim" are theory papers that report no accuracy number, which
-is itself the reason they cannot appear in the two accuracy
-leaderboards.</caption>
+the setting of that claim and its headline quantity, both taken from the
+paper in the first column. Theory papers that report no accuracy read
+"no benchmark claim".</caption>
 <thead>
 <tr>
 <th>Paper</th>
@@ -446,8 +436,8 @@ wide networks) through critique (empirical gap is real) to synthesis
 (finite-width corrections and feature-learning parameterizations
 together give a richer picture).</u> Each paper in Part III plays a
 specific role in this arc, and none is self-sufficient.</p>
-<h2 id="connecting-to-scaling-laws-part-v-preview">Connecting to scaling
-laws (Part V preview)</h2>
+<h3 id="connecting-to-scaling-laws-part-v-preview">Connecting to scaling
+laws (Part V preview)</h3>
 <p>Part V treats neural scaling laws as a distinct topic. A brief
 preview of the NTK connection is useful here. The observation that test
 error scales as a power law in compute, data, and parameters <span
@@ -480,24 +470,16 @@ with regime transitions; it has no mechanism for the <em>emergent
 abilities</em> reported in large language models. So the NTK gives a
 mathematical template for scaling-law derivation but does not account
 for the full empirical picture.</p>
-<h2 id="sota-table-across-ntk-vs-modern-architectures">SoTA table across
-NTK vs modern architectures</h2>
+<h3 id="sota-table-across-ntk-vs-modern-architectures">SoTA table across
+NTK vs modern architectures</h3>
 <div class="blog-table"><table id="tbl:ntk-sota-comparison">
-<caption>Leaderboard-style comparison: NTK-regression and modern
-architectures on CIFAR-10 and MNIST. Numbers compiled from <span
+<caption>Test accuracy (%) of infinite-width kernel regression without
+training or augmentation, NNGP <span class="citation"
+data-cites="lee_nngp_2018">(Lee et al. 2018)</span> and CNTK <span
 class="citation" data-cites="arora_exact_2019">(Arora et al.
-2019)</span> (CNTK entries), <span class="citation"
-data-cites="lee_nngp_2018">(Lee et al. 2018)</span> (NNGP entries), and
-standard benchmark repositories. The NTK/NNGP entries represent
-<em>infinite-width</em> kernel regression with no training and no data
-augmentation. The WideResNet entry uses Cutout augmentation; the ViT
-entry uses ImageNet-21k pretraining. The point of the table is the
-magnitude of the gap: modern practice exceeds the best kernel by 19 to
-22 points on CIFAR-10. Note that the finite networks of matching
-architecture are already 6 to 8 points above the kernel ceiling before
-any modern recipe is applied, so the 19-to-22-point figure is the sum of
-a feature-learning gap and an architecture-plus-recipe gap and not a
-single effect.</caption>
+2019)</span>, and of trained networks; the WideResNet uses Cutout, the
+ViT ImageNet-21k pretraining. Values compiled across papers and
+benchmark repositories, not one protocol.</caption>
 <thead>
 <tr>
 <th>Method</th>
@@ -528,7 +510,7 @@ data-cites="arora_exact_2019">(Arora et al. 2019)</span></td>
 data-cites="arora_exact_2019">(Arora et al. 2019)</span></td>
 <td>75.93</td>
 <td>-</td>
-<td>global-avg pool; infinite-width</td>
+<td>global average pooling; infinite-width</td>
 </tr>
 <tr>
 <td>CNTK-GAP (depth 11, best) <span class="citation"
@@ -556,7 +538,7 @@ data-cites="arora_exact_2019">(Arora et al. 2019)</span></td>
 al. 2016)</span></td>
 <td>93.6</td>
 <td>&gt; 99.7</td>
-<td>skip connections + BN; He et al. Table 6</td>
+<td>skip connections + BN; Table 6</td>
 </tr>
 <tr>
 <td>ResNet-34</td>
@@ -578,32 +560,30 @@ al. 2016)</span></td>
 </tr>
 </tbody>
 </table></div>
-<p><u>The generalization of this table is: infinite-width kernel methods
-are competitive with non-pretrained, non-augmented, unregularized finite
-networks of matching architecture, but fall far short of modern training
-recipes that exploit feature learning, data augmentation, and transfer
-learning.</u> The NTK theory explains one regime (wide, lazily trained,
-from scratch) and does not explain the regime where modern accuracy
-lives.</p>
-<h2 id="cross-architecture-comparison-of-the-gap">Cross-architecture
-comparison of the gap</h2>
+<p><u>Infinite-width kernel methods are competitive with non-pretrained,
+non-augmented, unregularized finite networks of matching architecture,
+but fall 19 to 22 points short on CIFAR-10 of modern training
+configurations that exploit feature learning, data augmentation, and
+transfer learning.</u> The NTK theory explains one regime (wide, lazily
+trained, from scratch) and does not explain the regime where modern
+accuracy lives (Table <a
+href="tbl:ntk-sota-comparison">tbl:ntk-sota-comparison</a>).</p>
+<h3 id="cross-architecture-comparison-of-the-gap">Cross-architecture
+comparison of the gap</h3>
 <div class="blog-table"><table id="tbl:ntk-sgd-gap">
-<caption>Cross-architecture comparison of NTK-regression vs finite-width
-SGD-trained accuracy gap on CIFAR-10. Rows are architecture families.
-The "NTK accuracy" column is the best reported infinite-width
-kernel-regression result; the "SGD accuracy" column is the best reported
-finite-width trained result on the same architecture and training-data
-split (no augmentation, no transfer). Numbers are approximate and drawn
-from <span class="citation"
+<caption>CIFAR-10 test accuracy (%) of the best infinite-width kernel
+regression and of the best SGD-trained network of the same architecture,
+without augmentation or transfer, and the gap in points. Approximate
+values compiled across <span class="citation"
 data-cites="arora_exact_2019 lee_nngp_2018 lee_finite_nngp_infinite_nngp_2020">(Arora
-et al. 2019; Lee et al. 2018, 2020)</span> and successor benchmarking
-efforts.</caption>
+et al. 2019; Lee et al. 2018, 2020)</span> and later benchmarks, not one
+protocol.</caption>
 <thead>
 <tr>
 <th>Architecture</th>
-<th>NTK accuracy</th>
-<th>SGD accuracy</th>
-<th>Gap</th>
+<th>NTK (%)</th>
+<th>SGD (%)</th>
+<th>Gap (points)</th>
 </tr>
 </thead>
 <tbody>
@@ -657,8 +637,9 @@ efforts.</caption>
 </tr>
 </tbody>
 </table></div>
-<p>The pattern is clear once depth is held in view: the gap grows both
-with architectural sophistication and, within a fixed architecture, with
+<p>The pattern is clear once depth is held in view (Table <a
+href="tbl:ntk-sgd-gap">tbl:ntk-sgd-gap</a>): the gap grows both with
+architectural sophistication and, within a fixed architecture, with
 depth. Fully-connected networks have essentially no gap at any depth.
 Vanilla CNNs go from 3.6 points at depth 11 to 11.5 at depth 21, because
 the kernel is falling while the network is still rising. Pooled CNNs sit
@@ -666,11 +647,11 @@ at 6 to 7 points across the whole depth range, and modern architectures
 are further out still. <u>Reporting "the CNTK gap" as a single number is
 therefore a category error; it is a function of depth, and its
 depth-dependence is the informative part.</u></p>
-<h2 id="the-persistence-of-the-gap-across-training-recipes">The
-persistence of the gap across training recipes</h2>
+<h3 id="the-persistence-of-the-gap-across-training-configurations">The
+persistence of the gap across training configurations</h3>
 <p>A natural question is whether the NTK-to-SGD gap can be closed by
-adjusting training recipe. Several attempts have been made, with mixed
-results:</p>
+adjusting training configuration. Several attempts have been made, with
+mixed results:</p>
 <p>Training for longer: extending SGD training does not close the gap;
 SGD converges to a feature-learning predictor, and continued training
 does not revert to kernel regression.</p>
@@ -692,11 +673,11 @@ worse final performance.</p>
 <p><u>The persistence of the gap suggests it is structural: SGD-trained
 finite networks operate in a feature-learning regime that is inherently
 better than kernel regression for sufficiently complex tasks, and no
-adjustment of training recipe can move them into the pure kernel regime
-without sacrificing the performance benefit.</u> The gap is a feature of
-practical training, not a bug in the NTK approximation.</p>
-<h2 id="gap-decomposition-by-architecture-family">Gap decomposition by
-architecture family</h2>
+adjustment of training configuration can move them into the pure kernel
+regime without sacrificing the performance benefit.</u> The gap is a
+feature of practical training, not a bug in the NTK approximation.</p>
+<h3 id="gap-decomposition-by-architecture-family">Gap decomposition by
+architecture family</h3>
 <p>Different architecture families exhibit different NTK-to-SGD gaps. A
 rough taxonomy:</p>
 <p>Fully-connected networks. The NTK gap is small for FC networks at
@@ -707,15 +688,15 @@ noise. The NTK theory is a quantitative theory of wide fully-connected
 networks.</p>
 <p>Vanilla CNNs (no skip connections, no batch norm). The NTK gap is
 intermediate. On CIFAR-10, the gap between CNTK-GAP and the matching
-CNN-GAP is 5-7% in the depth range 11-21 (Table above). This is where
-the feature-learning story becomes essential.</p>
+CNN-GAP is 5-7% in the depth range 11-21. This is where the
+feature-learning story becomes essential.</p>
 <p>Modern CNNs (ResNets, WideResNets). The NTK gap is large. Analogs of
 CNTK for ResNets have been proposed <span class="citation"
 data-cites="huang_dynamical_2020">(Huang and Yau 2020)</span> but do not
-capture the training-recipe benefits (augmentation, label smoothing,
-mixup, schedules) that contribute substantially to modern accuracy. A
-precise NTK-vs-SGD comparison on ResNets is not easy to set up fairly,
-but order-of-magnitude estimates place the gap at 10-15% on
+capture the training-configuration benefits (augmentation, label
+smoothing, mixup, schedules) that contribute substantially to modern
+accuracy. A precise NTK-vs-SGD comparison on ResNets is not easy to set
+up fairly, but order-of-magnitude estimates place the gap at 10-15% on
 CIFAR-10.</p>
 <p>Transformers. The NTK gap is unclear. Attention-NTKs <span
 class="citation" data-cites="hron_attention_2020">(Hron et al.
@@ -776,8 +757,8 @@ architectures exhibit larger gaps.</u> This is consistent with the
 diagnosis that the NTK-vs-SGD gap tracks the degree to which training
 benefits from feature learning, which in turn tracks architectural
 sophistication.</p>
-<h2 id="ntks-contribution-to-the-theory-of-generalization">NTK's
-contribution to the theory of generalization</h2>
+<h3 id="ntks-contribution-to-the-theory-of-generalization">NTK's
+contribution to the theory of generalization</h3>
 <p>The NTK's principal contribution to generalization theory is to
 provide a computable baseline against which to measure. Before the NTK,
 generalization analyses of deep networks were either very loose (VC
@@ -806,20 +787,20 @@ generalize poorly. This makes spectral decay a quantitative predictor of
 generalization.</li>
 </ol>
 <p>For networks demonstrably in the NTK regime (very wide,
-NTK-parameterized, trained without aggressive recipes), these bounds are
-<em>tight</em>: predicted generalization matches observed generalization
-within small factors. For networks outside the NTK regime, the bounds
-are <em>conservative</em>: they upper-bound the kernel-regression
-generalization, which is worse than the feature-learning generalization
-of the actually-trained network.</p>
+NTK-parameterized, trained without aggressive augmentation), these
+bounds are <em>tight</em>: predicted generalization matches observed
+generalization within small factors. For networks outside the NTK
+regime, the bounds are <em>conservative</em>: they upper-bound the
+kernel-regression generalization, which is worse than the
+feature-learning generalization of the actually-trained network.</p>
 <p><u>This is the pattern that justifies the framing "NTK as baseline":
 wherever the NTK bound is tight, deep learning is kernel learning;
 wherever the NTK bound is loose, the slack is attributable to feature
 learning.</u> The NTK is therefore a tool for <em>diagnosing</em> when
 feature learning matters, by comparison of NTK-predicted-test-error to
 actual test error.</p>
-<h2 id="critiques-and-counter-evidence">Critiques and
-counter-evidence</h2>
+<h3 id="critiques-and-counter-evidence">Critiques and
+counter-evidence</h3>
 <p><u>Several authors have pushed back on the
 NTK-as-theory-of-deep-learning framing with evidence that finite
 networks behave in ways the NTK cannot predict.</u></p>
@@ -829,9 +810,9 @@ augmentation is exactly a kernel symmetrization, while crop augmentation
 is not representable as a single Gram matrix, so the benefit of the
 latter is invisible to NTK regression. Yet augmentation adds 2-5% test
 accuracy on CIFAR-10 in practical training. The kernel framework
-therefore absorbs the group-averaged part of a training recipe and not
-the distribution-dependent part; some benefit of training comes from
-outside kernel regression.</p>
+therefore absorbs the group-averaged part of a training configuration
+and not the distribution-dependent part; some benefit of training comes
+from outside kernel regression.</p>
 <p>Catastrophic forgetting and transfer learning. A trained network can
 be fine-tuned on a new task with transfer of learned features. The NTK
 has no mechanism for this: the kernel is fixed at initialization, so
@@ -869,8 +850,8 @@ kernel regression is happening in practical deep-learning training. The
 NTK's residual value is as a null model: behaviors the NTK predicts are
 explicable without appeal to feature learning; behaviors it does not are
 evidence for feature-learning mechanisms.</p>
-<h2 id="the-role-of-scale-in-deep-learning-theory">The role of scale in
-deep-learning theory</h2>
+<h3 id="the-role-of-scale-in-deep-learning-theory">The role of scale in
+deep-learning theory</h3>
 <p>A recurring theme in Part III is that scale is not merely a practical
 scaling axis but a conceptual one: different scales correspond to
 different theoretical regimes. The NTK emerges as <em>width goes to
@@ -886,7 +867,7 @@ simple architectures; the
 regime is tractable via Tensor Programs but computationally heavy. None
 of them overlap with the <em>practical</em> regime of deep-learning
 training, which involves finite but large networks with complex
-architectures and training recipes.</p>
+architectures and training configurations.</p>
 <p>A concrete manifestation: the regime analysis of the lazy-versus-rich chapter says
 that practical networks with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>

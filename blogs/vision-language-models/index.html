@@ -83,7 +83,7 @@ CLIP-style contrastive coupling by a decade and frames every subsequent
 VLM benchmark. Subsequent refinements include OpenCLIP (open
 reimplementation with documented data), FILIP (fine-grained token-level
 alignment), and MetaCLIP (careful data curation matching CLIP's original
-recipe).</p>
+data pipeline).</p>
 <p>Self-supervised visual learning reached new heights with DINOv2 <span
 class="citation" data-cites="oquab_dinov2_2024">(Oquab et al.
 2024)</span>, which produces all-purpose visual features through careful
@@ -148,9 +148,10 @@ pre-training, start with CLIP and follow
 forward through SigLIP; for generative VLMs,
 follow BLIP -&gt; BLIP-2 -&gt; LLaVA
 -&gt; LLaVA-NeXT; for frontier systems,
-read Gemini and GPT-4V system cards alongside technical
-reports.</p>
-<h2 id="sota-leaderboard">SoTA Leaderboard</h2>
+read Gemini and GPT-4V system cards alongside technical reports;
+for vision-language-action models, follow Robotics and Embodied AI -&gt; Action Representations
+-&gt; the Action Expert -&gt; Action Chunking.</p>
+<h3 id="sota-leaderboard">SoTA Leaderboard</h3>
 <div class="blog-table"><table id="tbl:vlm-sota">
 <caption>Selected vision-language milestones from CLIP (2021) to
 frontier multimodal assistants (2024). "Type" labels three families:
@@ -393,7 +394,7 @@ data-cites="bai_qwen-vl_2023">(Bai et al. 2023)</span></td>
 <td>I</td>
 <td>ViT-bigG</td>
 <td>Qwen-7B</td>
-<td>1.4B+7M+350K</td>
+<td>1.4B+76.8M+350K</td>
 <td> - </td>
 <td>78.2</td>
 <td> - </td>
@@ -462,13 +463,13 @@ set the 76.2% ImageNet zero-shot bar that anchored the field for two
 years. ALIGN matched it the same year using 1.8B noisy web pairs,
 validating that curation could be replaced by scale. FLIP introduced
 patch-level masking to halve training compute at modest accuracy cost.
-OpenCLIP reproduced the recipe openly on LAION-2B, climbing to 80.1%
-with the ViT-G/14 model and giving the academic community its first
-matched-spec CLIP variant. EVA-CLIP layered MIM-pretrained vision
+OpenCLIP reproduced the training setup openly on LAION-2B, climbing to
+80.1% with the ViT-G/14 model and giving the academic community its
+first matched-spec CLIP variant. EVA-CLIP layered MIM-pretrained vision
 backbones onto LAION to push to 82.0%, while SigLIP swapped softmax
 InfoNCE for sigmoid loss and reached 83.0% on WebLI-10B; the SigLIP
-recipe has since become the default vision tower for downstream VLMs
-(PaliGemma, LLaVA-NeXT-Sigmoid). Chinese-CLIP (row 7) extended the
+training setup has since become the default vision tower for downstream
+VLMs (PaliGemma, LLaVA-NeXT-Sigmoid). Chinese-CLIP (row 7) extended the
 pattern to non-English, with bilingual retrieval scores no
 English-trained CLIP can match.</p>
 <p>The generative and bootstrapping era (rows 8-14) introduced unified
@@ -487,9 +488,9 @@ and Perceiver resamplers to enable few-shot multimodal in-context
 learning, while Florence-2 went the opposite direction (dense prediction
 unification with DaViT and a BART-style decoder).</p>
 <p>The instruction era (rows 15-22) replaced fine-tuning with visual
-instruction tuning. MiniGPT-4 showed the basic recipe, LLaVA-1.5 cleaned
-it up with a 2-layer MLP projector and 336px CLIP, reaching 80.0 VQAv2
-on a 1.2M-sample budget. InstructBLIP turned 26 datasets into
+instruction tuning. MiniGPT-4 showed the basic approach, LLaVA-1.5
+cleaned it up with a 2-layer MLP projector and 336px CLIP, reaching 80.0
+VQAv2 on a 1.2M-sample budget. InstructBLIP turned 26 datasets into
 instruction format atop the BLIP-2 Q-Former. Qwen-VL added bounding-box
 supervision and bilingual training. CogVLM introduced "visual expert"
 parallel layers (separate QKV/FFN per Transformer block) for deeper

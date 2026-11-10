@@ -73,7 +73,7 @@ quantization into a taxonomic tree (precision type, granularity,
 symmetry, scheme). <span class="citation"
 data-cites="nagel_white_paper_2021">(Nagel et al. 2021)</span>'s Section
 4 in particular gives the "calibrate-CLE-biasCorrect-AdaRound" PTQ
-recipe that achieves under 1% INT8 accuracy loss on most CNN
+procedure that achieves under 1% INT8 accuracy loss on most CNN
 architectures, and the four-stage ablation on MobileNetV2 INT8 shows
 that skipping any stage costs 0.2-0.8 points top-1; an instructive
 sensitivity to the <strong>calibration data</strong><a href="#fn3"
@@ -495,7 +495,7 @@ class="citation" data-cites="zhang_ternarybert_2020">(Zhang et al.
 2020)</span></td>
 <td>2020</td>
 <td>BERT-base</td>
-<td>TWN+LAT + KD(attn,hidden,logit)</td>
+<td>TWN+LAT + KD(attn, hidden, logit)</td>
 <td>GLUE</td>
 <td>2/8</td>
 <td> - </td>
@@ -792,7 +792,7 @@ at 3-4 bits, but at the cost of a full retraining budget; for LLMs this
 cost is prohibitive and the LLM-PTQ family wins by construction.
 <u>Second, KD (TernaryBERT) is the load-bearing element for sub-4-bit
 weight-only on small networks: 5+ GLUE points come from the teacher
-signal, not from the quantization recipe itself.</u> Third, the
+signal, not from the quantization procedure itself.</u> Third, the
 activation precision <em>lags</em> the weight precision by one or two
 regimes at every point in the timeline: weights at 1-2 bits with
 activations at 32 in 2016, weights at 4 with activations at 8 in 2020,

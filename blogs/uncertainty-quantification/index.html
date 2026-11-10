@@ -49,7 +49,7 @@
             <article class="blog-body">
 <p><u>The UQ literature for deep nets splits along a methodological axis
 (how uncertainty is produced) and an operational axis (what guarantee is
-offered).</u></p>
+offered)</u> (Figure <a href="fig:uq-taxonomy">fig:uq-taxonomy</a>).</p>
 <p>Bayesian methods (BNNs, deep ensembles, MC dropout, Laplace) produce
 a posterior predictive whose moments decompose into epistemic and
 aleatoric components <span class="citation"
@@ -67,7 +67,7 @@ data-cites="guo_calibration_2017">(Guo et al. 2017)</span>) are nearly
 free, a single scalar applied to the softmax logits. They correct the
 marginal confidence histogram and leave the ranking untouched. How much
 correction a modern network needs turns out to depend on its
-architecture family and pretraining scale <span class="citation"
+architecture family <span class="citation"
 data-cites="minderer_revisiting_2021">(Minderer et al. 2021)</span>, and
 every fitted calibrator degrades under distribution shift <span
 class="citation" data-cites="ovadia_can_you_trust_2019">(Ovadia et al.
@@ -101,35 +101,21 @@ et al. 2015; Osband et al. 2016; Depeweg et al. 2018)</span> applies the
 decomposition to a <em>dynamics</em> model and uses the epistemic
 component as an intrinsic reward driving Thompson sampling and
 information-directed exploration.</p>
-<p>Table <a href="tab:uq-sota">tab:uq-sota</a> summarizes the main
-method families and the metrics each one reports.</p>
 <div class="blog-table"><table id="tab:uq-sota">
-<caption>Reported results for the main uncertainty-quantification
-methods on deep nets. ECE is expected calibration error (lower is
-better, 15-bin equal-width on CIFAR / ImageNet). NLL is negative
-log-likelihood on the held-out test set. AUROC is OOD-detection area
-under the ROC curve (CIFAR-10 in-distribution vs. SVHN
-out-of-distribution, higher is better). Coverage reports the empirical
-coverage of a prediction set at target
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>α</mi><mo>=</mo><mn>0.9</mn></mrow><annotation encoding="application/x-tex">1 - \alpha = 0.9</annotation></semantics></math>.
-Read this as a composite drawn from separate papers, not a head-to-head
-study: the per-row citation names the paper that introduced the method,
-and does not certify that the digits on that row are the ones it
-printed, since backbone (ResNet-110, ResNet-50, DenseNet-BC and
-WideResNet all appear), calibration split and binning scheme differ
-between sources. The Mahalanobis row is a DenseNet with input
-pre-processing and multi-layer aggregation, which is why it sits above
-the logit-space detectors. For a matched head-to-head comparison under a
-single protocol, see the shift benchmark of <span class="citation"
-data-cites="ovadia_can_you_trust_2019">(Ovadia et al. 2019)</span>.
-Blank cells mean the method does not report that metric.</caption>
+<caption>Reported results, mixed protocols: ECE (15 equal-width bins)
+and NLL of a CIFAR-100 ResNet-110 from <span class="citation"
+data-cites="guo_calibration_2017">(Guo et al. 2017)</span> Tables 1 and
+S3; AUROC on CIFAR-10 vs. SVHN for a WideResNet from <span
+class="citation" data-cites="liu_energy_2020">(Liu et al. 2020)</span>
+Table 4 unless the cell cites another paper; coverage at target 0.9 from
+each row's paper; n/r means not reported.</caption>
 <thead>
 <tr>
 <th>Method</th>
-<th>ECE (CIFAR-100)</th>
-<th>NLL (CIFAR-100)</th>
+<th>CIFAR-100 ECE</th>
+<th>CIFAR-100 NLL</th>
 <th>AUROC (C10 vs. SVHN)</th>
-<th>Coverage @ 0.9</th>
+<th>Coverage at 0.9</th>
 </tr>
 </thead>
 <tbody>
@@ -137,115 +123,102 @@ Blank cells mean the method does not report that metric.</caption>
 <td>Softmax baseline <span class="citation"
 data-cites="hendrycks_baseline_2017">(Hendrycks and Gimpel
 2017)</span></td>
-<td>16.5%</td>
-<td>1.15</td>
-<td>89.9</td>
-<td>-</td>
+<td>16.53%</td>
+<td>1.498</td>
+<td>91.89</td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>Temperature scaling <span class="citation"
 data-cites="guo_calibration_2017">(Guo et al. 2017)</span></td>
-<td>2.1%</td>
-<td>0.94</td>
-<td>90.1</td>
-<td>-</td>
+<td>1.26%</td>
+<td>1.044</td>
+<td>n/r</td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>Histogram binning <span class="citation"
 data-cites="guo_calibration_2017">(Guo et al. 2017)</span></td>
-<td>2.8%</td>
-<td>1.02</td>
-<td>-</td>
-<td>-</td>
+<td>2.66%</td>
+<td>1.438</td>
+<td>n/r</td>
+<td>n/r</td>
 </tr>
 <tr>
-<td>Platt / vector scaling <span class="citation"
+<td>Vector scaling (multiclass Platt) <span class="citation"
 data-cites="platt_probabilistic_1999">(Platt 1999)</span></td>
-<td>4.5%</td>
-<td>0.99</td>
-<td>-</td>
-<td>-</td>
-</tr>
-<tr>
-<td>Verified calibration (KLM) <span class="citation"
-data-cites="kumar_verified_2019">(Kumar et al. 2019)</span></td>
-<td>1.9%</td>
-<td>0.92</td>
-<td>-</td>
-<td>-</td>
+<td>1.32%</td>
+<td>1.049</td>
+<td>n/r</td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>Deep ensemble (5 models) <span class="citation"
 data-cites="lakshminarayanan_deep_ensembles_2017">(Lakshminarayanan et
 al. 2017)</span></td>
-<td>1.5%</td>
-<td>0.78</td>
-<td>93.7</td>
-<td>-</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>89.5 (VGG-16, mutual information) <span class="citation"
+data-cites="malinin_reverse_kl_2019">(Malinin and Gales
+2019)</span></td>
+<td>n/r</td>
 </tr>
 <tr>
-<td>ODIN (T=1000, eps=0.0014) <span class="citation"
-data-cites="liang_odin_2018">(Liang et al. 2018)</span></td>
-<td>-</td>
-<td>-</td>
-<td>96.7</td>
-<td>-</td>
+<td>ODIN <span class="citation" data-cites="liang_odin_2018">(Liang et
+al. 2018)</span></td>
+<td>n/r</td>
+<td>n/r</td>
+<td>91.96</td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>Energy score <span class="citation"
 data-cites="liu_energy_2020">(Liu et al. 2020)</span></td>
-<td>-</td>
-<td>-</td>
-<td>98.5</td>
-<td>-</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>90.96</td>
+<td>n/r</td>
 </tr>
 <tr>
-<td>Mahalanobis, DenseNet <span class="citation"
+<td>Mahalanobis, penultimate layer <span class="citation"
 data-cites="lee_mahalanobis_2018">(Lee et al. 2018)</span></td>
-<td>-</td>
-<td>-</td>
-<td>99.8</td>
-<td>-</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>97.62</td>
+<td>n/r</td>
 </tr>
 <tr>
-<td>Likelihood ratios (genomic) <span class="citation"
+<td>Likelihood ratio, PixelCNN++ <span class="citation"
 data-cites="ren_likelihood_2019">(Ren et al. 2019)</span></td>
-<td>-</td>
-<td>-</td>
-<td>89.0</td>
-<td>-</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>93.1 <span class="citation" data-cites="ren_likelihood_2019">(Ren et
+al. 2019)</span></td>
+<td>n/r</td>
 </tr>
 <tr>
-<td>Split conformal (APS) <span class="citation"
-data-cites="angelopoulos_gentle_2021">(Angelopoulos and Bates
-2021)</span></td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>0.901</td>
-</tr>
-<tr>
-<td>CQR (conformalized QR) <span class="citation"
+<td>CQR, neural net, eleven datasets <span class="citation"
 data-cites="romano_cqr_2019">(Romano et al. 2019)</span></td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>0.901</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>0.9005</td>
 </tr>
 <tr>
-<td>Weighted conformal (cov-sh) <span class="citation"
+<td>Weighted conformal, airfoil, oracle weights <span class="citation"
 data-cites="tibshirani_covariate_2019">(Tibshirani et al.
 2019)</span></td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>0.903</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>0.908</td>
 </tr>
 </tbody>
 </table></div>
-<p>Three methodological observations follow from the table. First,
-post-hoc calibration dominates accuracy-matched cost: one extra scalar
-parameter (the temperature
+<p>Three methodological observations follow from the reported results
+(Table <a href="tab:uq-sota">tab:uq-sota</a>). First, post-hoc
+calibration dominates accuracy-matched cost: one extra scalar parameter
+(the temperature
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>)
 reduces ECE by roughly an order of magnitude on CIFAR-100 at zero
 accuracy cost<a href="#fn2" class="footnote-ref" id="fnref2"
@@ -261,7 +234,7 @@ softmax confidence. Third, conformal prediction is orthogonal to both:
 it wraps any base model and converts its score into a set with exact
 marginal coverage, regardless of whether the score was calibrated or how
 the model was trained.</p>
-<h2 id="historical-notes">Historical Notes</h2>
+<h3 id="historical-notes">Historical Notes</h3>
 <p>The separation of reducible from irreducible uncertainty predates
 deep learning by centuries. Laplace's <em>Essai philosophique sur les
 probabilités</em> (1814) distinguishes between "ignorance of the causes"
@@ -356,6 +329,12 @@ Networks."</span> <em>International Conference on Learning
 Representations</em>. <a
 href="https://arxiv.org/abs/1610.02136">https://arxiv.org/abs/1610.02136</a>.
 </div>
+<div id="ref-hendrycks_outlier_exposure_2019" class="csl-entry"
+role="listitem">
+Hendrycks, Dan, Mantas Mazeika, and Thomas Dietterich. 2019. <span>"Deep
+Anomaly Detection with Outlier Exposure."</span> <em>ICLR</em>. <a
+href="https://arxiv.org/abs/1812.04606">https://arxiv.org/abs/1812.04606</a>.
+</div>
 <div id="ref-kendall_gal_uncertainties_2017" class="csl-entry"
 role="listitem">
 Kendall, Alex, and Yarin Gal. 2017. <span>"What Uncertainties Do We Need
@@ -395,6 +374,12 @@ Malinin, Andrey, and Mark Gales. 2018. <span>"Predictive Uncertainty
 Estimation via Prior Networks."</span> <em>Advances in Neural
 Information Processing Systems</em> 31. <a
 href="https://arxiv.org/abs/1802.10501">https://arxiv.org/abs/1802.10501</a>.
+</div>
+<div id="ref-malinin_reverse_kl_2019" class="csl-entry" role="listitem">
+Malinin, Andrey, and Mark Gales. 2019. <span>"Reverse
+<span>KL</span>-Divergence Training of Prior Networks: Improved
+Uncertainty and Adversarial Robustness."</span> <em>NeurIPS</em>. <a
+href="https://arxiv.org/abs/1905.13472">https://arxiv.org/abs/1905.13472</a>.
 </div>
 <div id="ref-minderer_revisiting_2021" class="csl-entry"
 role="listitem">
@@ -477,21 +462,25 @@ data-cites="tibshirani_covariate_2019">(Tibshirani et al. 2019)</span>
 restores coverage when the shift's likelihood ratio is known, but the
 ratio itself is rarely available in practice.<a href="#fnref1"
 class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn2"><p><em>ECE bin-choice sensitivity</em>: the standard 15-bin
-equal-width estimator can differ from a 15-bin equal-mass estimator by
-0.5-1.0 percentage points on CIFAR-100 ResNets <span class="citation"
-data-cites="kumar_verified_2019">(Kumar et al. 2019)</span>, so reported
-ECE numbers are only comparable across papers that fix the same binning
-scheme. Adaptive binning (one bin per quantile, plus debiased
-estimators) reduces variance but is not yet the field default.<a
-href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><em>ECE bin-choice sensitivity</em>: with 15 bins the
+calibration error of a recalibrated ImageNet VGG16 reads about 0.02,
+while finer binning shows it is at least twice as high <span
+class="citation" data-cites="kumar_verified_2019">(Kumar et al.
+2019)</span>, so reported ECE numbers are only comparable across papers
+that fix the same binning scheme. Adaptive binning (one bin per
+quantile, plus debiased estimators) reduces variance but is not yet the
+field default.<a href="#fnref2" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
 <li id="fn3"><p><em>Near-OOD vs far-OOD</em>: the CIFAR-10 vs SVHN
 benchmark is <em>far-OOD</em> (different image domain, different label
 space) and is empirically easy; near-OOD benchmarks like CIFAR-10 vs
-CIFAR-100 (same image domain, disjoint label space) are 10-20 AUROC
-points harder for every detector and are arguably more diagnostic of
-deployment-time behavior. Reporting only far-OOD numbers (the historical
-default) overstates progress.<a href="#fnref3" class="footnote-back"
+CIFAR-100 (same image domain, disjoint label space) are harder (for a
+CIFAR-10 WideResNet, MSP AUROC 87.9% against 91.8% for SVHN, and 93.3%
+against 98.4% after outlier exposure <span class="citation"
+data-cites="hendrycks_outlier_exposure_2019">(Hendrycks et al.
+2019)</span>) and are arguably more diagnostic of deployment-time
+behavior. Reporting only far-OOD numbers (the historical default)
+overstates progress.<a href="#fnref3" class="footnote-back"
 role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>

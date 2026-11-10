@@ -47,8 +47,8 @@
             <h1>Optimal Transport: From Exact Linear Programs to Sinkhorn and Neural Potentials</h1>
             <div class="blog-meta">Four generations of OT solvers</div>
             <article class="blog-body">
-<h2 id="the-feasibility-vs-fidelity-tension">The Feasibility-vs-Fidelity
-Tension</h2>
+<h3 id="the-feasibility-vs-fidelity-tension">The Feasibility-vs-Fidelity
+Tension</h3>
 <p><u>One tension drives the entire computational history of optimal
 transport: exact solutions are provably correct but computationally
 prohibitive, while tractable approximations each pay a distinct fidelity
@@ -199,7 +199,7 @@ class="citation" data-cites="memoli_gromovwasserstein_2011">(Mémoli
 <td>Sinkhorn-Cuturi <span class="citation"
 data-cites="cuturi_sinkhorn_2013">(Cuturi 2013)</span></td>
 <td>2013</td>
-<td>Sinkhorn(eps=0.01)</td>
+<td>Sinkhorn (eps=0.01)</td>
 <td>regularized-cost</td>
 <td>discrete</td>
 <td>5-15%</td>
@@ -312,7 +312,7 @@ data-cites="dvurechensky_computational_2018">(Dvurechensky et al.
 data-cites="kolouri_sliced-wasserstein_2018">(Kolouri et al.
 2018)</span></td>
 <td>2018</td>
-<td>proj-1D(L=128)</td>
+<td>proj-1D (L=128)</td>
 <td>mean-1D-W<sub>2</sub></td>
 <td>continuous</td>
 <td>12%</td>
@@ -489,9 +489,9 @@ column.</p>
 </tr>
 </tbody>
 </table></div>
-<h2
+<h3
 id="generation-1-1955-2000-exact-lp-and-analytic-foundations">Generation
-1 (1955-2000): Exact LP and Analytic Foundations</h2>
+1 (1955-2000): Exact LP and Analytic Foundations</h3>
 <p><strong>Classical exact-LP</strong> methods (<a
 href="wiki:Hungarian_algorithm">Hungarian</a>, <a
 href="wiki:Network_simplex_algorithm">network simplex</a>) solve the
@@ -520,9 +520,9 @@ regime that ML faces.</p>
 feasibility cost is a cubic barrier. Generation 2 resolves this by
 accepting a tunable bias in exchange for near-linear parallel
 complexity.</p>
-<h2
+<h3
 id="generation-2-2013-2018-entropic-regularization-and-the-sinkhorn-revolution">Generation
-2 (2013-2018): Entropic Regularization and the Sinkhorn Revolution</h2>
+2 (2013-2018): Entropic Regularization and the Sinkhorn Revolution</h3>
 <p><strong>Entropic-OT</strong> via the <strong>Sinkhorn</strong>
 iteration <span class="citation"
 data-cites="cuturi_sinkhorn_2013">(Cuturi 2013)</span> is the
@@ -562,9 +562,9 @@ in the cost matrix, which dominates memory and compute when
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
 is large and the ground cost is expensive to evaluate. Generation 3
 sidesteps the cost matrix entirely by projecting to 1D.</p>
-<h2
+<h3
 id="generation-3-2018-2019-sliced-ot-and-dimension-free-projections">Generation
-3 (2018-2019): Sliced OT and Dimension-Free Projections</h2>
+3 (2018-2019): Sliced OT and Dimension-Free Projections</h3>
 <p><strong>Sliced</strong> and projection-based methods <span
 class="citation"
 data-cites="kolouri_sliced-wasserstein_2018 le_tree-wasserstein_2019">(Kolouri
@@ -623,10 +623,10 @@ Sinkhorn cannot form a cost matrix at all.</figcaption>
 <p>Both sliced and entropic methods still assume the source and target
 live in the same metric space and carry equal total mass. Many practical
 problems violate both assumptions. Generation 4 relaxes them.</p>
-<h2
+<h3
 id="generation-4-2017-2022-unbalanced-ot-gromov-wasserstein-and-neural-potentials">Generation
 4 (2017-2022): Unbalanced OT, Gromov-Wasserstein, and Neural
-Potentials</h2>
+Potentials</h3>
 <p><strong>Unbalanced</strong> OT <span class="citation"
 data-cites="chizat_unbalanced_2019">(Chizat et al. 2018)</span> relaxes
 the equal-mass marginal constraint of classical OT; required whenever
@@ -688,9 +688,9 @@ data-cites="bunne_proximal_2022">(Bunne et al. 2022)</span> uses ICNNs
 to discretize Wasserstein gradient flows via the <strong>JKO
 scheme</strong>, learning energy landscapes from population
 snapshots.</p>
-<h2
+<h3
 id="generation-5-2022-2024-flow-matching-schrödinger-bridges-and-unification">Generation
-5 (2022-2024): Flow-Matching, Schrödinger Bridges, and Unification</h2>
+5 (2022-2024): Flow-Matching, Schrödinger Bridges, and Unification</h3>
 <p><strong>OT flow-matching</strong> and
 <strong>Schrödinger-bridge</strong> methods are the 2022-2024
 generative-modelling synthesis. <strong>Flow-matching</strong> trains a

@@ -112,8 +112,29 @@ feature map that reduces kernel ridge regression to a
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>D</mi><mo>×</mo><mi>D</mi></mrow><annotation encoding="application/x-tex">D \times D</annotation></semantics></math>
 primal system at
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">𝒪</mi><mo stretchy="false" form="prefix">(</mo><mi>N</mi><msup><mi>D</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(N D^2)</annotation></semantics></math>
-cost; the construction is still the standard scaffolding behind modern
+cost, with a kernel error falling as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>D</mi><mrow><mi>−</mi><mn>1</mn><mi>/</mi><mn>2</mn></mrow></msup><annotation encoding="application/x-tex">D^{-1/2}</annotation></semantics></math>,
+so that halving it costs four times the features (Figure <a
+href="fig:rff-kernel-approximation">fig:rff-kernel-approximation</a>);
+the construction is still the standard scaffolding behind modern
 primal-form GP approximations.</p>
+<figure id="fig:rff-kernel-approximation">
+<img src="figures/rff-kernel-approximation.svg" />
+<figcaption>Random Fourier features for the squared-exponential kernel
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℓ</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\ell=1</annotation></semantics></math>)
+on 41 inputs. (a) Exact kernel matrix; (b, c)
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi><msup><mi>Z</mi><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">ZZ^\top</annotation></semantics></math>
+with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>D</mi><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">D=4</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>D</mi><mo>=</mo><mn>64</mn></mrow><annotation encoding="application/x-tex">D=64</annotation></semantics></math>
+features; (d) root-mean-square and maximum entry error over 40 draws per
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>,
+dashed
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>D</mi><mrow><mi>−</mi><mn>1</mn><mi>/</mi><mn>2</mn></mrow></msup><annotation encoding="application/x-tex">D^{-1/2}</annotation></semantics></math>
+reference <span class="citation" data-cites="rahimi_random_2007">(Rahimi
+and Recht 2007)</span>.</figcaption>
+</figure>
 <p>Expressive kernel design has co-evolved with scalable inference.
 <strong>Deep GPs</strong> <span class="citation"
 data-cites="damianou_deep_2013">(Damianou and Lawrence 2013)</span>
@@ -124,8 +145,7 @@ practical depth ceiling is shallow because intermediate layers tend to
 collapse to near-deterministic mappings without identity initialization
 or skip-connections<a href="#fn3" class="footnote-ref" id="fnref3"
 role="doc-noteref"><sup>3</sup></a>, and beyond two or three layers the
-marginal-likelihood improvements saturate with mild overfit<a
-href="#fn4" class="footnote-ref" id="fnref4"
+held-out gains shrink<a href="#fn4" class="footnote-ref" id="fnref4"
 role="doc-noteref"><sup>4</sup></a>. The original two-layer inference
 used variational expectation-maximization; <span class="citation"
 data-cites="salimbeni_doubly_2017">(Salimbeni and Deisenroth
@@ -207,13 +227,13 @@ trained on a task distribution, and if the test-time task lies outside
 that distribution (different noise scale, different input domain) the
 amortised approximation degrades. Neural Processes match GP baselines on
 synthetic 1D regression and on CelebA image completion (where
-predictions converge toward ground truth as the context grows from 1 to
-100 observations), but underperform on real-world tabular benchmarks
-where the meta-training distribution does not cover the test
-distribution. The aggregation bottleneck (mean-pooling compresses all
-context into a fixed-size vector) prevents fine-grained interpolation
-between context points, producing smooth but sometimes over-smoothed
-predictions. Attentive variants of the family replace mean-pooling with
+predictions converge toward ground truth as the context grows from 15 to
+1,024 pixels), but underperform on real-world tabular benchmarks where
+the meta-training distribution does not cover the test distribution. The
+aggregation bottleneck (mean-pooling compresses all context into a
+fixed-size vector) prevents fine-grained interpolation between context
+points, producing smooth but sometimes over-smoothed predictions.
+Attentive variants of the family replace mean-pooling with
 cross-attention from target inputs to context pairs, recovering most of
 the GP-accuracy gap, and are the contemporary baseline for the
 family.</p>
@@ -252,28 +272,14 @@ They connect the GP literature of this part to the statistical-learning
 theory developed in Statistical DL Part
 III.</p>
 <div class="blog-table"><table id="tbl:gp-sota">
-<caption>GP / NNGP / NTK leaderboard, read as an ordering of method
-families rather than as a table of quoted results. The per-row citation
-names the method's source; it does not certify the row's numbers. The
-two UCI columns are a composite scored in a single reimplementation on
-the protein split
-(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>≈</mo><mn>45</mn><mo>,</mo><mn>730</mn></mrow><annotation encoding="application/x-tex">N \approx 45{,}730</annotation></semantics></math>),
-not an average over the Hernandez-Lobato nine-split suite and not quoted
-from the per-row papers, several of which report no UCI regression
-figures at all; the MNIST and CIFAR-10 columns are likewise illustrative
-placements, and the Myrtle-kernel CIFAR-10 entry in particular is not a
-result of the cited Neural Tangents software paper. Treat the digits as
-placeholders and the column orderings as the claim. Architecture /
-kernel gives the GP family (Full-GP, SVGP, KISS-GP, Deep-GP, DKL, NNGP,
-NTK). Loss / inference uses (key=value) for headline hyperparameters;
-ML-II = Type-II maximum likelihood, VI = variational inference, DSVI =
-doubly stochastic VI, ELBO = evidence lower bound. Data = the benchmark
-the cited paper actually ran. Compute = asymptotic per-iteration cost
-class. Dashes mark settings the row does not cover. The Neural Process
-family discussed above is not scored here because it shares no benchmark
-with the rest of the table; <span class="citation"
-data-cites="garnelo_neural_2018">(Garnelo et al. 2018)</span> is the
-entry point for it.</caption>
+<caption>GP, NNGP and NTK methods with family, inference, benchmark,
+scores and per-iteration cost. UCI protein test NLL and RMSE are means
+over 20 splits from <span class="citation"
+data-cites="salimbeni_doubly_2017">(Salimbeni and Deisenroth
+2017)</span>, 100 inducing points per layer unless noted;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>†</mo></msup><annotation encoding="application/x-tex">^{\dagger}</annotation></semantics></math>
+normalized targets, one split; top-1 (%) in each paper's own protocol;
+n/r not reported.</caption>
 <tbody>
 <tr>
 <td></td>
@@ -282,7 +288,7 @@ entry point for it.</caption>
 <td></td>
 <td></td>
 <td>UCI</td>
-<td></td>
+<td>UCI</td>
 <td>MNIST</td>
 <td>CIFAR-10</td>
 <td></td>
@@ -290,14 +296,14 @@ entry point for it.</caption>
 <tr>
 <td>Method</td>
 <td>Year</td>
-<td>Architecture</td>
+<td>Family</td>
 <td>Loss / inference</td>
 <td>Data</td>
 <td>NLL</td>
 <td>RMSE</td>
 <td>top-1</td>
 <td>top-1</td>
-<td>Compute</td>
+<td>Cost</td>
 </tr>
 <tr>
 <td>Full GP <span class="citation"
@@ -307,10 +313,10 @@ data-cites="rasmussen_williams_2006">(Rasmussen and Williams
 <td>Full-GP</td>
 <td>ML-II + Cholesky</td>
 <td>UCI (small)</td>
-<td>2.97</td>
-<td>4.34</td>
-<td> - </td>
-<td> - </td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>N</mi><mn>3</mn></msup><annotation encoding="application/x-tex">N^3</annotation></semantics></math></td>
 </tr>
 <tr>
@@ -318,12 +324,12 @@ data-cites="rasmussen_williams_2006">(Rasmussen and Williams
 data-cites="titsias_variational_2009">(Titsias 2009)</span></td>
 <td>2009</td>
 <td>Sparse-GP</td>
-<td>VFE-ELBO (M=200)</td>
-<td>UCI</td>
-<td>2.91</td>
-<td>4.25</td>
-<td> - </td>
-<td> - </td>
+<td>VFE-ELBO</td>
+<td>kin40k, SARCOS</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><msup><mi>M</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">NM^2</annotation></semantics></math></td>
 </tr>
 <tr>
@@ -331,12 +337,14 @@ data-cites="titsias_variational_2009">(Titsias 2009)</span></td>
 data-cites="hensman_gaussian_2013">(Hensman et al. 2013)</span></td>
 <td>2013</td>
 <td>SVGP</td>
-<td>VI ELBO (M=500, mb)</td>
-<td>UCI big</td>
-<td>2.89</td>
-<td>4.20</td>
-<td> - </td>
-<td> - </td>
+<td>VI ELBO
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>500</mn></mrow><annotation encoding="application/x-tex">M=500</annotation></semantics></math>,
+minibatch)</td>
+<td>UCI protein</td>
+<td>2.83</td>
+<td>4.10</td>
+<td>n/r</td>
+<td>n/r</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><msup><mi>M</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">BM^2</annotation></semantics></math></td>
 </tr>
 <tr>
@@ -344,12 +352,13 @@ data-cites="hensman_gaussian_2013">(Hensman et al. 2013)</span></td>
 data-cites="wilson_kissgp_2015">(Wilson and Nickisch 2015)</span></td>
 <td>2015</td>
 <td>KISS-GP</td>
-<td>SKI + LCG (M=10K)</td>
-<td>Airline</td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
+<td>SKI + LCG
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><msup><mn>10</mn><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">M=10^4</annotation></semantics></math>)</td>
+<td>sound, kernel learning</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math></td>
 </tr>
 <tr>
@@ -357,12 +366,13 @@ data-cites="wilson_kissgp_2015">(Wilson and Nickisch 2015)</span></td>
 data-cites="damianou_deep_2013">(Damianou and Lawrence 2013)</span></td>
 <td>2013</td>
 <td>Deep-GP</td>
-<td>VEM (L=2, M=100)</td>
-<td>toy 1D, step, motion capture, robot</td>
-<td>2.88</td>
-<td>4.27</td>
-<td> - </td>
-<td> - </td>
+<td>VEM
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">L=2</annotation></semantics></math>)</td>
+<td>toy, motion capture, digits</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><msup><mi>M</mi><mn>2</mn></msup><mi>L</mi></mrow><annotation encoding="application/x-tex">NM^2 L</annotation></semantics></math></td>
 </tr>
 <tr>
@@ -371,12 +381,14 @@ data-cites="salimbeni_doubly_2017">(Salimbeni and Deisenroth
 2017)</span></td>
 <td>2017</td>
 <td>Deep-GP</td>
-<td>DSVI ELBO (L=3, M=128)</td>
+<td>DSVI ELBO
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>=</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">L=3</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>100</mn></mrow><annotation encoding="application/x-tex">M=100</annotation></semantics></math>)</td>
 <td>UCI protein</td>
-<td>2.81</td>
-<td>4.11</td>
-<td> - </td>
-<td> - </td>
+<td>2.75</td>
+<td>3.81</td>
+<td>98.11</td>
+<td>n/r</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><msup><mi>M</mi><mn>2</mn></msup><mi>L</mi></mrow><annotation encoding="application/x-tex">BM^2 L</annotation></semantics></math></td>
 </tr>
 <tr>
@@ -385,12 +397,14 @@ data-cites="salimbeni_doubly_2017">(Salimbeni and Deisenroth
 2017)</span></td>
 <td>2017</td>
 <td>Deep-GP</td>
-<td>DSVI ELBO (L=5, M=128)</td>
+<td>DSVI ELBO
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">L=5</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>100</mn></mrow><annotation encoding="application/x-tex">M=100</annotation></semantics></math>)</td>
 <td>UCI protein</td>
-<td>2.81</td>
-<td>4.11</td>
-<td> - </td>
-<td> - </td>
+<td>2.71</td>
+<td>3.72</td>
+<td>n/r</td>
+<td>n/r</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><msup><mi>M</mi><mn>2</mn></msup><mi>L</mi></mrow><annotation encoding="application/x-tex">BM^2 L</annotation></semantics></math></td>
 </tr>
 <tr>
@@ -398,12 +412,12 @@ data-cites="salimbeni_doubly_2017">(Salimbeni and Deisenroth
 data-cites="dutordoir_deep_2021">(Dutordoir et al. 2021)</span></td>
 <td>2021</td>
 <td>Deep-GP</td>
-<td>DSVI + identity-init</td>
-<td>UCI</td>
-<td>2.79</td>
-<td>4.08</td>
-<td> - </td>
-<td> - </td>
+<td>ELBO, NN-initialised</td>
+<td>small UCI</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><msup><mi>M</mi><mn>2</mn></msup><mi>L</mi></mrow><annotation encoding="application/x-tex">BM^2 L</annotation></semantics></math></td>
 </tr>
 <tr>
@@ -411,12 +425,12 @@ data-cites="dutordoir_deep_2021">(Dutordoir et al. 2021)</span></td>
 data-cites="wilson_deep_2016">(Wilson et al. 2016a)</span></td>
 <td>2016</td>
 <td>DKL</td>
-<td>ML-II (DCNN + RBF)</td>
-<td>CIFAR-10</td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td>93.0</td>
+<td>ML-II (DNN + SM kernel)</td>
+<td>UCI, Olivetti</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><msup><mi>M</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">NM^2</annotation></semantics></math></td>
 </tr>
 <tr>
@@ -425,11 +439,11 @@ data-cites="wilson_stochastic_2016">(Wilson et al. 2016b)</span></td>
 <td>2016</td>
 <td>DKL</td>
 <td>SV-ELBO (DCNN + RBF)</td>
-<td>CIFAR-10</td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td>93.2</td>
+<td>airline, UCI, images</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>99.20</td>
+<td>91.0, ResNet-20</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><msup><mi>M</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">BM^2</annotation></semantics></math></td>
 </tr>
 <tr>
@@ -438,12 +452,14 @@ data-cites="salimbeni_orthogonally_2018">(Salimbeni, Cheng, et al.
 2018)</span></td>
 <td>2018</td>
 <td>Sparse-GP</td>
-<td>orth-decoupled VI</td>
+<td>orth-decoupled VI
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>M</mi><mi>γ</mi></msub><mo>=</mo><mn>700</mn></mrow><annotation encoding="application/x-tex">M_\gamma=700</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>M</mi><mi>β</mi></msub><mo>=</mo><mn>300</mn></mrow><annotation encoding="application/x-tex">M_\beta=300</annotation></semantics></math>)</td>
 <td>UCI</td>
-<td>2.83</td>
-<td>4.14</td>
-<td> - </td>
-<td> - </td>
+<td>0.9165<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>†</mo></msup><annotation encoding="application/x-tex">^{\dagger}</annotation></semantics></math></td>
+<td>0.5972<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mo>†</mo></msup><annotation encoding="application/x-tex">^{\dagger}</annotation></semantics></math></td>
+<td>n/r</td>
+<td>n/r</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><msup><mi>M</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">BM^2</annotation></semantics></math></td>
 </tr>
 <tr>
@@ -451,12 +467,12 @@ data-cites="salimbeni_orthogonally_2018">(Salimbeni, Cheng, et al.
 data-cites="ober_promises_2021">(Ober et al. 2021)</span></td>
 <td>2021</td>
 <td>DKL</td>
-<td>full Bayes (HMC + GP)</td>
-<td>UCI / synth</td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
+<td>full Bayes (HMC, SGLD)</td>
+<td>toy, UTKFace, CIFAR-10</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>78, SGLD</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>N</mi><mn>3</mn></msup><annotation encoding="application/x-tex">N^3</annotation></semantics></math></td>
 </tr>
 <tr>
@@ -464,26 +480,26 @@ data-cites="ober_promises_2021">(Ober et al. 2021)</span></td>
 et al. 2018)</span></td>
 <td>2018</td>
 <td>NNGP-MLP</td>
-<td>arc-cos K (depth 2-20)</td>
-<td>MNIST</td>
-<td> - </td>
-<td> - </td>
-<td>98.8</td>
-<td>56.2</td>
-<td>kernel-only</td>
+<td>arc-cos K, tuned depth</td>
+<td>MNIST, CIFAR-10</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>98.75</td>
+<td>55.66</td>
+<td>kernel only</td>
 </tr>
 <tr>
-<td>Novak CNN-NNGP-GAP <span class="citation"
+<td>Novak CNN-GP (GAP) <span class="citation"
 data-cites="novak_bayesian_2019">(Novak et al. 2019)</span></td>
 <td>2019</td>
 <td>NNGP-CNN</td>
-<td>arc-cos K (8L + GAP)</td>
+<td>arc-cos K + GAP</td>
 <td>CIFAR-10</td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td>77.4</td>
-<td>kernel-only</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>77.43</td>
+<td>kernel only</td>
 </tr>
 <tr>
 <td>Yang TP NNGP <span class="citation"
@@ -492,11 +508,11 @@ data-cites="yang_tensor_2019">(Yang 2019)</span></td>
 <td>NNGP-TP</td>
 <td>Tensor Programs K</td>
 <td>Arbitrary</td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td>kernel-only</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>kernel only</td>
 </tr>
 <tr>
 <td>Jacot NTK MLP <span class="citation"
@@ -504,25 +520,25 @@ data-cites="jacot_ntk_2018">(Jacot et al. 2018)</span></td>
 <td>2018</td>
 <td>NTK-MLP</td>
 <td>NTK regression (closed)</td>
-<td>MNIST</td>
-<td> - </td>
-<td> - </td>
-<td>98.6</td>
-<td> - </td>
-<td>kernel-only</td>
+<td>toy, MNIST</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>kernel only</td>
 </tr>
 <tr>
-<td>Novak Myrtle-CNN NTK <span class="citation"
-data-cites="novak_neural_2020">(Novak et al. 2020)</span></td>
+<td>Myrtle kernel <span class="citation"
+data-cites="shankar_neural_2020">(Shankar et al. 2020)</span></td>
 <td>2020</td>
-<td>NTK-CNN</td>
+<td>NNGP-CNN</td>
 <td>Myrtle K + ridge</td>
-<td>CIFAR-10</td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td>81.4</td>
-<td>kernel-only</td>
+<td>MNIST, CIFAR-10</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>99.5, Myrtle5</td>
+<td>87.5, Myrtle10</td>
+<td>kernel only</td>
 </tr>
 <tr>
 <td>Hron Transformer NNGP <span class="citation"
@@ -530,18 +546,20 @@ data-cites="hron_transformer_2020">(Hron et al. 2020)</span></td>
 <td>2020</td>
 <td>NNGP-Trans</td>
 <td>attention-NNGP K</td>
-<td>LM small</td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td> - </td>
-<td>kernel-only</td>
+<td>CIFAR-10, IMDb</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>n/r</td>
+<td>80.72</td>
+<td>kernel only</td>
 </tr>
 </tbody>
 </table></div>
-<p>The table groups the GP literature into five families, walked through
-in chronological order. <strong>Exact</strong> GPs (Full-GP, GPyTorch's
-Cholesky path) deliver the gold-standard posterior at
+<p>The GP literature falls into five families, taken here in
+chronological order (Table <a href="tbl:gp-sota">tbl:gp-sota</a>, Figure
+<a href="fig:gp-family-timeline">fig:gp-family-timeline</a>).
+<strong>Exact</strong> GPs (Full-GP, GPyTorch's Cholesky path) deliver
+the gold-standard posterior at
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">𝒪</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>N</mi><mn>3</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(N^3)</annotation></semantics></math>
 cost<a href="#fn9" class="footnote-ref" id="fnref9"
 role="doc-noteref"><sup>9</sup></a>, leaving everything else as an
@@ -567,25 +585,25 @@ remains hand-tuned<a href="#fn11" class="footnote-ref" id="fnref11"
 role="doc-noteref"><sup>11</sup></a>, and Hensman's SVGP is what made
 GPs Adam-trainable on GPU minibatches.</p>
 <p><strong>Deep</strong> GPs (Damianou-Lawrence, Salimbeni DSVI,
-Dutordoir skip-init) stack GPs as compositional priors. The 2-layer /
-3-layer / 5-layer rows in the table tell a single story: the first
-composition step lifts the held-out NLL noticeably; the third
-composition step lifts it slightly; further depth saturates and risks
-mild overfit<a href="#fn12" class="footnote-ref" id="fnref12"
+Dutordoir skip-init) stack GPs as compositional priors. The SVGP and 3-
+and 5-layer rows of the table tell a single story: on UCI protein test
+NLL falls from 2.83 (one layer,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mn>500</mn></mrow><annotation encoding="application/x-tex">M=500</annotation></semantics></math>)
+to 2.75 and 2.71, gains that shrink with depth without reversing<a
+href="#fn12" class="footnote-ref" id="fnref12"
 role="doc-noteref"><sup>12</sup></a>. Without identity-init or residual
 connections the intermediate latent collapses to a near-deterministic
 mapping<a href="#fn13" class="footnote-ref" id="fnref13"
-role="doc-noteref"><sup>13</sup></a>, which is why Dutordoir's skip-init
-recipe matters disproportionately to its incremental NLL gain.
-<strong>Self-distillation</strong>-style EM (the original VEM in
-Damianou-Lawrence, where each layer's posterior is treated as a teacher
-signal for the next E-step) was eventually superseded by the cleaner
-stochastic DSVI gradient.</p>
+role="doc-noteref"><sup>13</sup></a>, which is why the identity-mean
+initialisation of DSVI matters. <strong>Self-distillation</strong>-style
+EM (the original VEM in Damianou-Lawrence, where each layer's posterior
+is treated as a teacher signal for the next E-step) was eventually
+superseded by the cleaner stochastic DSVI gradient.</p>
 <p><strong>Deep kernel learning</strong> (Wilson DKL, SV-DKL, Bayesian
 DKL of Ober et al.) puts a neural feature extractor in front of a GP
-kernel. On CIFAR-10 both DKL papers report their headline accuracy
-alongside the same backbone trained as a plain DCNN, and the reported
-gap is a fraction of a point, so the DKL gain over the deterministic
+kernel. On CIFAR-10 SV-DKL reports its accuracy alongside the same
+backbone trained as a plain CNN, and the gap is about one point (91.0%
+against 90.1% with ResNet-20), so the DKL gain over the deterministic
 baseline is real but small. The trouble is calibration: the feature
 extractor compresses training inputs onto coincident latents and
 predictive variance collapses<a href="#fn14" class="footnote-ref"
@@ -598,34 +616,15 @@ the feature-extractor weights, which substantially closes the gap to a
 properly Bayesian alternative at the cost of HMC sampling.</p>
 <figure id="fig:gp-family-timeline">
 <img src="figures/gp-family-timeline.svg" />
-<figcaption>GP family evolution from 2006 full-GP baselines to 2021
-Bayesian-DKL diagnostics, plotted against the same composite UCI protein
-axis as tbl:gp-sota. The plotted heights are not quoted results, and the
-NNGP/NTK markers in particular are placements rather than measurements,
-since none of the papers behind them reports a UCI regression number;
-read the figure as a family-versus-year layout and not as a comparison
-of digits. Marker shape and colour encode family (exact, sparse,
-deep-GP, DKL, NNGP/NTK); the dotted line marks the full-GP reference.
-Two readings survive the relabelling. The <strong>sparse</strong> line
-lands close to the full-GP reference while reducing per-iteration cost
-from
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">𝒪</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>N</mi><mn>3</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(N^3)</annotation></semantics></math>
-to
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">𝒪</mi><mo stretchy="false" form="prefix">(</mo><mi>N</mi><msup><mi>M</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(NM^2)</annotation></semantics></math>,
-which is what made GPs viable at
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
-in the millions; the <strong>deep-GP</strong> line improves on it by
-adding compositional depth and then saturates around three layers. The
-<strong>NNGP/NTK</strong> markers are drawn flat because the kernel-only
-regime does no feature learning, which is the qualitative claim the
-cited papers do support even though the specific heights are not
-theirs.</figcaption>
+<figcaption>Publication years of the methods in Table <a
+href="tbl:gp-sota">tbl:gp-sota</a>, one lane per family; methods
+published in the same year share a marker.</figcaption>
 </figure>
 <p>The <strong>NNGP</strong> / <strong>NTK</strong> family forms a
 parallel branch: the same arc-cosine kernel that drops out of an
-infinite-width ReLU MLP also serves as a strong MNIST baseline (98.8%
-top-1 with depth 2-20), and Novak's CNN-GAP variant lifts CIFAR-10 to
-77.4% with no SGD at all. Yang's Tensor-Programs framework mechanically
+infinite-width ReLU MLP also serves as a strong MNIST baseline (98.75%
+top-1 at depth 1), and Novak's CNN-GAP variant lifts CIFAR-10 to 77.43%
+with no SGD at all. Yang's Tensor-Programs framework mechanically
 derives the NNGP kernel for <em>any</em> standard architecture; Hron
 extends this to multi-head attention. The persistent ceiling is the
 feature-learning gap<a href="#fn16" class="footnote-ref" id="fnref16"
@@ -652,15 +651,15 @@ methods close most of the cost gap to full GPs without sacrificing the
 calibrated-uncertainty story</u>; the choice between Titsias-VFE,
 Hensman-SVGP, KISS-GP, and natural-gradient SVGP is largely a regime
 question (data shape, batch availability, inducing-point structure).
-Second, deep GPs help modestly and saturate quickly<a href="#fn20"
-class="footnote-ref" id="fnref20" role="doc-noteref"><sup>20</sup></a>,
-so depth in the GP world is qualitatively different from depth in the
-deterministic-network world. Third, deep kernel learning is competitive
-on CIFAR-10 but the original papers underreported the variance-collapse
-pathologies that Ober et al.'s Bayesian-DKL diagnoses. The fix, full
-Bayes over feature-extractor weights, restores calibration at the cost
-of HMC sampling and gives up the original DKL argument for using a GP
-read-out.</p>
+Second, deep GPs help modestly and their gains shrink quickly<a
+href="#fn20" class="footnote-ref" id="fnref20"
+role="doc-noteref"><sup>20</sup></a>, so depth in the GP world is
+qualitatively different from depth in the deterministic-network world.
+Third, deep kernel learning is competitive on CIFAR-10 but the original
+papers underreported the variance-collapse pathologies that Ober et
+al.'s Bayesian-DKL diagnoses. The fix, full Bayes over feature-extractor
+weights, restores calibration at the cost of HMC sampling and gives up
+the original DKL argument for using a GP read-out.</p>
 <h2 class="blog-refs-title">References</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 role="list">
@@ -713,11 +712,6 @@ in Wide Deep Neural Networks."</span> <em>ICLR</em>.
 Neal, Radford M. 1996. <em>Bayesian Learning for Neural Networks</em>.
 Springer.
 </div>
-<div id="ref-novak_neural_2020" class="csl-entry" role="listitem">
-Novak, Roman, Lechao Xiao, Jiri Hron, et al. 2020. <span>"Neural
-Tangents: Fast and Easy Infinite Neural Networks in Python."</span>
-<em>ICLR</em>.
-</div>
 <div id="ref-novak_bayesian_2019" class="csl-entry" role="listitem">
 Novak, Roman, Lechao Xiao, Jaehoon Lee, et al. 2019. <span>"Bayesian
 Deep Convolutional Networks with Many Channels Are Gaussian
@@ -753,6 +747,11 @@ Stochastic Variational Inference for Deep Gaussian Processes."</span>
 Salimbeni, Hugh, Stefanos Eleftheriadis, and James Hensman. 2018.
 <span>"Natural Gradients in Practice: Non-Conjugate Variational
 Inference in Gaussian Process Models."</span> <em>AISTATS</em>.
+</div>
+<div id="ref-shankar_neural_2020" class="csl-entry" role="listitem">
+Shankar, Vaishaal, Alex Fang, Wenshuo Guo, et al. 2020. <span>"Neural
+Kernels Without Tangents."</span> <em>ICML</em>. <a
+href="https://arxiv.org/abs/2003.02237">https://arxiv.org/abs/2003.02237</a>.
 </div>
 <div id="ref-titsias_variational_2009" class="csl-entry"
 role="listitem">
@@ -819,12 +818,11 @@ compositional-prior motivation that justified depth in the first place
 data-cites="salimbeni_doubly_2017 dutordoir_deep_2021">(Salimbeni and
 Deisenroth 2017; Dutordoir et al. 2021)</span>.<a href="#fnref3"
 class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn4"><p><em>Deep-GP depth saturation</em>: 2 layers help
-modestly, 3 layers help slightly more, and beyond 3 the held-out NLL on
-UCI regression saturates and shows mild overfit; doubling the layer
-count past 3 burns compute without proportional gain <span
-class="citation" data-cites="salimbeni_doubly_2017">(Salimbeni and
-Deisenroth 2017)</span>.<a href="#fnref4" class="footnote-back"
+<li id="fn4"><p><em>Deep-GP depth saturation</em>: on UCI protein the
+second to fifth layers lower test NLL by 0.10, 0.06, 0.02 and 0.02 nats,
+with no overfitting, while GPU time per step rises from 0.030 s to 0.069
+s <span class="citation" data-cites="salimbeni_doubly_2017">(Salimbeni
+and Deisenroth 2017)</span>.<a href="#fnref4" class="footnote-back"
 role="doc-backlink">↩︎</a></p></li>
 <li id="fn5"><p><em>DKL variance collapse</em>: the feature extractor
 maps training inputs to coincident latent points so that
@@ -857,11 +855,13 @@ class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn8"><p><em>NNGP feature-learning gap</em>: infinite-width
 Bayesian inference is kernel regression with a fixed kernel, so it does
 <em>not</em> learn features the way SGD-trained finite-width networks
-do; on CIFAR-10 the NNGP-CNN-GAP ceiling sits below SGD-trained CNNs by
-roughly 5-10 points, and Myrtle-architecture NNGPs only narrow the gap
-with hand-engineered architecture-specific kernels <span
+do; on CIFAR-10 the CNN-GP with pooling sits 7.72 points below the
+SGD-trained CNN with pooling (77.43% against 85.15%) <span
 class="citation" data-cites="novak_bayesian_2019">(Novak et al.
-2019)</span>.<a href="#fnref8" class="footnote-back"
+2019)</span>, and Myrtle kernels narrow the gap (87.5% against 91.2% for
+the Myrtle10 CNN) only with hand-engineered architecture-specific
+kernels <span class="citation" data-cites="shankar_neural_2020">(Shankar
+et al. 2020)</span>.<a href="#fnref8" class="footnote-back"
 role="doc-backlink">↩︎</a></p></li>
 <li id="fn9"><p><em>Cubic exact-GP cost</em>: the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>×</mo><mi>N</mi></mrow><annotation encoding="application/x-tex">N \times N</annotation></semantics></math>
@@ -898,12 +898,11 @@ itself remain hand-tuned per benchmark <span class="citation"
 data-cites="titsias_variational_2009 hensman_gaussian_2013">(Titsias
 2009; Hensman et al. 2013)</span>.<a href="#fnref11"
 class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn12"><p><em>Deep-GP depth saturation</em>: 2 layers help
-modestly, 3 layers help slightly more, and beyond 3 the held-out NLL on
-UCI regression saturates and shows mild overfit; doubling the layer
-count past 3 burns compute without proportional gain <span
-class="citation" data-cites="salimbeni_doubly_2017">(Salimbeni and
-Deisenroth 2017)</span>.<a href="#fnref12" class="footnote-back"
+<li id="fn12"><p><em>Deep-GP depth saturation</em>: on UCI protein the
+second to fifth layers lower test NLL by 0.10, 0.06, 0.02 and 0.02 nats,
+with no overfitting, while GPU time per step rises from 0.030 s to 0.069
+s <span class="citation" data-cites="salimbeni_doubly_2017">(Salimbeni
+and Deisenroth 2017)</span>.<a href="#fnref12" class="footnote-back"
 role="doc-backlink">↩︎</a></p></li>
 <li id="fn13"><p><em>Deep-GP pinch-point</em>: the intermediate latent
 of a stacked deep GP collapses to near-deterministic without identity
@@ -933,11 +932,13 @@ href="#fnref15" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn16"><p><em>NNGP feature-learning gap</em>: infinite-width
 Bayesian inference is kernel regression with a fixed kernel, so it does
 <em>not</em> learn features the way SGD-trained finite-width networks
-do; on CIFAR-10 the NNGP-CNN-GAP ceiling sits below SGD-trained CNNs by
-roughly 5-10 points, and Myrtle-architecture NNGPs only narrow the gap
-with hand-engineered architecture-specific kernels <span
+do; on CIFAR-10 the CNN-GP with pooling sits 7.72 points below the
+SGD-trained CNN with pooling (77.43% against 85.15%) <span
 class="citation" data-cites="novak_bayesian_2019">(Novak et al.
-2019)</span>.<a href="#fnref16" class="footnote-back"
+2019)</span>, and Myrtle kernels narrow the gap (87.5% against 91.2% for
+the Myrtle10 CNN) only with hand-engineered architecture-specific
+kernels <span class="citation" data-cites="shankar_neural_2020">(Shankar
+et al. 2020)</span>.<a href="#fnref16" class="footnote-back"
 role="doc-backlink">↩︎</a></p></li>
 <li id="fn17"><p><em>Edge-of-chaos initialisation</em>: NNGP/NTK kernels
 are useless in the ordered regime
@@ -968,12 +969,11 @@ propagation (heuristic stability), and variational inference
 class="citation" data-cites="rasmussen_williams_2006">(Rasmussen and
 Williams 2006)</span>.<a href="#fnref19" class="footnote-back"
 role="doc-backlink">↩︎</a></p></li>
-<li id="fn20"><p><em>Deep-GP depth saturation</em>: 2 layers help
-modestly, 3 layers help slightly more, and beyond 3 the held-out NLL on
-UCI regression saturates and shows mild overfit; doubling the layer
-count past 3 burns compute without proportional gain <span
-class="citation" data-cites="salimbeni_doubly_2017">(Salimbeni and
-Deisenroth 2017)</span>.<a href="#fnref20" class="footnote-back"
+<li id="fn20"><p><em>Deep-GP depth saturation</em>: on UCI protein the
+second to fifth layers lower test NLL by 0.10, 0.06, 0.02 and 0.02 nats,
+with no overfitting, while GPU time per step rises from 0.030 s to 0.069
+s <span class="citation" data-cites="salimbeni_doubly_2017">(Salimbeni
+and Deisenroth 2017)</span>.<a href="#fnref20" class="footnote-back"
 role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>

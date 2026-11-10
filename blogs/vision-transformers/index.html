@@ -67,7 +67,7 @@ distillation from a RegNetY-16GF teacher). DeiT introduced knowledge
 distillation via a distillation token, showing that ViT benefits from
 CNN-style inductive biases transferred through distillation. DeiT III
 <span class="citation" data-cites="touvron_deit_2022">(Touvron et al.
-2022)</span> pushed this further with improved training recipes,
+2022)</span> pushed this further with improved training setups,
 achieving 85.2% with ViT-H/14.</p>
 <p><u>Hierarchical designs addressed the computational limitations of
 global attention.</u> Swin Transformer
@@ -132,15 +132,14 @@ no spatial correspondence and no loss target; they serve purely as
 internal workspace. With registers present, the high-norm artifact
 disappears from patch tokens, attention maps become spatially smooth,
 and dense prediction improves. <u>The intervention requires no change to
-the training recipe, the loss function, or the backbone
-architecture.</u> The paper reports the best figures at publication for
-self-supervised models on dense visual prediction tasks and improvements
-in object discovery quality with larger models. The caveat is that
-register count
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">r = 4</annotation></semantics></math>
-is a hyperparameter tuned on DINOv2-scale models; smaller ViTs trained
-on less data show less severe artifact behaviour and smaller gains from
-registers. MAE <span class="citation"
+the training setup, the loss function, or the backbone architecture.</u>
+The reported gains are the authors' own runs (DeiT-III and OpenCLIP at
+ViT-B, DINOv2 at ViT-L, Section 3.1 of <span class="citation"
+data-cites="darcet_vit_2024">(Darcet et al. 2024)</span>) against their
+own baselines, and where the artifacts appear and how the gain depends
+on the number of registers are set out under <span class="spurious-link"
+target="*High-Norm Tokens and Registers"><em>High-Norm Tokens and
+Registers</em></span>. MAE <span class="citation"
 data-cites="he_masked_2021">(He et al. 2021)</span> showed that masking
 75% of patches and reconstructing provides strong pretraining, with
 ViT-Huge achieving 87.8% accuracy using only ImageNet-1K. BEiT <span class="citation"
@@ -192,8 +191,8 @@ locality inside the attention pattern itself. CvT, CoAtNet, MaxViT and
 MobileViT put the convolution back into the block. MAE, BEiT, SimMIM and
 DINO move the prior into the pretext task, so unlabeled data supplies it
 instead of the architecture. ConvNeXt runs the argument backwards,
-keeping the convolution and importing only the recipe. Sorted by where
-the bias is stored rather than by accuracy, the families read as
+keeping the convolution and importing only the training setup. Sorted by
+where the bias is stored rather than by accuracy, the families read as
 follows.</p>
 <div class="blog-table"><table id="tbl:vit-prior-reintroduction">
 <caption>Where each family of post-ViT work puts the convolutional prior
@@ -225,7 +224,7 @@ pretraining images to reach parity</td>
 <tr>
 <td>DeiT <span class="citation"
 data-cites="touvron_training_2021">(Touvron et al. 2021)</span></td>
-<td>training recipe</td>
+<td>training setup</td>
 <td>CNN teacher through a distillation token, heavy augmentation</td>
 <td>300 epochs plus a teacher forward pass per step</td>
 </tr>
@@ -270,7 +269,7 @@ data-cites="tolstikhin_mlp-mixer_2021">(Tolstikhin et al. 2021)</span>,
 PoolFormer <span class="citation" data-cites="yu_metaformer_2022">(Yu et
 al. 2022)</span></td>
 <td>nowhere, and attention is dropped too</td>
-<td>fixed or parameter-free token mixer, the recipe carries the
+<td>fixed or parameter-free token mixer, the training setup carries the
 load</td>
 <td>token-mixing weights are tied to one resolution</td>
 </tr>
@@ -278,7 +277,8 @@ load</td>
 <td>ConvNeXt <span class="citation"
 data-cites="liu_convnet_2022">(Zhuang Liu et al. 2022)</span></td>
 <td>never removed it</td>
-<td>keep the convolution, import the ViT recipe and macro design</td>
+<td>keep the convolution, import the ViT training setup and macro
+design</td>
 <td>none, which is what makes it the control experiment</td>
 </tr>
 </tbody>
@@ -287,8 +287,8 @@ data-cites="liu_convnet_2022">(Zhuang Liu et al. 2022)</span></td>
 (Swin), (2) strong regularization for data-efficient training (DeiT),
 (3) self-supervised pretraining for label efficiency (MAE, DINO), (4)
 hybrid CNN-Transformer architectures for mobile deployment, and (5)
-training recipes matched to the architectural choice, which move
-accuracy as much as the choice itself does.</p>
+training setups matched to the architectural choice, which move accuracy
+as much as the choice itself does.</p>
 <p>Related-work leaderboard (representative numbers, ImageNet-1K top-1
 unless noted):</p>
 <div class="blog-table"><table id="tbl:vit-related-work-leaderboard">

@@ -371,10 +371,9 @@ the inertial-frame assumption at the input stage, with biggest gains
 exactly where pelvis acceleration is largest (running, jumping);
 GlobalPose generalised contact to arbitrary joints, enabling stairs,
 sitting, and handstands without scene priors. <u>The recurring failure
-mode across this entire line is the flat-ground
-assumption[fn:s0-flat-ground], inherited from TransPose's
-supporting-foot FK integrator, that GlobalPose only partially
-relaxes.</u></p>
+mode across this entire line is the flat-ground assumption, inherited
+from TransPose's supporting-foot FK integrator, that GlobalPose only
+partially relaxes.</u>[fn:s0-flat-ground]</p>
 <p>The <strong>fusion family</strong> (DiffCap, BaroPoser, UIP, GIP)
 breaks one of three IMU-only limitations by adding an exogenous
 modality. DiffCap adds a monocular camera and uses diffusion to absorb

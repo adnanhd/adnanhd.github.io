@@ -106,35 +106,19 @@ scaling <span class="citation" data-cites="zhai_scaling_2022">(Zhai et
 al. 2022)</span>, and hardware-lottery analysis <span class="citation"
 data-cites="hooker_hardware_2020">(Hooker 2020)</span>.</p>
 <p>Current results on standard image-generation benchmarks show AR
-models reaching parity with and in places exceeding diffusion. The
-leaderboard below collates the headline numbers (ImageNet-256 FID for
-class-conditional, zero-shot MS-COCO FID for text-to-image where
-applicable, tokenizer column reports the discrete code source, latency
-is per-image at the listed resolution, and the per-row citation names
-the method's source paper).</p>
+models reaching parity with and in places exceeding diffusion (Table <a
+href="tbl:ar-leaderboard">tbl:ar-leaderboard</a>).</p>
 <div class="blog-table"><table id="tbl:ar-leaderboard">
-<caption>Autoregressive image-generation leaderboard, assembled across
-papers rather than from any single head-to-head study. ImageNet-256 FID
-is class-conditional, COCO-FID is zero-shot at
-256<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>256,
-and latency is wall-clock seconds per image at the listed deployment
-resolution, measured on whatever hardware each paper used and therefore
-not portable between rows. The per-row citation names the method's
-source paper, not a common measurement protocol. Tokenizer column lists
-the discrete code source. Empty cells denote not-reported or
-not-applicable. Models tagged "masked" use parallel iterative decoding,
-"next-scale" use coarse-to-fine scale autoregression, and "raster-AR"
-use sequential next-token. Two cells should be read with caution and are
-discussed in the note below the table: VQ-VAE-2's parameter count and
-LlamaGen-3B's COCO-FID. The "first AR model to beat diffusion on
-ImageNet" milestone is VAR-d30 at 2.0B parameters, reaching FID 1.92 by
-sampling and 1.73 with rejection sampling, against DiT-XL/2's 2.27 at
-675M <span class="citation" data-cites="peebles_scalable_2023">(Peebles
-and Xie 2023)</span>. The comparison is not parameter-matched, so read
-it as "a
-3<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>
-larger AR model finally cleared the diffusion baseline", not as an
-efficiency result.</caption>
+<caption>Autoregressive image-generation results. ImageNet-FID is
+class-conditional at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>256</mn><mo>×</mo><mn>256</mn></mrow><annotation encoding="application/x-tex">256 \times 256</annotation></semantics></math>,
+COCO-FID zero-shot (GE: GenEval; VB: VBench), latency per image at the
+listed resolution; empty cells are not reported.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>a</mi></msup><annotation encoding="application/x-tex">^{a}</annotation></semantics></math>Inferred
+downstream, not in the paper.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>b</mi></msup><annotation encoding="application/x-tex">^{b}</annotation></semantics></math>Unsourced;
+the 3.1B model is class-conditional only. Values compiled across papers,
+not one protocol.</caption>
 <thead>
 <tr>
 <th>Method</th>
@@ -186,7 +170,7 @@ data-cites="salimans_pixelcnn_2017">(Salimans et al. 2017)</span></td>
 <td>VQ-VAE-2 <span class="citation"
 data-cites="razavi_generating_2019">(Razavi et al. 2019)</span></td>
 <td>2019</td>
-<td>~13B*</td>
+<td>~13B<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>a</mi></msup><annotation encoding="application/x-tex">^{a}</annotation></semantics></math></td>
 <td>Hierarchical VQ</td>
 <td>raster-AR</td>
 <td>31.11</td>
@@ -198,7 +182,8 @@ data-cites="razavi_generating_2019">(Razavi et al. 2019)</span></td>
 data-cites="chen_generative_2020">(Chen et al. 2020)</span></td>
 <td>2020</td>
 <td>1.4B</td>
-<td>k-means 9-bit pixel</td>
+<td>k-means,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>512</mn></mrow><annotation encoding="application/x-tex">K = 512</annotation></semantics></math></td>
 <td>raster-AR</td>
 <td>36.4</td>
 <td></td>
@@ -209,7 +194,8 @@ data-cites="chen_generative_2020">(Chen et al. 2020)</span></td>
 data-cites="ramesh_zero-shot_2021">(Ramesh et al. 2021)</span></td>
 <td>2021</td>
 <td>12B</td>
-<td>dVAE 8192</td>
+<td>dVAE,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>8192</mn></mrow><annotation encoding="application/x-tex">K = 8192</annotation></semantics></math></td>
 <td>raster-AR</td>
 <td></td>
 <td>~17</td>
@@ -220,7 +206,8 @@ data-cites="ramesh_zero-shot_2021">(Ramesh et al. 2021)</span></td>
 data-cites="chang_maskgit_2022">(Chang et al. 2022)</span></td>
 <td>2022</td>
 <td>227M</td>
-<td>VQ-GAN 1024</td>
+<td>VQ-GAN,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>1024</mn></mrow><annotation encoding="application/x-tex">K = 1024</annotation></semantics></math></td>
 <td>masked</td>
 <td>6.18</td>
 <td></td>
@@ -242,7 +229,8 @@ data-cites="gafni_make--scene_2022">(Gafni et al. 2022)</span></td>
 al. 2022)</span></td>
 <td>2022</td>
 <td>20B</td>
-<td>ViT-VQGAN 8192</td>
+<td>ViT-VQGAN,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>8192</mn></mrow><annotation encoding="application/x-tex">K = 8192</annotation></semantics></math></td>
 <td>raster-AR</td>
 <td></td>
 <td>7.23</td>
@@ -253,7 +241,8 @@ al. 2022)</span></td>
 2023)</span></td>
 <td>2023</td>
 <td>300M</td>
-<td>VQ-GAN 1024</td>
+<td>VQ-GAN,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>1024</mn></mrow><annotation encoding="application/x-tex">K = 1024</annotation></semantics></math></td>
 <td>masked</td>
 <td>6.93</td>
 <td></td>
@@ -264,7 +253,8 @@ al. 2022)</span></td>
 al. 2023)</span></td>
 <td>2023</td>
 <td>3B+3B</td>
-<td>ViT-VQGAN 8192</td>
+<td>ViT-VQGAN,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>8192</mn></mrow><annotation encoding="application/x-tex">K = 8192</annotation></semantics></math></td>
 <td>masked+SR</td>
 <td></td>
 <td>7.88</td>
@@ -275,10 +265,11 @@ al. 2023)</span></td>
 data-cites="sun_autoregressive_2024">(Sun et al. 2024)</span></td>
 <td>2024</td>
 <td>3.1B</td>
-<td>VQ-GAN 16384</td>
+<td>VQ-GAN,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>16384</mn></mrow><annotation encoding="application/x-tex">K = 16384</annotation></semantics></math></td>
 <td>raster-AR</td>
 <td>2.18</td>
-<td>7.2</td>
+<td>7.2<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>b</mi></msup><annotation encoding="application/x-tex">^{b}</annotation></semantics></math></td>
 <td>~2s w/ vLLM</td>
 </tr>
 <tr>
@@ -288,7 +279,7 @@ et al. 2024)</span></td>
 <td>2.0B</td>
 <td>Multi-scale RQ-VAE</td>
 <td>next-scale</td>
-<td>1.73</td>
+<td>1.73 with rejection sampling</td>
 <td></td>
 <td>~0.3s</td>
 </tr>
@@ -297,7 +288,8 @@ et al. 2024)</span></td>
 data-cites="han_infinity_2025">(Han et al. 2025)</span></td>
 <td>2025</td>
 <td>2B</td>
-<td>LFQ 32-bit (no book)</td>
+<td>LFQ,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><mi>±</mi><mn>1</mn><msup><mo stretchy="false" form="postfix">}</mo><mn>32</mn></msup></mrow><annotation encoding="application/x-tex">\{\pm 1\}^{32}</annotation></semantics></math></td>
 <td>next-scale</td>
 <td></td>
 <td>0.69 GE</td>
@@ -327,52 +319,17 @@ data-cites="zhuang_vargpt_2025">(Zhuang et al. 2025)</span></td>
 </tr>
 </tbody>
 </table></div>
-<p>(*) The VQ-VAE-2 parameter cell is not a measured figure. The paper
-reports layer counts and hidden widths for its two PixelCNN-style priors
-but no aggregate parameter count, so the ~13B entry is an inference
-someone made downstream and should not be quoted as the paper's number.
-The LlamaGen-3B COCO-FID cell carries the same warning for a different
-reason: LlamaGen's text-conditional model is the 775M variant, the 3.1B
-model is class-conditional only, and the paper evaluates the text model
-qualitatively without reporting a zero-shot MS-COCO FID. Read that cell
-as unsourced rather than as a LlamaGen result. "GE" denotes GenEval
-composite score (text-to-image alignment, higher is better, 0-1) and
-"VB" denotes VBench composite (text-to-video, higher is better, 0-100).
-Neither is comparable to FID. Pixel-level rows report bits-per-dimension
-instead of FID because Inception-v3 features are uninformative at
-32<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>32
-resolution.</p>
-<p>The table is restricted to image models reporting FID or a
-text-to-image alignment composite, which leaves out several papers
-covered later in the chapter because they report on incomparable
-benchmarks: VideoGPT, TATS, Phenaki and MCVD report FVD on BAIR,
-UCF-101, Kinetics-600 and Cityscapes, ARDM reports bits-per-character on
-Text8 and bits-per-dimension on CIFAR-10, and Semantic-Diffusion reports
-Cityscapes and ADE20K FID under a segmentation-conditioned protocol.
-Those numbers are given in the sections that discuss each paper. Folding
-them into one column would imply a comparison the benchmarks do not
-support.</p>
 <figure id="fig:ar-causal-masking">
 <img src="figures/ar-causal-masking.svg" />
-<figcaption>Three masking regimes that govern autoregressive visual
-generation. Left: a raster-scan causal mask on a
+<figcaption>Three attention regimes. (a) Raster order on a
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>4</mn><mo>×</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">4 \times 4</annotation></semantics></math>
-token grid, where the model predicting position 9 (red) sees only the 9
-preceding tokens (blue) and is blind to the future (gray). Middle: VAR's
-block-causal scale mask flips this. Tokens within a scale attend
-bidirectionally to each other, while only earlier scales are visible
-across the block boundary, which is what enables parallel decoding
-inside each scale step. Right: MaskGIT's cosine schedule
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>γ</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">cos</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>π</mi><mi>t</mi><mi>/</mi><mn>2</mn><mi>T</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\gamma(t) = \cos(\pi t / 2T)</annotation></semantics></math>
-replaces token-level causality entirely with iterative parallel
-decoding. At each of
+grid: token 9 (yellow) reads the tokens before it (blue), none after
+(grey). (b) VAR's block-causal mask for scales of 1, 4 and 16 tokens
+<span class="citation" data-cites="tian_visual_2024">(Tian et al.
+2024)</span>; blue cells are read. (c) MaskGIT's cosine schedule,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><mn>8</mn></mrow><annotation encoding="application/x-tex">T = 8</annotation></semantics></math>
-steps the model unmasks a chunk of high-confidence tokens and re-masks
-the rest, and because the cosine falls slowly at first the early steps
-commit few tokens and the late steps commit many. The three diagrams
-capture the dominant axis of design variation in modern AR-image work,
-which is not what the network does but what its attention is permitted
-to see, and at what granularity.</figcaption>
+<span class="citation" data-cites="chang_maskgit_2022">(Chang et al.
+2022)</span>.</figcaption>
 </figure>
 <h2 class="blog-refs-title">References</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
@@ -497,12 +454,6 @@ Oord, Aaron van den, Oriol Vinyals, and Koray Kavukcuoglu. 2017.
 <span>Learning</span>."</span> <em>Advances in Neural Information
 Processing Systems</em>, May. <a
 href="https://doi.org/10.48550/arXiv.1711.00937">https://doi.org/10.48550/arXiv.1711.00937</a>.
-</div>
-<div id="ref-peebles_scalable_2023" class="csl-entry" role="listitem">
-Peebles, William, and Saining Xie. 2023. <em>Scalable
-<span>Diffusion</span> <span>Models</span> with
-<span>Transformers</span></em>. arXiv. <a
-href="https://doi.org/10.48550/arXiv.2212.09748">https://doi.org/10.48550/arXiv.2212.09748</a>.
 </div>
 <div id="ref-ramesh_zero-shot_2021" class="csl-entry" role="listitem">
 Ramesh, Aditya, Mikhail Pavlov, Gabriel Goh, et al. 2021.

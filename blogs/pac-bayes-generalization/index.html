@@ -58,15 +58,14 @@ test-error bound; the random-label baseline is therefore not a bound but
 a sharp falsification of capacity-based explanations<a href="#fn1"
 class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>.
 Four resolutions emerged, each with its own well-known structural
-problems walked through paragraph-by-paragraph after the SoTA
-leaderboard below: <strong>PAC-Bayes</strong>,
-<strong>spectrally-normalized</strong> margin bounds,
-<strong>information-theoretic</strong> mutual-information bounds, and
-<strong>sharpness</strong>-based empirical predictors. A fifth strand is
-the <strong>impossibility</strong> result of <span class="citation"
-data-cites="nagarajan_kolter_2019">(Nagarajan and Kolter 2019)</span>,
-which proves a formal obstruction to the entire uniform-convergence
-program.</p>
+problems walked through paragraph-by-paragraph below:
+<strong>PAC-Bayes</strong>, <strong>spectrally-normalized</strong>
+margin bounds, <strong>information-theoretic</strong> mutual-information
+bounds, and <strong>sharpness</strong>-based empirical predictors. A
+fifth strand is the <strong>impossibility</strong> result of <span
+class="citation" data-cites="nagarajan_kolter_2019">(Nagarajan and
+Kolter 2019)</span>, which proves a formal obstruction to the entire
+uniform-convergence program.</p>
 <p>The <strong>PAC-Bayes</strong> resolution (section PAC-Bayes Framework) replaces
 worst-case analysis over a hypothesis class with a weighted average over
 an algorithm-dependent posterior
@@ -222,63 +221,33 @@ data-cites="negrea_defense_uc_2020">(Negrea et al. 2020)</span>
 partially defends uniform convergence by restricting attention to a
 hypothesis-class subset.</p>
 <div class="blog-table"><table id="tbl:pb-sota">
-<caption>PAC-Bayes and generalization-theory SoTA leaderboard. Method
-links to the chapter section and cites the canonical paper. Bound class
-= the family (PAC-Bayes-classical, PAC-Bayes-spectral,
-PAC-Bayes-data-dep, Margin-spectral, Norm-product, Information-MI,
-Information-per-sample, Information-CMI, Sharpness-empirical,
-Impossibility, Random-label-baseline). Form = the schematic recipe or
-formula. Benchmark = the model or dataset reported in the original
-paper. Bound value = the headline number on a [0,1] loss, where
-"vacuous" means greater than 1 and "analytic" means no fielded number,
-only a closed form. Kendall
+<caption>Generalization-bound results by paper: bound class, form,
+benchmark, headline bound value on a [0,1] loss (<em>vacuous</em> above
+1, <em>analytic</em> for a closed form only), Kendall
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
-is from <span class="citation" data-cites="jiang_fantastic_2020">(Jiang
-et al. 2020)</span> across
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>10,000
-CNNs on CIFAR-10 and SVHN where available, and " - " means the paper
-reports no rank-correlation experiment. Comment summarizes the principal
-limitation. The first row is a group-label row rather than data:
-<em>Quality</em> labels the Bound-value and
-Kendall-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
-columns taken together, <em>Scope</em> labels the Comment column. Two
-caveats on the numbers. Settings differ across rows, so only same-row
-reads are consistent. And the
-Kendall-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
-entries in the two norm-product rows (Bartlett-Foster-Telgarsky, Jiang
-spectral-product) do not agree with the value <span class="citation"
-data-cites="jiang_fantastic_2020">(Jiang et al. 2020)</span> reports for
-its <code class="verbatim">spectral-orig</code> measure; Table <a
-href="tbl:jiang-2020-ranking">tbl:jiang-2020-ranking</a> carries that
-paper's own listing and is the authoritative read for the norm-product
-family.</caption>
+with the gap <span class="citation"
+data-cites="jiang_fantastic_2020">(Jiang et al. 2020)</span>, a dash
+where not measured, and principal limitation. Values compiled across
+papers, not one protocol.</caption>
+<thead>
+<tr>
+<th>Paper</th>
+<th>Year</th>
+<th>Bound class</th>
+<th>Form</th>
+<th>Benchmark</th>
+<th>Bound value</th>
+<th>Kendall
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math></th>
+<th>Comment</th>
+</tr>
+</thead>
 <tbody>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td>Quality</td>
-<td></td>
-<td>Scope</td>
-</tr>
-<tr>
-<td>Paper</td>
-<td>Year</td>
-<td>Bound class</td>
-<td>Form</td>
-<td>Benchmark</td>
-<td>Bound value</td>
-<td>Kendall
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math></td>
-<td>Comment</td>
-</tr>
 <tr>
 <td>McAllester <span class="citation"
 data-cites="mcallester_pac_1999">(McAllester 1999)</span></td>
 <td>1999</td>
-<td>PAC-Bayes-classical</td>
+<td>PAC-Bayes classical</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mrow><mo stretchy="false" form="prefix">(</mo><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mo>+</mo><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><msqrt><mi>n</mi></msqrt><mi>/</mi><mi>δ</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mi>n</mi><mo stretchy="false" form="postfix">)</mo></mrow></msqrt><annotation encoding="application/x-tex">\sqrt{(\mathrm{KL}+\log(2\sqrt{n}/\delta))/(2n)}</annotation></semantics></math></td>
 <td>toy classifiers</td>
 <td>framework</td>
@@ -289,9 +258,10 @@ data-cites="mcallester_pac_1999">(McAllester 1999)</span></td>
 <td>Seeger <span class="citation" data-cites="seeger_pac_2002">(Seeger
 2002)</span></td>
 <td>2002</td>
-<td>PAC-Bayes-classical</td>
+<td>PAC-Bayes classical</td>
 <td>binary-kl inversion</td>
-<td>GP / Pima Indians (n=768)</td>
+<td>GP / Pima Indians,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mn>768</mn></mrow><annotation encoding="application/x-tex">n=768</annotation></semantics></math></td>
 <td>0.29</td>
 <td> - </td>
 <td>tight near zero empirical risk; GP-only setup</td>
@@ -300,7 +270,7 @@ data-cites="mcallester_pac_1999">(McAllester 1999)</span></td>
 <td>Catoni <span class="citation" data-cites="catoni_pac_2007">(Catoni
 2007)</span></td>
 <td>2007</td>
-<td>PAC-Bayes-classical</td>
+<td>PAC-Bayes classical</td>
 <td>Legendre / Gibbs
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>Q</mi><mi>β</mi><mo>*</mo></msubsup><annotation encoding="application/x-tex">Q_\beta^*</annotation></semantics></math></td>
 <td>toy / theoretical</td>
@@ -313,7 +283,7 @@ data-cites="mcallester_pac_1999">(McAllester 1999)</span></td>
 <td>Lacasse C-bound <span class="citation"
 data-cites="lacasse_cbound_2007">(Lacasse et al. 2007)</span></td>
 <td>2007</td>
-<td>PAC-Bayes-classical</td>
+<td>PAC-Bayes classical</td>
 <td>majority-vote derandomization</td>
 <td>toy / theoretical</td>
 <td>analytic</td>
@@ -324,7 +294,7 @@ data-cites="lacasse_cbound_2007">(Lacasse et al. 2007)</span></td>
 <td>Neyshabur norm <span class="citation"
 data-cites="neyshabur_norm_2015">(Neyshabur et al. 2015)</span></td>
 <td>2015</td>
-<td>Norm-product</td>
+<td>Norm product</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∏</mo><mi>ℓ</mi></msub><mo stretchy="false" form="postfix">‖</mo><msub><mi>W</mi><mi>ℓ</mi></msub><msub><mo stretchy="false" form="postfix">‖</mo><mi>F</mi></msub></mrow><annotation encoding="application/x-tex">\prod_\ell \Vert W_\ell \Vert_F</annotation></semantics></math></td>
 <td>small MLP / MNIST</td>
 <td>vacuous</td>
@@ -335,7 +305,7 @@ data-cites="neyshabur_norm_2015">(Neyshabur et al. 2015)</span></td>
 <td>Russo-Zou <span class="citation" data-cites="russo_zou_2016">(Russo
 and Zou 2016)</span></td>
 <td>2016</td>
-<td>Information-MI</td>
+<td>Information MI</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup><mi>I</mi><mo stretchy="false" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>n</mi></mrow></msqrt><annotation encoding="application/x-tex">\sqrt{2 \sigma^2 I(S;W)/n}</annotation></semantics></math></td>
 <td>adaptive estimator</td>
 <td>analytic</td>
@@ -346,7 +316,7 @@ and Zou 2016)</span></td>
 <td>Xu-Raginsky <span class="citation" data-cites="xu_raginsky_2017">(Xu
 and Raginsky 2017)</span></td>
 <td>2017</td>
-<td>Information-MI</td>
+<td>Information MI</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup><mi>I</mi><mo stretchy="false" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>n</mi></mrow></msqrt><annotation encoding="application/x-tex">\sqrt{2 \sigma^2 I(S;W)/n}</annotation></semantics></math></td>
 <td>Gibbs algorithm</td>
 <td>analytic</td>
@@ -357,7 +327,7 @@ and Raginsky 2017)</span></td>
 <td>Dziugaite-Roy <span class="citation"
 data-cites="dziugaite_roy_2017">(Dziugaite and Roy 2017)</span></td>
 <td>2017</td>
-<td>PAC-Bayes-data-dep</td>
+<td>PAC-Bayes data-dep.</td>
 <td>SGD-optimized Gaussian posterior</td>
 <td>3-layer MLP / MNIST T-600</td>
 <td>0.161</td>
@@ -365,25 +335,26 @@ data-cites="dziugaite_roy_2017">(Dziugaite and Roy 2017)</span></td>
 <td>only fielded non-vacuous DNN bound; small-net only</td>
 </tr>
 <tr>
-<td>Bartlett-Foster-Telgarsky <span class="citation"
+<td>BFT <span class="citation"
 data-cites="bartlett_foster_telgarsky_2017">(Bartlett et al.
 2017)</span></td>
 <td>2017</td>
-<td>Margin-spectral</td>
+<td>Margin spectral</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∏</mo><mi>ℓ</mi></msub><mo stretchy="false" form="postfix">‖</mo><msub><mi>W</mi><mi>ℓ</mi></msub><msub><mo stretchy="false" form="postfix">‖</mo><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">\prod_\ell \Vert W_\ell \Vert_2</annotation></semantics></math>
 / margin</td>
 <td>AlexNet / CIFAR-10</td>
 <td>vacuous</td>
 <td>-0.08</td>
-<td>Kendall
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
-negative; counterintuitive sign</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
+disagrees with Table <a
+href="tbl:jiang-2020-ranking">tbl:jiang-2020-ranking</a>
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mn>0.537</mn></mrow><annotation encoding="application/x-tex">-0.537</annotation></semantics></math>)</td>
 </tr>
 <tr>
 <td>Zhang random-label <span class="citation"
 data-cites="zhang_rethinking_2017">(Zhang et al. 2017)</span></td>
 <td>2017</td>
-<td>Random-label-baseline</td>
+<td>Random-label baseline</td>
 <td>train acc with random labels</td>
 <td>Inception / CIFAR-10</td>
 <td>100%</td>
@@ -395,7 +366,7 @@ data-cites="zhang_rethinking_2017">(Zhang et al. 2017)</span></td>
 data-cites="neyshabur_pac_bayes_2018">(Neyshabur et al.
 2018)</span></td>
 <td>2018</td>
-<td>PAC-Bayes-spectral</td>
+<td>PAC-Bayes spectral</td>
 <td>perturbation + spectral product</td>
 <td>VGG / CIFAR-10</td>
 <td>vacuous</td>
@@ -407,7 +378,7 @@ data-cites="neyshabur_pac_bayes_2018">(Neyshabur et al.
 data-cites="dziugaite_data_dependent_2018">(Dziugaite and Roy
 2018)</span></td>
 <td>2018</td>
-<td>PAC-Bayes-data-dep</td>
+<td>PAC-Bayes data-dep.</td>
 <td>DP-released data-dependent prior</td>
 <td>MNIST 784-600-600-10</td>
 <td>0.21</td>
@@ -415,10 +386,10 @@ data-cites="dziugaite_data_dependent_2018">(Dziugaite and Roy
 <td>0.21 at test error 0.12; 0.65 at test error 0.06</td>
 </tr>
 <tr>
-<td>Pensia-Langevin <span class="citation"
+<td>Pensia Langevin <span class="citation"
 data-cites="pensia_langevin_2018">(Pensia et al. 2018)</span></td>
 <td>2018</td>
-<td>Information-MI</td>
+<td>Information MI</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mo stretchy="false" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">I(S;W)</annotation></semantics></math>
 under Langevin SDE</td>
 <td>Langevin SGD / synthetic</td>
@@ -430,7 +401,7 @@ under Langevin SDE</td>
 <td>Lei algorithmic <span class="citation"
 data-cites="lei_algorithmic_2019">(Lei and Ying 2020)</span></td>
 <td>2019</td>
-<td>Information-MI</td>
+<td>Information MI</td>
 <td>algorithmic stability to MI</td>
 <td>SGD / convex losses</td>
 <td>analytic</td>
@@ -450,10 +421,10 @@ data-cites="nagarajan_kolter_2019">(Nagarajan and Kolter
 <td>rules out tight UC for SGD outputs</td>
 </tr>
 <tr>
-<td>Bu-Zou-Veeravalli <span class="citation"
-data-cites="bu_zou_veeravalli_2020">(Bu et al. 2020)</span></td>
+<td>BZV <span class="citation" data-cites="bu_zou_veeravalli_2020">(Bu
+et al. 2020)</span></td>
 <td>2020</td>
-<td>Information-per-sample</td>
+<td>Information per-sample</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mi>/</mi><mi>n</mi><mo stretchy="false" form="postfix">)</mo><msub><mo>∑</mo><mi>i</mi></msub><mi>I</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>Z</mi><mi>i</mi></msub><mo>;</mo><mi>W</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(1/n) \sum_i I(Z_i; W)</annotation></semantics></math></td>
 <td>Gaussian mean estimator</td>
 <td>analytic</td>
@@ -467,7 +438,7 @@ estimation hard in DNN</td>
 data-cites="haghifam_conditional_2020">(Haghifam et al.
 2020)</span></td>
 <td>2020</td>
-<td>Information-CMI</td>
+<td>Information CMI</td>
 <td>conditional MI on supersample</td>
 <td>SGD / MNIST</td>
 <td>analytic</td>
@@ -480,7 +451,7 @@ estimator still required</td>
 <td>Negrea UC defense <span class="citation"
 data-cites="negrea_defense_uc_2020">(Negrea et al. 2020)</span></td>
 <td>2020</td>
-<td>PAC-Bayes-data-dep</td>
+<td>PAC-Bayes data-dep.</td>
 <td>restricted-class UC</td>
 <td>linear models</td>
 <td>analytic</td>
@@ -492,7 +463,7 @@ data-cites="negrea_defense_uc_2020">(Negrea et al. 2020)</span></td>
 data-cites="esposito_generalization_2020_renyi">(Esposito et al.
 2021)</span></td>
 <td>2020</td>
-<td>Information-MI</td>
+<td>Information MI</td>
 <td>Renyi-divergence bound</td>
 <td>Gibbs / theoretical</td>
 <td>analytic</td>
@@ -502,15 +473,15 @@ Renyi-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semanti
 divergences</td>
 </tr>
 <tr>
-<td>Jiang sharpness-magnitude <span class="citation"
+<td>Jiang sharpness magnitude <span class="citation"
 data-cites="jiang_fantastic_2020">(Jiang et al. 2020)</span></td>
 <td>2020</td>
-<td>Sharpness-empirical</td>
+<td>Sharpness empirical</td>
 <td>flat ratio
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>
 magnitude</td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>10k
-CNN / CIFAR-10</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><msup><mn>10</mn><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">\sim 10^4</annotation></semantics></math>
+CNNs / CIFAR-10</td>
 <td> - </td>
 <td>0.484</td>
 <td>top-ranked predictor across the sweep</td>
@@ -519,32 +490,35 @@ CNN / CIFAR-10</td>
 <td>Jiang PB-sharpness <span class="citation"
 data-cites="jiang_fantastic_2020">(Jiang et al. 2020)</span></td>
 <td>2020</td>
-<td>Sharpness-empirical</td>
+<td>Sharpness empirical</td>
 <td>PAC-Bayes flat ratio at init</td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>10k
-CNN / CIFAR-10</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><msup><mn>10</mn><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">\sim 10^4</annotation></semantics></math>
+CNNs / CIFAR-10</td>
 <td> - </td>
 <td>0.318</td>
 <td>second-tier predictor</td>
 </tr>
 <tr>
-<td>Jiang spectral-product <span class="citation"
+<td>Jiang spectral product <span class="citation"
 data-cites="jiang_fantastic_2020">(Jiang et al. 2020)</span></td>
 <td>2020</td>
-<td>Norm-product</td>
+<td>Norm product</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∏</mo><mi>ℓ</mi></msub><mo stretchy="false" form="postfix">‖</mo><msub><mi>W</mi><mi>ℓ</mi></msub><msub><mo stretchy="false" form="postfix">‖</mo><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">\prod_\ell \Vert W_\ell \Vert_2</annotation></semantics></math></td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>10k
-CNN / CIFAR-10</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><msup><mn>10</mn><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">\sim 10^4</annotation></semantics></math>
+CNNs / CIFAR-10</td>
 <td> - </td>
 <td>-0.076</td>
-<td>negatively correlated; theory-empirical mismatch</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
+disagrees with Table <a
+href="tbl:jiang-2020-ranking">tbl:jiang-2020-ranking</a>
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mn>0.537</mn></mrow><annotation encoding="application/x-tex">-0.537</annotation></semantics></math>)</td>
 </tr>
 <tr>
 <td>Perez-Ortiz tight <span class="citation"
 data-cites="perez_ortiz_tighter_2021">(Perez-Ortiz et al.
 2021)</span></td>
 <td>2021</td>
-<td>PAC-Bayes-data-dep</td>
+<td>PAC-Bayes data-dep.</td>
 <td>prior-learning split + PAC-Bayes-kl</td>
 <td>MNIST FCN / CIFAR-10 CNN</td>
 <td>0.0279</td>
@@ -555,7 +529,7 @@ data-cites="perez_ortiz_tighter_2021">(Perez-Ortiz et al.
 <td>Alquier tutorial <span class="citation"
 data-cites="alquier_pacbayes_2024_tutorial">(Alquier 2024)</span></td>
 <td>2024</td>
-<td>PAC-Bayes-classical</td>
+<td>PAC-Bayes classical</td>
 <td>survey of all variants</td>
 <td>bibliographic</td>
 <td> - </td>
@@ -564,23 +538,24 @@ data-cites="alquier_pacbayes_2024_tutorial">(Alquier 2024)</span></td>
 </tr>
 </tbody>
 </table></div>
-<p>The table groups the literature into eight bound families, walked
-through in chronological order. Classical <strong>PAC-Bayes</strong>
-(McAllester, Seeger, Catoni, Lacasse) gave the foundational machinery
-(square-root form, binary-kl inversion, Legendre/Gibbs construction,
-C-bound derandomization) but was applied only to toy classifiers and
-Gaussian-process models; the bounds are tight asymptotically but were
-never fielded on a deep network because the KL between a deep-net random
-init and its SGD-trained weights is far too large for a useful absolute
-bound<a href="#fn12" class="footnote-ref" id="fnref12"
-role="doc-noteref"><sup>12</sup></a><a href="#fn13" class="footnote-ref"
-id="fnref13" role="doc-noteref"><sup>13</sup></a>. The Dziugaite-Roy
-line broke this barrier by <strong>SGD-optimizing the bound
-itself</strong> on a 3-layer MLP<a href="#fn14" class="footnote-ref"
-id="fnref14" role="doc-noteref"><sup>14</sup></a>, reaching 0.161 on
-binary MNIST T-600; Perez-Ortiz tightened the recipe to 0.2377 on
-CIFAR-10 with a 9-layer CNN by combining a prior learnt on a 70 percent
-split (legal because
+<p>The literature falls into eight bound families (Table <a
+href="tbl:pb-sota">tbl:pb-sota</a>), walked through in chronological
+order. Classical <strong>PAC-Bayes</strong> (McAllester, Seeger, Catoni,
+Lacasse) gave the foundational machinery (square-root form, binary-kl
+inversion, Legendre/Gibbs construction, C-bound derandomization) but was
+applied only to toy classifiers and Gaussian-process models; the bounds
+are tight asymptotically but were never fielded on a deep network
+because the KL between a deep-net random init and its SGD-trained
+weights is far too large for a useful absolute bound<a href="#fn12"
+class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a><a
+href="#fn13" class="footnote-ref" id="fnref13"
+role="doc-noteref"><sup>13</sup></a>. The Dziugaite-Roy line broke this
+barrier by <strong>SGD-optimizing the bound itself</strong> on a 3-layer
+MLP<a href="#fn14" class="footnote-ref" id="fnref14"
+role="doc-noteref"><sup>14</sup></a>, reaching 0.161 on binary MNIST
+T-600; Perez-Ortiz tightened the construction to 0.2377 on CIFAR-10 with
+a 9-layer CNN by combining a prior learnt on a 70 percent split (legal
+because
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>
 does not see the training fold) with a tuned Catoni
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math><a
@@ -634,33 +609,13 @@ remains an open problem, and the bounds are useful as theoretical
 guarantees rather than numerical certificates.</p>
 <figure id="fig:pac-bayes-trends">
 <img src="figures/pac-bayes-trends.svg" />
-<figcaption>PAC-Bayes / generalization-bound landscape across 1999-2024,
-organized by paper year (x-axis) and bound type (y-bands). Marker shape
-and colour encode bound class. Top band: Kendall-tau rank correlation
-with the empirical generalization gap, populated only by sharpness-based
-predictors and norm-products from the <span class="citation"
-data-cites="jiang_fantastic_2020">(Jiang et al. 2020)</span> sweep.
-Middle band: fielded absolute bound value on a [0,1] loss for the four
-data-dependent PAC-Bayes papers (Dziugaite-Roy 0.161 on T-600 binary
-MNIST, Dziugaite 2018 0.21 on MNIST, Perez-Ortiz 0.0279 on MNIST and
-0.2377 on CIFAR-10) plus Seeger's 0.29 on Pima Indians. Bottom band:
-theory-only entries (closed forms but no fielded number). Three readings
-match the table. (i) The <em>sharpness</em> and
-<em>PAC-Bayes-data-dep</em> rows are the only families to produce both
-numerical bounds and rank correlations, the dual quality criterion<a
-href="#fn19" class="footnote-ref" id="fnref19"
-role="doc-noteref"><sup>19</sup></a>. (ii) Norm-product capacity, the
-quantity the spectral-margin theorems control, scores Kendall
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mo>=</mo><mi>−</mi><mn>0.537</mn></mrow><annotation encoding="application/x-tex">\tau = -0.537</annotation></semantics></math>,
-the largest-magnitude correlation in the sweep and with the sign
-reversed<a href="#fn20" class="footnote-ref" id="fnref20"
-role="doc-noteref"><sup>20</sup></a>. (iii) The information-theoretic
-line is densely populated post-2017 but every entry is theory-only:
-estimating
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mo stretchy="false" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">I(S; W)</annotation></semantics></math>
-on a deep ConvNet remains an open problem<a href="#fn21"
-class="footnote-ref" id="fnref21"
-role="doc-noteref"><sup>21</sup></a>.</figcaption>
+<figcaption>Generalization-bound papers by year (axis broken between
+2008 and 2014), with bound class as marker and colour. Top: Kendall
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
+with the generalization gap <span class="citation"
+data-cites="jiang_fantastic_2020">(Jiang et al. 2020)</span>. Middle:
+fielded bound value on a [0,1] loss. Bottom: theory-only
+entries.</figcaption>
 </figure>
 <p>The <strong>sharpness-empirical</strong> line (Jiang and co-authors)
 is conceptually a step back from formal bound-proving: it replaces "what
@@ -670,8 +625,8 @@ produces the negative result for spectral-norm capacity and the positive
 result for sharpness-magnitude. Its weakness is <strong>flatness
 fragility</strong>: pointwise reparameterization can rescale sharpness
 arbitrarily without changing the predictor function (Dinh et al.)<a
-href="#fn22" class="footnote-ref" id="fnref22"
-role="doc-noteref"><sup>22</sup></a>, so any sharpness-based measure
+href="#fn19" class="footnote-ref" id="fnref19"
+role="doc-noteref"><sup>19</sup></a>, so any sharpness-based measure
 must be carefully normalized to be invariant under reparameterization;
 the field has not converged on a single such normalization.</p>
 <p>The <strong>impossibility</strong> result and its partial rebuttals
@@ -680,8 +635,8 @@ data-cites="nagarajan_kolter_2019">(Nagarajan and Kolter 2019)</span>
 prove that on a linear-classifier mixture-of-Gaussians problem, no
 two-sided uniform-convergence bound applied to the SGD-output
 distribution can be tight: the bound is forced to be vacuous regardless
-of how the hypothesis class is parameterized<a href="#fn23"
-class="footnote-ref" id="fnref23" role="doc-noteref"><sup>23</sup></a>.
+of how the hypothesis class is parameterized<a href="#fn20"
+class="footnote-ref" id="fnref20" role="doc-noteref"><sup>20</sup></a>.
 <span class="citation" data-cites="negrea_defense_uc_2020">(Negrea et
 al. 2020)</span> partially defends UC by restricting attention to a
 strict hypothesis-class subset that the algorithm visits with high
@@ -689,19 +644,20 @@ probability; the result is that uniform convergence is salvageable but
 only via algorithm-dependent restrictions, which moves the framework
 closer to PAC-Bayes in spirit. Together with <span class="citation"
 data-cites="zhang_rethinking_2017">(Zhang et al. 2017)</span>'s
-random-label baseline<a href="#fn24" class="footnote-ref" id="fnref24"
-role="doc-noteref"><sup>24</sup></a>, the impossibility line is the
+random-label baseline<a href="#fn21" class="footnote-ref" id="fnref21"
+role="doc-noteref"><sup>21</sup></a>, the impossibility line is the
 negative half of modern generalization theory: a definitive
 falsification of class-capacity-only programs and a forcing function
 toward algorithm-dependent analyses (PAC-Bayes, MI, sharpness).</p>
-<p>The leaderboard separates four eras: foundational PAC-Bayes
-(1999-2007), the deep-learning challenge (2015-2017, when capacity-based
-bounds were shown to be vacuous on real architectures and the puzzle of
-Zhang et al. was sharpened), the bound-engineering era (2017-2021, when
-SGD-optimized PAC-Bayes and data-dependent priors finally produced
-fielded non-vacuous numbers on small models), and the modern
-audit-and-impossibility era (2019-2024, dominated by the Jiang sweep and
-the Nagarajan-Kolter obstruction). Three readings. First, the only
+<p>The papers fall into four eras: foundational PAC-Bayes (1999-2007),
+the deep-learning challenge (2015-2017, when capacity-based bounds were
+shown to be vacuous on real architectures and the puzzle of Zhang et al.
+was sharpened), the bound-engineering era (2017-2021, when SGD-optimized
+PAC-Bayes and data-dependent priors finally produced fielded non-vacuous
+numbers on small models), and the modern audit-and-impossibility era
+(2019-2024, dominated by the Jiang sweep and the Nagarajan-Kolter
+obstruction). Three readings (Figure <a
+href="fig:pac-bayes-trends">fig:pac-bayes-trends</a>). First, the only
 fielded non-vacuous bounds on real classifiers are
 <strong>PAC-Bayes-data-dep</strong> variants and only on MLPs / small
 CNNs at most; every classical norm-product or margin bound exceeds 1 on
@@ -875,10 +831,10 @@ problem.<a href="#fnref1" class="footnote-back"
 role="doc-backlink">↩︎</a></p></li>
 <li id="fn2"><p><em>SGD-optimization of the bound</em>: Dziugaite and
 Roy treat the PAC-Bayes bound as a training loss and optimize a Gaussian
-posterior with SGD; the recipe gives the only fielded non-vacuous bound
-(0.161 on T-600 binary MNIST) but does not scale beyond 3-layer MLPs
-because the KL term grows superlinearly with depth.<a href="#fnref2"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+posterior with SGD; the approach gives the only fielded non-vacuous
+bound (0.161 on T-600 binary MNIST) but does not scale beyond 3-layer
+MLPs because the KL term grows superlinearly with depth.<a
+href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn3"><p><em>Vacuous bounds on deep nets</em>:
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mrow><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mi>/</mi><mi>n</mi></mrow></msqrt><annotation encoding="application/x-tex">\sqrt{\mathrm{KL}/n}</annotation></semantics></math>
 blows up because the KL between a random initialization (the legal
@@ -903,9 +859,9 @@ breaks the McAllester proof; legal data-dependent priors (Dziugaite-Roy
 trading a smaller KL for sample-splitting overhead and bookkeeping.<a
 href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn6"><p><em>Spectral-norm product vacuity</em>:
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∏</mo><mi>ℓ</mi></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>W</mi><mi>ℓ</mi></msub><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">\prod_\ell \|W_\ell\|2</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∏</mo><mi>ℓ</mi></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>W</mi><mi>ℓ</mi></msub><msub><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">\prod_\ell \|W_\ell\|_2</annotation></semantics></math>
 grows polynomially in depth (each layer contributes a factor
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mi mathvariant="normal">max</mi></mrow><annotation encoding="application/x-tex">\sigma{\max}</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>σ</mi><mi mathvariant="normal">max</mi></msub><annotation encoding="application/x-tex">\sigma_{\max}</annotation></semantics></math>
 that is rarely
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">&lt;1</annotation></semantics></math>
 for ReLU nets at convergence), so the Bartlett-Foster-Telgarsky bound
@@ -964,10 +920,10 @@ models.<a href="#fnref13" class="footnote-back"
 role="doc-backlink">↩︎</a></p></li>
 <li id="fn14"><p><em>SGD-optimization of the bound</em>: Dziugaite and
 Roy treat the PAC-Bayes bound as a training loss and optimize a Gaussian
-posterior with SGD; the recipe gives the only fielded non-vacuous bound
-(0.161 on T-600 binary MNIST) but does not scale beyond 3-layer MLPs
-because the KL term grows superlinearly with depth.<a href="#fnref14"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+posterior with SGD; the approach gives the only fielded non-vacuous
+bound (0.161 on T-600 binary MNIST) but does not scale beyond 3-layer
+MLPs because the KL term grows superlinearly with depth.<a
+href="#fnref14" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn15"><p><em>Prior must be data-independent</em>: any dependence
 of the prior
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>
@@ -979,9 +935,9 @@ breaks the McAllester proof; legal data-dependent priors (Dziugaite-Roy
 trading a smaller KL for sample-splitting overhead and bookkeeping.<a
 href="#fnref15" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn16"><p><em>Spectral-norm product vacuity</em>:
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∏</mo><mi>ℓ</mi></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>W</mi><mi>ℓ</mi></msub><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">\prod_\ell \|W_\ell\|2</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∏</mo><mi>ℓ</mi></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>W</mi><mi>ℓ</mi></msub><msub><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">\prod_\ell \|W_\ell\|_2</annotation></semantics></math>
 grows polynomially in depth (each layer contributes a factor
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mi mathvariant="normal">max</mi></mrow><annotation encoding="application/x-tex">\sigma{\max}</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>σ</mi><mi mathvariant="normal">max</mi></msub><annotation encoding="application/x-tex">\sigma_{\max}</annotation></semantics></math>
 that is rarely
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">&lt;1</annotation></semantics></math>
 for ReLU nets at convergence), so the Bartlett-Foster-Telgarsky bound
@@ -1005,52 +961,26 @@ by a conditional MI given a "supersample" construction; the conditioning
 makes the term smaller but shifts the estimation problem to one that is
 in general no easier.<a href="#fnref18" class="footnote-back"
 role="doc-backlink">↩︎</a></p></li>
-<li id="fn19"><p><em>Kendall-rank vs absolute value</em>: a
-generalization measure can have high rank correlation with the true gap
-(its predictive value across a hyperparameter sweep) while its absolute
-number is vacuous; conversely a tight bound on a single model says
-nothing about how the bound moves under perturbation. Reporting both is
-the modern standard.<a href="#fnref19" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn20"><p><em>Spectral-norm product vacuity</em>:
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∏</mo><mi>ℓ</mi></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>W</mi><mi>ℓ</mi></msub><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">\prod_\ell \|W_\ell\|2</annotation></semantics></math>
-grows polynomially in depth (each layer contributes a factor
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mi mathvariant="normal">max</mi></mrow><annotation encoding="application/x-tex">\sigma{\max}</annotation></semantics></math>
-that is rarely
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">&lt;1</annotation></semantics></math>
-for ReLU nets at convergence), so the Bartlett-Foster-Telgarsky bound
-exceeds 1 beyond AlexNet-scale architectures even when the empirical gap
-is well-controlled.<a href="#fnref20" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn21"><p><em>MI bounds tighter but harder to estimate</em>:
-information-theoretic bounds replace capacity with
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mo stretchy="false" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">I(S; W)</annotation></semantics></math>,
-which is finite for noisy SGD and can in principle be smaller than
-KL-based PAC-Bayes; estimating
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mo stretchy="false" form="prefix">(</mo><mi>S</mi><mo>;</mo><mi>W</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">I(S; W)</annotation></semantics></math>
-in high dimensions requires either a Gaussian-process surrogate, a
-Langevin assumption, or kernelized lower bounds.<a href="#fnref21"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn22"><p><em>Flatness measure fragility</em>: sharpness as a
+<li id="fn19"><p><em>Flatness measure fragility</em>: sharpness as a
 generalization predictor depends on the parameterization; Dinh et al.
 showed that pointwise reparameterization can scale sharpness arbitrarily
 without changing the predictor function, so a "flat" minimum in one
 parameterization can be sharp in another, defeating naive
-flatness-as-capacity arguments.<a href="#fnref22" class="footnote-back"
+flatness-as-capacity arguments.<a href="#fnref19" class="footnote-back"
 role="doc-backlink">↩︎</a></p></li>
-<li id="fn23"><p><em>Uniform-convergence impossibility</em>: Nagarajan
+<li id="fn20"><p><em>Uniform-convergence impossibility</em>: Nagarajan
 and Kolter exhibit a linear-classifier setting in which any two-sided
 uniform-convergence bound is provably nearly vacuous on the SGD-output
 distribution, ruling out the entire classical-style program for
-explaining deep-net generalization.<a href="#fnref23"
+explaining deep-net generalization.<a href="#fnref20"
 class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn24"><p><em>Random-label baseline</em>: <span class="citation"
+<li id="fn21"><p><em>Random-label baseline</em>: <span class="citation"
 data-cites="zhang_rethinking_2017">(Zhang et al. 2017)</span>'s
 randomization test is not a generalization bound but a sharp
 falsification of capacity-based explanations; if a network can memorize
 random labels at training error 0, no class-based capacity argument can
 produce a non-trivial bound on the same architecture for the real-label
-problem.<a href="#fnref24" class="footnote-back"
+problem.<a href="#fnref21" class="footnote-back"
 role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>

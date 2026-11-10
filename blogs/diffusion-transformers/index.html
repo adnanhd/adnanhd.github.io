@@ -57,10 +57,13 @@ this chapter is almost entirely a record of papers that change
 <em>one</em> of these and hold the others fixed, and that is why its
 numbers can be compared at all. DDIM changes only the sampler and reuses
 the DDPM weights untouched. Flow matching changes only the loss and
-reuses the EDM U-Net unchanged. DiT changes only the backbone and
-inherits LDM's frozen VAE. ControlNet, Video LDM and AnimateDiff change
-only the conditioning path and freeze the image model underneath. Table
-<a href="tbl:dit-what-changed">tbl:dit-what-changed</a> indexes the
+trains the U-Net of Dhariwal and Nichol <span class="citation"
+data-cites="dhariwal_diffusion_2021">(Dhariwal and Nichol 2021)</span>,
+with minimal changes, with the same architecture and hyperparameters as
+its diffusion baselines. DiT changes only the backbone and inherits
+LDM's frozen VAE. ControlNet, Video LDM and AnimateDiff change only the
+conditioning path and freeze the image model underneath. Table <a
+href="tbl:dit-what-changed">tbl:dit-what-changed</a> indexes the
 milestones by which part each one moved, and Table <a
 href="tab:diffusion-sota">tab:diffusion-sota</a> gives the reported
 quality, scale and sampling cost of the same lineage. Read together they
@@ -113,7 +116,7 @@ data-cites="karras_elucidating_2022">(Karras et al. 2022)</span></td>
 <td>Flow matching <span class="citation"
 data-cites="lipman_flow_2023">(Lipman et al. 2023)</span></td>
 <td>probability path (loss)</td>
-<td>EDM U-Net, data</td>
+<td>ADM U-Net, data</td>
 <td>same model, different loss, so path is the only variable</td>
 </tr>
 <tr>
@@ -209,7 +212,10 @@ PixArt-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semant
 DALL-E 3, SD3): these papers report no FID on a benchmark commensurable
 with the rows above, so they are listed for backbone, scale and sampling
 budget only and must not be read as a quality ranking against the FID
-rows.</caption>
+rows. The flow-matching row is unconditional ImageNet 64×64, where Table
+1 of Lipman et al. gives 3.31 bits/dim and FID 14.45 with an adaptive
+solver averaging 138 function evaluations; the paper states no parameter
+count, hence the dash.</caption>
 <thead>
 <tr>
 <th>Model</th>
@@ -411,11 +417,11 @@ data-cites="song_consistency_2023">(Song et al. 2023)</span></td>
 <td>Flow Matching <span class="citation"
 data-cites="lipman_flow_2023">(Lipman et al. 2023)</span></td>
 <td>2023</td>
-<td>EDM-net</td>
+<td>U-Net</td>
 <td>ImageNet 64 (bpd 3.31)</td>
+<td>14.45</td>
+<td>138</td>
 <td>-</td>
-<td>142</td>
-<td>62M</td>
 </tr>
 <tr>
 <td>SD3 (MM-DiT) <span class="citation"
@@ -449,7 +455,7 @@ iteratively denoising samples from Gaussian noise produces high-quality
 images, reporting an FID of 3.17 on CIFAR-10, the lowest published at
 the time, and competitive results on LSUN.[fn:s0-ddpm-impl] This work
 established the connection between diffusion models and denoising score matching, providing both theoretical
-grounding and practical training recipes.</p>
+grounding and practical training setups.</p>
 <p>Subsequent work focused on accelerating sampling, which originally
 required 1000+ steps. Denoising Diffusion Implicit
 Models (DDIM) <span class="citation"
@@ -531,9 +537,9 @@ et al. 2023)</span> inserted temporal layers into pretrained image LDMs
 and trained only those layers, freezing the spatial weights. Stable
 Video Diffusion <span class="citation"
 data-cites="blattmann_stable_2023">(Blattmann, Dockhorn, et al.
-2023)</span> kept that recipe and moved the variable to the data,
-showing the importance of curation for video quality. AnimateDiff <span
-class="citation" data-cites="guo_animatediff_2024">(Guo et al.
+2023)</span> kept that training setup and moved the variable to the
+data, showing the importance of curation for video quality. AnimateDiff
+<span class="citation" data-cites="guo_animatediff_2024">(Guo et al.
 2024)</span> pushed the separation furthest and showed motion modules
 can animate any personalized text-to-image model without retraining,
 which is the claim that motion and appearance are learned in disjoint
@@ -553,8 +559,8 @@ interpolating between noise
 and data
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo>=</mo><msub><mi>p</mi><mtext mathvariant="normal">data</mtext></msub></mrow><annotation encoding="application/x-tex">p_1 = p_{\text{data}}</annotation></semantics></math>.
 The conditional flow matching (CFM) objective is:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">ℒ</mi><mtext mathvariant="normal">CFM</mtext><mo>=</mo><mi mathvariant="double-struck">𝔼</mi><mrow><mi>t</mi><mo>,</mo><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><msub><mi>x</mi><mi>t</mi></msub></mrow><mo stretchy="false" form="postfix">∥</mo><msub><mi>v</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>t</mi></msub><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>u</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">|</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\begin{equation}
-\mathcal{L}{\text{CFM}} = \mathbb{E}{t, x_1, x_t} \|v_\theta(x_t, t) - u_t(x_t | x_1)\|^2
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="script">ℒ</mi><mtext mathvariant="normal">CFM</mtext></msub><mo>=</mo><msub><mi mathvariant="double-struck">𝔼</mi><mrow><mi>t</mi><mo>,</mo><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><msub><mi>x</mi><mi>t</mi></msub></mrow></msub><mo stretchy="false" form="postfix">∥</mo><msub><mi>v</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>t</mi></msub><mo>,</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>u</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">|</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><msup><mo stretchy="false" form="postfix">∥</mo><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\begin{equation}
+\mathcal{L}_{\text{CFM}} = \mathbb{E}_{t, x_1, x_t} \|v_\theta(x_t, t) - u_t(x_t | x_1)\|^2
 \end{equation}</annotation></semantics></math> where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>u</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>x</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">|</mo><msub><mi>x</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">u_t(x_t | x_1)</annotation></semantics></math>
 is the target velocity for the conditional path

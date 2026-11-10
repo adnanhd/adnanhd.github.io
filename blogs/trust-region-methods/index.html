@@ -264,7 +264,7 @@ critic-of-policy-size is prohibitive) and uses an unbiased KL estimator
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mrow><mi>r</mi><mi>e</mi><mi>f</mi></mrow></msub><mi>/</mi><msub><mi>π</mi><mi>θ</mi></msub><mo>−</mo><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>π</mi><mrow><mi>r</mi><mi>e</mi><mi>f</mi></mrow></msub><mi>/</mi><msub><mi>π</mi><mi>θ</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\pi_{ref}/\pi_\theta - \log(\pi_{ref}/\pi_\theta) - 1</annotation></semantics></math>
 rather than the log-ratio form, becoming the de facto RLHF backbone for
 reasoning models. <u>The decade-long arc converges on a single
-recipe</u>, namely clipped or KL-penalized <a
+method</u>, namely clipped or KL-penalized <a
 href="wiki:Importance_sampling">importance-weighted</a> surrogates with
 code-level optimizations <span class="citation"
 data-cites="engstrom_implementation_2020">(Engstrom et al. 2020)</span>

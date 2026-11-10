@@ -68,14 +68,14 @@ and Discrete Representations and VQ-VAE:
 Discrete Latent Codes). VQGAN <span class="citation"
 data-cites="esser_taming_2021">(Esser et al. 2021)</span> kept the
 lookup and added a perceptual and an adversarial loss on top of the
-pixel loss, the recipe every later tokenizer in this chapter reuses.
-DALL-E's discrete variational autoencoder (dVAE) <span class="citation"
-data-cites="ramesh_zero-shot_2021">(Ramesh et al. 2021)</span>, a branch
-outside that recipe that keeps no perceptual or adversarial loss and
-maximizes the relaxed evidence lower bound alone, with a logit-Laplace
-reconstruction likelihood (Section 2.1, Appendices A.2 and A.3),
-replaces VQ-VAE's straight-through route with a Gumbel-softmax
-relaxation <span class="citation"
+pixel loss, the training setup every later tokenizer in this chapter
+reuses. DALL-E's discrete variational autoencoder (dVAE) <span
+class="citation" data-cites="ramesh_zero-shot_2021">(Ramesh et al.
+2021)</span>, a branch outside that training setup that keeps no
+perceptual or adversarial loss and maximizes the relaxed evidence lower
+bound alone, with a logit-Laplace reconstruction likelihood (Section
+2.1, Appendices A.2 and A.3), replaces VQ-VAE's straight-through route
+with a Gumbel-softmax relaxation <span class="citation"
 data-cites="jang_gumbel-softmax_2017">(Jang et al. 2017)</span> of the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>-way
 assignment, relies on the Kullback-Leibler term of its evidence lower

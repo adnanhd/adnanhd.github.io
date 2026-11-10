@@ -52,57 +52,73 @@ within the broader model-compression taxonomy alongside pruning,
 low-rank factorization, and quantization-aware training.
 Pruning removes redundant parameters, quantization reduces numeric
 precision, and distillation replaces the teacher with a smaller student
-parameterization. <u>Unlike pruning and quantization, distillation
-changes the architecture of the deployed model</u>, which permits
-structural compression that cannot be expressed as a sparsity pattern or
-bit-width reduction.</p>
+parameterization. <u>Unlike unstructured pruning and quantization,
+distillation changes the architecture of the deployed model</u>, which
+permits structural compression that cannot be expressed as a sparsity
+pattern or bit-width reduction. Structured
+pruning also deploys a smaller dense network, since it removes whole
+filters together with their feature maps <span class="citation"
+data-cites="li_pruning_2017">(Li et al. 2017)</span>, but only within
+the teacher's own topology, while a distilled student can belong to a
+different architecture family: ResNet-50 -&gt; MobileNet-V1 in Table <a
+href="tbl:kd-classification-benchmarks">tbl:kd-classification-benchmarks</a>,
+or the ViT-7B -&gt; ConvNeXt students of DINOv3, a transfer that Section
+7.2 of <span class="citation" data-cites="simeoni_dinov3_2025">(Siméoni
+et al. 2025)</span> describes as bridging two fundamentally different
+architectures.</p>
 <p>The intellectual precursor of KD is the work of <span
 class="citation" data-cites="bucilua_model_2006">(Buciluǎ et al.
 2006)</span>, who showed that a small neural network (a 1-hidden-layer
-"mimic model" with 128-256 units) can be trained to recover 91-98% of
-the AUC of a roughly 1000-model heterogeneous ensemble (SVMs, boosted
-trees, bagged trees, random forests, kNN) across eight benchmark
-datasets, producing a 1000x parameter reduction whose original
-motivation was strictly deploying ensembles onto 2006-era PDAs and
-embedded devices. Their loss was <em>mean-squared-error on the
-ensemble's predicted probability</em> (regression onto raw
-probabilities, not logits and not KL on softened distributions), which
-is structurally distinct from Hinton's recipe. Their compression
-pipeline used <em>MUNGE</em>, a synthetic-data generator that expands
-the training set by perturbing each feature of a real example
-(categorical features swap to another value with probability
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>0.5</mn></mrow><annotation encoding="application/x-tex">p = 0.5</annotation></semantics></math>,
-continuous features swap to a neighbor's value and add Gaussian noise).
-MUNGE was needed because in-distribution labelled data alone was
-insufficient to transfer the ensemble's decision boundary, and MUNGE is
-load-bearing: disabling it drops AUC recovery from 91-98% to 50-70% on
-some datasets. A notable empirical observation was that the mimic often
-beats individual ensemble members despite being trained against the
-mean, suggesting the compression captures ensemble behavior more
-regularly than any single component does. The failure mode Hinton later
-solved is saturation: when the ensemble's predicted probabilities are
-near 0 or 1, the MSE gradient nearly vanishes; this is precisely what
-motivates temperature scaling. <span class="citation"
-data-cites="ba_deep_2014">(Ba and Caruana 2014)</span> extended the idea
-by matching the <em>logits</em> (pre-softmax activations) of a deep
-teacher rather than its probabilities; their key empirical finding on
-TIMIT phone recognition was that a shallow 1-hidden-layer MLP with
-30,000 units trained on hard labels reaches 23.1% phone error rate,
-trained on teacher logits it reaches 20.9%, essentially closing the gap
-to the 20.7% deep 4-layer CNN teacher. This holds only when the
-regression target is logits, not softmax probabilities, since logit
-regression preserves gradient magnitude even when teacher probabilities
-saturate. They also introduced a <em>bottleneck linear-layer trick</em>:
-the 30K-unit shallow model has roughly 20M parameters and takes 6-12
-GPU-days to train densely, so they factorize the 30K-unit hidden layer
-through a rank-400 bottleneck, reducing parameters to roughly 1M and
-training time to 1-2 days. This low-rank factorization predates modern
-LoRA by almost a decade. The claim in the paper's title ("Do Deep Nets
-Really Need to Be Deep?") is pointed but often misread: <u>the paper
-does not claim shallow nets are inherently sufficient, only that the
-optimization problem for shallow nets can reach good solutions when
-guided by a deep teacher</u>. The distinction bears on any contemporary
-"is distillation necessary?" argument. <span class="citation"
+"mimic model" with 128-256 units) can be trained to recover on average
+97% of the RMSE improvement that an ensemble-selection model (built from
+SVMs, boosted trees, bagged trees, random forests, kNN and others) makes
+over the best plain neural net across eight binary problems, producing a
+1000x size reduction whose original motivation was strictly deploying
+ensembles onto 2006-era PDAs and embedded devices. Their loss was
+<em>mean-squared-error on the ensemble's predicted probability</em>
+(regression onto raw probabilities, not logits and not KL on softened
+distributions), which is structurally distinct from Hinton's method.
+Their compression pipeline used <em>MUNGE</em>, a synthetic-data
+generator that expands the training set by perturbing each feature of a
+real example (with probability
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
+a feature takes its nearest neighbor's value, continuous features with
+added Gaussian noise). MUNGE was needed because in-distribution labelled
+data alone was insufficient to transfer the ensemble's decision
+boundary, and MUNGE is load-bearing: with independently sampled pseudo
+data instead, mimic nets trained on 100k cases or more do worse than a
+net trained on the original 4k (Figure 2). A notable empirical
+observation was that the mimic often beats individual ensemble members
+despite being trained against the mean, suggesting the compression
+captures ensemble behavior more regularly than any single component
+does. The failure mode Hinton later solved is saturation: when the
+ensemble's predicted probabilities are near 0 or 1, the MSE gradient
+nearly vanishes; this is precisely what motivates temperature scaling.
+<span class="citation" data-cites="ba_deep_2014">(Ba and Caruana
+2014)</span> extended the idea by matching the <em>logits</em>
+(pre-softmax activations) of a deep teacher rather than its
+probabilities; their key empirical finding on TIMIT phone recognition
+was that a 1-hidden-layer net with 8k units trained on hard labels
+reaches 23.1% phone error rate, trained on the logits of a 9-CNN
+ensemble (18.5%) it reaches 21.6%, level with a 21.9% deep net, and
+widened to 400k units it reaches 20.0% against 19.5% for a single deep
+CNN (Table 1). This holds only when the regression target is logits, not
+softmax probabilities, since logit regression preserves gradient
+magnitude even when teacher probabilities saturate. They also introduced
+a <em>bottleneck linear-layer trick</em>: the wide shallow models took
+multiple weeks to converge even on a GPU, so they factorize the
+input-to-hidden weights through 250 linear units on TIMIT (1200 on
+CIFAR-10), cutting memory from
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mi>H</mi><mi>D</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(HD)</annotation></semantics></math>
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mo stretchy="false" form="prefix">(</mo><mi>H</mi><mo>+</mo><mi>D</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(k(H+D))</annotation></semantics></math>.
+This low-rank factorization predates modern LoRA by almost a decade. The
+claim in the paper's title ("Do Deep Nets Really Need to Be Deep?") is
+pointed but often misread: <u>the paper does not claim shallow nets are
+inherently sufficient, only that the optimization problem for shallow
+nets can reach good solutions when guided by a deep teacher</u>. The
+distinction bears on any contemporary "is distillation necessary?"
+argument. <span class="citation"
 data-cites="hinton_distilling_2015">(Hinton et al. 2015)</span> unified
 and formalized these approaches, introducing the temperature-scaled
 softmax that makes logit-matching recoverable as a limit case of
@@ -118,7 +134,7 @@ data-cites="zagoruyko_attention_2017">(Zagoruyko and Komodakis
 2017)</span>, pairwise relations <span class="citation"
 data-cites="park_relational_2019">(Park et al. 2019)</span>, or
 contrastive similarity <span class="citation"
-data-cites="tian_contrastive_2020">(Tian et al. 2020)</span>. The
+data-cites="tian_contrastive_2020-1">(Tian et al. 2020)</span>. The
 <em>training-regime axis</em> asks how to organize the teacher-student
 loop: offline <span class="citation"
 data-cites="hinton_distilling_2015">(Hinton et al. 2015)</span>, online
@@ -141,39 +157,22 @@ data-cites="caron_emerging_2021">(Caron et al. 2021)</span> and BYOL
 apply EMA-based teacher-student dynamics for representation learning,
 borrowing the optimization template of distillation but aiming for
 representation quality rather than compression. <span class="citation"
-data-cites="tian_contrastive_2020">(Tian et al. 2020)</span> explicitly
-connects contrastive representation learning
+data-cites="tian_contrastive_2020-1">(Tian et al. 2020)</span>
+explicitly connects contrastive representation learning
 to distillation through the CRD framework.</p>
 <div class="blog-table"><table id="tbl:kd-sota">
-<caption>KD method inventory, with a metric column attached where one
-exists. Backbone gives student architecture or task family. The Loss
-cell uses (key=value) for headline hyperparameters, with KL the
-temperature-softmax KL, CE cross-entropy and MSE squared error. Data is
-the training set. The CIFAR-100 columns report student top-1 accuracy
-(%) with Tch the teacher's, and Δ is meant to be student-with-KD minus
-the same student trained with hard labels alone, so a positive Δ is the
-KD gain. GLUE is the GLUE Avg score (%) and SQuAD is SQuAD-v1.1 F1.
-<strong>The numeric columns are a composite and not a controlled
-comparison.</strong> Each per-row citation names the method's source
-paper, not the source of that row's digits, and the CIFAR-100 Student,
-Tch and Δ entries for the FitNets, AT, RKD, DML, ONE, Born-Again and
-PS-KD rows have been re-cast onto a common backbone rather than copied
-from the cited paper, which in several cases never ran that backbone or
-never reported a same-student KD delta at all. Read those cells as
-indicative magnitudes only. The rows that do trace to their citation
-under the stated backbone are CRD and DKD (WRN-40-2 to WRN-40-1,
-student-only 71.98, teacher 75.61) and the four NLP rows, each taken
-from its own paper's reported GLUE and SQuAD. For a genuine head-to-head
-under one pipeline see Table <a
-href="tbl:kd-classification-benchmarks">tbl:kd-classification-benchmarks</a>
-and the reproduction harness of <span class="citation"
-data-cites="tian_contrastive_2020">(Tian et al. 2020)</span> and <span
-class="citation" data-cites="zhao_decoupled_2022">(Zhao et al.
-2022)</span>. Dashes mark settings the paper does not report: NLP rows
-carry no vision metric and conversely, and the diffusion entry reports
-FID rather than accuracy and is discussed in the walk-through. Stanton
-et al. is a diagnostic audit and reports no headline accuracy gain by
-design.</caption>
+<caption>KD methods: student backbone, loss (key hyperparameters), data;
+CIFAR-100 student and teacher top-1 (%) and gain
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Δ</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math>
+over no distillation; GLUE average (%), SQuAD-v1.1 F1. Dashes: not run;
+n/r: not reported; protocols differ by row.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>a</mi></msup><annotation encoding="application/x-tex">^a</annotation></semantics></math>
+Table 1 of <span class="citation"
+data-cites="tian_contrastive_2020-1">(Tian et al. 2020)</span>;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>b</mi></msup><annotation encoding="application/x-tex">^b</annotation></semantics></math>
+100 minus error;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>c</mi></msup><annotation encoding="application/x-tex">^c</annotation></semantics></math>
+dev average including SQuAD 2.0.</caption>
 <tbody>
 <tr>
 <td></td>
@@ -194,8 +193,8 @@ design.</caption>
 <td>Loss</td>
 <td>Data</td>
 <td>Student</td>
-<td>Tch</td>
-<td>Δ</td>
+<td>Teacher</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Δ</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math></td>
 <td>GLUE</td>
 <td>SQuAD</td>
 </tr>
@@ -205,7 +204,7 @@ data-cites="bucilua_model_2006">(Buciluǎ et al. 2006)</span></td>
 <td>2006</td>
 <td>1-hidden MLP</td>
 <td>MSE on probs</td>
-<td>UCI 8 sets</td>
+<td>8 binary sets</td>
 <td> - </td>
 <td> - </td>
 <td> - </td>
@@ -230,7 +229,9 @@ data-cites="ba_deep_2014">(Ba and Caruana 2014)</span></td>
 data-cites="hinton_distilling_2015">(Hinton et al. 2015)</span></td>
 <td>2015</td>
 <td>MLP/DNN</td>
-<td>KL(τ=20)+CE(α=0.9)</td>
+<td>KL
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><mn>20</mn></mrow><annotation encoding="application/x-tex">T = 20</annotation></semantics></math>)
++ CE</td>
 <td>MNIST/speech</td>
 <td> - </td>
 <td> - </td>
@@ -242,12 +243,12 @@ data-cites="hinton_distilling_2015">(Hinton et al. 2015)</span></td>
 <td>FitNets <span class="citation"
 data-cites="romero_fitnets_2015">(Romero et al. 2015)</span></td>
 <td>2015</td>
-<td>17-layer thin</td>
-<td>KL+MSE(hint)</td>
+<td>19-layer thin</td>
+<td>KL + MSE (hint)</td>
 <td>CIFAR-10/100</td>
 <td>64.96</td>
-<td>64.4</td>
-<td>+1.5</td>
+<td>63.54</td>
+<td>n/r</td>
 <td> - </td>
 <td> - </td>
 </tr>
@@ -257,11 +258,12 @@ data-cites="zagoruyko_attention_2017">(Zagoruyko and Komodakis
 2017)</span></td>
 <td>2017</td>
 <td>WRN-16-2</td>
-<td>KL+MSE(attn maps,β=10<sup>3</sup>)</td>
+<td>CE + MSE (attention maps,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>=</mo><msup><mn>10</mn><mn>3</mn></msup></mrow><annotation encoding="application/x-tex">\beta = 10^3</annotation></semantics></math>)</td>
 <td>CIFAR-100</td>
-<td>73.5</td>
-<td>75.6</td>
-<td>+1.7</td>
+<td>74.08<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>a</mi></msup><annotation encoding="application/x-tex">^a</annotation></semantics></math></td>
+<td>75.61<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>a</mi></msup><annotation encoding="application/x-tex">^a</annotation></semantics></math></td>
+<td>+0.8<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>a</mi></msup><annotation encoding="application/x-tex">^a</annotation></semantics></math></td>
 <td> - </td>
 <td> - </td>
 </tr>
@@ -269,24 +271,26 @@ data-cites="zagoruyko_attention_2017">(Zagoruyko and Komodakis
 <td>RKD <span class="citation"
 data-cites="park_relational_2019">(Park et al. 2019)</span></td>
 <td>2019</td>
-<td>ResNet-20</td>
-<td>KL+Huber(dist)+Huber(angle)</td>
+<td>VGG11-BN</td>
+<td>CE + Huber (distance) + Huber (angle)</td>
 <td>CIFAR-100</td>
-<td>70.4</td>
-<td>72.3</td>
-<td>+1.0</td>
+<td>72.97</td>
+<td>77.76</td>
+<td>+1.7</td>
 <td> - </td>
 <td> - </td>
 </tr>
 <tr>
 <td>CRD <span class="citation"
-data-cites="tian_contrastive_2020">(Tian et al. 2020)</span></td>
+data-cites="tian_contrastive_2020-1">(Tian et al. 2020)</span></td>
 <td>2020</td>
 <td>WRN-40-1</td>
-<td>KL+InfoNCE(τ=0.07,K=16384)</td>
+<td>CE + InfoNCE
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mo>=</mo><mn>0.1</mn></mrow><annotation encoding="application/x-tex">\tau = 0.1</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>16384</mn></mrow><annotation encoding="application/x-tex">K = 16384</annotation></semantics></math>)</td>
 <td>CIFAR-100</td>
 <td>74.14</td>
-<td>75.6</td>
+<td>75.61</td>
 <td>+2.2</td>
 <td> - </td>
 <td> - </td>
@@ -296,10 +300,13 @@ data-cites="tian_contrastive_2020">(Tian et al. 2020)</span></td>
 data-cites="zhao_decoupled_2022">(Zhao et al. 2022)</span></td>
 <td>2022</td>
 <td>WRN-40-1</td>
-<td>TCKD(α=1)+NCKD(β=8)</td>
+<td>TCKD
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\alpha = 1</annotation></semantics></math>)
++ NCKD
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>=</mo><mn>6</mn></mrow><annotation encoding="application/x-tex">\beta = 6</annotation></semantics></math>)</td>
 <td>CIFAR-100</td>
 <td>74.81</td>
-<td>75.6</td>
+<td>75.61</td>
 <td>+2.8</td>
 <td> - </td>
 <td> - </td>
@@ -309,9 +316,10 @@ data-cites="zhao_decoupled_2022">(Zhao et al. 2022)</span></td>
 data-cites="zhang_deep_2018">(Zhang et al. 2018)</span></td>
 <td>2018</td>
 <td>ResNet-32×2</td>
-<td>CE+KL(peer,no-T)</td>
+<td>CE + KL (peer, no
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>)</td>
 <td>CIFAR-100</td>
-<td>70.3</td>
+<td>71.19</td>
 <td> - </td>
 <td>+2.2</td>
 <td> - </td>
@@ -321,12 +329,15 @@ data-cites="zhang_deep_2018">(Zhang et al. 2018)</span></td>
 <td>ONE <span class="citation"
 data-cites="lan_knowledge_2018">(Lan et al. 2018)</span></td>
 <td>2018</td>
-<td>ResNet-32 K=3</td>
-<td>KL(τ=3)+gated ensemble</td>
+<td>ResNet-32,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">K = 3</annotation></semantics></math></td>
+<td>KL
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">T = 3</annotation></semantics></math>)
++ gated ensemble</td>
 <td>CIFAR-100</td>
-<td>73.4</td>
+<td>73.39<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>b</mi></msup><annotation encoding="application/x-tex">^b</annotation></semantics></math></td>
 <td> - </td>
-<td>+3.7</td>
+<td>+4.6</td>
 <td> - </td>
 <td> - </td>
 </tr>
@@ -335,12 +346,12 @@ data-cites="lan_knowledge_2018">(Lan et al. 2018)</span></td>
 data-cites="furlanello_born-again_2018">(Furlanello et al.
 2018)</span></td>
 <td>2018</td>
-<td>DenseNet-BC</td>
-<td>KL(same arch, gen-3)</td>
+<td>DenseNet-80-80</td>
+<td>KL (same architecture, generation 3)</td>
 <td>CIFAR-100</td>
-<td>84.5</td>
-<td>82.3</td>
-<td>+2.2</td>
+<td>84.50<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>b</mi></msup><annotation encoding="application/x-tex">^b</annotation></semantics></math></td>
+<td>82.84<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>b</mi></msup><annotation encoding="application/x-tex">^b</annotation></semantics></math></td>
+<td>+1.7</td>
 <td> - </td>
 <td> - </td>
 </tr>
@@ -348,12 +359,14 @@ data-cites="furlanello_born-again_2018">(Furlanello et al.
 <td>PS-KD <span class="citation"
 data-cites="kim_self-knowledge_2021">(Kim et al. 2021)</span></td>
 <td>2021</td>
-<td>ResNet-18</td>
-<td>KL(past-self, α<sub>t</sub> lin 0..0.8)</td>
+<td>PreAct ResNet-18</td>
+<td>KL to past self,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>α</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\alpha_t</annotation></semantics></math>
+linear from 0 to 0.8</td>
 <td>CIFAR-100</td>
-<td>78.4</td>
+<td>79.18<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>b</mi></msup><annotation encoding="application/x-tex">^b</annotation></semantics></math></td>
 <td> - </td>
-<td>+1.5</td>
+<td>+3.4</td>
 <td> - </td>
 <td> - </td>
 </tr>
@@ -362,7 +375,9 @@ data-cites="kim_self-knowledge_2021">(Kim et al. 2021)</span></td>
 data-cites="sanh_distilbert_2019">(Sanh et al. 2019)</span></td>
 <td>2019</td>
 <td>6L Transf.</td>
-<td>MLM+KL(τ=2)+cos</td>
+<td>MLM + KL
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">T = 2</annotation></semantics></math>)
++ cosine</td>
 <td>BookCorp+W.</td>
 <td> - </td>
 <td> - </td>
@@ -376,20 +391,20 @@ data-cites="sanh_distilbert_2019">(Sanh et al. 2019)</span></td>
 2020)</span></td>
 <td>2020</td>
 <td>4L Transf.</td>
-<td>MSE(attn)+MSE(hidden)+KL(pred)</td>
+<td>MSE (attention) + MSE (hidden) + KL (prediction)</td>
 <td>BookCorp+W.</td>
 <td> - </td>
 <td> - </td>
 <td> - </td>
-<td>76.5</td>
+<td>77.0</td>
 <td>82.1</td>
 </tr>
 <tr>
 <td>MobileBERT <span class="citation"
 data-cites="sun_mobilebert_2020">(Sun et al. 2020)</span></td>
 <td>2020</td>
-<td>IB-bottleneck</td>
-<td>KL(post-attn)+MSE+progr. freeze</td>
+<td>24L Transf.</td>
+<td>KL (post-softmax attention) + MSE + progressive freeze</td>
 <td>BookCorp+W.</td>
 <td> - </td>
 <td> - </td>
@@ -398,25 +413,29 @@ data-cites="sun_mobilebert_2020">(Sun et al. 2020)</span></td>
 <td>90.0</td>
 </tr>
 <tr>
-<td>MiniLM (6L) <span class="citation"
+<td>MiniLM (6L, 768h) <span class="citation"
 data-cites="wang_minilm_2020">(Wang et al. 2020)</span></td>
 <td>2020</td>
 <td>6L Transf.</td>
-<td>KL(QK)+KL(VV) last-layer</td>
+<td>KL
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mi>K</mi></mrow><annotation encoding="application/x-tex">QK</annotation></semantics></math>)
++ KL
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>V</mi><mi>V</mi></mrow><annotation encoding="application/x-tex">VV</annotation></semantics></math>),
+last layer</td>
 <td>BookCorp+W.</td>
 <td> - </td>
 <td> - </td>
 <td> - </td>
-<td>78.9</td>
-<td>89.5</td>
+<td>80.4<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mi>c</mi></msup><annotation encoding="application/x-tex">^c</annotation></semantics></math></td>
+<td>n/r</td>
 </tr>
 <tr>
 <td>FGFI <span class="citation"
 data-cites="wang_distilling_2019">(Wang et al. 2019)</span></td>
 <td>2019</td>
 <td>Faster R-CNN</td>
-<td>MSE(near-obj mask)</td>
-<td>VOC07+12</td>
+<td>MSE (near-object mask)</td>
+<td>VOC07, COCO</td>
 <td> - </td>
 <td> - </td>
 <td> - </td>
@@ -427,12 +446,12 @@ data-cites="wang_distilling_2019">(Wang et al. 2019)</span></td>
 <td>Stanton <span class="citation"
 data-cites="stanton_does_2021">(Stanton et al. 2021)</span></td>
 <td>2021</td>
-<td>ResNet-50</td>
+<td>ResNet-20/56/50</td>
 <td>KL audit (self-distill)</td>
 <td>CIFAR/IN1k</td>
 <td> - </td>
 <td> - </td>
-<td>0.0</td>
+<td>n/r</td>
 <td> - </td>
 <td> - </td>
 </tr>
@@ -442,7 +461,9 @@ data-cites="salimans_progressive_2022">(Salimans and Ho
 2022)</span></td>
 <td>2022</td>
 <td>U-Net</td>
-<td>MSE(v-param, 2-step rollout)</td>
+<td>MSE
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>v</mi><annotation encoding="application/x-tex">v</annotation></semantics></math>-parameterization,
+2-step rollout)</td>
 <td>CIFAR-10</td>
 <td> - </td>
 <td> - </td>
@@ -452,41 +473,38 @@ data-cites="salimans_progressive_2022">(Salimans and Ho
 </tr>
 </tbody>
 </table></div>
-<p>The table groups the literature into seven families, walked through
-in chronological order. Early <strong>response distillation</strong>
-methods (Bucilua, Ba &amp; Caruana, Hinton) match either probabilities
-or logits between teacher and student; the recipe is simple and
-effective when the capacity gap is moderate, but it leaves no signal on
-intermediate representations and degrades under heavy compression<a
-href="#fn1" class="footnote-ref" id="fnref1"
-role="doc-noteref"><sup>1</sup></a>. The Hinton temperature-scaled KL
-emerged as the dominant logit-based recipe and is still the
-single-method baseline reproductions reach for, with DKD <span class="citation"
+<p>The literature falls into seven families (Table <a
+href="tbl:kd-sota">tbl:kd-sota</a>), walked through in chronological
+order. Early <strong>response distillation</strong> methods (Bucilua, Ba
+&amp; Caruana, Hinton) match either probabilities or logits between
+teacher and student; the procedure is simple and effective when the
+capacity gap is moderate, but it leaves no signal on intermediate
+representations and degrades under heavy compression<a href="#fn1"
+class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>.
+The Hinton temperature-scaled KL emerged as the dominant logit-based
+method and is still the single-method baseline reproductions reach for,
+with DKD <span class="citation"
 data-cites="zhao_decoupled_2022">(Zhao et al. 2022)</span> later showing
 that the implicit
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msubsup><mi>p</mi><mi>y</mi><mi>t</mi></msubsup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(1 - p^t_y)</annotation></semantics></math>
 suppression of the non-target term silently kills the dark-knowledge
 signal precisely when the teacher is most confident; explicit
-reweighting (β=8 on CIFAR-100) recovers a lift of roughly 1.0 to 3.0
-points over vanilla KD across the teacher-student pairs in the DKD
-paper's CIFAR-100 table.</p>
+reweighting (β from 2 to 8 on CIFAR-100) recovers a lift of 1.03 to 3.00
+points over vanilla KD across the eleven teacher-student pairs in the
+DKD paper's CIFAR-100 tables.</p>
 <p><strong>Feature distillation</strong> (FitNets, AT, NST, FSP) and
 <strong>relational distillation</strong> (RKD, CRD) constitute the
 second strand. They supplement the output match with constraints on
 intermediate representations or pairwise structure, which adds learning
 signal when the gap is large<a href="#fn2" class="footnote-ref"
 id="fnref2" role="doc-noteref"><sup>2</sup></a> but introduces a
-hint-layer choice that varies results by 1-2 points<a href="#fn3"
-class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>.
-CRD imports the InfoNCE machinery from
-contrastive learning
-with K=16384 negatives in a memory bank and provides a 2.1-point lift on
-heterogeneous teacher-student pairs (VGG-13
+hint-layer choice<a href="#fn3" class="footnote-ref" id="fnref3"
+role="doc-noteref"><sup>3</sup></a>. CRD imports the InfoNCE machinery from contrastive learning
+with K=16384 negatives in a memory bank and provides a 2.36-point lift
+over KD on the heterogeneous VGG-13
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>
-MobileNet-V2) where point-wise feature matching stalls; the
-projection-head depth and memory-bank momentum each move the result by
-~0.5%, which is a reproducibility tax practitioners regularly
-underestimate.</p>
+MobileNet-V2 pair (69.73% against 67.37%), where point-wise feature
+matching stalls.</p>
 <p><strong>Online and self-distillation</strong> (DML, ONE, Born-Again,
 PS-KD) abandon the offline pre-training requirement: peers train jointly
 (DML, ONE) or the teacher is the model's own past checkpoint
@@ -506,26 +524,11 @@ of caching one prediction-distribution snapshot per training sample
 GB FP32 on ImageNet).</p>
 <figure id="fig:kd-family-timeline">
 <img src="figures/kd-family-timeline.svg" />
-<figcaption>KD family evolution from 2015 feature distillation to 2022
-logit-decoupled DKD, plotted only for the methods whose headline number
-is reported by their own paper under the stated backbone. Marker shape
-and colour encode family, and the dotted line marks a representative
-WRN-40-2 teacher (75.6% CIFAR-100). Methods whose commonly quoted
-CIFAR-100 figure does not appear in the source paper are left off rather
-than given a placeholder coordinate, which is why Hinton, AT, RKD and
-PS-KD have no point here and why the diagnostic and diffusion entries of
-the leaderboard are absent: an audit reports no headline gain by design,
-and progressive distillation reports FID. Two readings survive that
-restriction. First, the vision cluster sits between 65 and 75 across
-2015-2022 and only self-distillation (Born-Again on DenseNet-80-80,
-where teacher and student are the same architecture and the 84.5 is not
-comparable to the WRN line) leaves that band. Second, the
-<strong>NLP</strong> family forms a separate band because it is a
-separate metric: GLUE average rather than image accuracy, MobileBERT at
-77.7 and MiniLM at 78.9, at 2-9x inference speedup over BERT-base.
-Mixing axes this way is unavoidable, because KD has no single benchmark;
-the figure is readable within each family and not across
-them.</figcaption>
+<figcaption>Headline student score against publication year for the KD
+methods whose own paper reports it under the stated backbone: CIFAR-100
+top-1 for vision, GLUE average for the nlp family. Marker shape and
+colour give the family; the dotted line is the WRN-40-2 teacher
+(75.6%).</figcaption>
 </figure>
 <p><u>NLP distillation (DistilBERT, TinyBERT, MobileBERT, MiniLM) is
 empirically the most consequential application: every entry retains
@@ -533,17 +536,17 @@ empirically the most consequential application: every entry retains
 accelerating inference 1.6-9.4x.</u> The four methods differ in
 <em>which</em> structural objects are matched: DistilBERT matches output
 KL plus hidden-state cosine; TinyBERT adds pre-softmax attention MSE
-plus a two-stage (general + task-specific) recipe with BERT-paraphrased
-data augmentation; MobileBERT redesigns each layer into an inverted
-bottleneck and trains an IB-BERT teacher-assistant before progressive
-layer-wise freeze-and-distill; MiniLM matches only QQ/KK and VV
-self-attention relations on the last layer (dimension-agnostic). All
+plus a two-stage (general + task-specific) procedure with
+BERT-paraphrased data augmentation; MobileBERT redesigns each layer into
+an inverted bottleneck and trains an IB-BERT teacher-assistant before
+progressive layer-wise freeze-and-distill; MiniLM matches only QQ/KK and
+VV self-attention relations on the last layer (dimension-agnostic). All
 four depend critically on layer-copy initialization from the teacher<a
 href="#fn6" class="footnote-ref" id="fnref6"
 role="doc-noteref"><sup>6</sup></a>, and DistilBERT's drop-in
 compatibility (same tokenizer, same hidden size) is arguably more
 responsible for its adoption than its raw GLUE score. The LLM era pushes
-the recipe further: MiniLLM <span class="citation"
+the procedure further: MiniLLM <span class="citation"
 data-cites="gu_knowledge_2023">(Gu et al. 2024)</span> swaps forward for
 reverse KL<a href="#fn7" class="footnote-ref" id="fnref7"
 role="doc-noteref"><sup>7</sup></a> and trains via policy gradient on
@@ -552,9 +555,9 @@ produces hedging outputs at 32K-128K vocabulary scale.</p>
 <p><strong>Task-specific distillation</strong> (FGFI for detection,
 Structured-KD for segmentation, Salimans progressive distillation for
 diffusion) tailors the matching to dense or generative outputs. FGFI
-restricts feature distillation to ~0.5% of the feature map (high-IoU
-anchor positions); enlarging the mask reverts to baseline performance
-because background features swamp object features<a href="#fn8"
+restricts feature distillation to near-object anchor positions;
+imitating the whole feature map instead falls below the undistilled
+student because background features swamp object features<a href="#fn8"
 class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a>.
 Salimans progressive distillation halves the teacher's denoising steps
 recursively (8192
@@ -564,25 +567,26 @@ recursively (8192
 ...
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>
 4 over 11 rounds) and reports FID 3.0 on CIFAR-10 at the 4-step end of
-that chain; the recipe requires deterministic DDIM sampling, warm-start
-from teacher weights, and v-parameterization without which the loss
-explodes at noise extremes<a href="#fn9" class="footnote-ref"
+that chain; the procedure requires deterministic DDIM sampling,
+warm-start from teacher weights, and v-parameterization without which
+the loss explodes at noise extremes<a href="#fn9" class="footnote-ref"
 id="fnref9" role="doc-noteref"><sup>9</sup></a>.</p>
 <p><strong>Diagnostic and theoretical work</strong> (Stanton, Müller,
 Menon, Yuan, Busbridge) frames the field's open questions rather than
-providing new methods. Stanton's audit shows students disagree with
-teachers on 5-15% of training samples even with 4x training budget, and
-pushing fidelity below 5% degrades test accuracy: KD is partly
-implicit-regularization rather than faithful imitation<a href="#fn10"
-class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a>.
-Müller shows that a label-smoothed teacher makes a worse teacher than an
-unsmoothed one of lower accuracy, because the penultimate similarity
-structure collapses<a href="#fn11" class="footnote-ref" id="fnref11"
-role="doc-noteref"><sup>11</sup></a>. Yuan's teacher-free Tf-KD recovers
-up to 0.65% of the gain with no teacher at all, supporting a
-regularization-dominant view<a href="#fn12" class="footnote-ref"
-id="fnref12" role="doc-noteref"><sup>12</sup></a>. Busbridge's
-scaling-law analysis <span class="citation"
+providing new methods. Stanton's audit finds a self-distilled ResNet-20
+still disagreeing with its teacher on 16.7% of CIFAR-100 training images
+after 5k epochs, and the most accurate students are not the most
+faithful: KD is partly implicit-regularization rather than faithful
+imitation<a href="#fn10" class="footnote-ref" id="fnref10"
+role="doc-noteref"><sup>10</sup></a>. Müller shows that a label-smoothed
+teacher makes a worse teacher than an unsmoothed one of lower accuracy,
+because the penultimate similarity structure collapses<a href="#fn11"
+class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a>.
+Yuan's teacher-free Tf-KD gains up to 0.65 points of ImageNet top-1 with
+no teacher at all, supporting a regularization-dominant view<a
+href="#fn12" class="footnote-ref" id="fnref12"
+role="doc-noteref"><sup>12</sup></a>. Busbridge's scaling-law analysis
+<span class="citation"
 data-cites="busbridge_distillation_2023">(Busbridge et al. 2025)</span>
 finds that for fixed student compute, teacher size has an optimum and
 over-large teachers <em>hurt</em><a href="#fn13" class="footnote-ref"
@@ -595,19 +599,15 @@ more than on objective design.</p>
 <p>Read back over those families and one axis organises all of them.
 Each method family is a choice of <em>which channel carries the
 teacher's signal</em>, and each new channel was opened because the one
-before it ran out of signal at some capacity gap. Table <a
-href="tbl:kd-channels">tbl:kd-channels</a> states that progression once,
-splitting online from self since they open different channels, and
-holding the diagnostic work aside because it is not a channel at all.
-The chronology above and the era boundaries below are then two readings
-of the same object rather than two competing taxonomies.</p>
+before it ran out of signal at some capacity gap. Online and
+self-distillation open different channels and take separate rows, and
+the diagnostic work, which is not a channel at all, stays aside (Table
+<a href="tbl:kd-channels">tbl:kd-channels</a>). The chronology above and
+the era boundaries below are then two readings of the same object rather
+than two competing taxonomies.</p>
 <div class="blog-table"><table id="tbl:kd-channels">
-<caption>The method families as channels. The middle column is the
-object the loss compares. The right two columns are what opening that
-channel buys and what it charges. The rows are not a ranking. A channel
-gets opened when the one above it stops carrying signal, so the useful
-question about any row is which regime it was opened for, not which row
-scores highest.</caption>
+<caption>The method families as channels: the object each family's loss
+compares, why the channel was opened, and what it costs.</caption>
 <thead>
 <tr>
 <th>Family</th>
@@ -676,23 +676,27 @@ role="doc-noteref"><sup>17</sup></a></td>
 channels. It asks a prior question, how much of any row's gain is the
 teacher's content at all, and that question is taken up in the theory section. It is also what the era
 boundaries below are ultimately tracking.</p>
-<p>The table separates four eras: response-only (2006-2015),
+<p>The field divides into four eras: response-only (2006-2015),
 feature/relational expansion (2015-2020), online/self-distillation and
 NLP scaling (2018-2021), and the modern logit-decoupled +
 LLM-distillation line (2022-2023). Three readings. First, gains from
 logit distillation alone plateau around the WRN-40-2
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>
-WRN-40-1 baseline of about 73.5%; DKD's logit-only recipe matches
-feature-based methods at 74.8% and is the highest-scoring
-single-objective method on this pairing. Second, NLP distillation is the
-empirically most successful application of KD: every method on the GLUE
-band retains 97%+ of teacher accuracy at 1.6-9.4x speedup, far exceeding
-the proportional gains seen in vision distillation. Third, <u>recent
-diagnostic and scaling-law work has shifted the field's framing from
-"how do we transfer more knowledge" to "how do we balance fidelity,
-regularization, and optimization dynamics"</u>, which means newer
-methods (DKD, MiniLLM, Tf-KD) increasingly justify themselves through
-diagnostic ablations rather than benchmark-only comparisons.</p>
+WRN-40-1 baseline of about 73.5%; DKD's logit-only approach reaches
+74.8%, above CRD's 74.14% and below the 75.09% of the feature-based
+ReviewKD in DKD's own Table 6, and from 2015 to 2022 the vision methods
+stay between 65% and 75% except Born-Again, whose 84.5% is a
+same-architecture DenseNet result (Figure <a
+href="fig:kd-family-timeline">fig:kd-family-timeline</a>). Second, NLP
+distillation is the empirically most successful application of KD: every
+method on the GLUE band retains 96.8% or more of its teacher's GLUE
+score at 1.6-9.4x speedup, far exceeding the proportional gains seen in
+vision distillation. Third, <u>recent diagnostic and scaling-law work
+has shifted the field's framing from "how do we transfer more knowledge"
+to "how do we balance fidelity, regularization, and optimization
+dynamics"</u>, which means newer methods (DKD, MiniLLM, Tf-KD)
+increasingly justify themselves through diagnostic ablations rather than
+benchmark-only comparisons.</p>
 <h2 class="blog-refs-title">References</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
 role="list">
@@ -754,11 +758,18 @@ Lan, Xu, Xiatian Zhu, and Shaogang Gong. 2018. <span>"Knowledge
 Distillation by on-the-Fly Native Ensemble."</span> <em>NeurIPS</em>. <a
 href="https://arxiv.org/abs/1806.04606">https://arxiv.org/abs/1806.04606</a>.
 </div>
+<div id="ref-li_pruning_2017" class="csl-entry" role="listitem">
+Li, Hao, Asim Kadav, Igor Durdanovic, Hanan Samet, and Hans Peter Graf.
+2017. <span>"Pruning <span>Filters</span> for <span>Efficient</span>
+<span>ConvNets</span>."</span> <em>International Conference on Learning
+Representations (ICLR)</em>. <a
+href="https://doi.org/10.48550/arXiv.1608.08710">https://doi.org/10.48550/arXiv.1608.08710</a>.
+</div>
 <div id="ref-menon_statistical_2021" class="csl-entry" role="listitem">
 Menon, Aditya Krishna, Ankit Singh Rawat, Sashank Reddi, Seungyeon Kim,
 and Sanjiv Kumar. 2021. <span>"A Statistical Perspective on
 Distillation."</span> <em>ICML</em>. <a
-href="https://arxiv.org/abs/2009.10683">https://arxiv.org/abs/2009.10683</a>.
+href="https://arxiv.org/abs/2005.10419">https://arxiv.org/abs/2005.10419</a>.
 </div>
 <div id="ref-mirzadeh_improved_2020" class="csl-entry" role="listitem">
 Mirzadeh, Seyed Iman, Mehrdad Farajtabar, Ang Li, Nir Levine, Akihiro
@@ -801,6 +812,11 @@ and Lighter."</span> <em>NeurIPS Workshop on Energy Efficient ML and
 Cognitive Computing</em>. <a
 href="https://arxiv.org/abs/1910.01108">https://arxiv.org/abs/1910.01108</a>.
 </div>
+<div id="ref-simeoni_dinov3_2025" class="csl-entry" role="listitem">
+Siméoni, Oriane, Huy V. Vo, Maximilian Seitzer, et al. 2025.
+<em><span>DINOv3</span></em>. arXiv. <a
+href="https://doi.org/10.48550/arXiv.2508.10104">https://doi.org/10.48550/arXiv.2508.10104</a>.
+</div>
 <div id="ref-stanton_does_2021" class="csl-entry" role="listitem">
 Stanton, Samuel, Pavel Izmailov, Polina Kirichenko, Alexander A. Alemi,
 and Andrew Gordon Wilson. 2021. <span>"Does Knowledge Distillation
@@ -813,10 +829,11 @@ Denny Zhou. 2020. <span>"MobileBERT: A Compact Task-Agnostic BERT for
 Resource-Limited Devices."</span> <em>ACL</em>. <a
 href="https://arxiv.org/abs/2004.02984">https://arxiv.org/abs/2004.02984</a>.
 </div>
-<div id="ref-tian_contrastive_2020" class="csl-entry" role="listitem">
-Tian, Yonglong, Dilip Krishnan, and Phillip Isola. 2020. <em>Contrastive
-<span>Multiview</span> <span>Coding</span></em>. arXiv. <a
-href="https://doi.org/10.48550/arXiv.1906.05849">https://doi.org/10.48550/arXiv.1906.05849</a>.
+<div id="ref-tian_contrastive_2020-1" class="csl-entry" role="listitem">
+Tian, Yonglong, Dilip Krishnan, and Phillip Isola. 2020.
+<span>"Contrastive Representation Distillation."</span>
+<em>International Conference on Learning Representations (ICLR)</em>. <a
+href="https://doi.org/10.48550/arXiv.1910.10699">https://doi.org/10.48550/arXiv.1910.10699</a>.
 </div>
 <div id="ref-wang_distilling_2019" class="csl-entry" role="listitem">
 Wang, Tao, Li Yuan, Xiaopeng Zhang, and Jiashi Feng. 2019.
@@ -858,12 +875,13 @@ href="https://arxiv.org/abs/2203.08679">https://arxiv.org/abs/2203.08679</a>.
 role="doc-endnotes">
 <hr />
 <ol>
-<li id="fn1"><p><em>Extreme-compression breakdown</em>:
-very-low-capacity students (depth ratio below 1:5 to teacher) fail to
-absorb dark knowledge entirely; intermediate teacher-assistants are
-required to bridge the gap, at 3x compute cost <span class="citation"
-data-cites="mirzadeh_improved_2020">(Mirzadeh et al. 2020)</span>.<a
-href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn1"><p><em>Extreme-compression breakdown</em>: as the teacher
+of a 2-layer CNN student grows from 4 to 10 layers, the student's
+accuracy first rises and then falls; an intermediate teacher assistant
+bridges the gap at the cost of one more training run <span
+class="citation" data-cites="mirzadeh_improved_2020">(Mirzadeh et al.
+2020)</span>.<a href="#fnref1" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
 <li id="fn2"><p><em>Teacher capacity gap</em>: distilling from a teacher
 whose VC-dimension or depth exceeds the student's by a large factor
 frequently <em>hurts</em> rather than helps; the student cannot
@@ -873,9 +891,10 @@ data-cites="mirzadeh_improved_2020">(Mirzadeh et al. 2020)</span>.<a
 href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn3"><p><em>Hint-layer choice</em>: feature distillation
 requires picking which student layer is supervised by which teacher
-layer; results vary by 1-2 accuracy points depending on the choice, and
-a deeper learned regressor partly defeats the purpose by offloading
-representational work onto the regressor itself <span class="citation"
+layer; Romero et al. take the middle layer of each and note that a
+deeper guided layer over-regularizes the student, and a deeper learned
+regressor partly defeats the purpose by offloading representational work
+onto the regressor itself <span class="citation"
 data-cites="romero_fitnets_2015">(Romero et al. 2015)</span>.<a
 href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn4"><p><em>Dark-knowledge vs. regularization</em>: even
@@ -894,11 +913,11 @@ al. 2018)</span>.<a href="#fnref5" class="footnote-back"
 role="doc-backlink">↩︎</a></p></li>
 <li id="fn6"><p><em>Layer-copy initialization fragility</em>: NLP
 distillation depends critically on copying alternate teacher layers as
-the student warm-start. Random init roughly doubles compute and rarely
-closes to the same GLUE average, which constrains student architecture
-to share the teacher's hidden dimension <span class="citation"
-data-cites="sanh_distilbert_2019">(Sanh et al. 2019)</span>.<a
-href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+the student warm-start. Random init costs 3.69 GLUE points, which
+constrains student architecture to share the teacher's hidden dimension
+<span class="citation" data-cites="sanh_distilbert_2019">(Sanh et al.
+2019)</span>.<a href="#fnref6" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
 <li id="fn7"><p><em>KL direction is empirical</em>. Forward KL is
 mean-seeking and produces hedging students. Reverse KL is mode-seeking
 but unstable without policy-gradient variance reduction. The choice has
@@ -908,9 +927,9 @@ data-cites="gu_knowledge_2023">(Gu et al. 2024)</span>.<a href="#fnref7"
 class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn8"><p><em>Detection imitation-mask sensitivity</em>:
 object-detector distillation breaks under naive feature matching because
-&gt;99% of feature-map positions are background; the imitation mask must
-be roughly 0.5% positive, and enlarging it to "hard negatives" degrades
-back to baseline <span class="citation"
+background positions dominate the feature map; imitating the whole map
+costs a quarter-width toy detector 8.9 mAP on KITTI, while imitating
+near-object anchor locations gains 6.6 <span class="citation"
 data-cites="wang_distilling_2019">(Wang et al. 2019)</span>.<a
 href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn9"><p><em>Diffusion-distillation prerequisites</em>:
@@ -919,13 +938,14 @@ not DDPM), warm-start from teacher weights, and v-parameterization; cold
 init or stochastic samplers fail outright <span class="citation"
 data-cites="salimans_progressive_2022">(Salimans and Ho 2022)</span>.<a
 href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn10"><p><em>Silent fidelity failure</em>: students often
-disagree with the teacher on 5-15% of training samples even with 4x
-training budget, and reducing this fidelity gap can <em>degrade</em>
-test accuracy; KD's gain depends on a delicate fidelity-regularization
-trade-off rather than on faithful imitation <span class="citation"
-data-cites="stanton_does_2021">(Stanton et al. 2021)</span>.<a
-href="#fnref10" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn10"><p><em>Silent fidelity failure</em>: a self-distilled
+ResNet-20 still disagrees with its teacher on 16.7% of CIFAR-100
+training images after 5k epochs, and the most accurate students are not
+the most faithful; KD's gain depends on a delicate
+fidelity-regularization trade-off rather than on faithful imitation
+<span class="citation" data-cites="stanton_does_2021">(Stanton et al.
+2021)</span>.<a href="#fnref10" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
 <li id="fn11"><p><em>Label-smoothing equivalence</em>: a teacher trained
 with label smoothing collapses its penultimate similarity structure, and
 distillation from such a teacher produces a worse student than
@@ -950,9 +970,10 @@ data-cites="busbridge_distillation_2023">(Busbridge et al.
 role="doc-backlink">↩︎</a></p></li>
 <li id="fn14"><p><em>Hint-layer choice</em>: feature distillation
 requires picking which student layer is supervised by which teacher
-layer; results vary by 1-2 accuracy points depending on the choice, and
-a deeper learned regressor partly defeats the purpose by offloading
-representational work onto the regressor itself <span class="citation"
+layer; Romero et al. take the middle layer of each and note that a
+deeper guided layer over-regularizes the student, and a deeper learned
+regressor partly defeats the purpose by offloading representational work
+onto the regressor itself <span class="citation"
 data-cites="romero_fitnets_2015">(Romero et al. 2015)</span>.<a
 href="#fnref14" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn15"><p><em>Online co-training instability</em>: peer methods
@@ -964,16 +985,16 @@ al. 2018)</span>.<a href="#fnref15" class="footnote-back"
 role="doc-backlink">↩︎</a></p></li>
 <li id="fn16"><p><em>Layer-copy initialization fragility</em>: NLP
 distillation depends critically on copying alternate teacher layers as
-the student warm-start. Random init roughly doubles compute and rarely
-closes to the same GLUE average, which constrains student architecture
-to share the teacher's hidden dimension <span class="citation"
-data-cites="sanh_distilbert_2019">(Sanh et al. 2019)</span>.<a
-href="#fnref16" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+the student warm-start. Random init costs 3.69 GLUE points, which
+constrains student architecture to share the teacher's hidden dimension
+<span class="citation" data-cites="sanh_distilbert_2019">(Sanh et al.
+2019)</span>.<a href="#fnref16" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
 <li id="fn17"><p><em>Detection imitation-mask sensitivity</em>:
 object-detector distillation breaks under naive feature matching because
-&gt;99% of feature-map positions are background; the imitation mask must
-be roughly 0.5% positive, and enlarging it to "hard negatives" degrades
-back to baseline <span class="citation"
+background positions dominate the feature map; imitating the whole map
+costs a quarter-width toy detector 8.9 mAP on KITTI, while imitating
+near-object anchor locations gains 6.6 <span class="citation"
 data-cites="wang_distilling_2019">(Wang et al. 2019)</span>.<a
 href="#fnref17" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>

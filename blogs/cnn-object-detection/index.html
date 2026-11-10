@@ -171,7 +171,7 @@ Hungarian denotes DETR-style set matching.</caption>
 data-cites="girshick_rich_2014">(Girshick et al. 2014)</span></td>
 <td>2014</td>
 <td>AlexNet</td>
-<td>SVM+ridge-reg</td>
+<td>SVM + ridge-reg</td>
 <td>VOC07+12</td>
 <td>53.3</td>
 <td> - </td>
@@ -186,7 +186,7 @@ data-cites="girshick_rich_2014">(Girshick et al. 2014)</span></td>
 data-cites="girshick_fast_2015">(Girshick 2015)</span></td>
 <td>2015</td>
 <td>VGG-16</td>
-<td>RoI(softmax)+sm-L1</td>
+<td>RoI(softmax) + sm-L1</td>
 <td>VOC07+12</td>
 <td>70.0</td>
 <td>19.7</td>
@@ -201,7 +201,7 @@ data-cites="girshick_fast_2015">(Girshick 2015)</span></td>
 data-cites="ren_faster_2016">(Ren et al. 2015)</span></td>
 <td>2015</td>
 <td>VGG-16</td>
-<td>RPN+RoI(softmax)+sm-L1</td>
+<td>RPN + RoI(softmax) + sm-L1</td>
 <td>VOC07+12</td>
 <td>73.2</td>
 <td>21.9</td>
@@ -231,7 +231,7 @@ data-cites="redmon_you_2016">(Redmon et al. 2016)</span></td>
 data-cites="liu_ssd_2016">(Liu et al. 2016)</span></td>
 <td>2016</td>
 <td>VGG-16</td>
-<td>hard-mining(3:1)+sm-L1</td>
+<td>hard-mining(3:1) + sm-L1</td>
 <td>VOC07+12</td>
 <td>76.8</td>
 <td>28.8</td>
@@ -247,7 +247,7 @@ class="citation" data-cites="lin_feature_2017">(Lin, Dollár, et al.
 2017)</span></td>
 <td>2017</td>
 <td>ResNet-101</td>
-<td>RPN+RoI(softmax)+sm-L1</td>
+<td>RPN + RoI(softmax) + sm-L1</td>
 <td>COCO</td>
 <td> - </td>
 <td>36.2</td>
@@ -262,7 +262,7 @@ class="citation" data-cites="lin_feature_2017">(Lin, Dollár, et al.
 data-cites="he_mask_2018">(He et al. 2017)</span></td>
 <td>2017</td>
 <td>ResNet-101 + FPN</td>
-<td>RPN+RoI(softmax)+sm-L1+mask</td>
+<td>RPN + RoI(softmax) + sm-L1 + mask</td>
 <td>COCO</td>
 <td> - </td>
 <td>39.8</td>
@@ -277,7 +277,8 @@ data-cites="he_mask_2018">(He et al. 2017)</span></td>
 data-cites="lin_focal_2018">(Lin, Goyal, et al. 2017)</span></td>
 <td>2017</td>
 <td>ResNet-101 + FPN</td>
-<td>Focal(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>=2,<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>=0.25)+sm-L1</td>
+<td>Focal(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>=2,<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>=0.25)
++ sm-L1</td>
 <td>COCO</td>
 <td> - </td>
 <td>39.1</td>
@@ -292,7 +293,7 @@ data-cites="lin_focal_2018">(Lin, Goyal, et al. 2017)</span></td>
 data-cites="redmon_yolov3_2018">(Redmon and Farhadi 2018)</span></td>
 <td>2018</td>
 <td>Darknet-53</td>
-<td>BCE(per-anchor obj)+sm-L1</td>
+<td>BCE(per-anchor obj) + sm-L1</td>
 <td>COCO</td>
 <td> - </td>
 <td>33.0</td>
@@ -322,7 +323,7 @@ data-cites="cai_cascade_2017">(Cai and Vasconcelos 2018)</span></td>
 data-cites="liu_path_2018">(Liu et al. 2018)</span></td>
 <td>2018</td>
 <td>ResNeXt-101</td>
-<td>PAFPN+RoI(softmax)+sm-L1</td>
+<td>PAFPN + RoI(softmax) + sm-L1</td>
 <td>COCO</td>
 <td> - </td>
 <td>47.4</td>
@@ -338,7 +339,7 @@ class="citation" data-cites="law_cornernet_2019">(Law and Deng
 2018)</span></td>
 <td>2019</td>
 <td>Hourglass-104</td>
-<td>Focal-heatmap+pull/push</td>
+<td>Focal-heatmap + pull/push</td>
 <td>COCO</td>
 <td> - </td>
 <td>42.1</td>
@@ -353,7 +354,7 @@ class="citation" data-cites="law_cornernet_2019">(Law and Deng
 data-cites="tian_fcos_2019">(Tian et al. 2019)</span></td>
 <td>2019</td>
 <td>ResNet-101 + FPN</td>
-<td>center-ness+GIoU+focal-cls</td>
+<td>center-ness + GIoU + focal-cls</td>
 <td>COCO</td>
 <td> - </td>
 <td>41.5</td>
@@ -369,7 +370,7 @@ class="citation" data-cites="zhou_objects_2019">(Zhou et al.
 2019)</span></td>
 <td>2019</td>
 <td>Hourglass-104</td>
-<td>Gaussian-heatmap+L1(size)</td>
+<td>Gaussian-heatmap + L1(size)</td>
 <td>COCO</td>
 <td> - </td>
 <td>42.1</td>
@@ -384,7 +385,7 @@ class="citation" data-cites="zhou_objects_2019">(Zhou et al.
 data-cites="tan_efficientdet_2020">(Tan et al. 2020)</span></td>
 <td>2020</td>
 <td>EfficientNet-B6</td>
-<td>BiFPN+Focal+sm-L1</td>
+<td>BiFPN + Focal + sm-L1</td>
 <td>COCO</td>
 <td> - </td>
 <td>53.7</td>
@@ -400,7 +401,7 @@ data-cites="bochkovskiy_yolov4_2020">(Bochkovskiy et al.
 2020)</span></td>
 <td>2020</td>
 <td>CSPDarknet-53</td>
-<td>CIoU+BCE-obj+Mosaic-aug</td>
+<td>CIoU + BCE-obj + Mosaic-aug</td>
 <td>COCO</td>
 <td> - </td>
 <td>43.5</td>
@@ -415,7 +416,7 @@ data-cites="bochkovskiy_yolov4_2020">(Bochkovskiy et al.
 data-cites="carion_end--end_2020">(Carion et al. 2020)</span></td>
 <td>2020</td>
 <td>ResNet-101</td>
-<td>Hungarian+CE+L1+GIoU(5,2)</td>
+<td>Hungarian + CE + L1 + GIoU(5,2)</td>
 <td>COCO</td>
 <td> - </td>
 <td>44.9</td>
@@ -430,7 +431,7 @@ data-cites="carion_end--end_2020">(Carion et al. 2020)</span></td>
 data-cites="zhu_deformable_2021">(Zhu et al. 2021)</span></td>
 <td>2021</td>
 <td>ResNet-50</td>
-<td>Hungarian+CE+L1+GIoU+def-att</td>
+<td>Hungarian + CE + L1 + GIoU + def-att</td>
 <td>COCO</td>
 <td> - </td>
 <td>46.2</td>
@@ -445,7 +446,7 @@ data-cites="zhu_deformable_2021">(Zhu et al. 2021)</span></td>
 et al. 2023)</span></td>
 <td>2022</td>
 <td>Swin-L</td>
-<td>Hungarian+denoising+contrast</td>
+<td>Hungarian + denoising + contrast</td>
 <td>COCO+O365</td>
 <td> - </td>
 <td>58.5</td>
@@ -460,7 +461,7 @@ et al. 2023)</span></td>
 al. 2023)</span></td>
 <td>2023</td>
 <td>ViT-L (MAE)</td>
-<td>hybrid Hungarian+ATSS+Faster</td>
+<td>hybrid Hungarian + ATSS + Faster</td>
 <td>COCO+O365</td>
 <td> - </td>
 <td>66.0</td>
@@ -546,7 +547,7 @@ and depends notoriously hard on data augmentation (74.3
 FPN-style three-scale prediction; YOLOv4 split engineering into "Bag of
 Freebies" (Mosaic, CIoU, label smoothing) and "Bag of Specials" (Mish,
 DIoU-NMS, PANet neck), reaching 43.5 COCO AP at 65 FPS by combining many
-small recipes rather than one architectural insight.</p>
+small engineering tricks rather than one architectural insight.</p>
 <p><strong>RetinaNet + FPN</strong> closed the one-stage/two-stage
 accuracy gap with two orthogonal contributions. <strong>Focal
 loss</strong>
@@ -613,7 +614,7 @@ role="doc-noteref"><sup>17</sup></a> and proved that proper loss
 weighting plus per-level FPN assignment closes the gap; ATSS later
 showed that <strong>adaptive label assignment</strong> (mean+std of
 per-object IoU as the dynamic threshold) brings anchor-based and
-anchor-free recipes to within 0.1 AP, <u>confirming that the anchor
+anchor-free detectors to within 0.1 AP, <u>confirming that the anchor
 itself was never the load-bearing piece</u><a href="#fn18"
 class="footnote-ref" id="fnref18"
 role="doc-noteref"><sup>18</sup></a>.</p>
@@ -896,7 +897,7 @@ inherits ImageNet-pretrained ResNet/Swin features. The DeCAF result
 activations of a supervised ImageNet CNN transfer as off-the-shelf
 features to downstream tasks, and that observation seeded the entire
 pretrain-then-finetune paradigm that detection inherits. Scratch
-training (Detectron2 GroupNorm recipe,
+training (Detectron2 GroupNorm training configuration,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>×</mi><mn>6</mn></mrow><annotation encoding="application/x-tex">\times 6</annotation></semantics></math>
 schedule) closes the gap on COCO but at
 6<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>
@@ -1063,7 +1064,7 @@ inherits ImageNet-pretrained ResNet/Swin features. The DeCAF result
 activations of a supervised ImageNet CNN transfer as off-the-shelf
 features to downstream tasks, and that observation seeded the entire
 pretrain-then-finetune paradigm that detection inherits. Scratch
-training (Detectron2 GroupNorm recipe,
+training (Detectron2 GroupNorm training configuration,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>×</mi><mn>6</mn></mrow><annotation encoding="application/x-tex">\times 6</annotation></semantics></math>
 schedule) closes the gap on COCO but at
 6<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>
@@ -1073,7 +1074,7 @@ class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn24"><p><em>Long-tail class imbalance</em>: COCO is roughly
 balanced (80 classes), but production data and LVIS exhibit power-law
 distributions. Detector heads trained on balanced data fail on rare
-classes; recipes like Equalization Loss, Seesaw Loss, and decoupled
+classes; methods like Equalization Loss, Seesaw Loss, and decoupled
 classifier finetuning address this orthogonally to the
 foreground/background problem.<a href="#fnref24" class="footnote-back"
 role="doc-backlink">↩︎</a></p></li>

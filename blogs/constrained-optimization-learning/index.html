@@ -133,7 +133,7 @@ hyperparameters but requiring careful Hessian-vector treatment.
 <strong>Structured-prediction</strong> methods cast inference as
 regularized optimization with closed-form Fenchel-Young losses.
 <strong>Application-driven</strong> methods (MPC, portfolio, routing)
-tune the recipe to a problem class. <u>A persistent diagnostic across
+tune the method to a problem class. <u>A persistent diagnostic across
 the field is scale mismatch: an MLP predictor's natural output scale is
 rarely the solver's parameter scale, and naive loss combinations across
 the two scales train poorly</u><a href="#fn9" class="footnote-ref"
@@ -484,10 +484,10 @@ class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a>.
 <u>Feasibility is not at issue for these rows, because the forward pass
 is a call to a feasible solver</u>; the OOD column flags whether the
 predictor's parameters generalize beyond the training distribution of
-constraints, which Domke's marginal-NLL recipe does not address while
+constraints, which Domke's marginal-NLL approach does not address while
 CvxpyLayers and Lorraine's hyperparameter approach do.</p>
 <p>The <strong>differentiable-optimization-layer</strong> line (OptNet, CvxpyLayers,
-DDN, BPQP) extended the implicit-layer recipe to general
+DDN, BPQP) extended the implicit-layer approach to general
 <strong>QP</strong> and <strong>DCP</strong> problems, packaging the
 <strong>KKT</strong>-Jacobian backward into PyTorch and JAX. A training
 step with one of these layers is slower than a forward-only solver call,
@@ -518,12 +518,30 @@ at convergence is not driven to zero <span class="citation"
 data-cites="elmachtoub_smart_2020">(Elmachtoub and Grigas 2022)</span><a
 href="#fn16" class="footnote-ref" id="fnref16"
 role="doc-noteref"><sup>16</sup></a>. CaVE
-<u>extends the recipe to MILP by aligning the predicted cost vector to
+<u>extends the approach to MILP by aligning the predicted cost vector to
 the optimality cone of the integer-feasible solution</u>, the first
 decision-focused method that closes the gap on binary programs without
 smoothing the integer feasibility<a href="#fn17" class="footnote-ref"
 id="fnref17" role="doc-noteref"><sup>17</sup></a>.</p>
-<p><img src="figures/col-family-timeline.svg" /></p>
+<figure id="fig:col-family-timeline">
+<img src="figures/col-family-timeline.svg" />
+<figcaption>COL family evolution from 2010 implicit-graphical-model
+gradients to 2025 dual-learning. Marker shape and colour encode family.
+Three observations match the table reading. (i) The
+<em>implicit-layer</em> era (2010-2019) established the KKT-Jacobian
+calculus and packaged it into deep-learning frameworks (OptNet,
+CvxpyLayers, DDN, BPQP), with wall-clock dominated by an inner
+linear-system solve at every gradient step. (ii) The
+<em>predict-then-optimize</em> family (SPO+, Kotary, CaVE) sidesteps
+that cost by training the predictor with a regret surrogate that needs
+only forward solver calls, at the price of a surrogate whose minimizer
+need not minimize the true regret. (iii) The <em>combinatorial</em> line
+(Blackbox, Perturbed-FY, Fenchel-Young, AttnTSP, GNN-NP, SATNet) makes
+integer/non-differentiable solvers usable inside autograd via
+finite-difference, perturb-and-MAP, or low-rank SDP relaxations; OOD
+generalization is the open frontier here, with most methods falling to
+"low" or "med" outside their training distribution.</figcaption>
+</figure>
 <p><strong>Combinatorial</strong> methods (Blackbox-CO, Perturbed-FY,
 Fenchel-Young, GNN-NP, AttnTSP, SATNet) attack the harder problem of
 differentiating through <strong>non-differentiable</strong> integer/SAT
@@ -580,7 +598,7 @@ scaling to large LP/QP instances.</p>
 (2010-2017), the differentiable-layer build-out (2017-2021),
 combinatorial and predict-then-optimize maturation (2018-2024), and the
 modern <strong>dual learning</strong> and <strong>cone-aligned</strong>
-recipes (2024-2025). Three readings, and they are readings of the
+methods (2024-2025). Three readings, and they are readings of the
 <em>ordering</em> in the table rather than of its digits, which are a
 composite. First, no single method dominates: implicit-layer methods
 give exact gradients but pay a linear solve per backward pass,
@@ -593,7 +611,7 @@ Lorraine, Perturbed-FY, FY, Meta-DCO, CaVE, Dual-OL) are those whose
 training signal is the downstream task, while methods rated "low"
 (Domke, GNN-NP, AttnTSP, SATNet, Kotary) overfit to the training
 instance distribution.</u> Third, the trend is toward
-<strong>hybrid</strong> recipes: BPQP combines structured backward with
+<strong>hybrid</strong> methods: BPQP combines structured backward with
 task loss, CaVE combines cone alignment with decision-focused regret,
 and Dual-OL combines augmented-Lagrangian with primal-dual prediction;
 the next generation appears to be <strong>augmented-Lagrangian +
