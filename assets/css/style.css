@@ -3394,8 +3394,8 @@ span.plain-pub-title {
     .plain-pub-thumb:empty {
         display: none;
     }
-    .plain-pub-thumb img,
-    .plain-pub-thumb video {
+    /* Cap the box, not the figure, so the venue strip above it takes the figure's width. */
+    .plain-pub-thumb {
         max-width: 240px;
     }
 }
