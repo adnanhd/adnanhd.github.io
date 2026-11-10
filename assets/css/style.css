@@ -1274,9 +1274,29 @@ a:hover {
         min-height: 0 !important;
         margin: 0 0 14px 0;
     }
-    /* One geometry for every entry: a card keeps its box, a plain line
-       (position, degree, news) has none; both start their text at one x,
-       sit one gap apart and carry their dot level with the date. */
+    /* A small dot per card, sitting on the left rail. */
+    .timeline-item::before {
+        content: "";
+        position: absolute;
+        top: 18px;
+        left: -28px;
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: var(--bg-primary);
+        border: 2px solid var(--dot-color, var(--accent-color));
+        box-sizing: border-box;
+    }
+    .timeline-controls {
+        margin-bottom: 16px;
+    }
+}
+
+/* The stacked timeline on screens: one geometry for every entry. A card
+   keeps its box, a plain line (position, degree, news) has none; both
+   start their text at one x, sit one gap apart and carry their dot level
+   with the date, centred on the rail. */
+@media screen and (max-width: 1100px) {
     .timeline .timeline-item {
         padding: 10px 12px;
         border-left-width: 2px;
@@ -1288,26 +1308,14 @@ a:hover {
     .timeline .timeline-title {
         font-size: 0.95em;
     }
-    /* A small dot per entry, centred on the left rail. */
-    .timeline-item::before {
-        content: "";
-        position: absolute;
+    .timeline .timeline-item::before {
         top: 12.5px;
         left: -30.5px;
-        width: 11px;
-        height: 11px;
-        border-radius: 50%;
-        background: var(--bg-primary);
-        border: 2px solid var(--dot-color, var(--accent-color));
-        box-sizing: border-box;
     }
     .timeline .timeline-plain::before,
     .timeline .timeline-newsitem:not(.timeline-publication)::before {
         top: 2.5px;
         left: -28.5px;
-    }
-    .timeline-controls {
-        margin-bottom: 16px;
     }
 }
 
@@ -2033,6 +2041,39 @@ a:hover {
     to { transform: scale(1); opacity: 1; }
 }
 
+/* CV on narrow screens (print keeps its own row layout). */
+@media screen and (max-width: 768px) {
+    /* the award strip follows the reference, which no longer hangs */
+    .pub-compact-body > .entry-awards {
+        padding-left: 0;
+    }
+    /* stacked header lines start at one edge */
+    .resume-header,
+    .resume-subheader {
+        align-items: flex-start;
+    }
+    .resume-commitment {
+        margin-left: 0;
+    }
+    /* The logo sits above its entry at its own size and the text takes
+       the full width, instead of a squeezed logo column centred far from
+       the title. */
+    .resume-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+    }
+    .resume-logo {
+        width: auto;
+        height: auto;
+        align-self: flex-start;
+        justify-content: flex-start;
+    }
+    .resume-logo:empty {
+        display: none;
+    }
+}
+
 /* Footer */
 footer {
     padding: 30px 24px;
@@ -2196,38 +2237,10 @@ footer {
         text-indent: 0;
     }
 
-    /* the award strip follows the reference, which no longer hangs */
-    .pub-compact-body > .entry-awards {
-        padding-left: 0;
-    }
-
-    /* Resume: stacked header lines start at one edge */
+    /* Resume */
     .resume-header,
     .resume-subheader {
         flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .resume-commitment {
-        margin-left: 0;
-    }
-
-    /* CV entries: the logo sits above its entry at its own size and the
-       text takes the full width, instead of a squeezed logo column
-       centred far from the title. */
-    .resume-item {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 6px;
-    }
-    .resume-logo {
-        width: auto;
-        height: auto;
-        align-self: flex-start;
-        justify-content: flex-start;
-    }
-    .resume-logo:empty {
-        display: none;
     }
 
     .timeline-container {
