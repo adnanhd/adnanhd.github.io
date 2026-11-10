@@ -50,8 +50,7 @@
 <p>The foundation of modern VLMs was established by CLIP <span
 class="citation" data-cites="radford_learning_2021">(Radford et al.
 2021)</span>, which showed that contrastive learning on 400 million
-image-text pairs enables zero-shot transfer to diverse visual
-tasks.[fn:s0-clip-impl] <u>CLIP's text tower inherits a long
+image-text pairs enables zero-shot transfer to diverse visual tasks.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> <u>CLIP's text tower inherits a long
 lineage</u>: distributed word representations trained by contrasting
 context-word co-occurrences against negative samples (the word2vec
 construction of <span class="citation"
@@ -457,7 +456,8 @@ sections below. The " - " entries are not failures: contrastive
 dual-encoders cannot answer free-form VQA questions without a generative
 head; instruction VLMs are not optimized for ImageNet zero-shot
 prompting; closed frontier systems (GPT-4V, Gemini) do not publish
-architectural details.[fn:s0-problem-vlm-comparability]</p>
+architectural details.<a href="#fn2" class="footnote-ref" id="fnref2"
+role="doc-noteref"><sup>2</sup></a></p>
 <p>The contrastive era (rows 1-7) opens with CLIP, whose ViT-L/14-336
 set the 76.2% ImageNet zero-shot bar that anchored the field for two
 years. ALIGN matched it the same year using 1.8B noisy web pairs,
@@ -747,6 +747,21 @@ Tang. 2024. <em><span>LLaVA</span>-<span>Phi</span>:
 href="https://doi.org/10.48550/arXiv.2401.02330">https://doi.org/10.48550/arXiv.2401.02330</a>.
 </div>
 </div>
+<section id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Official implementation: <a
+href="https://github.com/openai/CLIP">https://github.com/openai/CLIP</a>.
+For reproduction: OpenCLIP
+(github.com/mlfoundations/open<sub>clip</sub>) provides training code
+and pre-trained models. Key hyperparameters: batch size 32768, learning
+rate 5e-4 with cosine decay, trained for 32 epochs on LAION-400M. The
+temperature parameter
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>
+is learned, initialized at 0.07.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
 
             </article>
         </div>

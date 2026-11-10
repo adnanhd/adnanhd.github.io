@@ -193,8 +193,7 @@ data-cites="vapnik_chervonenkis_1971">(Vapnik and Chervonenkis
 <td>sample complexity from combinatorial richness, not cardinality</td>
 <td>capacity is small against
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math></td>
-<td><a href="#fn1" class="footnote-ref" id="fnref1"
-role="doc-noteref"><sup>1</sup></a></td>
+<td><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></td>
 </tr>
 <tr>
 <td><strong>Rademacher</strong> <span class="citation"
@@ -202,24 +201,21 @@ data-cites="bartlett_mendelson_2002">(Bartlett and Mendelson
 2002)</span></td>
 <td>data-dependent capacity, provably tighter than VC</td>
 <td>the empirical Rademacher sits below its trivial upper bound</td>
-<td><a href="#fn2" class="footnote-ref" id="fnref2"
-role="doc-noteref"><sup>2</sup></a></td>
+<td><a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></td>
 </tr>
 <tr>
 <td><strong>Margin</strong>, boosting <span class="citation"
 data-cites="schapire_margin_1998">(Schapire et al. 1998)</span></td>
 <td>a bound in the margin distribution, not the round count</td>
 <td>margin mass keeps moving right as rounds accumulate</td>
-<td><a href="#fn3" class="footnote-ref" id="fnref3"
-role="doc-noteref"><sup>3</sup></a></td>
+<td><a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></td>
 </tr>
 <tr>
 <td><strong>Margin</strong>, kernel SVM <span class="citation"
 data-cites="cortes_vapnik_1995">(Cortes and Vapnik 1995)</span></td>
 <td>the same bound transported into a feature space</td>
 <td>the classifier separates that space with room to spare</td>
-<td><a href="#fn4" class="footnote-ref" id="fnref4"
-role="doc-noteref"><sup>4</sup></a></td>
+<td><a href="#fn3" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>3</sup></a></td>
 </tr>
 <tr>
 <td><strong>Kernel</strong> as <strong>inductive bias</strong> <span
@@ -227,31 +223,27 @@ class="citation" data-cites="scholkopf_smola_2002">(Schölkopf and Smola
 2002 Ch 2)</span></td>
 <td>an explicit class with a known Mercer eigendecay</td>
 <td>the right kernel is picked before the data is seen</td>
-<td><a href="#fn5" class="footnote-ref" id="fnref5"
-role="doc-noteref"><sup>5</sup></a></td>
+<td><a href="#fn4" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>4</sup></a></td>
 </tr>
 <tr>
 <td><strong>ERM</strong> <span class="citation"
 data-cites="vapnik_nature_1995">(Vapnik 1995)</span></td>
 <td>population risk controlled by empirical risk</td>
 <td>the sample is i.i.d. from one fixed distribution</td>
-<td><a href="#fn6" class="footnote-ref" id="fnref6"
-role="doc-noteref"><sup>6</sup></a></td>
+<td><a href="#fn5" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>5</sup></a></td>
 </tr>
 <tr>
 <td><strong>Concentration</strong></td>
 <td>expectations converted into high-probability statements</td>
 <td>the loss is bounded, and its variance is small for the fast
 rate</td>
-<td><a href="#fn7" class="footnote-ref" id="fnref7"
-role="doc-noteref"><sup>7</sup></a></td>
+<td><a href="#fn6" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>6</sup></a></td>
 </tr>
 <tr>
 <td><strong>Capacity</strong> read in isolation</td>
 <td>a bound on the worst ERM minimizer in the class</td>
 <td>the optimizer that picked the hypothesis does not matter</td>
-<td><a href="#fn8" class="footnote-ref" id="fnref8"
-role="doc-noteref"><sup>8</sup></a></td>
+<td><a href="#fn7" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>7</sup></a></td>
 </tr>
 <tr>
 <td><strong>SMO</strong> <span class="citation"
@@ -260,8 +252,7 @@ data-cites="platt_smo_1999">(Platt 1999)</span></td>
 <td>the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>×</mo><mi>N</mi></mrow><annotation encoding="application/x-tex">N\times N</annotation></semantics></math>
 Gram matrix fits in memory</td>
-<td><a href="#fn9" class="footnote-ref" id="fnref9"
-role="doc-noteref"><sup>9</sup></a></td>
+<td><a href="#fn8" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>8</sup></a></td>
 </tr>
 </tbody>
 </table></div>
@@ -495,15 +486,12 @@ kernel methods in the late 1990s. <strong>Gaussian-kernel</strong> SVMs
 <span class="citation" data-cites="scholkopf_smola_2002">(Schölkopf and
 Smola 2002)</span> achieve a comparable 1.4% on MNIST with
 cross-validated bandwidth, but the choice between polynomial and RBF
-reflects a kernel-design judgement rather than a principled criterion<a
-href="#fn10" class="footnote-ref" id="fnref10"
-role="doc-noteref"><sup>10</sup></a>. SMO <span class="citation"
+reflects a kernel-design judgement rather than a principled criterion<a href="#fn4" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>4</sup></a>. SMO <span class="citation"
 data-cites="platt_smo_1999">(Platt 1999)</span> made these results
 computationally tractable by avoiding a general QP solver, yet the
 underlying
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math>
-Gram-matrix scaling<a href="#fn11" class="footnote-ref" id="fnref11"
-role="doc-noteref"><sup>11</sup></a> put a hard ceiling on dataset size
+Gram-matrix scaling<a href="#fn8" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>8</sup></a> put a hard ceiling on dataset size
 that has only been broken by random features and sketching methods (Part
 V).</p>
 <p>The <em>boosting</em> cluster begins with <strong>AdaBoost</strong>
@@ -512,9 +500,7 @@ Schapire 1997)</span>, whose training-error bound (the product of
 normalization constants) decays exponentially in the number of rounds.
 <u>The empirical surprise was that test error on UCI Letter kept
 improving from round 5 (training error already at 0) through round 1000,
-an apparent violation of any naive capacity-based bound</u><a
-href="#fn12" class="footnote-ref" id="fnref12"
-role="doc-noteref"><sup>12</sup></a>. <strong>Schapire et al.</strong>
+an apparent violation of any naive capacity-based bound</u><a href="#fn3" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>3</sup></a>. <strong>Schapire et al.</strong>
 <span class="citation" data-cites="schapire_margin_1998">(Schapire et
 al. 1998)</span> resolved the puzzle by bounding test error in terms of
 the <em>margin distribution</em> rather than the round count: the
@@ -550,8 +536,7 @@ class="citation" data-cites="schapire_margin_1998">(Schapire et al.
 1998)</span> is the historical bridge that connects boosting to the
 SVM-margin analysis and ultimately to the implicit-regularization story
 of Part IV. Third, every entry above relies on an
-<strong>i.i.d.</strong> sampling assumption<a href="#fn13"
-class="footnote-ref" id="fnref13" role="doc-noteref"><sup>13</sup></a>
+<strong>i.i.d.</strong> sampling assumption<a href="#fn5" class="footnote-ref" id="fnref13" role="doc-noteref"><sup>5</sup></a>
 and a <strong>capacity</strong> notion that ignores the optimizer<a
 href="#fn14" class="footnote-ref" id="fnref14"
 role="doc-noteref"><sup>14</sup></a>; both assumptions break in modern
@@ -664,8 +649,7 @@ implying
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>≳</mo><msup><mn>10</mn><mn>9</mn></msup></mrow><annotation encoding="application/x-tex">n \gtrsim 10^9</annotation></semantics></math>
 for non-vacuous bounds; ImageNet trains with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>≈</mo><msup><mn>10</mn><mn>6</mn></msup></mrow><annotation encoding="application/x-tex">n \approx 10^6</annotation></semantics></math>
-and generalizes anyway.<a href="#fnref1" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+and generalizes anyway.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn2"><p><em>Rademacher tightness gap</em>: data-dependent
 Rademacher complexity <span class="citation"
 data-cites="bartlett_mendelson_2002">(Bartlett and Mendelson
@@ -674,52 +658,38 @@ dependence on the input distribution, but on over-parameterized networks
 the empirical Rademacher remains close to its trivial upper bound
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mrow><mn>2</mn><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mn>2</mn><mi>/</mi><mi>n</mi></mrow></msqrt><annotation encoding="application/x-tex">\sqrt{2 \log 2 / n}</annotation></semantics></math>
 and the resulting generalization bound is still vacuous on standard
-image benchmarks.<a href="#fnref2" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+image benchmarks.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn3"><p><em>Margin-vs-training-error trade-off</em>: AdaBoost's
 training error can reach 0 after 5-30 rounds while test error keeps
 falling for 1000 rounds; the round-count bound predicts overfitting that
 empirically never occurs. <span class="citation"
 data-cites="schapire_margin_1998">(Schapire et al. 1998)</span> resolved
 this by bounding test error in terms of the <em>margin
-distribution</em>, not the round count.<a href="#fnref3"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn4"><p><em>Margin-vs-training-error trade-off</em>: AdaBoost's
-training error can reach 0 after 5-30 rounds while test error keeps
-falling for 1000 rounds; the round-count bound predicts overfitting that
-empirically never occurs. <span class="citation"
-data-cites="schapire_margin_1998">(Schapire et al. 1998)</span> resolved
-this by bounding test error in terms of the <em>margin
-distribution</em>, not the round count.<a href="#fnref4"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn5"><p><em>Kernel design as inductive bias</em>: the choice of
+distribution</em>, not the round count.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p><em>Kernel design as inductive bias</em>: the choice of
 kernel (linear, polynomial, RBF, Matern) encodes the hypothesis class
 via its RKHS, yet there is no principled data-driven selection rule;
 cross-validation over a small grid is the practical default and
-conflates kernel choice with bandwidth tuning.<a href="#fnref5"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn6"><p><em>ERM iid assumption</em>: classical bounds assume the
+conflates kernel choice with bandwidth tuning.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p><em>ERM iid assumption</em>: classical bounds assume the
 sample is drawn i.i.d. from a fixed distribution; the assumption fails
 for time-series, online learning, distribution shift, and
 covariate-shift settings, all of which require either domain-adaptation
-extensions or different proof techniques.<a href="#fnref6"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn7"><p><em>Concentration looseness for heavy tails</em>:
+extensions or different proof techniques.<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p><em>Concentration looseness for heavy tails</em>:
 Hoeffding gives a sub-Gaussian tail under boundedness alone; Bernstein
 and Bennett tighten this when the variance is small relative to the
 range. Most empirical loss surfaces in deep learning have heavy-tailed
 gradients and per-sample-loss values, so the variance term is large and
-the variance-aware bound is no improvement over Hoeffding.<a
-href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn8"><p><em>Capacity-vs-algorithm coupling</em>: classical
+the variance-aware bound is no improvement over Hoeffding.<a href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p><em>Capacity-vs-algorithm coupling</em>: classical
 theory bounds the worst-case ERM minimizer over a hypothesis class,
 treating the optimizer as black-box. The actual hypothesis returned by
 SGD on a non-convex loss is a function of the algorithm's geometry
 (initialization, learning-rate schedule, batch size,
 implicit-regularization direction), and the gap between worst-case ERM
-and SGD-output can be many orders of magnitude in the bound.<a
-href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn9"><p><em>SMO scaling</em>: kernel SVMs solve a quadratic
+and SGD-output can be many orders of magnitude in the bound.<a href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p><em>SMO scaling</em>: kernel SVMs solve a quadratic
 program in the dual, and a chunking solver that keeps the Gram matrix in
 memory pays
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math>
@@ -737,56 +707,7 @@ for chunking on the same machine. Linear memory is what removes the hard
 wall; the super-linear time is what still makes
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>≈</mo><msup><mn>10</mn><mn>5</mn></msup></mrow><annotation encoding="application/x-tex">N \approx 10^5</annotation></semantics></math>
 the practical ceiling, past which approximation methods (Nystrom, random
-features) become mandatory.<a href="#fnref9" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn10"><p><em>Kernel design as inductive bias</em>: the choice of
-kernel (linear, polynomial, RBF, Matern) encodes the hypothesis class
-via its RKHS, yet there is no principled data-driven selection rule;
-cross-validation over a small grid is the practical default and
-conflates kernel choice with bandwidth tuning.<a href="#fnref10"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn11"><p><em>SMO scaling</em>: kernel SVMs solve a quadratic
-program in the dual, and a chunking solver that keeps the Gram matrix in
-memory pays
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math>
-storage. SMO <span class="citation" data-cites="platt_smo_1999">(Platt
-1999)</span> avoids the general QP solver by pairwise coordinate ascent
-and its memory is linear in
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>,
-but its measured time still runs at
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><msup><mi>N</mi><mn>1.9</mn></msup></mrow><annotation encoding="application/x-tex">\sim N^{1.9}</annotation></semantics></math>
-for a linear kernel and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><msup><mi>N</mi><mn>2.1</mn></msup></mrow><annotation encoding="application/x-tex">\sim N^{2.1}</annotation></semantics></math>
-for a Gaussian one, against
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><msup><mi>N</mi><mn>3.1</mn></msup></mrow><annotation encoding="application/x-tex">\sim N^{3.1}</annotation></semantics></math>
-for chunking on the same machine. Linear memory is what removes the hard
-wall; the super-linear time is what still makes
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>≈</mo><msup><mn>10</mn><mn>5</mn></msup></mrow><annotation encoding="application/x-tex">N \approx 10^5</annotation></semantics></math>
-the practical ceiling, past which approximation methods (Nystrom, random
-features) become mandatory.<a href="#fnref11" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn12"><p><em>Margin-vs-training-error trade-off</em>: AdaBoost's
-training error can reach 0 after 5-30 rounds while test error keeps
-falling for 1000 rounds; the round-count bound predicts overfitting that
-empirically never occurs. <span class="citation"
-data-cites="schapire_margin_1998">(Schapire et al. 1998)</span> resolved
-this by bounding test error in terms of the <em>margin
-distribution</em>, not the round count.<a href="#fnref12"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn13"><p><em>ERM iid assumption</em>: classical bounds assume
-the sample is drawn i.i.d. from a fixed distribution; the assumption
-fails for time-series, online learning, distribution shift, and
-covariate-shift settings, all of which require either domain-adaptation
-extensions or different proof techniques.<a href="#fnref13"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn14"><p><em>Capacity-vs-algorithm coupling</em>: classical
-theory bounds the worst-case ERM minimizer over a hypothesis class,
-treating the optimizer as black-box. The actual hypothesis returned by
-SGD on a non-convex loss is a function of the algorithm's geometry
-(initialization, learning-rate schedule, batch size,
-implicit-regularization direction), and the gap between worst-case ERM
-and SGD-output can be many orders of magnitude in the bound.<a
-href="#fnref14" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+features) become mandatory.<a href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 

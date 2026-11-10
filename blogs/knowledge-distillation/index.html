@@ -479,8 +479,7 @@ order. Early <strong>response distillation</strong> methods (Bucilua, Ba
 &amp; Caruana, Hinton) match either probabilities or logits between
 teacher and student; the procedure is simple and effective when the
 capacity gap is moderate, but it leaves no signal on intermediate
-representations and degrades under heavy compression<a href="#fn1"
-class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>.
+representations and degrades under heavy compression<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>.
 The Hinton temperature-scaled KL emerged as the dominant logit-based
 method and is still the single-method baseline reproductions reach for,
 with DKD <span class="citation"
@@ -496,10 +495,8 @@ DKD paper's CIFAR-100 tables.</p>
 <strong>relational distillation</strong> (RKD, CRD) constitute the
 second strand. They supplement the output match with constraints on
 intermediate representations or pairwise structure, which adds learning
-signal when the gap is large<a href="#fn2" class="footnote-ref"
-id="fnref2" role="doc-noteref"><sup>2</sup></a> but introduces a
-hint-layer choice<a href="#fn3" class="footnote-ref" id="fnref3"
-role="doc-noteref"><sup>3</sup></a>. CRD imports the InfoNCE machinery from contrastive learning
+signal when the gap is large<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> but introduces a
+hint-layer choice<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>. CRD imports the InfoNCE machinery from contrastive learning
 with K=16384 negatives in a memory bank and provides a 2.36-point lift
 over KD on the heterogeneous VGG-13
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>
@@ -510,11 +507,9 @@ PS-KD) abandon the offline pre-training requirement: peers train jointly
 (DML, ONE) or the teacher is the model's own past checkpoint
 (Born-Again, PS-KD). <u>DML's surprising finding is that small + large
 peers both improve over solo training, which fits the regularization
-channel</u><a href="#fn4" class="footnote-ref" id="fnref4"
-role="doc-noteref"><sup>4</sup></a> better than the "knowledge transfer"
+channel</u><a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> better than the "knowledge transfer"
 framing; identical initialization collapses the KL term, an instability
-that recurs across peer methods<a href="#fn5" class="footnote-ref"
-id="fnref5" role="doc-noteref"><sup>5</sup></a>. PS-KD operates at
+that recurs across peer methods<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a>. PS-KD operates at
 <em>epoch</em> scale with a linearly annealed α<sub>t</sub> from 0 to
 0.8 over training, providing the smooth spectral-shrinkage curriculum
 <span class="citation" data-cites="mobahi_self_2020">(Mobahi et al.
@@ -541,15 +536,12 @@ BERT-paraphrased data augmentation; MobileBERT redesigns each layer into
 an inverted bottleneck and trains an IB-BERT teacher-assistant before
 progressive layer-wise freeze-and-distill; MiniLM matches only QQ/KK and
 VV self-attention relations on the last layer (dimension-agnostic). All
-four depend critically on layer-copy initialization from the teacher<a
-href="#fn6" class="footnote-ref" id="fnref6"
-role="doc-noteref"><sup>6</sup></a>, and DistilBERT's drop-in
+four depend critically on layer-copy initialization from the teacher<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a>, and DistilBERT's drop-in
 compatibility (same tokenizer, same hidden size) is arguably more
 responsible for its adoption than its raw GLUE score. The LLM era pushes
 the procedure further: MiniLLM <span class="citation"
 data-cites="gu_knowledge_2023">(Gu et al. 2024)</span> swaps forward for
-reverse KL<a href="#fn7" class="footnote-ref" id="fnref7"
-role="doc-noteref"><sup>7</sup></a> and trains via policy gradient on
+reverse KL<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a> and trains via policy gradient on
 student rollouts to suppress the long-tail mean-seeking behaviour that
 produces hedging outputs at 32K-128K vocabulary scale.</p>
 <p><strong>Task-specific distillation</strong> (FGFI for detection,
@@ -557,8 +549,7 @@ Structured-KD for segmentation, Salimans progressive distillation for
 diffusion) tailors the matching to dense or generative outputs. FGFI
 restricts feature distillation to near-object anchor positions;
 imitating the whole feature map instead falls below the undistilled
-student because background features swamp object features<a href="#fn8"
-class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a>.
+student because background features swamp object features<a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a>.
 Salimans progressive distillation halves the teacher's denoising steps
 recursively (8192
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>
@@ -569,28 +560,22 @@ recursively (8192
 4 over 11 rounds) and reports FID 3.0 on CIFAR-10 at the 4-step end of
 that chain; the procedure requires deterministic DDIM sampling,
 warm-start from teacher weights, and v-parameterization without which
-the loss explodes at noise extremes<a href="#fn9" class="footnote-ref"
-id="fnref9" role="doc-noteref"><sup>9</sup></a>.</p>
+the loss explodes at noise extremes<a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a>.</p>
 <p><strong>Diagnostic and theoretical work</strong> (Stanton, Müller,
 Menon, Yuan, Busbridge) frames the field's open questions rather than
 providing new methods. Stanton's audit finds a self-distilled ResNet-20
 still disagreeing with its teacher on 16.7% of CIFAR-100 training images
 after 5k epochs, and the most accurate students are not the most
 faithful: KD is partly implicit-regularization rather than faithful
-imitation<a href="#fn10" class="footnote-ref" id="fnref10"
-role="doc-noteref"><sup>10</sup></a>. Müller shows that a label-smoothed
+imitation<a href="#fn10" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a>. Müller shows that a label-smoothed
 teacher makes a worse teacher than an unsmoothed one of lower accuracy,
-because the penultimate similarity structure collapses<a href="#fn11"
-class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a>.
+because the penultimate similarity structure collapses<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a>.
 Yuan's teacher-free Tf-KD gains up to 0.65 points of ImageNet top-1 with
-no teacher at all, supporting a regularization-dominant view<a
-href="#fn12" class="footnote-ref" id="fnref12"
-role="doc-noteref"><sup>12</sup></a>. Busbridge's scaling-law analysis
+no teacher at all, supporting a regularization-dominant view<a href="#fn4" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>4</sup></a>. Busbridge's scaling-law analysis
 <span class="citation"
 data-cites="busbridge_distillation_2023">(Busbridge et al. 2025)</span>
 finds that for fixed student compute, teacher size has an optimum and
-over-large teachers <em>hurt</em><a href="#fn13" class="footnote-ref"
-id="fnref13" role="doc-noteref"><sup>13</sup></a>, retiring the folklore
+over-large teachers <em>hurt</em><a href="#fn12" class="footnote-ref" id="fnref13" role="doc-noteref"><sup>12</sup></a>, retiring the folklore
 "teacher 4x student" prescription. These threads remain unreconciled:
 the dark-knowledge and regularization hypotheses are both supported by
 direct experiments, and the practical implication is that distillation
@@ -629,9 +614,7 @@ per sample, no matter the depth</td>
 <td>feature</td>
 <td>intermediate activations, attention maps</td>
 <td>the output channel is too thin when the gap is large</td>
-<td>a hint-layer choice worth 1-2 points<a href="#fn14"
-class="footnote-ref" id="fnref14"
-role="doc-noteref"><sup>14</sup></a></td>
+<td>a hint-layer choice worth 1-2 points<a href="#fn3" class="footnote-ref" id="fnref14" role="doc-noteref"><sup>3</sup></a></td>
 </tr>
 <tr>
 <td>relational</td>
@@ -644,9 +627,7 @@ batch terms, memory bank</td>
 <td>online</td>
 <td>peers' outputs, co-trained</td>
 <td>offline requires a finished teacher first</td>
-<td>peers must differ at init and clear a capacity floor<a href="#fn15"
-class="footnote-ref" id="fnref15"
-role="doc-noteref"><sup>15</sup></a></td>
+<td>peers must differ at init and clear a capacity floor<a href="#fn5" class="footnote-ref" id="fnref15" role="doc-noteref"><sup>5</sup></a></td>
 </tr>
 <tr>
 <td>self</td>
@@ -658,9 +639,7 @@ role="doc-noteref"><sup>15</sup></a></td>
 <td>NLP structural</td>
 <td>attention, hidden states, QK/VV relations</td>
 <td>transformers expose matched objects at every layer</td>
-<td>layer-copy init constrains student shape<a href="#fn16"
-class="footnote-ref" id="fnref16"
-role="doc-noteref"><sup>16</sup></a></td>
+<td>layer-copy init constrains student shape<a href="#fn6" class="footnote-ref" id="fnref16" role="doc-noteref"><sup>6</sup></a></td>
 </tr>
 <tr>
 <td>task-specific</td>
@@ -880,123 +859,75 @@ of a 2-layer CNN student grows from 4 to 10 layers, the student's
 accuracy first rises and then falls; an intermediate teacher assistant
 bridges the gap at the cost of one more training run <span
 class="citation" data-cites="mirzadeh_improved_2020">(Mirzadeh et al.
-2020)</span>.<a href="#fnref1" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+2020)</span>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn2"><p><em>Teacher capacity gap</em>: distilling from a teacher
 whose VC-dimension or depth exceeds the student's by a large factor
 frequently <em>hurts</em> rather than helps; the student cannot
 represent the teacher's decision boundary and its gradient descent
 oscillates between partial approximations <span class="citation"
-data-cites="mirzadeh_improved_2020">(Mirzadeh et al. 2020)</span>.<a
-href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+data-cites="mirzadeh_improved_2020">(Mirzadeh et al. 2020)</span>.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn3"><p><em>Hint-layer choice</em>: feature distillation
 requires picking which student layer is supervised by which teacher
 layer; Romero et al. take the middle layer of each and note that a
 deeper guided layer over-regularizes the student, and a deeper learned
 regressor partly defeats the purpose by offloading representational work
 onto the regressor itself <span class="citation"
-data-cites="romero_fitnets_2015">(Romero et al. 2015)</span>.<a
-href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+data-cites="romero_fitnets_2015">(Romero et al. 2015)</span>.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn4"><p><em>Dark-knowledge vs. regularization</em>: even
 hand-crafted "teachers" (uniform-over-non-target, label-smoothed
 one-hot) recover much of the KD gain, and reverse-distillation (small
 teacher improving large student) shows that classical "knowledge
 transfer" overstates the role of teacher content <span class="citation"
-data-cites="yuan_revisiting_2020">(Yuan et al. 2020)</span>.<a
-href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+data-cites="yuan_revisiting_2020">(Yuan et al. 2020)</span>.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn5"><p><em>Online co-training instability</em>: peer methods
 (DML, ONE) require independent random initialization and a capacity
 floor; identical inits collapse the KL term to zero, and
 very-low-capacity peers cannot generate informative soft targets for
 each other <span class="citation" data-cites="zhang_deep_2018">(Zhang et
-al. 2018)</span>.<a href="#fnref5" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+al. 2018)</span>.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn6"><p><em>Layer-copy initialization fragility</em>: NLP
 distillation depends critically on copying alternate teacher layers as
 the student warm-start. Random init costs 3.69 GLUE points, which
 constrains student architecture to share the teacher's hidden dimension
 <span class="citation" data-cites="sanh_distilbert_2019">(Sanh et al.
-2019)</span>.<a href="#fnref6" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+2019)</span>.<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn7"><p><em>KL direction is empirical</em>. Forward KL is
 mean-seeking and produces hedging students. Reverse KL is mode-seeking
 but unstable without policy-gradient variance reduction. The choice has
 no clean theoretical winner and depends on whether the deployment task
 rewards coverage or concentration <span class="citation"
-data-cites="gu_knowledge_2023">(Gu et al. 2024)</span>.<a href="#fnref7"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+data-cites="gu_knowledge_2023">(Gu et al. 2024)</span>.<a href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn8"><p><em>Detection imitation-mask sensitivity</em>:
 object-detector distillation breaks under naive feature matching because
 background positions dominate the feature map; imitating the whole map
 costs a quarter-width toy detector 8.9 mAP on KITTI, while imitating
 near-object anchor locations gains 6.6 <span class="citation"
-data-cites="wang_distilling_2019">(Wang et al. 2019)</span>.<a
-href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+data-cites="wang_distilling_2019">(Wang et al. 2019)</span>.<a href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn9"><p><em>Diffusion-distillation prerequisites</em>:
 progressive distillation requires a deterministic teacher sampler (DDIM,
 not DDPM), warm-start from teacher weights, and v-parameterization; cold
 init or stochastic samplers fail outright <span class="citation"
-data-cites="salimans_progressive_2022">(Salimans and Ho 2022)</span>.<a
-href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+data-cites="salimans_progressive_2022">(Salimans and Ho 2022)</span>.<a href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn10"><p><em>Silent fidelity failure</em>: a self-distilled
 ResNet-20 still disagrees with its teacher on 16.7% of CIFAR-100
 training images after 5k epochs, and the most accurate students are not
 the most faithful; KD's gain depends on a delicate
 fidelity-regularization trade-off rather than on faithful imitation
 <span class="citation" data-cites="stanton_does_2021">(Stanton et al.
-2021)</span>.<a href="#fnref10" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+2021)</span>.<a href="#fnref10" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn11"><p><em>Label-smoothing equivalence</em>: a teacher trained
 with label smoothing collapses its penultimate similarity structure, and
 distillation from such a teacher produces a worse student than
 distilling from an unsmoothed teacher of lower accuracy. The soft-target
 signal is not just confidence reduction <span class="citation"
-data-cites="muller_when_2019">(Müller et al. 2019)</span>.<a
-href="#fnref11" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn12"><p><em>Dark-knowledge vs. regularization</em>: even
-hand-crafted "teachers" (uniform-over-non-target, label-smoothed
-one-hot) recover much of the KD gain, and reverse-distillation (small
-teacher improving large student) shows that classical "knowledge
-transfer" overstates the role of teacher content <span class="citation"
-data-cites="yuan_revisiting_2020">(Yuan et al. 2020)</span>.<a
-href="#fnref12" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn13"><p><em>Teacher-size saturation</em>: for a fixed
+data-cites="muller_when_2019">(Müller et al. 2019)</span>.<a href="#fnref11" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn12"><p><em>Teacher-size saturation</em>: for a fixed
 student-compute budget, larger teachers help only up to a threshold
 beyond which they <em>hurt</em>; the optimal teacher size shifts with
 student compute, so fixed-ratio prescriptions ("teacher 4x student")
 should be retired <span class="citation"
 data-cites="busbridge_distillation_2023">(Busbridge et al.
-2025)</span>.<a href="#fnref13" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn14"><p><em>Hint-layer choice</em>: feature distillation
-requires picking which student layer is supervised by which teacher
-layer; Romero et al. take the middle layer of each and note that a
-deeper guided layer over-regularizes the student, and a deeper learned
-regressor partly defeats the purpose by offloading representational work
-onto the regressor itself <span class="citation"
-data-cites="romero_fitnets_2015">(Romero et al. 2015)</span>.<a
-href="#fnref14" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn15"><p><em>Online co-training instability</em>: peer methods
-(DML, ONE) require independent random initialization and a capacity
-floor; identical inits collapse the KL term to zero, and
-very-low-capacity peers cannot generate informative soft targets for
-each other <span class="citation" data-cites="zhang_deep_2018">(Zhang et
-al. 2018)</span>.<a href="#fnref15" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn16"><p><em>Layer-copy initialization fragility</em>: NLP
-distillation depends critically on copying alternate teacher layers as
-the student warm-start. Random init costs 3.69 GLUE points, which
-constrains student architecture to share the teacher's hidden dimension
-<span class="citation" data-cites="sanh_distilbert_2019">(Sanh et al.
-2019)</span>.<a href="#fnref16" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn17"><p><em>Detection imitation-mask sensitivity</em>:
-object-detector distillation breaks under naive feature matching because
-background positions dominate the feature map; imitating the whole map
-costs a quarter-width toy detector 8.9 mAP on KITTI, while imitating
-near-object anchor locations gains 6.6 <span class="citation"
-data-cites="wang_distilling_2019">(Wang et al. 2019)</span>.<a
-href="#fnref17" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+2025)</span>.<a href="#fnref13" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 

@@ -127,32 +127,31 @@ m/s<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics>
 and foot-skate (cm/s during contact) are reported when the paper
 publishes them; " - " means unreported in primary configuration. Numbers
 reflect the <strong>primary published configuration</strong> and should
-be read with [fn:s0-imc-numbers-caveat] before cross-method ranking.
-Five cells are known to disagree with their sources and are left in
-place with the discrepancy recorded here rather than silently
-re-tabulated. (i) The PIP cell is the online DIP-IMU mesh error rather
-than MPJPE: Table 3 of <span class="citation"
-data-cites="yi_physical_2022">(Yi et al. 2022)</span> gives 5.04 cm
-positional error and 5.95 cm mesh error online, with absolute jitter
-0.24, so the 0.16 entry matches no reported figure. (ii) The TransPose
-cell is the offline positional error (4.90 cm) while the PIP cell is
-online, so the two are not in the same setting and their ordering here
-inverts the within-paper comparison, in which PIP is ahead of TransPose.
-(iii) PIP publishes no ground-penetration rate at all, measuring
-plausibility by ZMP distance, so the foot-skate entry is unsupported.
-(iv) The BaroPoser cell is the DIP-IMU mesh error (10.36 cm) rather than
-the positional error (8.57 cm) reported in <span class="citation"
-data-cites="zhang_baroposer_2025">(Zhang et al. 2025)</span>, and its
-latency is derived from a 30 fps throughput rather than measured. (v)
-The Loose Inertial Poser row describes a 4-IMU upper-body system
-evaluated on its own loose-wear recordings, which reports nothing on
-DIP-IMU <span class="citation" data-cites="zuo_loose_2024">(Zuo et al.
-2024)</span>; and the GIP cell could not be traced to any table of <span
-class="citation" data-cites="xue_group_2025">(Xue et al. 2025)</span>,
-whose real-data joint error is 9.94 cm. The DIP and TIP rows have no
-bibliography entry of their own: their figures are re-evaluations quoted
-by the citing papers, not values taken from the original
-publications.</caption>
+be read with <a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> before cross-method ranking. Five
+cells are known to disagree with their sources and are left in place
+with the discrepancy recorded here rather than silently re-tabulated.
+(i) The PIP cell is the online DIP-IMU mesh error rather than MPJPE:
+Table 3 of <span class="citation" data-cites="yi_physical_2022">(Yi et
+al. 2022)</span> gives 5.04 cm positional error and 5.95 cm mesh error
+online, with absolute jitter 0.24, so the 0.16 entry matches no reported
+figure. (ii) The TransPose cell is the offline positional error (4.90
+cm) while the PIP cell is online, so the two are not in the same setting
+and their ordering here inverts the within-paper comparison, in which
+PIP is ahead of TransPose. (iii) PIP publishes no ground-penetration
+rate at all, measuring plausibility by ZMP distance, so the foot-skate
+entry is unsupported. (iv) The BaroPoser cell is the DIP-IMU mesh error
+(10.36 cm) rather than the positional error (8.57 cm) reported in <span
+class="citation" data-cites="zhang_baroposer_2025">(Zhang et al.
+2025)</span>, and its latency is derived from a 30 fps throughput rather
+than measured. (v) The Loose Inertial Poser row describes a 4-IMU
+upper-body system evaluated on its own loose-wear recordings, which
+reports nothing on DIP-IMU <span class="citation"
+data-cites="zuo_loose_2024">(Zuo et al. 2024)</span>; and the GIP cell
+could not be traced to any table of <span class="citation"
+data-cites="xue_group_2025">(Xue et al. 2025)</span>, whose real-data
+joint error is 9.94 cm. The DIP and TIP rows have no bibliography entry
+of their own: their figures are re-evaluations quoted by the citing
+papers, not values taken from the original publications.</caption>
 <tbody>
 <tr>
 <td></td>
@@ -186,8 +185,7 @@ publications.</caption>
 <td>70 (DIP)</td>
 <td>23.4</td>
 <td> - </td>
-<td>bi-LSTM baseline; jitter unusable for graphics, no
-physics[fn:s0-flat-ground]</td>
+<td>bi-LSTM baseline; jitter unusable for graphics, no physics<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></td>
 </tr>
 <tr>
 <td>TransPose <span class="citation"
@@ -199,8 +197,7 @@ data-cites="yi_transpose_2021">(Yi et al. 2021)</span></td>
 <td>49 (DIP)</td>
 <td>1.19</td>
 <td> - </td>
-<td>three-stage leaf-to-rotation cascade, offline setting;
-flat-ground[fn:s0-flat-ground] FK branch</td>
+<td>three-stage leaf-to-rotation cascade, offline setting; flat-ground<a href="#fn2" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>2</sup></a> FK branch</td>
 </tr>
 <tr>
 <td>PIP <span class="citation"
@@ -266,8 +263,7 @@ class="citation" data-cites="armani_ultra_2024">(Armani et al.
 <td>107 (UIP)</td>
 <td>0.055</td>
 <td> - </td>
-<td>inter-sensor UWB; SIP 24.1 deg; jitter -97% vs PIP; no abs.
-frame[fn:s0-no-absolute-anchor]</td>
+<td>inter-sensor UWB; SIP 24.1 deg; jitter -97% vs PIP; no abs. frame<a href="#fn3" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>3</sup></a></td>
 </tr>
 <tr>
 <td>DiffCap <span class="citation"
@@ -292,7 +288,7 @@ data-cites="zuo_transformer_2025">(Zuo et al. 2025)</span></td>
 <td> - </td>
 <td> - </td>
 <td>drop-in calib. preprocessor; "put on and use"; no T-pose; orient.
-only[fn:s0-mag-yaw-drift]</td>
+only<a href="#fn4" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>4</sup></a></td>
 </tr>
 <tr>
 <td>MagShield <span class="citation"
@@ -304,7 +300,7 @@ data-cites="shao_magshield_2025">(Shao et al. 2025)</span></td>
 <td> - </td>
 <td> - </td>
 <td> - </td>
-<td>yaw-only mag. correction[fn:s0-mag-yaw-drift]; pairs with
+<td>yaw-only mag. correction<a href="#fn4" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>4</sup></a>; pairs with
 PNP/DynaIP</td>
 </tr>
 <tr>
@@ -373,7 +369,7 @@ GlobalPose generalised contact to arbitrary joints, enabling stairs,
 sitting, and handstands without scene priors. <u>The recurring failure
 mode across this entire line is the flat-ground assumption, inherited
 from TransPose's supporting-foot FK integrator, that GlobalPose only
-partially relaxes.</u>[fn:s0-flat-ground]</p>
+partially relaxes.</u><a href="#fn2" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>2</sup></a></p>
 <p>The <strong>fusion family</strong> (DiffCap, BaroPoser, UIP, GIP)
 breaks one of three IMU-only limitations by adding an exogenous
 modality. DiffCap adds a monocular camera and uses diffusion to absorb
@@ -387,10 +383,9 @@ the first IMC method to estimate vertical translation on stairs without
 a learned height prior. Ultra Inertial Poser adds peer-to-peer UWB
 ranging between body-worn nodes and reduces jitter by roughly 97% via
 smoothly-varying distance constraints, while remaining anchor-free (and
-therefore unable to recover absolute world
-coordinates[fn:s0-no-absolute-anchor]). Group Inertial Poser extends the
-same UWB principle across persons and is the first synchronised
-two-person sparse-IMU system;
+therefore unable to recover absolute world coordinates<a href="#fn3" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>3</sup></a>).
+Group Inertial Poser extends the same UWB principle across persons and
+is the first synchronised two-person sparse-IMU system;
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>≥</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">N\geq3</annotation></semantics></math>
 compounding occlusion is unbenchmarked.</p>
 <p>The <strong>calibration and robustness sidecar</strong> (TIC,
@@ -399,15 +394,16 @@ pose estimator: TIC drops T-pose calibration and operates as a
 transformer-based implicit calibrator over a sliding window; MagShield
 gates magnetometer corrections under detected magnetic disturbance and
 is yaw-only by construction (since gravity already constrains roll and
-pitch[fn:s0-mag-yaw-drift]); Loose Inertial Poser models
+pitch<a href="#fn4" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>4</sup></a>); Loose Inertial Poser models
 secondary-motion offsets between garment and body so that the static
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>R</mi><mrow><mi>B</mi><mi>S</mi></mrow></msub><annotation encoding="application/x-tex">R_{BS}</annotation></semantics></math>
 calibration assumption can be relaxed for everyday clothing. These three
 are <strong>complementary</strong> (TIC corrects calibration drift,
 MagShield corrects magnetic interference, LIP corrects garment offset)
 and are commonly stacked as parallel preprocessors before a downstream
-PIP/PNP/DynaIP pose estimator. Cross-paper number comparison is
-unsafe[fn:s0-imc-numbers-caveat]; within-paper ablations are the
+PIP/PNP/DynaIP pose estimator. Cross-paper number comparison is unsafe<a
+href="#fn10" class="footnote-ref" id="fnref10"
+role="doc-noteref"><sup>10</sup></a>; within-paper ablations are the
 reliable signal.</p>
 <h2 class="blog-refs-title">References</h2>
 <div id="refs" class="references csl-bib-body hanging-indent"
@@ -509,6 +505,38 @@ June, 2209-19. <a
 href="https://doi.org/10.1109/CVPR52733.2024.00215">https://doi.org/10.1109/CVPR52733.2024.00215</a>.
 </div>
 </div>
+<section id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p><em>Cross-paper number caveat</em>. Methods are
+benchmarked on different datasets (DIP-IMU, TotalCapture, AIST++, AMASS,
+UIP-DB, GIP-DB, MagIMU), splits, and synchronisation conventions, and on
+online or offline settings that the tables do not always separate. The
+leaderboard values were recompiled from each paper's primary reported
+configuration and are not all on the same set. Ranking by raw MPJPE
+across rows is unsafe; ranking within a method's published comparison is
+reliable.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><em>Flat-ground assumption</em>. PIP-lineage methods
+(TransPose, PIP, PNP, GlobalPose) enforce contact through a horizontal
+ground plane at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">z=0</annotation></semantics></math>;
+stairs, ramps, and uneven terrain violate the constraint and produce
+sliding or penetration. BaroPoser breaks the assumption explicitly via
+barometric height; GlobalPose admits arbitrary contact joints; the rest
+of the family inherits the limitation.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p><em>No absolute world coordinates</em>. Without external
+anchors (UWB infrastructure, optical, GPS), sparse-IMU systems recover
+body-relative pose plus relative trajectory only; absolute global
+position drifts unboundedly. UIP and GIP report inter-sensor and
+inter-person distances as relative anchors, not absolute frames.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p><em>Yaw-axis magnetometer drift</em>. Roll and pitch are
+observable from gravity (accelerometer); yaw drifts through gyroscope
+bias and magnetic interference. Most degradations cluster on yaw, which
+is why MagShield's correction is 1D (yaw-only) and why TIC reports
+orientation rather than full pose error.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
 
             </article>
         </div>

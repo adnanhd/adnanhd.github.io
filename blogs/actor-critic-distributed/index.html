@@ -54,15 +54,14 @@ and is not duplicated here. Columns track design axes that distinguish
 methods <strong>within</strong> these two families rather than across
 the whole book: policy class (deterministic, stochastic Gaussian,
 max-entropy, V-trace-corrected on-policy), the number of critic networks
-(a load-bearing hyperparameter for overestimation-bias
-control[fn:s0-overestimation]), and the two canonical scoreboards
+(a load-bearing hyperparameter for overestimation-bias control<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>), and the two canonical scoreboards
 (MuJoCo HalfCheetah-v2 reward at 1M env steps for continuous control;
 Atari-57 median human-normalized score for distributed agents). Entries
 marked <em>n.r.</em> are not reported in the original paper because the
 method targets only the other domain; entries marked
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>†</mi><annotation encoding="application/x-tex">\dagger</annotation></semantics></math>
-come from third-party reproductions[fn:s0-reproductions] rather than the
-original paper.</p>
+come from third-party reproductions<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> rather than the original
+paper.</p>
 <div class="blog-table"><table id="tbl:actor-critic-distributed-leaderboard">
 <caption>Actor-critic and distributed-RL leaderboard. Each row's
 citation names the method's source paper, not necessarily the source of
@@ -217,7 +216,8 @@ data-cites="badia_agent57_2020">(Badia et al. 2020)</span></td>
 </tbody>
 </table></div>
 <p>The continuous-control column tracks a clean three-step monotone
-improvement driven by overestimation-bias control[fn:s0-overestimation].
+improvement driven by overestimation-bias control<a href="#fn3"
+class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>.
 <u>DDPG's single Q-network and OU exploration plateau near 3300</u>; TD3
 nearly triples this to 9636 by combining clipped twin critics, delayed
 actor updates, and target-policy smoothing; SAC pushes further to
@@ -331,6 +331,24 @@ Wang, Ziyu, Victor Bapst, Nicolas Heess, et al. 2017. <em>Sample
 href="https://doi.org/10.48550/arXiv.1611.01224">https://doi.org/10.48550/arXiv.1611.01224</a>.
 </div>
 </div>
+<section id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p><em>Overestimation bias</em>: function-approximation
+Q-learning systematically over-estimates max-action values via Jensen's
+inequality on noisy targets; the bias compounds through Bellman
+bootstrapping. Clipped twin critics (TD3, SAC), Retrace truncation
+(ACER), and decoupled target networks (MPO) each address the same root
+cause.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><em>Third-party reproductions</em>: numbers marked
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>†</mi><annotation encoding="application/x-tex">\dagger</annotation></semantics></math>
+come from systematic reproductions (Stable-Baselines3, Tianshou, OpenAI
+Baselines) rather than the original paper, and may differ by 10-20% from
+headline numbers due to MuJoCo version, reward-clipping conventions, and
+seed counts.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
 
             </article>
         </div>

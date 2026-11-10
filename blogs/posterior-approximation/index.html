@@ -103,9 +103,7 @@ id="mean-field-origins-jordan-ghahramani-jaakkola-saul-1999">Mean-field
 origins: Jordan, Ghahramani, Jaakkola, Saul (1999)</h3>
 <p>The earliest coherent machine-learning presentation of variational
 methods is the tutorial by <span class="citation"
-data-cites="jordan1999introduction">Jordan et al. (1999)</span>,<a
-href="#fn1" class="footnote-ref" id="fnref1"
-role="doc-noteref"><sup>1</sup></a> which unifies the mean-field
+data-cites="jordan1999introduction">Jordan et al. (1999)</span>,<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> which unifies the mean-field
 treatment of sigmoid belief networks, the Boltzmann machine, and
 factorial hidden Markov models under a single Jensen-inequality
 derivation. The authors start from the intractable log-marginal of a
@@ -331,9 +329,7 @@ across all modes with possibly inflated variance.</p>
 deeply multi-modal across permutations and basins) is typically
 basin-local: the trained
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>q</mi><annotation encoding="application/x-tex">q</annotation></semantics></math>
-approximates a single mode rather than the full posterior.</u><a
-href="#fn2" class="footnote-ref" id="fnref2"
-role="doc-noteref"><sup>2</sup></a> Deep ensembles, treated in the SWAG and deep-ensembles
+approximates a single mode rather than the full posterior.</u><a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> Deep ensembles, treated in the SWAG and deep-ensembles
 section, address exactly this failure.</p>
 <p>Fitting one Gaussian to the mixture
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mstyle displaystyle="false"><mfrac><mn>1</mn><mn>2</mn></mfrac></mstyle><mi mathvariant="script">𝒩</mi><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mn>2.5</mn><mo>,</mo><msup><mn>0.6</mn><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mstyle displaystyle="false"><mfrac><mn>1</mn><mn>2</mn></mfrac></mstyle><mi mathvariant="script">𝒩</mi><mo stretchy="false" form="prefix">(</mo><mn>2.5</mn><mo>,</mo><msup><mn>0.6</mn><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\tfrac12\mathcal{N}(-2.5,0.6^2)+\tfrac12\mathcal{N}(2.5,0.6^2)</annotation></semantics></math>
@@ -1484,8 +1480,7 @@ compute instead: roughly one posterior sample per hour on 512 TPUv3
 devices <span class="citation" data-cites="izmailov2021hmc">(Izmailov et
 al. 2021)</span>.</p>
 <p><u>A subtle observation: HMC's acceptance rate is not a mixing
-diagnostic.</u><a href="#fn3" class="footnote-ref" id="fnref3"
-role="doc-noteref"><sup>3</sup></a> High acceptance (say 99%) means
+diagnostic.</u><a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> High acceptance (say 99%) means
 proposals are close to current state, which means small
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>η</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math>
 and slow mixing. The optimal acceptance rate is about 65% for a leapfrog
@@ -1771,8 +1766,7 @@ reliably often prefer SGLD's simpler, if cruder, guarantee.</p></li>
 are BNN posteriors really like? Izmailov et al. (2021)</h3>
 <p><span class="citation" data-cites="izmailov2021hmc">Izmailov et al.
 (2021)</span> ran full-batch HMC (not SG-MCMC) on CIFAR-10 and
-IMDB-scale BNNs.<a href="#fn4" class="footnote-ref" id="fnref4"
-role="doc-noteref"><sup>4</sup></a> <u>The resulting samples approximate
+IMDB-scale BNNs.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> <u>The resulting samples approximate
 the exact posterior to within HMC's (very tight) numerical tolerance,
 and the paper uses them as a ground-truth reference against which
 cheaper approximations are measured.</u></p>
@@ -1952,8 +1946,7 @@ across chains, effective sample size (ESS), and posterior-predictive
 checks. Reversible-jump MCMC extends HMC to variable-dimension problems
 such as variable-width networks but is unused for fixed-architecture
 BNNs.</p>
-<p>__The cold-posterior effect refuses to go away._<a href="#fn5"
-class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> A
+<p>__The cold-posterior effect refuses to go away._<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> A
 temperature
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">T&lt;1</annotation></semantics></math>
 in front of the likelihood improves accuracy at the expense of exact
@@ -5134,8 +5127,7 @@ early 1990s through the Boltzmann-machine and sigmoid-belief-net
 literatures; reading the 1999 paper as the algorithm's birth understates
 the prior art and obscures the connection to statistical-physics
 free-energy methods that motivates the term "free energy" throughout
-this chapter.<a href="#fnref1" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+this chapter.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn2"><p><em>Why reverse-KL zero-forces and forward-KL
 zero-avoids</em>:
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>q</mi><mo stretchy="false" form="postfix">∥</mo><mi>p</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mo>∫</mo><mi>q</mi><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>q</mi><mi>/</mi><mi>p</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathrm{KL}(q \| p) = \int q \log(q/p)</annotation></semantics></math>
@@ -5161,8 +5153,7 @@ support (zero-avoiding, mass-covering). The asymmetry is not an
 aesthetic preference but a finite-vs-infinite penalty boundary, and
 explains the empirical observation that reverse-KL VI under-disperses
 while forward-KL methods (expectation propagation, importance-weighted
-bounds) over-disperse.<a href="#fnref2" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+bounds) over-disperse.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn3"><p><em>Why 65 percent and not higher</em>: the 65.1% target
 (0.651 in Beskos et al.) follows from a diffusion-limit analysis where
 the leapfrog step size is tuned to maximize expected squared jumping
@@ -5170,8 +5161,7 @@ distance per proposal. At very high acceptance the proposals are too
 short to make progress; at very low acceptance most compute is wasted on
 rejected proposals. The 65% figure assumes a product target with
 isotropic geometry; for anisotropic BNN posteriors the optimum can
-shift, so practitioners should not over-fit to the exact number.<a
-href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+shift, so practitioners should not over-fit to the exact number.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn4"><p><em>What the HMC oracle actually cost, and what it
 actually found</em>: <span class="citation"
 data-cites="izmailov2021hmc">(Izmailov et al. 2021)</span> (<a
@@ -5188,8 +5178,7 @@ is not a cost, so neither of those transfers. The two findings most
 often misreported downstream are that the exact posterior is
 <em>less</em> robust to CIFAR-10-C corruption than deep ensembles, SGLD,
 and at severity 5 than a single SGD model, and that the cold-posterior
-effect vanishes in their runs once data augmentation is removed.<a
-href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+effect vanishes in their runs once data augmentation is removed.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn5"><p><em>What status the cold-posterior debate has in
 2026</em>: as of writing, the leading hypotheses are (i)
 data-augmentation-induced likelihood misspecification (Aitchison 2021,
@@ -5201,25 +5190,7 @@ reproduce the effect once augmentation is removed <span class="citation"
 data-cites="izmailov2021hmc">(Izmailov et al. 2021)</span>, which is
 evidence for (i) and against (iii) as a complete explanation, but the
 relative contributions of (i) and (ii) remain open and probably
-architecture-dependent.<a href="#fnref5" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn6"><p><em>Why batch-norm breaks under weight-space
-sampling</em>: batch-norm layers maintain running statistics
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>μ</mi><mtext mathvariant="normal">run</mtext></msub><mo>,</mo><msub><mi>σ</mi><mtext mathvariant="normal">run</mtext></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\mu_{\text{run}}, \sigma_{\text{run}})</annotation></semantics></math>
-that are a function of all parameters that came before them at training
-time. Sampling new weights
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>θ</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow></msup><mo>∼</mo><msub><mi>p</mi><mrow><mi mathvariant="normal">S</mi><mi mathvariant="normal">W</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">G</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\theta^{(s)} \sim p_{\mathrm{SWAG}}</annotation></semantics></math>
-does not update these running statistics, so the BN layer applies an
-out-of-distribution affine correction to the new pre-activations. The
-standard remedy (run part of the training data forward to refresh
-running stats per sample, a random 10% on ImageNet in <span
-class="citation" data-cites="maddox_swag_2019">(Maddox et al.
-2019)</span>) costs
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mi>B</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(B)</annotation></semantics></math>
-extra FLOPs per posterior sample but is essential; the same gotcha
-applies to MC-dropout-on-BN-networks and to any other test-time
-stochastic-weights scheme.<a href="#fnref6" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+architecture-dependent.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 

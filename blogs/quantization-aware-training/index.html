@@ -55,12 +55,10 @@ production INT8 baselines (2011-2018), the
 <strong>binary*/*ternary</strong> extreme-low-bit line (2016-2017),
 <strong>learnable-scale</strong> QAT (2018-2020), mixed-precision and
 transformer-specific QAT (2019-2021), and the LLM-PTQ era (2022-2024).
-Each family is defined by the <strong>granularity</strong><a href="#fn1"
-class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>
+Each family is defined by the <strong>granularity</strong><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>
 (per-tensor vs per-channel), the placement of trainable parameters
 (clipping bound, step size, zero-point), and the regime of
-weight-vs-activation asymmetry<a href="#fn2" class="footnote-ref"
-id="fnref2" role="doc-noteref"><sup>2</sup></a> that drives the headline
+weight-vs-activation asymmetry<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> that drives the headline
 accuracy.</p>
 <p>Two foundational surveys define the modern vocabulary. <span
 class="citation" data-cites="nagel_white_paper_2021">(Nagel et al.
@@ -76,8 +74,7 @@ data-cites="nagel_white_paper_2021">(Nagel et al. 2021)</span>'s Section
 procedure that achieves under 1% INT8 accuracy loss on most CNN
 architectures, and the four-stage ablation on MobileNetV2 INT8 shows
 that skipping any stage costs 0.2-0.8 points top-1; an instructive
-sensitivity to the <strong>calibration data</strong><a href="#fn3"
-class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>
+sensitivity to the <strong>calibration data</strong><a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>
 used at each step.</p>
 <p>The training-time line was crystallized by <span class="citation"
 data-cites="jacob_quantization_2018">(Jacob et al. 2018)</span>, whose
@@ -87,16 +84,14 @@ PyTorch Eager Mode. Their work rests on the straight-through estimator
 of <span class="citation" data-cites="bengio_estimating_2013">(Bengio et
 al. 2013)</span>, which supplies a surrogate gradient for the
 non-differentiable rounding operator and introduces the <strong>gradient
-mismatch</strong><a href="#fn4" class="footnote-ref" id="fnref4"
-role="doc-noteref"><sup>4</sup></a> that all later QAT analyses must
+mismatch</strong><a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> that all later QAT analyses must
 absorb. <span class="citation" data-cites="esser_learned_2020">(Esser et
 al. 2020)</span> introduced the learned step-size formulation (LSQ),
 showing that the <strong>learnable-scale</strong> itself can be treated
 as a first-class trainable parameter; the gradient-scale factor
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo>=</mo><mn>1</mn><mi>/</mi><msqrt><mrow><msub><mi>N</mi><mi>W</mi></msub><msub><mi>q</mi><mi mathvariant="normal">max</mi></msub></mrow></msqrt></mrow><annotation encoding="application/x-tex">g = 1/\sqrt{N_W q_{\max}}</annotation></semantics></math>
 it derives is what prevents one of the dominant
-<strong>training-instability</strong><a href="#fn5" class="footnote-ref"
-id="fnref5" role="doc-noteref"><sup>5</sup></a> modes when scales
+<strong>training-instability</strong><a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> modes when scales
 co-train with weights.</p>
 <div class="blog-table"><table id="tbl:qat-sota">
 <caption>QAT/PTQ SoTA leaderboard. Method links to the chapter section
@@ -686,9 +681,7 @@ data-cites="jacob_quantization_2018">(Jacob et al. 2018)</span>)
 FP32-to-INT8 gap on well-behaved CNNs</u> (ResNet, Inception); the
 residual gap on depthwise-heavy architectures (MobileNet, EfficientNet)
 is what motivated the QAT line, because per-tensor <strong>PTQ</strong>
-on MobileNet-V2 collapses to 0.1% top-1<a href="#fn6"
-class="footnote-ref" id="fnref6"
-role="doc-noteref"><sup>6</sup></a>.</p>
+on MobileNet-V2 collapses to 0.1% top-1<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a>.</p>
 <p>The <strong>binary</strong> and <strong>ternary</strong> extreme line
 (<span class="citation"
 data-cites="courbariaux_binarized_2016">(Courbariaux et al. 2016)</span>
@@ -704,9 +697,7 @@ The XNOR-popcount kernel and the latent-weights training trick are the
 two technical pillars that all subsequent extreme-low-bit work inherits;
 <u>the 18-point IN1k gap of XNOR-Net to FP32 ResNet-18 is the cautionary
 number that pure binary deployment is microcontroller-only and that 4-8
-bit activations are required for production</u><a href="#fn7"
-class="footnote-ref" id="fnref7"
-role="doc-noteref"><sup>7</sup></a>.</p>
+bit activations are required for production</u><a href="#fn2" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>2</sup></a>.</p>
 <p>The <strong>learnable-scale</strong> QAT family (DoReFa-Net,
 <strong>PACT</strong> trainable clip
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>,
@@ -720,12 +711,9 @@ its own FP32 baseline only on the smaller backbone: ResNet-18 reaches
 stays under it at every width, 76.7% at W4A4 and 75.8% at W3A3 against
 76.9%</u> <span class="citation" data-cites="esser_learned_2020">(Esser
 et al. 2020)</span>. The regularization-by-noise reading survives that
-correction, but only where the network has capacity to spare<a
-href="#fn8" class="footnote-ref" id="fnref8"
-role="doc-noteref"><sup>8</sup></a>. The gradient-scale balancing
+correction, but only where the network has capacity to spare<a href="#fn7" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>7</sup></a>. The gradient-scale balancing
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo>=</mo><mn>1</mn><mi>/</mi><msqrt><mrow><msub><mi>N</mi><mi>W</mi></msub><msub><mi>q</mi><mi mathvariant="normal">max</mi></msub></mrow></msqrt></mrow><annotation encoding="application/x-tex">g = 1/\sqrt{N_W q_{\max}}</annotation></semantics></math>
-is load-bearing for convergence<a href="#fn9" class="footnote-ref"
-id="fnref9" role="doc-noteref"><sup>9</sup></a>: without it,
+is load-bearing for convergence<a href="#fn5" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>5</sup></a>: without it,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
 decays to zero and the quantizer collapses.</p>
 <figure id="fig:qat-family-timeline">
@@ -738,33 +726,26 @@ field. Three observations match the table reading: (i) the
 closed the IN1k gap below 10 points; (ii) the
 <strong>learnable-scale</strong> line reached the FP32 baseline at W4A4,
 on ResNet-18 in 2020 (LSQ, 71.1% against 70.5%) and on ResNet-50 in 2018
-(PACT, 76.5%), but never crossed it on ResNet-50 with LSQ<a href="#fn10"
-class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a>;
+(PACT, 76.5%), but never crossed it on ResNet-50 with LSQ<a href="#fn7" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>7</sup></a>;
 (iii) the <strong>LLM-PTQ</strong> era pushed weight-only precision from
 16 bits (FP16) down to 3 bits (SpQR, OmniQuant) in roughly twelve
 months, with activations still pinned at 16 or 8 bits because
-<strong>activation outliers</strong><a href="#fn11" class="footnote-ref"
-id="fnref11" role="doc-noteref"><sup>11</sup></a> block the W4A4
+<strong>activation outliers</strong><a href="#fn8" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>8</sup></a> block the W4A4
 frontier until OmniQuant's block-wise reconstruction in
 2024.</figcaption>
 </figure>
 <p><strong>Mixed-precision</strong> allocation (<span class="citation"
 data-cites="dong_hawq_2019">(Dong et al. 2019)</span> HAWQ, HAWQ-V2
 trace, HAWQ-V3 ILP, HAQ DDPG, FracBits) attacked <strong>bit
-allocation</strong><a href="#fn12" class="footnote-ref" id="fnref12"
-role="doc-noteref"><sup>12</sup></a> as a constrained optimization
+allocation</strong><a href="#fn9" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>9</sup></a> as a constrained optimization
 problem. <u>HAWQ-V3's one-second ILP over Hessian-trace sensitivity,
 BOPs, and profiled-latency constraints is the most operational of these
 methods</u>; FracBits'
 fractional-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
 relaxation cuts the search to a single training run. The family's
-load-bearing limitation is <strong>scaling failure</strong><a
-href="#fn13" class="footnote-ref" id="fnref13"
-role="doc-noteref"><sup>13</sup></a>: per-layer Hessian trace estimation
+load-bearing limitation is <strong>scaling failure</strong><a href="#fn6" class="footnote-ref" id="fnref13" role="doc-noteref"><sup>6</sup></a>: per-layer Hessian trace estimation
 costs hours on LLaMA-70B, which is why LLM quantization abandoned
-mixed-precision in favor of weight-only + outlier-handling<a
-href="#fn14" class="footnote-ref" id="fnref14"
-role="doc-noteref"><sup>14</sup></a>.</p>
+mixed-precision in favor of weight-only + outlier-handling<a href="#fn10" class="footnote-ref" id="fnref14" role="doc-noteref"><sup>10</sup></a>.</p>
 <p>The <strong>transformer</strong> QAT line (Q8BERT W8A8, I-BERT
 integer-only GELU/softmax/LN, TernaryBERT W2A8 + KD) and the
 <strong>LLM-PTQ</strong> era (LLM.int8() outlier sidecar, GPTQ
@@ -774,12 +755,10 @@ frontier. <u>The "quantize the matmuls, float the normalization"
 template established by Q8BERT in 2019 is still the universal layout for
 transformer QAT</u>, with <strong>outlier-aware</strong> methods
 stacking on top of it for the 6.7B+ parameter regime where coordinated
-<strong>activation outliers</strong><a href="#fn15" class="footnote-ref"
-id="fnref15" role="doc-noteref"><sup>15</sup></a> emerge. The W4A16
+<strong>activation outliers</strong><a href="#fn8" class="footnote-ref" id="fnref15" role="doc-noteref"><sup>8</sup></a> emerge. The W4A16
 weight-only regime is essentially solved (GPTQ, AWQ within 0.1 ppl of
 FP16); the W4A4 regime opened only with OmniQuant's block-wise
-reconstruction in 2024<a href="#fn16" class="footnote-ref" id="fnref16"
-role="doc-noteref"><sup>16</sup></a>, and the W2A16 regime is on the
+reconstruction in 2024<a href="#fn2" class="footnote-ref" id="fnref16" role="doc-noteref"><sup>2</sup></a>, and the W2A16 regime is on the
 active research frontier.</p>
 <p>The table separates four regimes by precision: W8A8
 (production-deployable, TFLite/ONNX), W4A4 (mid-2020s frontier, edge
@@ -1020,29 +999,25 @@ per-channel weight quantization recovers 2-5 points top-1 on MobileNetV2
 at negligible hardware cost, but per-channel <em>activation</em>
 quantization is rarely supported because the reduction-axis layout in
 INT8 GEMM kernels cannot absorb a per-channel scale lookup at full
-throughput.<a href="#fnref1" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+throughput.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn2"><p><em>Weight-vs-activation asymmetry</em>: weights
 quantize easier than activations because they are static,
 near-zero-mean, and admit per-output-channel scales; activations are
 runtime-dependent, post-ReLU one-sided, and constrained to per-tensor
 scales by GEMM-kernel layout. The W4A4 regime closed only in 2024
-(OmniQuant) while W8A8 was solved in 2018 (Jacob).<a href="#fnref2"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+(OmniQuant) while W8A8 was solved in 2018 (Jacob).<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn3"><p><em>Calibration data sensitivity</em>: PTQ accuracy
 depends on 128-1024 calibration samples whose exact indices are rarely
 published; switching from C4 to Pile shifts LLaMA-7B perplexity by
 0.05-0.1 in GPTQ, and below 256 CNN samples the range estimates wobble
-more than 5%.<a href="#fnref3" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+more than 5%.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn4"><p><em>STE gradient mismatch</em>: the straight-through
 estimator skips the rounding nonlinearity in the backward pass, yielding
 a biased surrogate whose bias is
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>s</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(s^2)</annotation></semantics></math>
 under a locally linear loss assumption <span class="citation"
 data-cites="yin_understanding_2019">(Yin et al. 2019)</span> but grows
-uncontrollably for sharp minima or saturated activations.<a
-href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+uncontrollably for sharp minima or saturated activations.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn5"><p><em>QAT training instability</em>: low-bit (W2/W3)
 training diverges without (i) clipped STE <span class="citation"
 data-cites="cai_deep_2017">(Cai et al. 2017)</span>, (ii) gradient-scale
@@ -1050,23 +1025,14 @@ balancing of step size vs. weights <span class="citation"
 data-cites="esser_learned_2020">(Esser et al. 2020)</span>, or (iii)
 BN-statistics freezing after warmup; unclipped STE converges to spurious
 critical points <span class="citation"
-data-cites="yin_understanding_2019">(Yin et al. 2019)</span>.<a
-href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+data-cites="yin_understanding_2019">(Yin et al. 2019)</span>.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn6"><p><em>Scaling failure</em>: methods that work for
 ResNet-50 fail on LLaMA. INT8 PTQ collapses on MobileNetV2 (per-tensor:
 0.1% top-1) without per-channel; HAWQ-trace mixed-precision is
 computationally infeasible above ~1B parameters; LLM.int8() is
 <em>counterproductive</em> below 6.7B because the outlier-decomposition
-machinery adds latency without an outlier signal to capture.<a
-href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn7"><p><em>Weight-vs-activation asymmetry</em>: weights
-quantize easier than activations because they are static,
-near-zero-mean, and admit per-output-channel scales; activations are
-runtime-dependent, post-ReLU one-sided, and constrained to per-tensor
-scales by GEMM-kernel layout. The W4A4 regime closed only in 2024
-(OmniQuant) while W8A8 was solved in 2018 (Jacob).<a href="#fnref7"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn8"><p><em>Which FP32 baseline</em>: "beats full precision" is
+machinery adds latency without an outlier signal to capture.<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p><em>Which FP32 baseline</em>: "beats full precision" is
 a claim about a subtraction, and the literature does not agree on the
 number being subtracted. <span class="citation"
 data-cites="esser_learned_2020">(Esser et al. 2020)</span> trains its
@@ -1078,84 +1044,27 @@ torchvision ResNet-50 checkpoint instead of the paper's own 76.9% flips
 the sign of the reported gap by 0.8 points without any experiment
 changing. Read every "+X points over FP32" in this chapter against the
 baseline the originating paper trained, not against a leaderboard
-number.<a href="#fnref8" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn9"><p><em>QAT training instability</em>: low-bit (W2/W3)
-training diverges without (i) clipped STE <span class="citation"
-data-cites="cai_deep_2017">(Cai et al. 2017)</span>, (ii) gradient-scale
-balancing of step size vs. weights <span class="citation"
-data-cites="esser_learned_2020">(Esser et al. 2020)</span>, or (iii)
-BN-statistics freezing after warmup; unclipped STE converges to spurious
-critical points <span class="citation"
-data-cites="yin_understanding_2019">(Yin et al. 2019)</span>.<a
-href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn10"><p><em>Which FP32 baseline</em>: "beats full precision" is
-a claim about a subtraction, and the literature does not agree on the
-number being subtracted. <span class="citation"
-data-cites="esser_learned_2020">(Esser et al. 2020)</span> trains its
-own ResNet-50 baseline to 76.9% top-1 and reports 76.8/76.7/75.8/73.7 at
-8/4/3/2 bits, so LSQ is below full precision on ResNet-50 everywhere.
-The same paper's ResNet-18 baseline is 70.5% and LSQ reaches 71.1% at
-both 4 and 8 bits, so the exceedance is real there. Quoting the 76.1%
-torchvision ResNet-50 checkpoint instead of the paper's own 76.9% flips
-the sign of the reported gap by 0.8 points without any experiment
-changing. Read every "+X points over FP32" in this chapter against the
-baseline the originating paper trained, not against a leaderboard
-number.<a href="#fnref10" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn11"><p><em>Activation outliers (LLM)</em>: at and above ~6.7B
+number.<a href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p><em>Activation outliers (LLM)</em>: at and above ~6.7B
 parameters, 0.1-0.3% of feature dimensions develop activations exceeding
 6 standard deviations <span class="citation"
 data-cites="dettmers_llmint8_2022">(Dettmers et al. 2022)</span>, which
 a single per-tensor scale cannot represent without sacrificing the
 dynamic range of the remaining 99.9%; SmoothQuant migrates the
 difficulty to weights, LLM.int8() routes outlier channels through an
-FP16 sidecar, AWQ scales salient weight channels.<a href="#fnref11"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn12"><p><em>Mixed-precision bit allocation</em>: choosing an
+FP16 sidecar, AWQ scales salient weight channels.<a href="#fnref11" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn9"><p><em>Mixed-precision bit allocation</em>: choosing an
 integer bit-width per layer subject to a memory or BOPs budget is
 NP-hard; HAWQ-V3 reduces the search to a one-second ILP via
 Hessian-trace sensitivity scores, FracBits relaxes integer bit-widths to
 a continuous
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mn>2</mn><mo>,</mo><mn>8</mn><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[2,8]</annotation></semantics></math>
-interpolation, HAQ uses DDPG over hardware simulators.<a href="#fnref12"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn13"><p><em>Scaling failure</em>: methods that work for
-ResNet-50 fail on LLaMA. INT8 PTQ collapses on MobileNetV2 (per-tensor:
-0.1% top-1) without per-channel; HAWQ-trace mixed-precision is
-computationally infeasible above ~1B parameters; LLM.int8() is
-<em>counterproductive</em> below 6.7B because the outlier-decomposition
-machinery adds latency without an outlier signal to capture.<a
-href="#fnref13" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn14"><p><em>LLM-scale calibration cost</em>: AdaRound's
+interpolation, HAQ uses DDPG over hardware simulators.<a href="#fnref12" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn10"><p><em>LLM-scale calibration cost</em>: AdaRound's
 per-layer 10K-step optimization costs 30 minutes per layer (12+ hours
 total on LLaMA-7B); GPTQ's batched-Cholesky updates do the same job in 4
 GPU-hours by sacrificing per-weight optimality for column-wise error
-compensation.<a href="#fnref14" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn15"><p><em>Activation outliers (LLM)</em>: at and above ~6.7B
-parameters, 0.1-0.3% of feature dimensions develop activations exceeding
-6 standard deviations <span class="citation"
-data-cites="dettmers_llmint8_2022">(Dettmers et al. 2022)</span>, which
-a single per-tensor scale cannot represent without sacrificing the
-dynamic range of the remaining 99.9%; SmoothQuant migrates the
-difficulty to weights, LLM.int8() routes outlier channels through an
-FP16 sidecar, AWQ scales salient weight channels.<a href="#fnref15"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn16"><p><em>Weight-vs-activation asymmetry</em>: weights
-quantize easier than activations because they are static,
-near-zero-mean, and admit per-output-channel scales; activations are
-runtime-dependent, post-ReLU one-sided, and constrained to per-tensor
-scales by GEMM-kernel layout. The W4A4 regime closed only in 2024
-(OmniQuant) while W8A8 was solved in 2018 (Jacob).<a href="#fnref16"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn17"><p><em>Weight-vs-activation asymmetry</em>: weights
-quantize easier than activations because they are static,
-near-zero-mean, and admit per-output-channel scales; activations are
-runtime-dependent, post-ReLU one-sided, and constrained to per-tensor
-scales by GEMM-kernel layout. The W4A4 regime closed only in 2024
-(OmniQuant) while W8A8 was solved in 2018 (Jacob).<a href="#fnref17"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+compensation.<a href="#fnref14" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 

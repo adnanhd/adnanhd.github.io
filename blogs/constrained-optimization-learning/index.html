@@ -51,10 +51,7 @@
 unknown parameters; a solver consumes them and returns decisions.
 <u>Training the predictor with MSE or cross-entropy is agnostic to how
 prediction errors propagate through the solver, and small parameter
-errors near a constraint boundary can flip an entire decision</u><a
-href="#fn1" class="footnote-ref" id="fnref1"
-role="doc-noteref"><sup>1</sup></a><a href="#fn2" class="footnote-ref"
-id="fnref2" role="doc-noteref"><sup>2</sup></a>.
+errors near a constraint boundary can flip an entire decision</u><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a><sup class="footnote-sep">,</sup><a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>.
 <strong>Constrained-optimization learning</strong> (variously
 decision-focused learning, predict-then-optimize, or
 differentiable-optimization) closes this loop by differentiating through
@@ -109,25 +106,19 @@ the bill each answer runs up.</p>
 <strong>Implicit-layer</strong> methods solve the forward problem with a
 classical solver and back-propagate by differentiating the
 <strong>KKT</strong> system; this is exact when the active set is fixed,
-but the linear system is ill-conditioned at the boundary<a href="#fn3"
-class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> and
-costly to assemble at every step<a href="#fn4" class="footnote-ref"
-id="fnref4" role="doc-noteref"><sup>4</sup></a>.
+but the linear system is ill-conditioned at the boundary<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> and
+costly to assemble at every step<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a>.
 <strong>Predict-then-optimize</strong> methods replace the MSE training
 signal with a <strong>regret-based</strong> surrogate (SPO+, CaVE),
-eliminating the loss-mismatch<a href="#fn5" class="footnote-ref"
-id="fnref5" role="doc-noteref"><sup>5</sup></a> but inheriting the
-solver's non-differentiability for combinatorial problems<a href="#fn6"
-class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a>.
+eliminating the loss-mismatch<a href="#fn1" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>1</sup></a> but inheriting the
+solver's non-differentiability for combinatorial problems<a href="#fn5" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>5</sup></a>.
 <strong>Combinatorial</strong> methods sidestep non-differentiability
 via blackbox interpolation, perturb-and-MAP, or Sinkhorn relaxations,
-paying for the smoothing with an integer-relaxation gap<a href="#fn7"
-class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a>.
+paying for the smoothing with an integer-relaxation gap<a href="#fn6" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>6</sup></a>.
 <strong>Augmented-Lagrangian</strong> and <strong>prox</strong>-based
 methods enforce constraints by penalty rather than solver call, trading
 exact feasibility for a tunable violation-vs-optimality
-balance<a href="#fn8" class="footnote-ref" id="fnref8"
-role="doc-noteref"><sup>8</sup></a>. <strong>Bilevel</strong> methods
+balance<a href="#fn7" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>7</sup></a>. <strong>Bilevel</strong> methods
 fold the inner problem into a hyper-gradient, enabling millions of
 hyperparameters but requiring careful Hessian-vector treatment.
 <strong>Structured-prediction</strong> methods cast inference as
@@ -136,10 +127,8 @@ regularized optimization with closed-form Fenchel-Young losses.
 tune the method to a problem class. <u>A persistent diagnostic across
 the field is scale mismatch: an MLP predictor's natural output scale is
 rarely the solver's parameter scale, and naive loss combinations across
-the two scales train poorly</u><a href="#fn9" class="footnote-ref"
-id="fnref9" role="doc-noteref"><sup>9</sup></a>; another is the
-<strong>failure to exploit problem structure</strong><a href="#fn10"
-class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a>,
+the two scales train poorly</u><a href="#fn8" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>8</sup></a>; another is the
+<strong>failure to exploit problem structure</strong><a href="#fn9" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>9</sup></a>,
 where a generic implicit-layer beats a problem-specific decomposition
 only on toy sizes.</p>
 <div class="blog-table"><table id="tbl:col-sota">
@@ -477,10 +466,8 @@ in chronological order. <strong>Implicit-layer</strong> foundations
 (Domke, Barratt) gave the gradient calculus for parametric MAP and
 convex programs by differentiating the KKT system; the construction is
 exact when the active set is fixed but is dominated by the cost of
-solving an inner linear system at every gradient step<a href="#fn11"
-class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a>,
-and is numerically delicate near a constraint boundary<a href="#fn12"
-class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a>.
+solving an inner linear system at every gradient step<a href="#fn4" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>4</sup></a>,
+and is numerically delicate near a constraint boundary<a href="#fn3" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>3</sup></a>.
 <u>Feasibility is not at issue for these rows, because the forward pass
 is a call to a feasible solver</u>; the OOD column flags whether the
 predictor's parameters generalize beyond the training distribution of
@@ -492,13 +479,11 @@ DDN, BPQP) extended the implicit-layer approach to general
 <strong>KKT</strong>-Jacobian backward into PyTorch and JAX. A training
 step with one of these layers is slower than a forward-only solver call,
 because the cost is dominated by a factorization of the KKT matrix at
-every step<a href="#fn13" class="footnote-ref" id="fnref13"
-role="doc-noteref"><sup>13</sup></a>; BPQP attacks
+every step<a href="#fn4" class="footnote-ref" id="fnref13" role="doc-noteref"><sup>4</sup></a>; BPQP attacks
 the constant factor with a structure-aware backward but leaves the
 asymptotic order alone, and the implicit-layer family also fails to
 exploit problem-specific decompositions that classical solvers use for
-free<a href="#fn14" class="footnote-ref" id="fnref14"
-role="doc-noteref"><sup>14</sup></a>. Within this line,
+free<a href="#fn9" class="footnote-ref" id="fnref14" role="doc-noteref"><sup>9</sup></a>. Within this line,
 <strong>input-convex</strong> networks <span class="citation"
 data-cites="amos_input_2017">(Amos et al. 2017)</span> take an
 orthogonal route: <u>instead of differentiating a solver, they constrain
@@ -510,19 +495,15 @@ gradients.</u></p>
 solver. SPO+ is a Fisher-consistent convex upper bound on the true
 regret, achieved with a single extra solver call per training point and
 gradients computed without backprop through the solver itself; this
-sidesteps the non-differentiable-solver obstacle<a href="#fn15"
-class="footnote-ref" id="fnref15" role="doc-noteref"><sup>15</sup></a>,
+sidesteps the non-differentiable-solver obstacle<a href="#fn5" class="footnote-ref" id="fnref15" role="doc-noteref"><sup>5</sup></a>,
 but because SPO+ is an upper bound on the SPO loss rather than the loss
 itself, its minimizer need not minimize regret and the residual regret
 at convergence is not driven to zero <span class="citation"
-data-cites="elmachtoub_smart_2020">(Elmachtoub and Grigas 2022)</span><a
-href="#fn16" class="footnote-ref" id="fnref16"
-role="doc-noteref"><sup>16</sup></a>. CaVE
+data-cites="elmachtoub_smart_2020">(Elmachtoub and Grigas 2022)</span><a href="#fn1" class="footnote-ref" id="fnref16" role="doc-noteref"><sup>1</sup></a>. CaVE
 <u>extends the approach to MILP by aligning the predicted cost vector to
 the optimality cone of the integer-feasible solution</u>, the first
 decision-focused method that closes the gap on binary programs without
-smoothing the integer feasibility<a href="#fn17" class="footnote-ref"
-id="fnref17" role="doc-noteref"><sup>17</sup></a>.</p>
+smoothing the integer feasibility<a href="#fn6" class="footnote-ref" id="fnref17" role="doc-noteref"><sup>6</sup></a>.</p>
 <figure id="fig:col-family-timeline">
 <img src="figures/col-family-timeline.svg" />
 <figcaption>COL family evolution from 2010 implicit-graphical-model
@@ -545,17 +526,14 @@ generalization is the open frontier here, with most methods falling to
 <p><strong>Combinatorial</strong> methods (Blackbox-CO, Perturbed-FY,
 Fenchel-Young, GNN-NP, AttnTSP, SATNet) attack the harder problem of
 differentiating through <strong>non-differentiable</strong> integer/SAT
-solvers<a href="#fn18" class="footnote-ref" id="fnref18"
-role="doc-noteref"><sup>18</sup></a>. Blackbox differentiation runs the
+solvers<a href="#fn5" class="footnote-ref" id="fnref18" role="doc-noteref"><sup>5</sup></a>. Blackbox differentiation runs the
 solver twice with perturbed parameters and uses a finite-difference
 gradient on the resulting decisions; perturbed-FY
 adds Gumbel noise to the solver inputs and treats the expected argmax as
 a differentiable smoothed version, with closed-form gradients via the Fenchel-Young machinery.
 <strong>SATNet</strong> takes a third route, replacing the solver
 entirely with a low-rank <strong>SDP</strong> relaxation differentiable
-end-to-end. The cost of all three is an integer-relaxation gap<a
-href="#fn19" class="footnote-ref" id="fnref19"
-role="doc-noteref"><sup>19</sup></a>: <u>the relaxed gradient signal is
+end-to-end. The cost of all three is an integer-relaxation gap<a href="#fn6" class="footnote-ref" id="fnref19" role="doc-noteref"><sup>6</sup></a>: <u>the relaxed gradient signal is
 well-defined but biased away from the true integer optimum, and the gap
 does not vanish as the predictor improves.</u></p>
 <p><strong>Bilevel</strong> methods (Franceschi, Lorraine,
@@ -572,8 +550,7 @@ approximate the hyper-Jacobian as a truncated Neumann series, scaling to
 millions of hyperparameters at the cost of approximation bias. The OOD
 column is high for these because the meta-loop is training for OOD
 generalization by construction; the inner-loop ill-conditioning is the
-same KKT pathology<a href="#fn20" class="footnote-ref" id="fnref20"
-role="doc-noteref"><sup>20</sup></a> as in the implicit-layer
+same KKT pathology<a href="#fn3" class="footnote-ref" id="fnref20" role="doc-noteref"><sup>3</sup></a> as in the implicit-layer
 family.</p>
 <p><strong>Dual learning</strong> (Klamkin 2025) and
 <strong>augmented-Lagrangian</strong> methods enforce constraints via a
@@ -805,130 +782,49 @@ role="doc-endnotes">
 <li id="fn1"><p><em>Decision-vs-prediction loss mismatch</em>: minimum
 MSE on parameters is not minimum regret on decisions; errors that cross
 a constraint or objective boundary are arbitrarily more costly than
-errors that don't.<a href="#fnref1" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+errors that don't.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn2"><p><em>Active-set discontinuity</em>: the solver's argmax
 is piecewise-linear in its parameters with jump discontinuities at
 active-set transitions; a small input perturbation can flip which
 constraints bind, producing infinite local Lipschitz constants that
-defeat first-order training.<a href="#fnref2" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+defeat first-order training.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn3"><p><em>Ill-conditioned KKT system</em>: at the active-set
 boundary the KKT matrix becomes singular and its condition number
 diverges; gradient noise then dominates the signal and training
 oscillates without explicit regularization (typically a small
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mi>I</mi></mrow><annotation encoding="application/x-tex">\epsilon I</annotation></semantics></math>
-on the slack block).<a href="#fnref3" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+on the slack block).<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn4"><p><em>Implicit-differentiation cost</em>: each backward
 pass solves an
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n^2)</annotation></semantics></math>-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mn>3</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n^3)</annotation></semantics></math>
 linear system in the inner-problem variables, so wrapping an LP/QP
 solver inside a training loop adds 5-50x wall-clock overhead per step
-relative to plain autograd.<a href="#fnref4" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn5"><p><em>Decision-vs-prediction loss mismatch</em>: minimum
-MSE on parameters is not minimum regret on decisions; errors that cross
-a constraint or objective boundary are arbitrarily more costly than
-errors that don't.<a href="#fnref5" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn6"><p><em>Non-differentiable solver</em>: branch-and-bound,
+relative to plain autograd.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p><em>Non-differentiable solver</em>: branch-and-bound,
 simplex, and SAT solvers are piecewise-constant in their parameters, so
 naive autograd returns zero gradients; smoothing, blackbox finite
-differences, or perturbed-MAP estimators are required.<a href="#fnref6"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn7"><p><em>Integer-relaxation gap</em>: continuous relaxations
+differences, or perturbed-MAP estimators are required.<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p><em>Integer-relaxation gap</em>: continuous relaxations
 (LP-relaxation, Sinkhorn, perturbed argmax) have a gap to the true
 integer optimum that does not shrink with predictor accuracy; the
 learned solution can be near-optimal in relaxation yet infeasible after
-rounding.<a href="#fnref7" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn8"><p><em>Constraint violation</em>: an unconstrained NN
+rounding.<a href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p><em>Constraint violation</em>: an unconstrained NN
 output may violate the feasible set; projection layers, penalty terms,
 and dual updates each trade feasibility against optimality and gradient
-quality.<a href="#fnref8" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn9"><p><em>Scale mismatch between predictor and solver</em>:
+quality.<a href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p><em>Scale mismatch between predictor and solver</em>:
 the predictor's output scale (network logits) is rarely the solver's
 parameter scale (cost coefficients in the same units as the objective);
 without per-feature standardization or a learned output gain, gradients
 through the solver are dominated by the largest-magnitude coordinate and
-training stalls.<a href="#fnref9" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn10"><p><em>Failure to exploit problem structure</em>: a
+training stalls.<a href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn9"><p><em>Failure to exploit problem structure</em>: a
 generic OptNet/CvxpyLayer ignores LP-totally-unimodular structure,
 network-flow decompositions, or block-diagonal Hessians that classical
 solvers exploit, so neural-augmented pipelines often run slower than
 tuned commercial solvers on structured instances despite better
-worst-case generalization.<a href="#fnref10" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn11"><p><em>Implicit-differentiation cost</em>: each backward
-pass solves an
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n^2)</annotation></semantics></math>-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mn>3</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n^3)</annotation></semantics></math>
-linear system in the inner-problem variables, so wrapping an LP/QP
-solver inside a training loop adds 5-50x wall-clock overhead per step
-relative to plain autograd.<a href="#fnref11" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn12"><p><em>Ill-conditioned KKT system</em>: at the active-set
-boundary the KKT matrix becomes singular and its condition number
-diverges; gradient noise then dominates the signal and training
-oscillates without explicit regularization (typically a small
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mi>I</mi></mrow><annotation encoding="application/x-tex">\epsilon I</annotation></semantics></math>
-on the slack block).<a href="#fnref12" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn13"><p><em>Implicit-differentiation cost</em>: each backward
-pass solves an
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n^2)</annotation></semantics></math>-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mn>3</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n^3)</annotation></semantics></math>
-linear system in the inner-problem variables, so wrapping an LP/QP
-solver inside a training loop adds 5-50x wall-clock overhead per step
-relative to plain autograd.<a href="#fnref13" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn14"><p><em>Failure to exploit problem structure</em>: a
-generic OptNet/CvxpyLayer ignores LP-totally-unimodular structure,
-network-flow decompositions, or block-diagonal Hessians that classical
-solvers exploit, so neural-augmented pipelines often run slower than
-tuned commercial solvers on structured instances despite better
-worst-case generalization.<a href="#fnref14" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn15"><p><em>Non-differentiable solver</em>: branch-and-bound,
-simplex, and SAT solvers are piecewise-constant in their parameters, so
-naive autograd returns zero gradients; smoothing, blackbox finite
-differences, or perturbed-MAP estimators are required.<a href="#fnref15"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn16"><p><em>Decision-vs-prediction loss mismatch</em>: minimum
-MSE on parameters is not minimum regret on decisions; errors that cross
-a constraint or objective boundary are arbitrarily more costly than
-errors that don't.<a href="#fnref16" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn17"><p><em>Integer-relaxation gap</em>: continuous relaxations
-(LP-relaxation, Sinkhorn, perturbed argmax) have a gap to the true
-integer optimum that does not shrink with predictor accuracy; the
-learned solution can be near-optimal in relaxation yet infeasible after
-rounding.<a href="#fnref17" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn18"><p><em>Non-differentiable solver</em>: branch-and-bound,
-simplex, and SAT solvers are piecewise-constant in their parameters, so
-naive autograd returns zero gradients; smoothing, blackbox finite
-differences, or perturbed-MAP estimators are required.<a href="#fnref18"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn19"><p><em>Integer-relaxation gap</em>: continuous relaxations
-(LP-relaxation, Sinkhorn, perturbed argmax) have a gap to the true
-integer optimum that does not shrink with predictor accuracy; the
-learned solution can be near-optimal in relaxation yet infeasible after
-rounding.<a href="#fnref19" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn20"><p><em>Ill-conditioned KKT system</em>: at the active-set
-boundary the KKT matrix becomes singular and its condition number
-diverges; gradient noise then dominates the signal and training
-oscillates without explicit regularization (typically a small
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mi>I</mi></mrow><annotation encoding="application/x-tex">\epsilon I</annotation></semantics></math>
-on the slack block).<a href="#fnref20" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn21"><p><em>Constraint violation</em>: an unconstrained NN
-output may violate the feasible set; projection layers, penalty terms,
-and dual updates each trade feasibility against optimality and gradient
-quality.<a href="#fnref21" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+worst-case generalization.<a href="#fnref10" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 

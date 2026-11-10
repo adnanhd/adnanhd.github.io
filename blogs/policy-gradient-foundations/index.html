@@ -58,14 +58,11 @@ dynamics, enabling optimization of stochastic policies with arbitrary
 function approximators. <strong>REINFORCE</strong> <span
 class="citation" data-cites="williams_simple_1992">(Williams
 1992)</span> is the Monte-Carlo special case and remains the canonical
-illustration of the <strong>high-variance gradient estimator</strong><a
-href="#fn1" class="footnote-ref" id="fnref1"
-role="doc-noteref"><sup>1</sup></a> that every successor mitigates. The
+illustration of the <strong>high-variance gradient estimator</strong><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> that every successor mitigates. The
 development of actor-critic methods then combined policy gradients
 (actor) with value-function estimation (critic) to reduce variance while
 maintaining unbiased gradient estimates, at the cost of <strong>credit
-assignment</strong><a href="#fn2" class="footnote-ref" id="fnref2"
-role="doc-noteref"><sup>2</sup></a> difficulties that long-horizon tasks
+assignment</strong><a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> difficulties that long-horizon tasks
 aggravate.</p>
 <p><u>The value-based lineage that DQN modernised begins a decade
 earlier and runs in parallel to the policy-gradient programme above.</u>
@@ -116,8 +113,7 @@ constraints guaranteeing monotonic improvement. Proximal Policy Optimization (PP
 class="citation" data-cites="schulman_proximal_2017">(Schulman et al.
 2017)</span> <u>simplified TRPO with a clipped surrogate objective that
 became the de facto on-policy default.</u> Both inherit the
-<strong>on-policy sample inefficiency</strong><a href="#fn3"
-class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>
+<strong>on-policy sample inefficiency</strong><a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>
 cost of discarding data each update.</p>
 <p>For continuous control, deterministic policy gradients <span
 class="citation" data-cites="silver_deterministic_2014">(Silver et al.
@@ -135,11 +131,9 @@ policy updates, and target smoothing. Soft Actor-Critic
 data-cites="haarnoja_soft_2018">(Haarnoja et al. 2018)</span> <span
 class="citation" data-cites="haarnoja_soft_2019">(Haarnoja et al.
 2019)</span> introduced maximum-entropy RL, encouraging principled
-<strong>exploration</strong><a href="#fn4" class="footnote-ref"
-id="fnref4" role="doc-noteref"><sup>4</sup></a> through entropy
+<strong>exploration</strong><a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> through entropy
 regularization while remaining off-policy. Off-policy variants pay an
-<strong>off-policy correction</strong><a href="#fn5"
-class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a>
+<strong>off-policy correction</strong><a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a>
 cost: importance ratios explode under policy mismatch and require either
 V-trace, Retrace, or implicit conservatism.</p>
 <p><u>Sparse-reward tasks pose a distinct problem that the off-policy
@@ -201,13 +195,10 @@ data-cites="schrittwieser_mastering_2020">(Schrittwieser et al.
 data-cites="hafner_mastering_2022 hafner_mastering_2023">(Hafner et al.
 2022, 2023)</span>) folds <strong>world-model</strong> learning into
 policy optimization, trading sample efficiency for
-<strong>hyperparameter brittleness</strong><a href="#fn6"
-class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> and
-the <strong>sim-to-real gap</strong><a href="#fn7" class="footnote-ref"
-id="fnref7" role="doc-noteref"><sup>7</sup></a> when transferring to
+<strong>hyperparameter brittleness</strong><a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> and
+the <strong>sim-to-real gap</strong><a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a> when transferring to
 physical hardware. Long training runs also surface <strong>plasticity
-loss</strong><a href="#fn8" class="footnote-ref" id="fnref8"
-role="doc-noteref"><sup>8</sup></a>, where late-stage networks can no
+loss</strong><a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a>, where late-stage networks can no
 longer absorb new tasks.</p>
 <p><u>Recent work extends policy optimization to offline and
 language-model settings.</u> Conservative Q-Learning (CQL) <span
@@ -218,15 +209,13 @@ data-cites="kostrikov_offline_2022">(Kostrikov et al. 2022)</span>
 avoids out-of-distribution actions via expectile regression. Decision
 Transformer <span class="citation" data-cites="chen_decision_2021">(Chen
 et al. 2021)</span> recasts RL as sequence modeling. All three confront
-<strong>offline RL distribution shift</strong><a href="#fn9"
-class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a>,
+<strong>offline RL distribution shift</strong><a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a>,
 the behaviour policy's mismatch with the target. Direct Preference
 Optimization (DPO) <span class="citation"
 data-cites="rafailov_direct_2024">(Rafailov et al. 2023)</span>
 simplifies RLHF for language models by deriving a closed-form policy
 from an implicit reward model, eliminating <strong>reward
-shaping</strong><a href="#fn10" class="footnote-ref" id="fnref10"
-role="doc-noteref"><sup>10</sup></a> fragility that explicit reward
+shaping</strong><a href="#fn10" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a> fragility that explicit reward
 models inherit.</p>
 <p>The field has converged on: (1) trust-region or proximal methods for
 stable on-policy learning (PPO, GRPO), (2) maximum-entropy off-policy
@@ -676,26 +665,21 @@ data-cites="rafailov_direct_2024">(Rafailov et al. 2023)</span></td>
 chronologically below. Early <strong>foundations</strong> (REINFORCE, PG
 theorem, Natural PG, NAC) established the score-function gradient and
 natural-gradient geometry on tabular or linear policies, with
-high-variance MC estimators<a href="#fn11" class="footnote-ref"
-id="fnref11" role="doc-noteref"><sup>11</sup></a> as the structural
+high-variance MC estimators<a href="#fn1" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>1</sup></a> as the structural
 bottleneck their successors aim to fix. <u>The trust-region / proximal
 family (TRPO, PPO, ACKTR, GRPO) is unusually persistent</u>: nearly
 every major LLM-RL pipeline since 2017 uses some clipped or KL-penalized
 variant of PPO, including the GRPO used to train DeepSeek-R1. All are
-<strong>on-policy</strong> and pay the sample-inefficiency tax<a
-href="#fn12" class="footnote-ref" id="fnref12"
-role="doc-noteref"><sup>12</sup></a> of discarding data each update,
+<strong>on-policy</strong> and pay the sample-inefficiency tax<a href="#fn3" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>3</sup></a> of discarding data each update,
 traded for monotonic-improvement guarantees and stability under
 hyperparameter changes.</p>
 <p><u>The off-policy actor-critic family (DDPG, TD3, SAC) stratifies
 cleanly by overestimation control</u>. DDPG is unstable from a single
 Q-network, TD3 fixes overestimation with clipped double-Q plus delayed
 policy updates plus target smoothing, and SAC adds maximum-entropy
-<strong>exploration</strong><a href="#fn13" class="footnote-ref"
-id="fnref13" role="doc-noteref"><sup>13</sup></a> under an automatically
+<strong>exploration</strong><a href="#fn4" class="footnote-ref" id="fnref13" role="doc-noteref"><sup>4</sup></a> under an automatically
 tuned temperature. All three rely on experience replay and an
-<strong>off-policy correction</strong><a href="#fn14"
-class="footnote-ref" id="fnref14" role="doc-noteref"><sup>14</sup></a>
+<strong>off-policy correction</strong><a href="#fn5" class="footnote-ref" id="fnref14" role="doc-noteref"><sup>5</sup></a>
 that DDPG and TD3 sidestep via deterministic policies and SAC handles
 via the soft Bellman backup. <u>The line moves monotonically on one
 number.</u> HalfCheetah reward at 1M environment steps goes from DDPG's
@@ -704,18 +688,15 @@ the HalfCheetah-v1 results reported in <span class="citation"
 data-cites="fujimoto_addressing_2018">(Fujimoto et al. 2018)</span>, and
 that paper's own re-tuned DDPG reaches ~8,600 on the same task, so part
 of the DDPG-to-TD3 gap is an implementation gap rather than an
-algorithmic one.<a href="#fn15" class="footnote-ref" id="fnref15"
-role="doc-noteref"><sup>15</sup></a></p>
+algorithmic one.<a href="#fn11" class="footnote-ref" id="fnref15" role="doc-noteref"><sup>11</sup></a></p>
 <p><u>The distributed line (A3C, IMPALA, R2D2, Agent57) optimizes for
 throughput.</u> A3C ran asynchronously on 16 CPU cores for 4 days.
-IMPALA scaled to 1k+ CPUs, with V-trace correction<a href="#fn16"
-class="footnote-ref" id="fnref16" role="doc-noteref"><sup>16</sup></a>
+IMPALA scaled to 1k+ CPUs, with V-trace correction<a href="#fn5" class="footnote-ref" id="fnref16" role="doc-noteref"><sup>5</sup></a>
 decoupling actors from learners. R2D2 added recurrent state and
 prioritized replay, pushing Atari median HNS to 1,920%. Agent57 became
 the first agent superhuman on all 57 Atari games via adaptive
 Never-Give-Up intrinsic motivation. The <strong>plasticity
-loss</strong><a href="#fn17" class="footnote-ref" id="fnref17"
-role="doc-noteref"><sup>17</sup></a> hazard is most acute here, since
+loss</strong><a href="#fn8" class="footnote-ref" id="fnref17" role="doc-noteref"><sup>8</sup></a> hazard is most acute here, since
 80-billion-frame training runs routinely degrade learning capacity in
 late epochs.</p>
 <figure id="fig:rl-method-timeline">
@@ -748,25 +729,20 @@ MCTS-on-learned-dynamics procedure. DreamerV3 reaches comparable Atari
 HNS on roughly two orders of magnitude fewer environment frames by
 training a Recurrent State-Space Model and rolling out actor-critic
 <strong>inside</strong> the latent imagination. The cost is
-<strong>hyperparameter brittleness</strong><a href="#fn18"
-class="footnote-ref" id="fnref18" role="doc-noteref"><sup>18</sup></a>
-across domain types and a <strong>sim-to-real gap</strong><a
-href="#fn19" class="footnote-ref" id="fnref19"
-role="doc-noteref"><sup>19</sup></a> that the world-model regularly
+<strong>hyperparameter brittleness</strong><a href="#fn6" class="footnote-ref" id="fnref18" role="doc-noteref"><sup>6</sup></a>
+across domain types and a <strong>sim-to-real gap</strong><a href="#fn7" class="footnote-ref" id="fnref19" role="doc-noteref"><sup>7</sup></a> that the world-model regularly
 fails to close on physical hardware.</p>
 <p><u>The offline frontier (CQL, IQL, Decision Transformer, GRPO, DPO)
 shares a common abandonment of the on-policy data assumption.</u> The
 methods diverge on how to address <strong>offline RL distribution
-shift</strong><a href="#fn20" class="footnote-ref" id="fnref20"
-role="doc-noteref"><sup>20</sup></a>. CQL learns a conservative value
+shift</strong><a href="#fn9" class="footnote-ref" id="fnref20" role="doc-noteref"><sup>9</sup></a>. CQL learns a conservative value
 function that lower-bounds the true
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Q</mi><annotation encoding="application/x-tex">Q</annotation></semantics></math>,
 IQL avoids querying out-of-distribution actions via expectile regression
 and advantage-weighted regression, Decision Transformer
 return-conditions a sequence model, and DPO derives an implicit
 Bradley-Terry preference reward sidestepping <strong>reward shaping
-fragility</strong><a href="#fn21" class="footnote-ref" id="fnref21"
-role="doc-noteref"><sup>21</sup></a> altogether. GRPO sits between
+fragility</strong><a href="#fn10" class="footnote-ref" id="fnref21" role="doc-noteref"><sup>10</sup></a> altogether. GRPO sits between
 on-policy and offline, since the rollouts come from the current policy
 but are pooled across a group of completions, eliminating the per-prompt
 critic.</p>
@@ -1053,74 +1029,44 @@ role="doc-endnotes">
 <ol>
 <li id="fn1"><p><em>High-variance gradient estimator</em>: REINFORCE
 Monte-Carlo gradient suffers extreme variance, scaling roughly linearly
-with horizon length and dominated by rare high-reward trajectories.<a
-href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+with horizon length and dominated by rare high-reward trajectories.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn2"><p><em>Credit assignment</em>: long-horizon trajectories
 make per-step responsibility opaque; advantage estimation, eligibility
 traces, and bootstrapping only partially resolve which action caused
-which delayed reward.<a href="#fnref2" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+which delayed reward.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn3"><p><em>On-policy sample inefficiency</em>: TRPO and PPO
 discard data after each update because the surrogate objective requires
 the data-collection policy to match the optimization policy within a
-small trust region.<a href="#fnref3" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+small trust region.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn4"><p><em>Exploration vs exploitation</em>:
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>-greedy,
 entropy bonus, intrinsic curiosity, and NGU's never-give-up mixture each
 address coverage of the state space, but no method is principled across
-reward sparsity regimes.<a href="#fnref4" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+reward sparsity regimes.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn5"><p><em>Off-policy correction</em>: importance ratios
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>a</mi><mo>∣</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>μ</mi><mo stretchy="false" form="prefix">(</mo><mi>a</mi><mo>∣</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\pi_\theta(a \mid s) / \mu(a \mid s)</annotation></semantics></math>
 explode when target and behaviour policies diverge; V-trace, Retrace,
-and clipping each trade variance for bias.<a href="#fnref5"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+and clipping each trade variance for bias.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn6"><p><em>Hyperparameter brittleness</em>: the same algorithm
 in a different domain often requires re-tuning learning rate, entropy
 coefficient, batch size, and target-network update rate; transferable
-defaults are scarce.<a href="#fnref6" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+defaults are scarce.<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn7"><p><em>Sim-to-real gap</em>: a policy that excels in
 simulation often degrades on real hardware due to actuator noise,
 contact dynamics, latency, and partial observability missing from the
-simulator.<a href="#fnref7" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+simulator.<a href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn8"><p><em>Plasticity loss</em>: late-stage RL networks
 empirically lose the capacity to learn new tasks; weight magnitudes
-saturate, dead ReLUs accumulate, and effective rank collapses.<a
-href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+saturate, dead ReLUs accumulate, and effective rank collapses.<a href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn9"><p><em>Offline RL distribution shift</em>: when the
 dataset's behaviour policy differs from the target policy,
 value-function bootstrapping queries actions outside the data support,
-producing arbitrarily large overestimation.<a href="#fnref9"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+producing arbitrarily large overestimation.<a href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn10"><p><em>Reward shaping fragility</em>: small reward changes
 can flip optimal policies; potential-based shaping is invariant by
 construction but rare in practice, and most production reward functions
-are hand-engineered and brittle.<a href="#fnref10" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn11"><p><em>High-variance gradient estimator</em>: REINFORCE
-Monte-Carlo gradient suffers extreme variance, scaling roughly linearly
-with horizon length and dominated by rare high-reward trajectories.<a
-href="#fnref11" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn12"><p><em>On-policy sample inefficiency</em>: TRPO and PPO
-discard data after each update because the surrogate objective requires
-the data-collection policy to match the optimization policy within a
-small trust region.<a href="#fnref12" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn13"><p><em>Exploration vs exploitation</em>:
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>-greedy,
-entropy bonus, intrinsic curiosity, and NGU's never-give-up mixture each
-address coverage of the state space, but no method is principled across
-reward sparsity regimes.<a href="#fnref13" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn14"><p><em>Off-policy correction</em>: importance ratios
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>a</mi><mo>∣</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>μ</mi><mo stretchy="false" form="prefix">(</mo><mi>a</mi><mo>∣</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\pi_\theta(a \mid s) / \mu(a \mid s)</annotation></semantics></math>
-explode when target and behaviour policies diverge; V-trace, Retrace,
-and clipping each trade variance for bias.<a href="#fnref14"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn15"><p><em>What a single MuJoCo number is worth</em>: the
+are hand-engineered and brittle.<a href="#fnref10" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn11"><p><em>What a single MuJoCo number is worth</em>: the
 HalfCheetah figures quoted here come from whichever paper tabulated
 them, each averaging a handful of seeds on its own MuJoCo build, and the
 DDPG and TD3 entries both come from the TD3 paper's table rather than
@@ -1134,42 +1080,7 @@ differing by less than roughly 10% in median return, recommending
 interquartile mean with stratified-bootstrap intervals in place of mean
 or median. The DDPG-to-TD3-to-SAC ordering is wide enough to survive
 both objections. A few hundred reward between adjacent rows of the
-leaderboard is not, and should be read as a tie.<a href="#fnref15"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn16"><p><em>Off-policy correction</em>: importance ratios
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>a</mi><mo>∣</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>μ</mi><mo stretchy="false" form="prefix">(</mo><mi>a</mi><mo>∣</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\pi_\theta(a \mid s) / \mu(a \mid s)</annotation></semantics></math>
-explode when target and behaviour policies diverge; V-trace, Retrace,
-and clipping each trade variance for bias.<a href="#fnref16"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn17"><p><em>Plasticity loss</em>: late-stage RL networks
-empirically lose the capacity to learn new tasks; weight magnitudes
-saturate, dead ReLUs accumulate, and effective rank collapses.<a
-href="#fnref17" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn18"><p><em>Hyperparameter brittleness</em>: the same algorithm
-in a different domain often requires re-tuning learning rate, entropy
-coefficient, batch size, and target-network update rate; transferable
-defaults are scarce.<a href="#fnref18" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn19"><p><em>Sim-to-real gap</em>: a policy that excels in
-simulation often degrades on real hardware due to actuator noise,
-contact dynamics, latency, and partial observability missing from the
-simulator.<a href="#fnref19" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn20"><p><em>Offline RL distribution shift</em>: when the
-dataset's behaviour policy differs from the target policy,
-value-function bootstrapping queries actions outside the data support,
-producing arbitrarily large overestimation.<a href="#fnref20"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn21"><p><em>Reward shaping fragility</em>: small reward changes
-can flip optimal policies; potential-based shaping is invariant by
-construction but rare in practice, and most production reward functions
-are hand-engineered and brittle.<a href="#fnref21" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn22"><p><em>Credit assignment</em>: long-horizon trajectories
-make per-step responsibility opaque; advantage estimation, eligibility
-traces, and bootstrapping only partially resolve which action caused
-which delayed reward.<a href="#fnref22" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+leaderboard is not, and should be read as a tie.<a href="#fnref15" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 

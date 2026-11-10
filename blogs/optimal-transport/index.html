@@ -80,19 +80,7 @@ monograph <span class="citation"
 data-cites="rachev_mongekantorovich_2006">(Rachev 1985)</span>
 introduced the unified "Monge-Kantorovich" nomenclature to the Western
 probability community. Each reference carries characteristic strengths
-and well-known limitations<a href="#fn1" class="footnote-ref"
-id="fnref1" role="doc-noteref"><sup>1</sup></a><a href="#fn2"
-class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a><a
-href="#fn3" class="footnote-ref" id="fnref3"
-role="doc-noteref"><sup>3</sup></a><a href="#fn4" class="footnote-ref"
-id="fnref4" role="doc-noteref"><sup>4</sup></a><a href="#fn5"
-class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a><a
-href="#fn6" class="footnote-ref" id="fnref6"
-role="doc-noteref"><sup>6</sup></a><a href="#fn7" class="footnote-ref"
-id="fnref7" role="doc-noteref"><sup>7</sup></a><a href="#fn8"
-class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a><a
-href="#fn9" class="footnote-ref" id="fnref9"
-role="doc-noteref"><sup>9</sup></a>, walked through method-by-method
+and well-known limitations<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a><sup class="footnote-sep">,</sup><a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a><sup class="footnote-sep">,</sup><a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a><sup class="footnote-sep">,</sup><a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a><sup class="footnote-sep">,</sup><a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a><sup class="footnote-sep">,</sup><a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a><sup class="footnote-sep">,</sup><a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a><sup class="footnote-sep">,</sup><a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a><sup class="footnote-sep">,</sup><a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a>, walked through method-by-method
 after the table.</p>
 <div class="blog-table"><table id="tbl:ot-sota">
 <caption>Structural placement of the OT literature on the
@@ -499,8 +487,7 @@ discrete Kantorovich problem to numerical zero error, but the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mn>3</mn></msup><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>n</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n^3 \log n)</annotation></semantics></math>
 cost makes them prohibitive beyond
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>≈</mo><msup><mn>10</mn><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">n \approx 10^4</annotation></semantics></math>
-source/target points<a href="#fn10" class="footnote-ref" id="fnref10"
-role="doc-noteref"><sup>10</sup></a>; this cubic wall is the principal
+source/target points<a href="#fn1" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>1</sup></a>; this cubic wall is the principal
 motivation for every subsequent computational development. The same era
 produced the analytic theory: Brenier's <span class="citation"
 data-cites="brenier_polar_1991">(Brenier 1991)</span> polar
@@ -545,9 +532,7 @@ jointly responsible for OT's penetration into deep learning. The price
 is the entropic bias:
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mi>ε</mi></msub><mo>≠</mo><mi>W</mi></mrow><annotation encoding="application/x-tex">W_\varepsilon \neq W</annotation></semantics></math>
 and the entropic plan is "blurred" by an amount controlled by
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ε</mi><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math><a
-href="#fn11" class="footnote-ref" id="fnref11"
-role="doc-noteref"><sup>11</sup></a>. <strong>Sinkhorn
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ε</mi><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math><a href="#fn2" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>2</sup></a>. <strong>Sinkhorn
 divergences</strong>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mi>ε</mi></msub><mo>=</mo><msub><mi>W</mi><mi>ε</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>,</mo><mi>ν</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mstyle displaystyle="false"><mfrac><mn>1</mn><mn>2</mn></mfrac></mstyle><msub><mi>W</mi><mi>ε</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>,</mo><mi>μ</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mstyle displaystyle="false"><mfrac><mn>1</mn><mn>2</mn></mfrac></mstyle><msub><mi>W</mi><mi>ε</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>ν</mi><mo>,</mo><mi>ν</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">S_\varepsilon = W_\varepsilon(\mu,\nu) - \tfrac12 W_\varepsilon(\mu,\mu) - \tfrac12 W_\varepsilon(\nu,\nu)</annotation></semantics></math>
 <span class="citation" data-cites="genevay_learning_2017">(Genevay et
@@ -587,11 +572,9 @@ dimension-free
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mrow><mi>−</mi><mn>1</mn><mi>/</mi><mn>2</mn></mrow></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n^{-1/2})</annotation></semantics></math>
 sample complexity of sliced-Wasserstein (vs the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mrow><mi>−</mi><mn>1</mn><mi>/</mi><mi>d</mi></mrow></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n^{-1/d})</annotation></semantics></math>
-curse of full OT<a href="#fn12" class="footnote-ref" id="fnref12"
-role="doc-noteref"><sup>12</sup></a>) is its main <em>statistical</em>
+curse of full OT<a href="#fn3" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>3</sup></a>) is its main <em>statistical</em>
 advantage and the reason it scales gracefully from 1D to 100D. The
-trade-off is <strong>projection bias</strong><a href="#fn13"
-class="footnote-ref" id="fnref13" role="doc-noteref"><sup>13</sup></a>:
+trade-off is <strong>projection bias</strong><a href="#fn8" class="footnote-ref" id="fnref13" role="doc-noteref"><sup>8</sup></a>:
 SW is a true metric but only equivalent to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mn>2</mn></msub><annotation encoding="application/x-tex">W_2</annotation></semantics></math>
 for Gaussian distributions; on data concentrated on low-dimensional
@@ -631,8 +614,7 @@ Potentials</h3>
 data-cites="chizat_unbalanced_2019">(Chizat et al. 2018)</span> relaxes
 the equal-mass marginal constraint of classical OT; required whenever
 source and target have different totals (single-cell snapshots,
-partial-shape correspondences, class-imbalanced datasets)<a href="#fn14"
-class="footnote-ref" id="fnref14" role="doc-noteref"><sup>14</sup></a>.
+partial-shape correspondences, class-imbalanced datasets)<a href="#fn4" class="footnote-ref" id="fnref14" role="doc-noteref"><sup>4</sup></a>.
 The relaxation replaces hard marginals with soft KL or TV penalties:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mi mathvariant="normal">min</mi><mrow><mi>γ</mi><mo>≥</mo><mn>0</mn></mrow></munder><mo>∫</mo><mi>c</mi><mspace width="0.167em"></mspace><mi>d</mi><mi>γ</mi><mo>+</mo><msub><mi>τ</mi><mn>1</mn></msub><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>γ</mi><mn>1</mn></msub><mo>∣</mo><mi>μ</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>τ</mi><mn>2</mn></msub><mrow><mi mathvariant="normal">K</mi><mi mathvariant="normal">L</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>γ</mi><mn>2</mn></msub><mo>∣</mo><mi>ν</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\begin{equation}\label{eq:uot-rw}
 \min_{\gamma \geq 0} \int c\,d\gamma + \tau_1 \mathrm{KL}(\gamma_1 \mid \mu) + \tau_2 \mathrm{KL}(\gamma_2 \mid \nu)
@@ -649,8 +631,7 @@ GW instead matches <em>pair-distances</em> via a quadratic objective
 The objective is a quadratic assignment problem, NP-hard in general and
 non-convex in the coupling; entropic GW solvers depend strongly on
 initialization, with random / spectral / identity warm-starts producing
-different local optima<a href="#fn15" class="footnote-ref" id="fnref15"
-role="doc-noteref"><sup>15</sup></a>.</p>
+different local optima<a href="#fn5" class="footnote-ref" id="fnref15" role="doc-noteref"><sup>5</sup></a>.</p>
 <p>The unbalanced and GW extensions are not Pareto-dominated by
 classical OT; they <em>enable</em> problems (unequal-mass biology, graph
 matching) that classical OT cannot even formulate. But all of the above
@@ -678,8 +659,7 @@ theorem via non-negative weights and convex non-decreasing activations;
 this guarantees the gradient
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>∇</mi><msub><mi>ϕ</mi><mi>θ</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">T(x) = \nabla \phi_\theta(x)</annotation></semantics></math>
 is a valid Brenier map. The price is the <strong>adversarial</strong>
-training instability of all GAN-class objectives<a href="#fn16"
-class="footnote-ref" id="fnref16" role="doc-noteref"><sup>16</sup></a>:
+training instability of all GAN-class objectives<a href="#fn6" class="footnote-ref" id="fnref16" role="doc-noteref"><sup>6</sup></a>:
 hyperparameter sensitivity, mode collapse, and oscillation. These are
 mitigated by careful learning-rate scheduling, gradient penalties, and
 warm-starting from Sinkhorn-derived initial maps.
@@ -974,8 +954,7 @@ role="doc-endnotes">
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mn>3</mn></msup><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>n</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n^3 \log n)</annotation></semantics></math>
 time, prohibitive beyond
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>≈</mo><msup><mn>10</mn><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">n \approx 10^4</annotation></semantics></math>
-and the principal motivation for entropic regularization.<a
-href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+and the principal motivation for entropic regularization.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn2"><p><em>Entropy regularization bias</em>: the Sinkhorn
 solution is <em>not</em> the true Wasserstein-2 distance;
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mi>ε</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>,</mo><mi>μ</mi><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">W_\varepsilon(\mu,\mu) &gt; 0</annotation></semantics></math>
@@ -983,8 +962,7 @@ for non-Dirac
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>,
 and the entropic plan is "blurred" by an amount controlled by
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ε</mi><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math>;
-Sinkhorn divergences correct this at the cost of three solver runs.<a
-href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+Sinkhorn divergences correct this at the cost of three solver runs.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn3"><p><em>Curse of dimensionality</em>: empirical OT
 estimation rate is
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="double-struck">𝔼</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>W</mi><mi>p</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mover><mi>μ</mi><mo accent="true">̂</mo></mover><mi>n</mi></msub><mo>,</mo><mi>μ</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mrow><mi>−</mi><mn>1</mn><mi>/</mi><mi>d</mi></mrow></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathbb{E}[W_p(\hat\mu_n, \mu)] = O(n^{-1/d})</annotation></semantics></math>
@@ -993,27 +971,23 @@ in
 dimensions, which is catastrophic for image/text data; sliced and
 entropic estimators trade bias for dimension-free
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mrow><mi>−</mi><mn>1</mn><mi>/</mi><mn>2</mn></mrow></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n^{-1/2})</annotation></semantics></math>
-rates.<a href="#fnref3" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+rates.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn4"><p><em>Unbalanced-mass mismatch</em>: classical OT requires
 equal source and target mass, an unrealistic constraint when comparing
 single-cell snapshots, partial-shape correspondences, or
 class-imbalanced datasets; relaxed marginals via KL or TV penalties are
-required.<a href="#fnref4" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+required.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn5"><p><em>Non-convex Gromov-Wasserstein</em>: the GW objective
 is a quadratic assignment problem that is non-convex in the coupling;
 local minima are pervasive and entropic GW solvers depend strongly on
-initialization (random vs spectral vs identity).<a href="#fnref5"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+initialization (random vs spectral vs identity).<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn6"><p><em>Dual-potential training instability</em>: neural-OT
 solvers <span class="citation" data-cites="korotin_neural_2023">(Korotin
 et al. 2023)</span> parameterize Kantorovich potentials
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>,</mo><mi>g</mi></mrow><annotation encoding="application/x-tex">f, g</annotation></semantics></math>
 as competing networks; the resulting saddle-point optimization inherits
 the adversarial dynamics of GANs (mode collapse, oscillation,
-hyperparameter sensitivity).<a href="#fnref6" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+hyperparameter sensitivity).<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn7"><p><em>Sample complexity</em>: an accurate
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>×</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">n \times n</annotation></semantics></math>
 cost matrix needs
@@ -1022,86 +996,21 @@ samples per distribution and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n^2)</annotation></semantics></math>
 cost evaluations, dominating compute budgets when the cost (e.g.,
 embedding distance) is itself expensive; mini-batch OT trades bias for
-cost.<a href="#fnref7" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+cost.<a href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn8"><p><em>Sliced-projection bias</em>: 1D-projection-based
 estimators average univariate Wasserstein distances over directions of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>S</mi><mrow><mi>d</mi><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">S^{d-1}</annotation></semantics></math>;
 the resulting metric is weaker than
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>p</mi></msub><annotation encoding="application/x-tex">W_p</annotation></semantics></math>
 (only equivalent on Gaussians) and loses sharpness on distributions
-concentrated on low-dimensional manifolds.<a href="#fnref8"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+concentrated on low-dimensional manifolds.<a href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn9"><p><em>Non-differentiability of the cost surface</em>:
 exact OT plans are sparse
 (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≤</mo><mn>2</mn><mi>n</mi><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\le 2n-1</annotation></semantics></math>
 nonzeros) and discrete; their gradient with respect to inputs is
 undefined at vertex changes; entropic OT smooths this at the cost of
 bias, and structured loss functions (Sinkhorn divergence, Sliced) are
-differentiable but no longer the true Wasserstein.<a href="#fnref9"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn10"><p><em>Cubic exact-LP cost</em>: classical network-simplex
-/ Hungarian algorithms solve the discrete Kantorovich LP in
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mn>3</mn></msup><mrow><mi mathvariant="normal">log</mi><mo>&#8289;</mo></mrow><mi>n</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n^3 \log n)</annotation></semantics></math>
-time, prohibitive beyond
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>≈</mo><msup><mn>10</mn><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">n \approx 10^4</annotation></semantics></math>
-and the principal motivation for entropic regularization.<a
-href="#fnref10" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn11"><p><em>Entropy regularization bias</em>: the Sinkhorn
-solution is <em>not</em> the true Wasserstein-2 distance;
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mi>ε</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>,</mo><mi>μ</mi><mo stretchy="false" form="postfix">)</mo><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">W_\varepsilon(\mu,\mu) &gt; 0</annotation></semantics></math>
-for non-Dirac
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>,
-and the entropic plan is "blurred" by an amount controlled by
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ε</mi><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math>;
-Sinkhorn divergences correct this at the cost of three solver runs.<a
-href="#fnref11" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn12"><p><em>Curse of dimensionality</em>: empirical OT
-estimation rate is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="double-struck">𝔼</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>W</mi><mi>p</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mover><mi>μ</mi><mo accent="true">̂</mo></mover><mi>n</mi></msub><mo>,</mo><mi>μ</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mrow><mi>−</mi><mn>1</mn><mi>/</mi><mi>d</mi></mrow></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathbb{E}[W_p(\hat\mu_n, \mu)] = O(n^{-1/d})</annotation></semantics></math>
-in
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
-dimensions, which is catastrophic for image/text data; sliced and
-entropic estimators trade bias for dimension-free
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>n</mi><mrow><mi>−</mi><mn>1</mn><mi>/</mi><mn>2</mn></mrow></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n^{-1/2})</annotation></semantics></math>
-rates.<a href="#fnref12" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn13"><p><em>Sliced-projection bias</em>: 1D-projection-based
-estimators average univariate Wasserstein distances over directions of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>S</mi><mrow><mi>d</mi><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">S^{d-1}</annotation></semantics></math>;
-the resulting metric is weaker than
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mi>p</mi></msub><annotation encoding="application/x-tex">W_p</annotation></semantics></math>
-(only equivalent on Gaussians) and loses sharpness on distributions
-concentrated on low-dimensional manifolds.<a href="#fnref13"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn14"><p><em>Unbalanced-mass mismatch</em>: classical OT
-requires equal source and target mass, an unrealistic constraint when
-comparing single-cell snapshots, partial-shape correspondences, or
-class-imbalanced datasets; relaxed marginals via KL or TV penalties are
-required.<a href="#fnref14" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn15"><p><em>Non-convex Gromov-Wasserstein</em>: the GW
-objective is a quadratic assignment problem that is non-convex in the
-coupling; local minima are pervasive and entropic GW solvers depend
-strongly on initialization (random vs spectral vs identity).<a
-href="#fnref15" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn16"><p><em>Dual-potential training instability</em>: neural-OT
-solvers <span class="citation" data-cites="korotin_neural_2023">(Korotin
-et al. 2023)</span> parameterize Kantorovich potentials
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>,</mo><mi>g</mi></mrow><annotation encoding="application/x-tex">f, g</annotation></semantics></math>
-as competing networks; the resulting saddle-point optimization inherits
-the adversarial dynamics of GANs (mode collapse, oscillation,
-hyperparameter sensitivity).<a href="#fnref16" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn17"><p><em>Flow-step cost</em>: OT-conditional flow matching
-trains a velocity field whose ODE integration at inference time still
-costs
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><mn>10</mn><mtext mathvariant="normal">-</mtext><mn>50</mn></mrow><annotation encoding="application/x-tex">\sim 10\text{-}50</annotation></semantics></math>
-function evaluations; the OT path is straighter than the diffusion path
-but not free, and the mini-batch OT pre-computation adds per-step
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>m</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(m^2)</annotation></semantics></math>
-overhead.<a href="#fnref17" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+differentiable but no longer the true Wasserstein.<a href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 

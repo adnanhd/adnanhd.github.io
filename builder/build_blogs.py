@@ -140,6 +140,25 @@ def _org_fixups(org_text):
     return org_text
 
 
+def _carry_footnotes(section, raw):
+    """Append the definitions of footnotes the section cites but that are
+    defined elsewhere in the file (usually under a closing Footnotes
+    heading). Without them pandoc prints the bare `[fn:label]`."""
+    defined = set(re.findall(r"^\[fn:([\w-]+)\]", section, flags=re.M))
+    wanted = []
+    for label in re.findall(r"\[fn:([\w-]+)\]", section):
+        if label not in defined and label not in wanted:
+            wanted.append(label)
+    defs = []
+    for label in wanted:
+        m = re.search(rf"^\[fn:{re.escape(label)}\][ \t]+.*?"
+                      r"(?=\n[ \t]*\n|\n\[fn:|\n\*+\s|\Z)",
+                      raw, flags=re.M | re.S)
+        if m:
+            defs.append(m.group(0))
+    return section + ("\n\n" + "\n\n".join(defs) if defs else "")
+
+
 def _title_of(text):
     m = re.search(r"^#\+TITLE:\s*(.+)$", text, flags=re.M)
     return m.group(1).strip() if m else ""
@@ -165,7 +184,7 @@ def _assemble(spec):
                                           raw, flags=re.M | re.I)).strip()
         if not section:
             continue
-        section = _org_fixups(section)
+        section = _org_fixups(_carry_footnotes(section, _strip_noise(raw)))
         section = _namespace_footnotes(section, f"s{i}")
         if multi:
             # demote the file's inner headings one level so they nest under its H2
@@ -186,11 +205,55 @@ def _pandoc(org_text, bib):
                           check=True).stdout
 
 
+_FN_REF = re.compile(r'<a\s+href="#fn(\d+)"\s+class="footnote-ref"\s+id="fnref(\d+)"'
+                     r'\s+role="doc-noteref"><sup>\d+</sup></a>')
+_FN_ITEM = re.compile(r'<li\s+id="fn(\d+)">(.*?)</li>\s*(?=<li\s+id="fn\d+">|</ol>)', re.S)
+_FN_BACK = re.compile(r'<a\s+href="#fnref\d+"\s+class="footnote-back"\s+role="doc-backlink">')
+
+
+def _merge_footnotes(html):
+    """One note per footnote text. pandoc gives every reference to a named
+    org footnote its own copy; keep the first, point every reference at it
+    and renumber. Adjacent marks get a comma, so 1 and 2 do not read as 12."""
+    m = re.search(r'<section id="footnotes"[^>]*>.*?<ol>(.*?)</ol>', html, re.S)
+    if not m:
+        return html
+    number, keep, seen = {}, [], {}
+    for old, body in _FN_ITEM.findall(m.group(1)):
+        key = " ".join(_FN_BACK.sub("", body).split())
+        if key not in seen:
+            seen[key] = len(keep) + 1
+            keep.append(body)
+        number[old] = seen[key]
+    first_ref = {}
+    for r in _FN_REF.finditer(html):
+        first_ref.setdefault(number.get(r.group(1)), r.group(2))
+    notes = "".join(
+        f'<li id="fn{i}">'
+        + _FN_BACK.sub(f'<a href="#fnref{first_ref.get(i, i)}" class="footnote-back" '
+                       'role="doc-backlink">', body)
+        + "</li>\n"
+        for i, body in enumerate(keep, 1))
+    html = html[:m.start(1)] + "\n" + notes + html[m.end(1):]
+
+    def ref(r):
+        n = number.get(r.group(1))
+        if n is None:
+            return r.group(0)
+        return (f'<a href="#fn{n}" class="footnote-ref" id="fnref{r.group(2)}" '
+                f'role="doc-noteref"><sup>{n}</sup></a>')
+
+    html = _FN_REF.sub(ref, html)
+    return re.sub(r'(role="doc-noteref"><sup>\d+</sup></a>)(?=<a href="#fn\d+" class="footnote-ref")',
+                  r'\1<sup class="footnote-sep">,</sup>', html)
+
+
 def _postprocess(html, org_dir, out_dir):
     """Neutralize internal org links and copy referenced figures locally."""
     # [[id:...]] cross-note links -> plain text. pandoc wraps output, so <a and
     # href may be separated by a newline.
     html = re.sub(r'<a\s+href="id:[^"]*"[^>]*>(.*?)</a>', r"\1", html, flags=re.S)
+    html = _merge_footnotes(html)
 
     # Copy only figures not already present locally: figures are owned by
     # figures/build.py (in-repo generators), so we don't clobber them here --

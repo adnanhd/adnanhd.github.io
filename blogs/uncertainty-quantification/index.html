@@ -77,9 +77,7 @@ data-cites="vovk_algorithmic_2005 angelopoulos_gentle_2021">(Vovk et al.
 2005; Angelopoulos and Bates 2021)</span> sidesteps the probabilistic
 modeling question entirely and instead delivers a distribution-free
 finite-sample coverage guarantee at a target level
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>α</mi></mrow><annotation encoding="application/x-tex">1 - \alpha</annotation></semantics></math><a
-href="#fn1" class="footnote-ref" id="fnref1"
-role="doc-noteref"><sup>1</sup></a>. The trade-off is that individual
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>α</mi></mrow><annotation encoding="application/x-tex">1 - \alpha</annotation></semantics></math><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. The trade-off is that individual
 set sizes can be large if the base model is poor.</p>
 <p>OOD detection is the sister literature that reuses these signals as
 scores for a binary "in-distribution vs. out-of-distribution" classifier
@@ -221,8 +219,7 @@ calibration dominates accuracy-matched cost: one extra scalar parameter
 (the temperature
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>)
 reduces ECE by roughly an order of magnitude on CIFAR-100 at zero
-accuracy cost<a href="#fn2" class="footnote-ref" id="fnref2"
-role="doc-noteref"><sup>2</sup></a> <span class="citation"
+accuracy cost<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> <span class="citation"
 data-cites="guo_calibration_2017">(Guo et al. 2017)</span>, making
 temperature scaling the default first step for any deployed classifier.
 Second, OOD detection and calibration are separate problems: a perfectly
@@ -460,8 +457,7 @@ guarantee fails outright under covariate shift, label shift, or temporal
 drift. Weighted conformal <span class="citation"
 data-cites="tibshirani_covariate_2019">(Tibshirani et al. 2019)</span>
 restores coverage when the shift's likelihood ratio is known, but the
-ratio itself is rarely available in practice.<a href="#fnref1"
-class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+ratio itself is rarely available in practice.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn2"><p><em>ECE bin-choice sensitivity</em>: with 15 bins the
 calibration error of a recalibrated ImageNet VGG16 reads about 0.02,
 while finer binning shows it is at least twice as high <span
@@ -469,19 +465,7 @@ class="citation" data-cites="kumar_verified_2019">(Kumar et al.
 2019)</span>, so reported ECE numbers are only comparable across papers
 that fix the same binning scheme. Adaptive binning (one bin per
 quantile, plus debiased estimators) reduces variance but is not yet the
-field default.<a href="#fnref2" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
-<li id="fn3"><p><em>Near-OOD vs far-OOD</em>: the CIFAR-10 vs SVHN
-benchmark is <em>far-OOD</em> (different image domain, different label
-space) and is empirically easy; near-OOD benchmarks like CIFAR-10 vs
-CIFAR-100 (same image domain, disjoint label space) are harder (for a
-CIFAR-10 WideResNet, MSP AUROC 87.9% against 91.8% for SVHN, and 93.3%
-against 98.4% after outlier exposure <span class="citation"
-data-cites="hendrycks_outlier_exposure_2019">(Hendrycks et al.
-2019)</span>) and are arguably more diagnostic of deployment-time
-behavior. Reporting only far-OOD numbers (the historical default)
-overstates progress.<a href="#fnref3" class="footnote-back"
-role="doc-backlink">↩︎</a></p></li>
+field default.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section>
 
