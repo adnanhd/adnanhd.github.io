@@ -1766,6 +1766,7 @@ a:hover {
     color: var(--text-muted);
     font-size: 0.82em;
     text-decoration: none;
+    white-space: nowrap;
 }
 .blog-tag-inline:hover {
     color: var(--accent-color);
@@ -1903,8 +1904,24 @@ a:hover {
 
 .blog-filters {
     display: flex;
-    align-items: flex-start;
+    /* the tag box, the first row of chips and the toggle share a baseline */
+    align-items: baseline;
     gap: 8px;
+}
+
+/* Phones: the tag box takes its own row, so the chip row keeps room for
+   a whole chip. */
+@media (max-width: 600px) {
+    .blog-filters {
+        flex-wrap: wrap;
+    }
+    .tag-search {
+        flex: 1 0 100%;
+    }
+    .tag-chips {
+        flex-basis: 0;
+        min-width: 0;
+    }
 }
 
 .blog-filter {
@@ -2777,9 +2794,11 @@ footer {
 }
 
 /* ---- Open Source project cards ---- */
-.repos-list {
+/* Media post cards share the grid, so both card kinds have one width. */
+.repos-list,
+.social-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
 }
 
@@ -2828,7 +2847,8 @@ footer {
 
 .work-head {
     display: flex;
-    align-items: center;
+    /* the icon sits on the title line, with or without the repo line */
+    align-items: flex-start;
     gap: 10px;
 }
 
@@ -2889,8 +2909,9 @@ footer {
 }
 
 @media (max-width: 768px) {
-    .repos-list {
-        grid-template-columns: 1fr;
+    .repos-list,
+    .social-grid {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
@@ -3144,9 +3165,6 @@ footer {
 /* Recent Posts (curated X / LinkedIn embeds)                           */
 /* ------------------------------------------------------------------ */
 .social-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 18px;
     align-items: start;
 }
 .social-card {
@@ -3208,7 +3226,8 @@ footer {
     color: var(--text-secondary);
     line-height: 1.5;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    /* room for a two-sentence excerpt in the narrowest (300px) card */
+    -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -3256,11 +3275,6 @@ footer {
 }
 .rss-badge i {
     font-size: 11px;
-}
-@media (max-width: 600px) {
-    .social-grid {
-        grid-template-columns: 1fr;
-    }
 }
 
 /* Mobile polish for this session's new sidebar elements. On mobile the sidebar
@@ -3658,7 +3672,8 @@ html {
         width: 26pt !important;
     }
     .layout-plain .content-section > h2 ~ *,
-    .layout-plain .content-section:not(:has(> h2)) > * {
+    .layout-plain .content-section > .section-head ~ *,
+    .layout-plain .content-section:has(> h2) ~ .content-section:not(:has(> h2, > .section-head)) > * {
         margin-left: 0;
     }
     /* Co-authors print plain; only the owner's name is bold. */
@@ -3669,10 +3684,12 @@ html {
     }
 }
 
-/* Section bodies sit slightly inside their heading; a section without
-   a heading lines up with the bodies of the others. */
+/* Section bodies sit slightly inside their heading (an h2, or the
+   .section-head row that holds one); a heading-less section after headed
+   ones lines up with their bodies. */
 .layout-plain .content-section > h2 ~ *,
-.layout-plain .content-section:not(:has(> h2)) > * {
+.layout-plain .content-section > .section-head ~ *,
+.layout-plain .content-section:has(> h2) ~ .content-section:not(:has(> h2, > .section-head)) > * {
     margin-left: 16px;
 }
 
