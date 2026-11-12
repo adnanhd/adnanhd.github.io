@@ -103,7 +103,7 @@ The same artifacts also publish to a separate host via plain `rsync`:
 ```bash
 rsync -av --delete \
   index.html 404.html sitemap.xml robots.txt feed.xml resume.pdf cv.pdf \
-  assets projects blogs \
+  assets projects blogs cv figures timeline pagefind \
   user@host:public_html/
 ```
 
