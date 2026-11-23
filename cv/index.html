@@ -364,8 +364,8 @@
 <div class="resume-subheader resume-advisor"><span><strong>Supervisor:</strong> Assist. Prof. Dr. <a href="https://user.ceng.metu.edu.tr/~alemdar/" target="_blank" rel="noopener noreferrer">Hande Alemdar</a>, Assist. Prof. Dr. <a href="https://scholar.google.com/citations?user=s7AP0ygAAAAJ" target="_blank" rel="noopener noreferrer">Ozgur Ugras Baran</a></span><span class="resume-commitment">Ankara, Turkey</span></div>
 <div class="resume-advisor"><strong>Topic:</strong> Conservation flux informed neural networks and adaptive mesh refinement for transonic airfoils</div>
 <ul class="resume-bullets">
-<li>Implemented an <a href="https://doi.org/10.1007/BF01414629" target="_blank" rel="noopener noreferrer">HLLC Riemann solver</a> momentum flux loss on airfoil flow pixels, cutting drag error by 15%</li>
-<li>Trained <a href="https://github.com/Rakuen88/CNNFOIL/blob/4faac372dfa4d39a648b7de22cfb88eaca333086/network.py#L5" target="_blank" rel="noopener noreferrer">CNN</a>, <a href="https://github.com/neuraloperator/neuraloperator/blob/a6648eeeb60fe0837f2d7d021517a945a159a0c8/neuralop/models/fno.py#L25" target="_blank" rel="noopener noreferrer">FNO</a>, <a href="https://github.com/google-research/vision_transformer/blob/64801f1b3b367b3611cc27a3d45cc22870a36fb3/vit_jax/models_vit.py#L211" target="_blank" rel="noopener noreferrer">ViT</a> and <a href="https://github.com/jhbastek/PhysicsInformedDiffusionModels/blob/733aeb0fe8e56f8d1b3aaf9ff24f340438c20d9a/src/denoising_utils.py#L308" target="_blank" rel="noopener noreferrer">diffusion</a> models with and without the momentum flux loss on transonic flows</li>
+<li>Implemented a conservation loss on <a href="https://doi.org/10.1007/BF01414629" target="_blank" rel="noopener noreferrer">HLLC Riemann</a> momentum residuals, cutting drag error 15% (arXiv 2026)</li>
+<li>Ablated the loss across <a href="https://github.com/Rakuen88/CNNFOIL/blob/4faac372dfa4d39a648b7de22cfb88eaca333086/network.py#L5" target="_blank" rel="noopener noreferrer">CNN</a>, <a href="https://github.com/neuraloperator/neuraloperator/blob/a6648eeeb60fe0837f2d7d021517a945a159a0c8/neuralop/models/fno.py#L25" target="_blank" rel="noopener noreferrer">FNO</a>, <a href="https://github.com/google-research/vision_transformer/blob/64801f1b3b367b3611cc27a3d45cc22870a36fb3/vit_jax/models_vit.py#L211" target="_blank" rel="noopener noreferrer">ViT</a> and <a href="https://github.com/jhbastek/PhysicsInformedDiffusionModels/blob/733aeb0fe8e56f8d1b3aaf9ff24f340438c20d9a/src/denoising_utils.py#L308" target="_blank" rel="noopener noreferrer">diffusion</a> surrogates, measuring drag and lift coefficient error</li>
 <li>Refined transonic GNN airfoil meshes at <a href="https://doi.org/10.1006/jcph.1999.6238" target="_blank" rel="noopener noreferrer">Ducros</a>-flagged shocks, cutting the area-based RMSE by 12%</li>
 </ul>
 
@@ -381,8 +381,9 @@
 <div class="resume-advisor"><strong>Project:</strong> Intrusion Detection and Prevention for Software-Defined Container Networks (<a href="https://tubitak.gov.tr/en/funds/academic/national-support-programs/3501-career-development-program-career" target="_blank" rel="noopener noreferrer">TUBITAK 3501</a>)</div>
 <div class="resume-advisor"><strong>Topic:</strong> Classical ML intrusion detection (XGBoost, random forests) for microservices on Kubernetes</div>
 <ul class="resume-bullets">
-<li>Compared XGBoost and random-forest anomaly detectors on container system-call and network-flow features</li>
+<li>Compared XGBoost and random-forest detectors on container system calls and network flows (SRMC 2022)</li>
 <li>Built a public <a href="https://github.com/yigitsever/kubernetes-dataset" target="_blank" rel="noopener noreferrer">Kubernetes misuse dataset</a> of network flows from 10 labelled attack scenarios (ITU JFET 2023)</li>
+<li>Benchmarked classical and deep-learning misuse detectors on our public system-call <a href="https://www.kaggle.com/datasets/yigitsever/misuse-detection-in-containers-dataset/" target="_blank" rel="noopener noreferrer">dataset</a> (AINA 2024)</li>
 </ul>
 <div class="entry-awards"><div class="entry-award"><a href="https://tubitak.gov.tr/en/scholarships/degree-associate-degree/scholarship-programs/2247-c-star-intern-researcher-scholarship-programme" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-award" aria-hidden="true"></i> <span class="award-name">TUBITAK 2247-C STAR&#x27;22 Scholarship</span> <span class="award-org">- The Scientific and Technological Research Institution of Turkey (TUBITAK)</span></a></div></div>
 
@@ -399,7 +400,7 @@
 <li>Adapted <a href="https://jmlr.org/papers/v21/20-074.html" target="_blank" rel="noopener noreferrer">T5</a> to Turkish irony detection, its first use for the task, reaching 59.5% accuracy (DaWaK 2021)</li>
 <li>Fine-tuned BERT with <a href="https://github.com/ThilinaRajapakse/simpletransformers" target="_blank" rel="noopener noreferrer">Simple Transformers</a>, reaching 69.0% accuracy on Turkish irony detection data</li>
 <li>Crawled scientific papers and their Twitter mentions as training data for research impact prediction models</li>
-<li>Applied LDA, K-Means and rule-based VADER sentiment to 1,742 reviews of Cappadocia&#x27;s underground sites</li>
+<li>Clustered 1,742 Cappadocia underground-site reviews with LDA topic models and K-Means (CNR Edizioni 2023)</li>
 </ul>
 
 
